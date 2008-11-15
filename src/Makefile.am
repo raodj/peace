@@ -44,6 +44,8 @@ FMWSCA.cpp\
 FMWSCA.h\
 FWAnalyzer.cpp\
 FWAnalyzer.h\
+MatrixFileAnalyzer.h \
+MatrixFileAnalyzer.cpp \
 HTMLHeader.h\
 main.cpp\
 ResultLog.cpp\

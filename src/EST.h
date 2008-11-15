@@ -60,6 +60,11 @@ public:
         as the parameter.  The EST names are expected to be unique in
         a given file.
 
+	\note If the new EST is successfully instantiated, then this
+	method adds the newly created EST to the end of the list of
+	ESTs maintianed by this class.  Consequenlty, the parameter \c
+	id must be equal to estList.size().
+	
         \param[in] id The unqiue ID value to be set for this EST.
         
         \param[in] info The name and other information associated with
@@ -79,7 +84,7 @@ public:
         ID is not present, then this method creates a new EST and
         returns a pointer to that EST back to the caller.
     */
-    static EST* create(const int id, const char *name,
+    static EST* create(const int id, const char *info,
                        const char* sequence = NULL,
                        const long offset = -1);
 

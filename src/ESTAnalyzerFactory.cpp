@@ -27,6 +27,7 @@
 
 #include "FMWSCA.h"
 #include "CLU.h"
+#include "MatrixFileAnalyzer.h"
 
 void
 ESTAnalyzerFactory::displayList(std::ostream &os) {
@@ -36,6 +37,8 @@ ESTAnalyzerFactory::displayList(std::ostream &os) {
         {"fmwsca", "Framed, Multi-Word String Compare Analyzer",
          NULL, arg_parser::STRING},
         {"clu", "CLU's similarity metric generation algorithm",
+         NULL, arg_parser::STRING},
+        {"matrixFile", "Use distance data stored in a matrix file",
          NULL, arg_parser::STRING},
         {NULL, NULL}
     };
@@ -59,6 +62,8 @@ ESTAnalyzerFactory::create(const char* name, const int refESTidx,
         return new FMWSCA(refESTidx, outputFileName);
     } else if (!strcmp("clu", name)) {
         return new CLU(refESTidx, outputFileName);
+    } else if (!strcmp("matrixFile", name)) {
+        return new MatrixFileAnalyzer(refESTidx, outputFileName);
     }
     
     // invalid analyzer name!
@@ -67,4 +72,3 @@ ESTAnalyzerFactory::create(const char* name, const int refESTidx,
 }
 
 #endif
-

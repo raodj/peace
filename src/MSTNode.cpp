@@ -30,15 +30,15 @@
 
 std::ostream&
 operator<<(std::ostream& os, const MSTNode& node) {
-    os << "parentIdx="    << node.parentIdx
-       << ", estIdx="     << node.estIdx
-       << ", similarity=" << node.similarity;
+    os << "parentIdx=" << node.parentIdx
+       << ", estIdx="  << node.estIdx
+       << ", metric="  << node.metric;
     return os;
 }
 
 void
 MSTNode::serialize(std::ostream& os) const {
-    os << parentIdx << "," << estIdx << "," << similarity << std::endl;
+    os << parentIdx << "," << estIdx << "," << metric << std::endl;
 }
 
 int
@@ -72,7 +72,7 @@ MSTNode::deSerialize(std::istream& is, MSTNode& node) {
             done = true;
             // Extract the three fields from the line.
             if (sscanf(line, "%d,%d,%f", &node.parentIdx,
-                       &node.estIdx, &node.similarity) != 3) {
+                       &node.estIdx, &node.metric) != 3) {
                 // Error occured when processing this line.
                 std::cerr << "Non-comment line with invalid format "
                           << "encountered." << std::endl;

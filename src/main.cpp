@@ -84,9 +84,10 @@ int
 main(int argc, char* argv[]) {
     // Values of the following variables are processed by the argument
     // parser further below.
+    char emptyString[1]={'\0'};
     char *analyzerName = NULL;
     char *clusterName  = NULL;
-    char *outputFile   = "";
+    char *outputFile   = emptyString;
     bool showOptions   = false;
     int  refESTidx     = -1;
 
@@ -108,7 +109,7 @@ main(int argc, char* argv[]) {
     // Perform any mpi initialization as needed
     MPI::Init(argc, argv);
     // Get the argument parser to parse and consume the global
-    // options.  Based on the options supplied various variables will
+    // options.  Based on the options supplied, various variables will
     // be set to appropriate values.
     arg_parser ap(arg_list);
     ap.check_args(argc, argv, false);

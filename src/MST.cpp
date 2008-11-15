@@ -55,8 +55,9 @@ MST::serialize(const char *fileName, const char *srcFile) const {
             << "# Generated on "    << getTime(now)
             << "# Generated from source file: " << srcFile << "\n"
             << "# Source file timestamp: " << getTimeStamp(srcFile, srcTimeStr)
-            << "# Data format: <parentESTidx>,<estIdx>,<similarityMetric>\n";
-
+            << "# Data format: <parentESTidx>,<estIdx>,<similarityMetric>\n"
+            << "# Total MST distance: " << getMSTDistance() << "\n";
+    
     // Stream the data out to the file.
     for(size_t i = 0; (i < nodeList.size()); i++) {
         nodeList[i].serialize(outFile);
@@ -97,6 +98,16 @@ MST::deSerialize(const char *fileName) {
     inFile.close();
     // Return the newly created MST (if any) back to the caller
     return mst;
+}
+
+float
+MST::getMSTDistance() const {
+    float distance = 0;
+    for(size_t idx = 0; (idx < nodeList.size()); idx++) {
+        distance += nodeList[idx].getMetric();
+    }
+    // Return the total distance.
+    return distance;
 }
 
 std::ostream&

@@ -68,6 +68,21 @@ EST::unpopulate() {
 }
 
 EST*
+EST::create(const int id, const char *info,
+            const char* sequence, const long offset) {
+    if (id != (int) estList.size()) {
+        // This id is not acceptable. Sorry.
+        return NULL;
+    }
+    // Instantiate new EST
+    EST *newEST = new EST(id, info, sequence, offset);
+    // Add est to end of the est list.
+    estList.push_back(newEST);
+    // return the newly created EST back tot he caller
+    return newEST;
+}
+
+EST*
 EST::create(FILE* fastaFile, int& lineNum) {
     // Some basic validation on the fastFile first.
     if (feof(fastaFile) || ferror(fastaFile)) {

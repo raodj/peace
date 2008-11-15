@@ -130,9 +130,16 @@ public:
         comparisons, comparing metrics, and ordering entries in this
         cache depending on the type of EST analyzer (whether it is
         similarity based or distance metric based).
+
+	\param[in] repopulateCaches If this parameter is \c true then
+	the MSTCache will request lists to be repopulated when
+	needed. Repopulating lists guarantees that ultimately a MST
+	will be developed.  If repopulation is suppressed then the
+	resulting spanning tree may not be a MST.
     */
     MSTCache(const int totalESTCount, const int startOwnESTidx,
-             const int numOwnESTs, const ESTAnalyzer *analyzer);
+             const int numOwnESTs, const ESTAnalyzer *analyzer,
+             const bool repopulateCaches);
 
     /** The destructor.
         
@@ -354,7 +361,10 @@ protected:
         */
         const ESTAnalyzer *const comparator;
     };
-    
+
+    static void copy_n(const SMList& input, const size_t count, 
+                       SMList &output);
+
 private:
     /**  The analyzer to be used for any EST comparison.
          
@@ -429,6 +439,20 @@ private:
 	is suitably adjusted.
     */
     long analysisCount;
+
+    /** Flag to control if caches must be repopulated.
+
+	<p> If this parameter is \c true then the MSTCache will
+	request lists to be repopulated when needed. Repopulating
+	lists guarantees that ultimately a MST will be developed.  If
+	repopulation is suppressed then the resulting spanning tree
+	may not be a MST. </p>
+
+        <p> This value is set in the constructor and is never changed
+        during the life time of this object. </p>
+        
+    */
+    const bool repopulateCaches;
 };
 
 #endif
