@@ -32,11 +32,12 @@
 
 MSTCache::MSTCache(const int totalESTCount, const int startESTidx,
                    const int numOwnESTs,
-                   const ESTAnalyzer *estAnalyzer) :
+                   const ESTAnalyzer *estAnalyzer,
+                   const bool repopulate) :
     analyzer(estAnalyzer), cache(numOwnESTs),
     nodesAdded(totalESTCount, false),
     startOwnESTidx(startESTidx), cacheRepopulation(0),
-    prunedEntries(0), analysisCount(0) {
+    prunedEntries(0), analysisCount(0), repopulateCaches(repopulate) {
     // Nothing else to be done for now in the constructor.
 }
 
@@ -61,7 +62,7 @@ MSTCache::pruneCaches(const int estIdxAdded,
             // Nothing to prune if the list is already empty.
             continue;
         }
-        if (pruneCache(entry.second, estIdxAdded)) {
+        if (pruneCache(entry.second, estIdxAdded) && repopulateCaches) {
             // If pruning the SMList made the list empty then it needs
             // to be repopulated.
             repopulateList.push_back(entry.first);
@@ -90,13 +91,24 @@ MSTCache::pruneCache(SMList& list, const int estIdx) {
             prunedEntries++;
             // Erase entry and reset the iterator
             curr = list.erase(curr);
-        } else {
+        }  else {
             // On to the next SMEntry
             curr++;
         }
     }
     
     return list.empty();
+}
+
+void
+MSTCache::copy_n(const SMList& input, const size_t count, SMList &output) {
+    // Get minimum of input.size() or count to ensure we never exceed
+    // the number of elements in input list.
+    const size_t stopIndex = (count < input.size()) ? count : input.size();
+    // Copy the necessary elements from input to output...
+    for(size_t index = 0; (index < stopIndex); index++) {
+        output.push_back(input[index]);
+    }
 }
 
 void
@@ -152,8 +164,7 @@ MSTCache::mergeList(const int estIdx, const SMList& list,
             cacheList = SMList(maxCacheSize);
         }
         // Copy only the maxCacheSize entries...
-        std::copy(mergedList.begin(), mergedList.begin() + maxCacheSize,
-                  cacheList.begin());
+        MSTCache::copy_n(mergedList, maxCacheSize, cacheList);
     } else  {
         // Copy the whole merged set of entries
         cacheList = mergedList;

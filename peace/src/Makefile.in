@@ -69,11 +69,12 @@ binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
 am_peace_OBJECTS = arg_parser.$(OBJEXT) ESTAnalyzer.$(OBJEXT) \
 	ESTAnalyzerFactory.$(OBJEXT) EST.$(OBJEXT) FMWSCA.$(OBJEXT) \
-	FWAnalyzer.$(OBJEXT) main.$(OBJEXT) ResultLog.$(OBJEXT) \
-	Utilities.$(OBJEXT) ClusterMaker.$(OBJEXT) \
-	ClusterMakerFactory.$(OBJEXT) MSTNode.$(OBJEXT) MST.$(OBJEXT) \
-	MSTCache.$(OBJEXT) MSTClusterMaker.$(OBJEXT) CLU.$(OBJEXT) \
-	MSTCluster.$(OBJEXT) MPIStats.$(OBJEXT)
+	FWAnalyzer.$(OBJEXT) MatrixFileAnalyzer.$(OBJEXT) \
+	main.$(OBJEXT) ResultLog.$(OBJEXT) Utilities.$(OBJEXT) \
+	ClusterMaker.$(OBJEXT) ClusterMakerFactory.$(OBJEXT) \
+	MSTNode.$(OBJEXT) MST.$(OBJEXT) MSTCache.$(OBJEXT) \
+	MSTClusterMaker.$(OBJEXT) CLU.$(OBJEXT) MSTCluster.$(OBJEXT) \
+	MPIStats.$(OBJEXT)
 peace_OBJECTS = $(am_peace_OBJECTS)
 am__DEPENDENCIES_1 =
 peace_DEPENDENCIES = $(am__DEPENDENCIES_1)
@@ -206,6 +207,8 @@ FMWSCA.cpp\
 FMWSCA.h\
 FWAnalyzer.cpp\
 FWAnalyzer.h\
+MatrixFileAnalyzer.h \
+MatrixFileAnalyzer.cpp \
 HTMLHeader.h\
 main.cpp\
 ResultLog.cpp\
@@ -330,6 +333,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MSTCluster.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MSTClusterMaker.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MSTNode.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MatrixFileAnalyzer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ResultLog.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Utilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/arg_parser.Po@am__quote@

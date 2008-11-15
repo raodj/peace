@@ -37,6 +37,7 @@
 
 // The static instance variables for command line arguments.
 int    MSTClusterMaker::cacheSize     = 128;
+bool   MSTClusterMaker::noCacheRepop  = false;
 bool   MSTClusterMaker::strictOrder   = false;
 char*  MSTClusterMaker::inputMSTFile  = NULL;
 char*  MSTClusterMaker::outputMSTFile = NULL;
@@ -48,6 +49,8 @@ double MSTClusterMaker::percentile    = 1.0;
 arg_parser::arg_record MSTClusterMaker::argsList[] = {
     {"--cache", "#similarity metrics to cache per EST",
      &MSTClusterMaker::cacheSize, arg_parser::INTEGER},
+    {"--no-cache-repop", "Suppress EST cache repopulation",
+     &MSTClusterMaker::noCacheRepop, arg_parser::BOOLEAN},    
     {"--percentile", "Percentile deviation to use to compute threshold value",
      &MSTClusterMaker::percentile, arg_parser::DOUBLE},
     {"--no-order", "Disable strict order of processing messages",
@@ -283,7 +286,8 @@ MSTClusterMaker::workerProcessRequests() {
             // Fudge the similarity into the bestEntry array to
             // transmitt the necessary information to the manager.
             // Maybe there is a cleaner way to do it too...
-            bestEntry[2] = *((int *) &similarity);
+            int *temp    = reinterpret_cast<int*>(&similarity);
+            bestEntry[2] = *temp;
             MPI_SEND(bestEntry, 3, MPI::INT, MANAGER_RANK,
                      MAX_SIMILARITY_RESPONSE);
         }
@@ -448,7 +452,8 @@ MSTClusterMaker::makeClusters() {
         int startESTidx, endESTidx;
         getOwnedESTidx(startESTidx, endESTidx);
         cache = new MSTCache(EST::getESTList().size(), startESTidx,
-                             endESTidx - startESTidx, analyzer);
+                             endESTidx - startESTidx, analyzer,
+                             !noCacheRepop);
         // Act as manager or worker depending on MPI rank.
         if (MPI::COMM_WORLD.Get_rank() == MANAGER_RANK) {
             // Get this MPI process to act as the manager.

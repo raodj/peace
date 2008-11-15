@@ -24,7 +24,7 @@
 #
 #---------------------------------------------------------------------------
 
-GLOBALCXXFLAGS  = -Wall -pipe -g -DDEVELOPER_ASSERTIONS $(ICC_NO_WARN_SOME)
+GLOBALCXXFLAGS  = -Wall -pipe -g -DDEVELOPER_ASSERTIONS $(ICC_NO_WARN_SOME) -O3
 GLOBALCPPFLAGS  = 
 
 # INCLUDES = 

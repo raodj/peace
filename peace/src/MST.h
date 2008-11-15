@@ -34,7 +34,7 @@
 */
 typedef std::vector<MSTNode> NodeList;
 
-/** Class to represent a Minimum Spanning Tree (MST).
+/** \brief Class to represent a Minimum Spanning Tree (MST).
 
     This class is used to represent a MST that is built by the
     MSTClusterMaker.  It essentially maintains a vector of MSTNode
@@ -47,11 +47,16 @@ class MST {
     // Insertion operator to make dumping MST for debugging easier.
     friend std::ostream& operator<<(std::ostream&, const MST&);    
 public:
-    /** The default constructor.
+    /** The constructor.
 
         The default constructor for the MST.  The constructor performs
         no special operations and is present merely to adhere to
         coding conventions.
+
+        \param[in] maxNodes The number of nodes for which space must
+        be initially reserved.  Reserving space reduces the number of
+        times the MST has to reallocate memory as nodes are added to
+        it.
     */
     MST(const int maxNodes);
 
@@ -123,6 +128,18 @@ public:
         newly created (and populated) MST.  On errors it returns NULL.
     */
     static MST* deSerialize(const char *fileName);
+
+    /** Obtain the total distance of this MST.
+
+        This method can be used to determine the total distance of the
+        MST. This method iterates over all the nodes present in the
+        MST and adds the distance/similarity metric together.  It then
+        returns the total.
+
+        \return The total MST distance for this MST.  If the MST has
+        one (or zero) nodes then this method returns 0 (zero).
+    */
+    float getMSTDistance() const;
     
 private:
     /** The list of nodes in this MST.

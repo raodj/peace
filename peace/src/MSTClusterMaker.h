@@ -215,6 +215,25 @@ protected:
         program is written to the specified file.
     */
     static char* outputMSTFile;
+
+    /** Command line option to suppress cache repopulation.
+	
+        <p> If this member variable is \c true, then this class does
+        not repopulate caches once a EST cache becomes empty.  By
+        default this variable is initialized to \c false.  However,
+        the value can be changed by the user through command line
+        argument (--no-cache-repop).  The change of value occurs in
+        the parseArguments() method if the user has specified an
+        option to override the default.</p>
+
+	<p> If this parameter is not specified then the MSTCache will
+	request lists to be repopulated when needed.  Repopulating
+	lists guarantees that ultimately a MST will be developed.  If
+	repopulation is suppressed via this parameter then the
+	resulting spanning tree may not be a MST; however computation
+	time decreases. </p>
+    */
+    static bool noCacheRepop;
     
     /** Helper method to perform manager tasks.
 

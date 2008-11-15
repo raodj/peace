@@ -60,7 +60,7 @@ MSTCluster::makeClusters(NodeList& nodeList, const int percentile) {
     // sub clusters.
     for(NodeList::const_iterator node = nodeList.begin();
         (node != nodeList.end()); node++) {
-        if ((*node).similarity >= threshold) {
+        if ((*node).getMetric() >= threshold) {
             // Possibly this goes in a different cluster?
             continue;
         }
@@ -118,7 +118,7 @@ MSTCluster::calculateThreshold(const NodeList& nodeList,
     // determine mean and standard deviation.
     for(NodeList::const_iterator curr = nodeList.begin();
         (curr != nodeList.end()); curr++) {
-        const float sim = (*curr).similarity;
+        const float sim = (*curr).getMetric();
         totalSim    += sim;
         totalSimSqr += (sim * sim);
     }
