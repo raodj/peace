@@ -69,7 +69,7 @@ binPROGRAMS_INSTALL = $(INSTALL_PROGRAM)
 PROGRAMS = $(bin_PROGRAMS)
 am_peace_OBJECTS = arg_parser.$(OBJEXT) ESTAnalyzer.$(OBJEXT) \
 	ESTAnalyzerFactory.$(OBJEXT) EST.$(OBJEXT) FMWSCA.$(OBJEXT) \
-	FWAnalyzer.$(OBJEXT) MatrixFileAnalyzer.$(OBJEXT) \
+	D2.$(OBJEXT) FWAnalyzer.$(OBJEXT) MatrixFileAnalyzer.$(OBJEXT) \
 	main.$(OBJEXT) ResultLog.$(OBJEXT) Utilities.$(OBJEXT) \
 	ClusterMaker.$(OBJEXT) ClusterMakerFactory.$(OBJEXT) \
 	MSTNode.$(OBJEXT) MST.$(OBJEXT) MSTCache.$(OBJEXT) \
@@ -205,6 +205,8 @@ EST.cpp\
 EST.h\
 FMWSCA.cpp\
 FMWSCA.h\
+D2.h\
+D2.cpp\
 FWAnalyzer.cpp\
 FWAnalyzer.h\
 MatrixFileAnalyzer.h \
@@ -322,6 +324,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CLU.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ClusterMaker.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ClusterMakerFactory.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/D2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EST.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ESTAnalyzer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ESTAnalyzerFactory.Po@am__quote@

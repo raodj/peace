@@ -178,7 +178,7 @@ MSTClusterMaker::computeNextESTidx(int& parentESTidx, int&estToAdd,
                                  workerRank, MAX_SIMILARITY_RESPONSE));
         // Undo the fudge on similarity done at the sender end.
         const float remoteSim = *((float *) (remoteData + 2));
-        if (similarity < remoteSim) {
+        if (analyzer->compareMetrics(remoteSim, similarity)) {
             // Found a higher similarity in a remote process!
             similarity   = remoteSim;
             parentESTidx = remoteData[0];
