@@ -117,6 +117,15 @@ public:
     */
     static std::vector<EST*>& getESTList() { return estList; }
 
+    /** Obtain the number of ESTs in this list.
+
+	This method may be used to determine the number of ESTs that
+	have been defined and added to this list.
+
+	\return The number of ESTs currently defined.
+    */
+    static int getESTCount() { return estList.size(); }
+    
     /** Obtain a given EST from the EST list.
 
 	This method is a convenience method that can be used to obtain

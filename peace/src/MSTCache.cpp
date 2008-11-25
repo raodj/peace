@@ -159,10 +159,6 @@ MSTCache::mergeList(const int estIdx, const SMList& list,
     // back to the original list of entries.
     cacheList.clear();
     if ((int) mergedList.size() > maxCacheSize) {
-        if ((int) cacheList.size() != maxCacheSize) {
-            // Ensure cacheList is of the right size first.
-            cacheList = SMList(maxCacheSize);
-        }
         // Copy only the maxCacheSize entries...
         MSTCache::copy_n(mergedList, maxCacheSize, cacheList);
     } else  {

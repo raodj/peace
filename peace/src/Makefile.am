@@ -42,6 +42,8 @@ EST.cpp\
 EST.h\
 FMWSCA.cpp\
 FMWSCA.h\
+D2.h\
+D2.cpp\
 FWAnalyzer.cpp\
 FWAnalyzer.h\
 MatrixFileAnalyzer.h \
