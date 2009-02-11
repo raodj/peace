@@ -31,18 +31,6 @@
 
 // The shared static list of ESTs currently available.
 std::vector<EST*> EST::estList;
-
-// A macro to streamline code for reading a line and handling
-// excessively long lines properly.
-#define readLine(buffer, size, file, lineNum) {          \
-        fgets(buffer, size, file);                       \
-        const int len = (int) strlen(buffer);            \
-        if (buffer[len - 1] != '\n') {                   \
-            return NULL;                                 \
-        }                                                \
-        buffer[len - 1] = '\0';                          \
-        lineNum++;                                       \
-    }
         
 EST::EST(const int idValue, const char *information, const char* seq,
          const int fileOffset) : id(idValue), offset(fileOffset),
@@ -65,6 +53,30 @@ EST::unpopulate() {
     if (sequence != NULL) {
         delete [] sequence;
     }
+}
+
+std::string
+EST::getLine(FILE *fastaFile) {
+    char buffer[1024];
+    std::string retVal;
+    char *result = NULL;
+    
+    do {
+        // Read a line from the file.
+        result = fgets(buffer, 1023, fastaFile);
+        const int len = (int) strlen(buffer);
+        if (buffer[len - 1] == '\n') {
+            // Remove trailing newline as we don't really need it.
+            buffer[len - 1] = '\0';
+            // Set result to NULL to indicate termination
+            result = NULL;
+        }
+        // Add data read from file to the string.
+        retVal += buffer;
+    } while (result != NULL);
+
+    // return the string loaded from the file back to the caller.
+    return retVal;
 }
 
 EST*
@@ -103,9 +115,9 @@ EST::create(FILE* fastaFile, int& lineNum) {
     // Ok, now read rest of the line as the information from the file.
     // The information should not exceed 1024 characters as per the
     // standard?
-    char info[1024];
     // Read header line into info.
-    readLine(info, (int) sizeof(info), fastaFile, lineNum);
+    std::string headerLine = getLine(fastaFile);
+    lineNum++;
     // Now read the actual sequence information from the fasta file.
     // This is performed until either EOF is reached or the next
     // header is detected.
@@ -117,9 +129,9 @@ EST::create(FILE* fastaFile, int& lineNum) {
             ungetc(headerChar, fastaFile);
             if (headerChar != '>') {
                 // This is still sequence information. Read it in.
-                char line[1024];
-                readLine(line, (int) sizeof(line), fastaFile, lineNum);
-                sequence += line;
+                sequence += getLine(fastaFile);
+                // Track line numbers
+                lineNum++;
             }
         }
     } while (!feof(fastaFile) && !ferror(fastaFile) && (headerChar != '>'));
@@ -130,7 +142,8 @@ EST::create(FILE* fastaFile, int& lineNum) {
                        toupper);
         // Create a new est with all the information.
         const char* const seqBP = sequence.c_str();
-        EST *est = new EST((int) estList.size(), info, seqBP, offset);
+        EST *est = new EST((int) estList.size(), headerLine.c_str(), seqBP,
+                           offset);
         // Add it to the est list.
         estList.push_back(est);
         // Return newly created est back to the caller.

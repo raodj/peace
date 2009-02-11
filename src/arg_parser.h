@@ -61,7 +61,7 @@ class arg_parser {
 
 // @EndExternalProseDescription
 
-  friend std::ostream &operator<<(std::ostream &, arg_parser &);
+  friend std::ostream &operator<<(std::ostream &, const arg_parser &);
 
 public:
   enum arg_type {BOOLEAN, INTEGER, STRING, STRING_LIST, DOUBLE, LONG_LONG};
@@ -108,7 +108,7 @@ private:
 };
 
 inline 
-std::ostream &operator<<(std::ostream &os, arg_parser &ap){
+std::ostream &operator<<(std::ostream &os, const arg_parser &ap){
   const int num_spaces = 3;
   const int indentation = 2;
   

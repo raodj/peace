@@ -21,15 +21,24 @@
 #
 #---------------------------------------------------------------------------
 
-include $(top_srcdir)/Makefile.common.am
+include $(top_builddir)/Makefile.common.am
 
-AM_CPPFLAGS=$(GLOBALCPPFLAGS) 
+AM_CPPFLAGS=$(GLOBALCPPFLAGS)
 AM_CXXFLAGS=$(GLOBALCXXFLAGS)
 
-SUBDIRS = src tools
+bin_PROGRAMS = pTools
 
-EXTRA_DIST = 
-	Makefile.am\
-	Makefile.common.am
+pTools_SOURCES = \
+../src/arg_parser.cpp\
+../src/arg_parser.h\
+../src/EST.cpp\
+../src/EST.h\
+ShowAlignment.h\
+ShowAlignment.cpp\
+XFigHelper.h\
+XFigHelper.cpp\
+DrawMatrix.h\
+DrawMatrix.cpp\
+main.cpp
 
 # end of Makefile.am
