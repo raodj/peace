@@ -27,6 +27,7 @@
 #include <memory>
 #include "ESTCustomData.h"
 #include "Utilities.h"
+
 /** A single EST.
 
     This class is used to represent a single EST.  An EST object
@@ -53,6 +54,28 @@
 */
 class EST {
 public:
+    /** EST Constructor.
+
+        This constructor is used to instantiate an EST method.
+	
+        \param[in] id The unqiue ID value to be set for this EST.
+        
+        \param[in] info The name and other information associated with
+        the EST.  This information is typically the first header line
+        read from a FASTA file.  This information can be NULL.
+        
+        \param[in] sequence The actual sequence of base pairs
+        associated with this EST.  The sequence information that must
+        be used to create this EST.  The sequence information can be
+        NULL.
+        
+        \param[in] offset The offset of in the FASTA file from where
+        this EST was read.  This information can be used to conditionally
+        and rapidly load EST's from a file.        
+    */
+    EST(const int id, const char *info,
+        const char* sequence = NULL, const int offset = -1);
+  
     /** Create a valid EST.
         
         This method must be used to create a valid EST in the system.
@@ -315,7 +338,18 @@ public:
             return (x->similarity > y->similarity);
         }
     };
-     
+
+    /** Helper method to read a line from a given file.
+
+	This is a helper method that can be used to read a long line
+	from a given file.
+
+	\param[in] The file from where the line is to be read.
+
+	\return The string read from the file.
+    */
+    static std::string getLine(FILE *fp);
+    
 protected:
     /** The unique ID for this EST.
 
@@ -372,30 +406,7 @@ protected:
     */
     std::auto_ptr<ESTCustomData> customData;
     
-private:
-    /** EST Constructor.
-
-        This constructor is used to instantiate an EST from the create
-        method.
-
-        \param[in] id The unqiue ID value to be set for this EST.
-        
-        \param[in] info The name and other information associated with
-        the EST.  This information is typically the first header line
-        read from a FASTA file.  This information can be NULL.
-        
-        \param[in] sequence The actual sequence of base pairs
-        associated with this EST.  The sequence information that must
-        be used to create this EST.  The sequence information can be
-        NULL.
-        
-        \param[in] offset The offset of in the FASTA file from where
-        this EST was read.  This information can be used to conditionally
-        and rapidly load EST's from a file.        
-    */
-    EST(const int id, const char *info,
-        const char* sequence = NULL, const int offset = -1);
-    
+private:    
     /** The default constructor.
 
         The default constructor has been made private to ensure that

@@ -158,7 +158,8 @@ AC_FUNC_STRTOD
 AC_CHECK_FUNCS([bzero floor gettimeofday memset mkdir modf pow rint sqrt strcasecmp strchr strdup strstr strtol])
 
 AC_CONFIG_FILES([Makefile
-                 src/Makefile])
+                 src/Makefile
+		 tools/Makefile])
 
 AC_OUTPUT
 
