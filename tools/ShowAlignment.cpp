@@ -50,7 +50,7 @@ ShowAlignment::main(int argc, char *argv[]) {
     char *outFileName = NULL; // Output file with XFig data.
     int  srcIndex     = -1;   // index of reference gene in srcFile 
     bool showOptions  = false;
-    bool rectHeight   = -1;
+    int  rectHeight   = -1;
     
     // Create the list of valid arguments to be used by the arg_parser.
     arg_parser::arg_record arg_list[] = {
