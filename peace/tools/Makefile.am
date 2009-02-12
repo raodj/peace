@@ -27,6 +27,7 @@ AM_CPPFLAGS=$(GLOBALCPPFLAGS)
 AM_CXXFLAGS=$(GLOBALCXXFLAGS)
 
 bin_PROGRAMS = pTools
+pTools_LDADD = $(STDCPP)
 
 pTools_SOURCES = \
 ../src/arg_parser.cpp\

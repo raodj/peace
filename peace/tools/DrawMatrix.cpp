@@ -160,10 +160,15 @@ DrawMatrix::getRow(const int estCount, std::istream& inFile, char *codes) {
     // Keep reading pairs of values until EOF
     while (!data.eof()) {
         // Read d2score and est index.
-        int d2Score, estIndex;
+        int d2Score = -1, estIndex = -1;
         data >> d2Score >> estIndex;
+        if ((estIndex < 0) || (estIndex >= estCount)) {
+            std::cerr << "Invalid est index value of " << estIndex
+                      << " found in matrix file." << std::endl;
+            return false;
+        }
         // Setup code in slot in estIndex
-        codes[estIndex] = (d2Score < 40) ? GREEN : YELLOW;
+        codes[estIndex] = (char) ((d2Score < 40) ? GREEN : YELLOW);
     }
     // line of data read successfully.
     return true;
