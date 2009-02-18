@@ -75,6 +75,19 @@ MSTCluster::makeClusters(NodeList& nodeList, const int percentile) {
             clusterMap[(*node).parentIdx] = subCluster;
             // Add newly created cluster to permanent list of sub-clusters
             clusterList.push_back(subCluster);
+            // Add the parent node as well to the cluster as it would
+            // not have been added yet. To locate the parent node we
+            // need to traverse backwards in the node list from the
+            // current point.
+            NodeList::const_iterator parent = node;
+            while (parent != nodeList.begin()) {
+                if (parent->estIdx == node->parentIdx) {
+                    subCluster->add(*parent);
+                    break;
+                }
+                // Check previous node next.
+                parent--;
+            }
         }
         ASSERT ( subCluster != NULL );
         subCluster->add(*node);
