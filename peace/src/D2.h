@@ -256,7 +256,7 @@ protected:
         \param[inout] est Pointer to the EST whose reference and
         complement hash maps are to be built.
     */
-    void buildFdHashMaps(const char* sequence, int* sed, int* rcSed, 
+    void buildFdHashMaps(std::string sequence, int* sed, int* rcSed, 
 			 int* leftHash, int* rightHash);
 
     /** Helper method to update an initial frequency hash map with
@@ -264,27 +264,27 @@ protected:
 	(buildFdHashMaps initializes the frequency hashmaps for s1,
 	and we have to update them for s2 or rcS2 here)
     */
-    void initialUpdateFd(const char* sequence, int* sed, int* leftHash, 
+    void initialUpdateFd(std::string sequence, int* sed, int* leftHash, 
 			 int* rightHash, bool rc);
 
     /** Helper method to update the frequency hash maps after the frame
 	is shifted by 1 character on the reference sequence.
     */
-    void refShiftUpdateFd(const char* sequence, int* sed, int* rcSed, 
+    void refShiftUpdateFd(std::string sequence, int* sed, int* rcSed, 
 			  int* leftHash, int* rightHash, const int framePos);
 
     /** Helper method to update the frequency hash map after a 1 character
 	right-shift on a comparison sequence (either s2 or the reverse
 	complement of s2).
     */
-    void rShiftUpdateFd(const char* sequence, int* sed, int* leftHash, 
+    void rightShiftUpdateFd(std::string sequence, int* sed, int* leftHash, 
 			int* rightHash, const int framePos, bool rc);
 
     /** Helper method to update the frequency hash map after a 1 character
 	left-shift on a comparison sequence (either s2 or the reverse
 	complement of s2).
     */
-    void lShiftUpdateFd(const char* sequence, int* sed, int* leftHash, 
+    void leftShiftUpdateFd(std::string sequence, int* sed, int* leftHash, 
 			int* rightHash, const int framePos, bool rc);
 
     /** Helper method to generate the reverse-complement of a sequence.
