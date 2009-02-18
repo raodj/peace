@@ -36,6 +36,9 @@
 #define BLACK 0
 #define WHITE 2
 
+// Color code offset from where user colors start
+#define USER_COLOR_START 32
+
 #define CHECK_ARGS(condition, errorMsg)         \
     if (condition) {                            \
         std::cout << errorMsg;                  \
@@ -107,6 +110,14 @@ ShowAlignment::main(int argc, char *argv[]) {
         EST::deleteAllESTs();
         // Error loading data.
         return 3;
+    }
+    // Try and load the cluster data (if supplied)
+    if ((clstrFileName != NULL) &&
+        (!sa.loadClusterInfo(clstrFileName))) {
+        // Free up any ESTs that may have been loaded.
+        EST::deleteAllESTs();
+        // Error loading cluster information.
+        return 4;
     }
 
     // Generate the alignment information.
@@ -181,7 +192,7 @@ ShowAlignment::loadClusterInfo(const char* fileName) {
             sscanf(line.c_str(), "Cluster #%d", &clusterNum);
         } else {
             // This is a EST entry. Update color map.
-            colorMap[line] = clusterNum;
+            colorMap[line] = clusterNum + USER_COLOR_START;
         }
     } 
     // Detect if all the data was read & processed
@@ -212,7 +223,7 @@ ShowAlignment::loadFastaFile(const char* fileName) {
     return retVal;    
 }
 
-ShowAlignment::ShowAlignment(std::ostream &os) : xfig(os) {
+ShowAlignment::ShowAlignment(std::ostream &os) : xfig(os, true) {
     // Nothing much to do other to initialize variables
     refEST = NULL;
 }
@@ -295,10 +306,16 @@ ShowAlignment::drawEST(const int index, const EST* est, const int rectHeight) {
 
     // Draw rectangle if needed.
     if (rectHeight != -1) {
-        // Draw a black rectangle background for the sequence
+        // Draw a color coded rectangle background for the sequence
+        int color = 0;
+        ColorCodeMap::iterator entry = colorMap.find(est->getInfo());
+        if (entry != colorMap.end()) {
+            color = entry->second;
+        }
+        // Compute starting xfig coordinate
         const int left = (startCol + 5) * FontWidth;
         xfig.drawRect(left, row * rowHeight,
-                      (estLen * FontWidth), rectHeight);
+                      (estLen * FontWidth), rectHeight, color);
     }
     // Next draw the EST sequence itself. First note text color.
     const int colorCode = (rectHeight == -1) ? BLACK : WHITE;
