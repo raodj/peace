@@ -45,6 +45,16 @@ struct EqualStr {
     }
 };
 
+// Hasher for std::string. This hash function is needed to use std::string
+// objects as key value in hash_map
+struct StringHasher  {
+    inline size_t operator()(const std::string& s) const {
+        Hash<const char*> hasher;
+        return hasher(s.c_str());
+
+    }
+};
+
 /** \typedef A hash_map<const char *, int>
 
     A typedef for a hash map whose key is char* and contains integers.

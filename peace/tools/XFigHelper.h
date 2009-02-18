@@ -35,8 +35,13 @@ public:
 
         \param[out] os The output stream to which data has to be
         written.
+
+	\param[in] genCustomColors If this flag is set to \c true then
+	this method adds an user-defined color table to generated
+	XFig. The user-defined color table guarantees a set of visibly
+	different colors for use in applications.	
     */
-    XFigHelper(std::ostream &os);
+    XFigHelper(std::ostream &os, const bool genCustomColors = false);
 
     /** The destructor.
 
@@ -87,8 +92,21 @@ protected:
         
         This is a helper method that must be used to dump a standard
         XFig header to the supplied output file.
+
+	\param[in] genCustomColors If this flag is set to \c true then
+	this method adds an user-defined color table to generated
+	XFig. The user-defined color table guarantees a set of visibly
+	different colors for use in applications.
     */
-    void dumpHeader() const;
+    void dumpHeader(const bool genCustomColors) const;
+
+    /** Helper method generate color table.
+
+        This method is invoked from the dumpHeader() method to
+        actually generate the table of user-defined colors at the end
+        of the header.
+    */
+    void generateColorTable() const;
     
 private:
     /** The output stream to which data is to be written.

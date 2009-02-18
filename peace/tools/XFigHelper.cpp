@@ -24,9 +24,10 @@
 
 #include "XFigHelper.h"
 
-XFigHelper::XFigHelper(std::ostream &outputStream) : os(outputStream) {
+XFigHelper::XFigHelper(std::ostream &outputStream,
+                       const bool genCustomColors) : os(outputStream) {
     // Dump the XFIG header.
-    dumpHeader();
+    dumpHeader(genCustomColors);
 }
 
 XFigHelper::~XFigHelper() {
@@ -34,7 +35,7 @@ XFigHelper::~XFigHelper() {
 }
 
 void
-XFigHelper::dumpHeader() const {
+XFigHelper::dumpHeader(const bool genCustomColors) const {
     os << "#FIG 3.2  Produced by PEACE Tools 0.1\n"
        << "Landscape\n"
        << "Center\n"
@@ -45,6 +46,10 @@ XFigHelper::dumpHeader() const {
        << "-2\n"
        << "1200 2\n"
        << "0 32 #cccccc\n";
+
+    if (genCustomColors) {
+        generateColorTable();
+    }
 }
 
 void
@@ -63,8 +68,8 @@ int
 XFigHelper::drawText(const std::string& text, const int x, const int y,
                      const int fontCode, const int fontSize,
                      const int colorCode, const int level) {
-    const double FontHeight = (1200.0 / 72.0 * fontSize);
-    const int BaseLine      = (int) (FontHeight * 0.75);
+    const int FontHeight = 1200 * fontSize / 72;
+    const int BaseLine   = (int) (FontHeight * 0.75);
     
     os << "4 0 " << colorCode << " " << level << " -1 " << fontCode
        << " "    << fontSize  << " 0.0000 4 0 0 "
@@ -83,6 +88,23 @@ XFigHelper::drawRect(int x, int y, int width, int height, int colorCode) {
        << " "  << x           << " " << (y + height)
        << "\t" << x           << " " << y
        << std::endl;
+}
+
+void
+XFigHelper::generateColorTable() const {
+    // Dump custom color codes for further use.
+    int colorCode = 32;
+    for(int red = 0; (red < 256); red += 85) {
+        for(int blue = 0; (blue < 256); blue += 85) {
+            for(int green = 0; (green < 256); green += 85) {
+                char colorString[16];
+                sprintf(colorString, "#%02x%02x%02x", red, green, blue);
+                os << "0 " << colorCode << " "
+                   << colorString << "\n";
+                colorCode++;
+            }
+        }
+    }    
 }
 
 #endif
