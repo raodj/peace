@@ -45,12 +45,13 @@
 
 int
 ShowAlignment::main(int argc, char *argv[]) {
-    char *srcFileName = NULL; // File name with reference gene/transcript
-    char *estFileName = NULL; // File with generated ESTs
-    char *outFileName = NULL; // Output file with XFig data.
-    int  srcIndex     = -1;   // index of reference gene in srcFile 
-    bool showOptions  = false;
-    int  rectHeight   = -1;
+    char *srcFileName   = NULL; // File name with reference gene/transcript
+    char *estFileName   = NULL; // File with generated ESTs
+    char *outFileName   = NULL; // Output file with XFig data.
+    char *clstrFileName = NULL; // Flat cluster file
+    int  srcIndex       = -1;   // index of reference gene in srcFile 
+    bool showOptions    = false;
+    int  rectHeight     = -1;
     
     // Create the list of valid arguments to be used by the arg_parser.
     arg_parser::arg_record arg_list[] = {
@@ -59,7 +60,9 @@ ShowAlignment::main(int argc, char *argv[]) {
         {"--estFile", "FASTA file with ESTs generated from given srcFile",
          &estFileName, arg_parser::STRING},
         {"--srcIndex", "Zero-based index of source sequence in srcFile to show",
-         &srcIndex, arg_parser::INTEGER},        
+         &srcIndex, arg_parser::INTEGER},
+        {"--clstrFile", "Optional clusters output from PEACE for color coding",
+         &clstrFileName, arg_parser::STRING},
         {"--output", "File to which the XFIG output must be written",
          &outFileName, arg_parser::STRING},
         {"--rectSize", "Specify height of rectangles (no seq. chars)",
@@ -152,9 +155,42 @@ ShowAlignment::loadData(const int srcDataIndex, const char* srcFileName,
     return true;
 }
 
+
+bool
+ShowAlignment::loadClusterInfo(const char* fileName) {
+    // Try and open the cluster file
+    std::ifstream clstrFile(fileName);
+    if (!clstrFile.good()) {
+        std::cout << "Error opening clustering info. file " << fileName
+                  << std::endl;
+        return false;
+    }
+    // Now repeatedly read a line from the file and process it.
+    int clusterNum = -1; // The last seen cluster number
+    while (!clstrFile.eof() && clstrFile.good()) {
+        // Read a line from the cluster file.
+        std::string line;
+        std::getline(clstrFile, line);
+        // Process line if it is not empty.
+        if (line.size() == 0) {
+            // nothing to process on this line.
+            continue;
+        }
+        if (line.find("Cluster #") == 0) {
+            // This is a new cluster entry. Update cluster number.
+            sscanf(line.c_str(), "Cluster #%d", &clusterNum);
+        } else {
+            // This is a EST entry. Update color map.
+            colorMap[line] = clusterNum;
+        }
+    } 
+    // Detect if all the data was read & processed
+    return clstrFile.eof();
+}
+
 bool
 ShowAlignment::loadFastaFile(const char* fileName) {
-    // Try and open the FASTA file
+   // Try and open the FASTA file
     FILE *fastaFile = NULL;
     if ((fastaFile = fopen(fileName, "rt")) == NULL) {
         std::cout << "Error opening FASTA file " << fileName
@@ -173,7 +209,7 @@ ShowAlignment::loadFastaFile(const char* fileName) {
     // close the file.
     fclose(fastaFile);
     // Return if everything went well.
-    return retVal;
+    return retVal;    
 }
 
 ShowAlignment::ShowAlignment(std::ostream &os) : xfig(os) {
