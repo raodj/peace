@@ -109,13 +109,13 @@ D2::setReferenceEST(const int estIdx) {
 }
 
 void
-D2::buildFdHashMaps(const char* sequence, int* sed, int* rcSed, int* leftHash,
+D2::buildFdHashMaps(std::string sequence, int* sed, int* rcSed, int* leftHash,
 		    int* rightHash) {
     // Clear out any old entries in the hash maps.
     memset(fdHashMap, 0, sizeof(int) * MapSize);
     memset(rcFdHashMap, 0, sizeof(int) * MapSize);
     // First compute the hash for a single word.
-    ASSERT ( sequence != NULL );
+    //ASSERT ( sequence != NULL );
     int hash = 0;
     int i;
     for(i = 0; (i < wordSize); i++) {
@@ -141,10 +141,10 @@ D2::buildFdHashMaps(const char* sequence, int* sed, int* rcSed, int* leftHash,
 }
 
 void
-D2::initialUpdateFd(const char* sequence, int* sed, int* leftHash,
+D2::initialUpdateFd(std::string sequence, int* sed, int* leftHash,
 		    int* rightHash, bool rc) {
     // First compute the hash for a single word.
-    ASSERT ( sequence != NULL );
+    //ASSERT ( sequence != NULL );
     int hash = 0;
     int i;
     for(i = 0; (i < wordSize); i++) {
@@ -166,7 +166,7 @@ D2::initialUpdateFd(const char* sequence, int* sed, int* leftHash,
 }
 
 void
-D2::refShiftUpdateFd(const char* sequence, int* sed, int* rcSed,
+D2::refShiftUpdateFd(std::string sequence, int* sed, int* rcSed,
 		     int* leftHash, int* rightHash, const int framePos) {
     // update sed and fd from leftmost word falling out
     *sed+=((fdHashMap[*leftHash]--)*-2)+1;
@@ -189,7 +189,7 @@ D2::refShiftUpdateFd(const char* sequence, int* sed, int* rcSed,
 }
 
 void
-D2::rShiftUpdateFd(const char* sequence, int* sed, int* leftHash, 
+D2::rightShiftUpdateFd(std::string sequence, int* sed, int* leftHash, 
 		   int* rightHash, const int framePos, bool rc) {
     // update sed and fd from leftmost word falling out
     rc ? *sed+=((rcFdHashMap[*leftHash]++)*2)+1 : 
@@ -212,7 +212,7 @@ D2::rShiftUpdateFd(const char* sequence, int* sed, int* leftHash,
 }
 
 void
-D2::lShiftUpdateFd(const char* sequence, int* sed, int* leftHash, 
+D2::leftShiftUpdateFd(std::string sequence, int* sed, int* leftHash, 
 		   int* rightHash, const int framePos, bool rc) {
     // update sed and fd from rightmost word falling out
     rc ? *sed+=((rcFdHashMap[*rightHash]++)*2)+1 : 
@@ -249,27 +249,25 @@ D2::reverseComplement(std::string sequence) {
 
 float
 D2::analyze(const int otherEST) {
-    if (otherEST == refESTidx) {
-        return 0; // distance to self will be 0
-    } else if ((otherEST >= 0) && (otherEST < EST::getESTCount())) {
-        int sed = 0; int rcSed = 0;
-        int minSed = 200; int rcMinSed = 200;
-        int s1FramePos = 0;
-        int s1FrameLeftHash = 0; int s1FrameRightHash = 0;
-        int s2FrameLeftHash = 0; int s2FrameRightHash = 0;
-        int rcFrameLeftHash = 0; int rcFrameRightHash = 0;
-        // Get sequences
-        EST *estS1 = EST::getEST(refESTidx);
-        EST *estS2 = EST::getEST(otherEST);
-        std::string sequence = estS1->getSequence();
-        ASSERT ( sequence.size() > 0 );
-        const char* sq1 = sequence.c_str();
-        std::string sequence2=estS2->getSequence();
-        ASSERT(sequence2.size() > 0);
-        const char* sq2 = sequence2.c_str();
+  if (otherEST == refESTidx) {
+    return 0; // distance to self will be 0
+  } else if ((otherEST >= 0) && (otherEST < EST::getESTCount())) {
+    int sed = 0; int rcSed = 0;
+    int minSed = frameSize*4; int rcMinSed = frameSize*4; // won't be exceeded
+    int s1FramePos = 0;
+    int s1FrameLeftHash = 0; int s1FrameRightHash = 0;
+    int s2FrameLeftHash = 0; int s2FrameRightHash = 0;
+    int rcFrameLeftHash = 0; int rcFrameRightHash = 0;
+    // Get sequences
+    EST *estS1 = EST::getEST(refESTidx);
+    EST *estS2 = EST::getEST(otherEST);
+    std::string sq1 = estS1->getSequence();
+    ASSERT ( sq1.size() > 0 );
+    std::string sq2=estS2->getSequence();
+    ASSERT(sq2.size() > 0);
 
-        // create RC of S2
-        const char* sqRC = reverseComplement(sequence2).c_str();
+    // create RC of S2
+    std::string sqRC = reverseComplement(sq2);
 
         //printf("%d %d\n", wordSize, frameSize);
  
@@ -282,50 +280,52 @@ D2::analyze(const int otherEST) {
 
         //printf("%d %d\n", sed, rcSed);
 
-        const int numFramesS1 = strlen(sq1) - frameSize;
-        const int numFramesS2 = strlen(sq2) - frameSize;
+        const int numFramesS1 = sq1.size() - frameSize;
+        const int numFramesS2 = sq2.size() - frameSize;
         // numWordsRC_S2 is same as numWordsS2
 
-        // Main d2 algorithm (from Zimmermann paper)
-        while (s1FramePos < numFramesS1) {
-            if (s1FramePos != 0) {
-                s1FramePos++;
-                refShiftUpdateFd(sq1, &sed, &rcSed, &s1FrameLeftHash,
-                                 &s1FrameRightHash, s1FramePos);
-            }
-            for (int s2FramePos = 1; s2FramePos <= numFramesS2; s2FramePos++) {
-                rShiftUpdateFd(sq2, &sed, &s2FrameLeftHash, &s2FrameRightHash,
-                               s2FramePos, false);
-                rShiftUpdateFd(sqRC, &rcSed, &rcFrameLeftHash, &rcFrameRightHash, 
-                               s2FramePos, true);
-                if (sed < minSed) minSed = sed;
-                if (rcSed < rcMinSed) rcMinSed = rcSed;
-            }
-            if (s1FramePos != numFramesS1) {
-                s1FramePos++;
-                refShiftUpdateFd(sq1, &sed, &rcSed, &s1FrameLeftHash, 
-                                 &s1FrameRightHash, s1FramePos);
-            }
-            for (int s2FramePos = numFramesS2-1; s2FramePos >= 0; s2FramePos--) {
-                lShiftUpdateFd(sq2, &sed, &s2FrameLeftHash, &s2FrameRightHash,
-                               s2FramePos, false);
-                lShiftUpdateFd(sqRC, &rcSed, &rcFrameLeftHash, &rcFrameRightHash, 
-                               s2FramePos, true);
-                if (sed < minSed) minSed = sed;
-                if (rcSed < rcMinSed) rcMinSed = rcSed;
-            }
-        }
-        if (rcMinSed < minSed) {
-            //printf("%d %d %d\n", refESTidx, otherEST, rcMinSed);
-            return rcMinSed;
-        } else {
-            // printf("%d %d %d\n", refESTidx, otherEST, minSed);
-            return minSed;
-        }
-       
+
+
+    // Main d2 algorithm (from Zimmermann paper)
+    while (s1FramePos < numFramesS1) {
+      if (s1FramePos != 0) {
+	s1FramePos++;
+	refShiftUpdateFd(sq1, &sed, &rcSed, &s1FrameLeftHash,
+			 &s1FrameRightHash, s1FramePos);
+      }
+      for (int s2FramePos = 1; s2FramePos <= numFramesS2; s2FramePos++) {
+	rightShiftUpdateFd(sq2, &sed, &s2FrameLeftHash, &s2FrameRightHash,
+		      s2FramePos, false);
+        rightShiftUpdateFd(sqRC, &rcSed, &rcFrameLeftHash, &rcFrameRightHash, 
+		      s2FramePos, true);
+	if (sed < minSed) minSed = sed;
+	if (rcSed < rcMinSed) rcMinSed = rcSed;
+      }
+      if (s1FramePos != numFramesS1) {
+	s1FramePos++;
+	refShiftUpdateFd(sq1, &sed, &rcSed, &s1FrameLeftHash, 
+			 &s1FrameRightHash, s1FramePos);
+      }
+      for (int s2FramePos = numFramesS2-1; s2FramePos >= 0; s2FramePos--) {
+	leftShiftUpdateFd(sq2, &sed, &s2FrameLeftHash, &s2FrameRightHash,
+		      s2FramePos, false);
+	leftShiftUpdateFd(sqRC, &rcSed, &rcFrameLeftHash, &rcFrameRightHash, 
+		      s2FramePos, true);
+	if (sed < minSed) minSed = sed;
+	if (rcSed < rcMinSed) rcMinSed = rcSed;
+      }
+    }
+    if (rcMinSed < minSed) {
+      //printf("%d %d %d\n", refESTidx, otherEST, rcMinSed);
+      return rcMinSed;
     } else {
-        // Invalid est index.
-        return -1;
+
+      //printf("%d %d %d\n", refESTidx, otherEST, minSed);
+      return minSed;
+    }
+} else {
+    // Invalid est index.
+    return -1;
     }
 }
 
