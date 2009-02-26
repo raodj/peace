@@ -243,6 +243,8 @@ protected:
     */
     bool isDistanceMetric() const { return true; }
 
+    void buildWordTable(std::string s2);
+
     /** Helper method to build reference and complement hash maps.
 
         This is a helper method that is used to build the reference
@@ -256,36 +258,24 @@ protected:
         \param[inout] est Pointer to the EST whose reference and
         complement hash maps are to be built.
     */
-    void buildFdHashMaps(std::string sequence, int* sed, int* rcSed, 
-			 int* leftHash, int* rightHash);
-
-    /** Helper method to update an initial frequency hash map with
-	frequency data from the sequence it is being compared with.
-	(buildFdHashMaps initializes the frequency hashmaps for s1,
-	and we have to update them for s2 or rcS2 here)
-    */
-    void initialUpdateFd(std::string sequence, int* sed, int* leftHash, 
-			 int* rightHash, bool rc);
+    void buildFdHashMaps(int* sed);
 
     /** Helper method to update the frequency hash maps after the frame
 	is shifted by 1 character on the reference sequence.
     */
-    void refShiftUpdateFd(std::string sequence, int* sed, int* rcSed, 
-			  int* leftHash, int* rightHash, const int framePos);
+    void refShiftUpdateFd(int* sed, const int framePos);
 
     /** Helper method to update the frequency hash map after a 1 character
 	right-shift on a comparison sequence (either s2 or the reverse
 	complement of s2).
     */
-    void rightShiftUpdateFd(std::string sequence, int* sed, int* leftHash, 
-			int* rightHash, const int framePos, bool rc);
+    void rightShiftUpdateFd(int* sed, const int framePos);
 
     /** Helper method to update the frequency hash map after a 1 character
 	left-shift on a comparison sequence (either s2 or the reverse
 	complement of s2).
     */
-    void leftShiftUpdateFd(std::string sequence, int* sed, int* leftHash, 
-			int* rightHash, const int framePos, bool rc);
+    void leftShiftUpdateFd(int* sed, const int framePos);
 
     /** Helper method to generate the reverse-complement of a sequence.
 	(code borrowed from a routine in the buildHashMaps method
