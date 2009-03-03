@@ -19,6 +19,7 @@
 // U.S., and the terms of this license.
 //
 // Authors: Dhananjai M. Rao       raodm@muohio.edu
+//          James C. Moler         molerjc@muohio.edu
 //
 //---------------------------------------------------------------------------
 
@@ -249,10 +250,6 @@ protected:
 	a different class.
     */
     std::string reverseComplement(std::string sequence);
-
-    static int MapSize;
-
-    static int BitMask;
 
 private:
     /* The default constructor for this class.
