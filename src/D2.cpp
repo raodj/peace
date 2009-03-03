@@ -19,6 +19,7 @@
 // U.S., and the terms of this license.
 //
 // Authors: Dhananjai M. Rao       raodm@muohio.edu
+//          James C. Moler         molerjc@muohio.edu
 //
 //---------------------------------------------------------------------------
 
@@ -28,21 +29,17 @@
 #include <algorithm>
 //#include <ctime>
 
-#define MAX_SEQ_LEN 10000
+#define MAX_SEQ_LEN 5000
 
 // The simple translation table to convert chars to int.
 char D2::CharToInt[256];
 
-int D2::MapSize = (int) pow(4, wordSize);
+static int MapSize;
+static int BitMask;
 
 int* fdHashMap;
 int* s1WordTable;
 int* s2WordTable;
-
-// Compute bit mask that will retain only the bits corresponding
-// to a given word size.  Each entry in a word takes up 2 bits and
-// that is why the following formula involves a 2.
-int D2::BitMask = (1 << (wordSize * 2)) - 1;
 
 D2::D2(const int refESTidx, const std::string& outputFileName)
     : FWAnalyzer("D2", refESTidx, outputFileName) {
@@ -54,16 +51,6 @@ D2::D2(const int refESTidx, const std::string& outputFileName)
     CharToInt[(int) 'G'] = CharToInt[(int) 'g'] = 1;
     CharToInt[(int) 'C'] = CharToInt[(int) 'c'] = 2;
     CharToInt[(int) 'T'] = CharToInt[(int) 't'] = 3;
-    // Initialize the fd hash maps
-    // These are hash maps that map hashes of words to integers, just like
-    // in CLU.  However, in this case, we are keeping track of the frequency
-    // difference.  So fdHashMap contains the frequency differences for each
-    // word in s1 and s2; rcFdHashMap contains the frequency differences for
-    // each word in s1 and the RC of s2.  This is done according to the D2
-    // algorithm pseudocode in Zimmermann's paper.
-    fdHashMap = new int[MapSize];
-    s1WordTable = new int[MAX_SEQ_LEN];
-    s2WordTable = new int[MAX_SEQ_LEN];
 }
 
 D2::~D2() {
@@ -101,6 +88,29 @@ D2::initialize() {
         // Error occured when loading ESTs.  This is no good.
         return result;
     }
+    // Compute the size of the frequency differential hashmap
+    MapSize = pow(4, wordSize);
+
+    // Compute bit mask that will retain only the bits corresponding
+    // to a given word size.  Each entry in a word takes up 2 bits and
+    // that is why the following formula involves a 2.
+    BitMask = (1 << (wordSize * 2)) - 1;
+    
+    // Initialize the fd hash map
+    // This maps hashes of words to integers, just like in CLU.
+    // However, in this case, we are keeping track of the frequency
+    // difference.  So fdHashMap contains the frequency differences
+    // for each word in s1 and s2. This is done according to the
+    // D2 algorithm pseudocode in Zimmerman's paper.
+    fdHashMap = new int[MapSize];
+
+    // Initialize the word tables, which map indices in the sequences
+    // s1 and s2 to hashes of words.  These greatly speed up performance
+    // as we just compute the hashes of all the words at the beginning
+    // instead of doing it as we go along.
+    s1WordTable = new int[MAX_SEQ_LEN];
+    s2WordTable = new int[MAX_SEQ_LEN];
+    
     // Everything went on well.
     return 0;
 }
@@ -239,26 +249,31 @@ D2::analyze(const int otherEST) {
 	s1FramePos++;
 	refShiftUpdateFd(&sed, s1FramePos);
       	if (sed < minSed) minSed = sed;
+        if (minSed==0) break;
       }
       for (int s2FramePos = 1; s2FramePos <= numFramesS2; s2FramePos++) {
 	rightShiftUpdateFd(&sed, s2FramePos);
 	if (sed < minSed) minSed = sed;
+        if (minSed==0) break;
       }
       if (s1FramePos != numFramesS1) {
 	s1FramePos++;
 	refShiftUpdateFd(&sed, s1FramePos);
        	if (sed < minSed) minSed = sed;
+        if (minSed==0) break;
       }
       for (int s2FramePos = numFramesS2-1; s2FramePos >= 0; s2FramePos--) {
 	leftShiftUpdateFd(&sed, s2FramePos);
 	if (sed < minSed) minSed = sed;
+        if (minSed==0) break;
       }
     }
     //clock_t end = clock();
     //double timeTaken = ((double)(end-start))/((double)CLOCKS_PER_SEC);
     //printf("Time %.3f\n", timeTaken);
 
-    //printf("%d\n", minSed);
+    //printf("%d %d %d\n", refESTidx, otherEST, minSed);
+    
     return minSed;
   } else {
     // Invalid est index.
