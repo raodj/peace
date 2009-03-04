@@ -27,19 +27,29 @@
 #include "EST.h"
 #include <cmath>
 #include <algorithm>
-//#include <ctime>
 
 #define MAX_SEQ_LEN 5000
 
 // The simple translation table to convert chars to int.
 char D2::CharToInt[256];
 
+// Skip parameter for d2 asymmetric.  Defaults to 1 (i.e. d2 symmetric).
+int D2::frameShift = 1;
+
 static int MapSize;
 static int BitMask;
+static int NumWordsWin;
 
 int* fdHashMap;
 int* s1WordTable;
 int* s2WordTable;
+
+// The set of arguments for this class.
+arg_parser::arg_record D2::argsList[] = {
+    {"--frameShift", "Frame Shift (default=1)",
+     &D2::frameShift, arg_parser::INTEGER},
+    {NULL, NULL}
+};
 
 D2::D2(const int refESTidx, const std::string& outputFileName)
     : FWAnalyzer("D2", refESTidx, outputFileName) {
@@ -68,16 +78,23 @@ D2::~D2() {
 void
 D2::showArguments(std::ostream& os) {
     FWAnalyzer::showArguments(os);
-    // Currently this class does not have any specific command line
-    // arguments.  Consequently, there is nothing further to be done.
+    // Use a arg parser object to conveniently display common options.
+    arg_parser ap(D2::argsList);
+    os << ap;
 }
 
 bool
 D2::parseArguments(int& argc, char **argv) {
-    // Currently this class does not have any specific command line
-    // arguments.  The base class does all the necessary tasks.
-
-    // Let the base class do processing and return the result.
+    arg_parser ap(D2::argsList);
+    ap.check_args(argc, argv, false);
+    // Ensure frameshift is valid.
+    if (frameShift < 1) {
+        std::cerr << analyzerName
+                  << ": Frame shift must be >= 1"
+                  << "(use --frameShift option)\n";
+        return false;
+    }
+    // Now let the base class do processing and return the result.
     return FWAnalyzer::parseArguments(argc, argv);
 }
 
@@ -95,6 +112,8 @@ D2::initialize() {
     // to a given word size.  Each entry in a word takes up 2 bits and
     // that is why the following formula involves a 2.
     BitMask = (1 << (wordSize * 2)) - 1;
+
+    NumWordsWin = frameSize-wordSize;
     
     // Initialize the fd hash map
     // This maps hashes of words to integers, just like in CLU.
@@ -129,14 +148,14 @@ D2::setReferenceEST(const int estIdx) {
         int i;
         for(i = 0; (i < wordSize); i++) {
             hash <<= 2;
-            hash  += CharToInt[(int) s1[i]];
+            hash  |= CharToInt[(int) s1[i]];
         }
         // Setup the word table entry for the first word.
         s1WordTable[0] = hash;
         // Fill in the word table
         for (i = 1; (i+wordSize <= s1.size()); i++) {
             hash <<= 2;
-            hash  += CharToInt[(int) s1[i]];
+            hash  |= CharToInt[(int) s1[i]];
             hash  &= BitMask;
             s1WordTable[i] = hash;
         }
@@ -156,14 +175,14 @@ D2::buildWordTable(std::string s2) {
     int i;
     for(i = 0; (i < wordSize); i++) {
         hash <<= 2;
-        hash  += CharToInt[(int) s2[i]];
+        hash  |= CharToInt[(int) s2[i]];
     }
     // Setup the word table entry for the first word.
     s2WordTable[0] = hash;
     // Fill in the word table
     for (i = 1; (i+wordSize <= s2.size()); i++) {
         hash <<= 2;
-        hash  += CharToInt[(int) s2[i]];
+        hash  |= CharToInt[(int) s2[i]];
         hash  &= BitMask;
         s2WordTable[i] = hash;
     }
@@ -185,7 +204,7 @@ D2::refShiftUpdateFd(int* sed, const int framePos) {
     // update sed and fd from leftmost word falling out
     *sed += -2*(fdHashMap[s1WordTable[framePos-1]]--) + 1;
     // update sed and fd from new rightmost word
-    *sed +=  2*(fdHashMap[s1WordTable[framePos+frameSize-wordSize]]++) + 1;
+    *sed +=  2*(fdHashMap[s1WordTable[framePos+NumWordsWin]]++) + 1;
 }
 
 void
@@ -193,13 +212,13 @@ D2::rightShiftUpdateFd(int* sed, const int framePos) {
     // update sed and fd from leftmost word falling out
     *sed +=  2*(fdHashMap[s2WordTable[framePos-1]]++) + 1;
     // update sed and fd from new rightmost word
-    *sed += -2*(fdHashMap[s2WordTable[framePos+frameSize-wordSize]]--) + 1;
+    *sed += -2*(fdHashMap[s2WordTable[framePos+NumWordsWin]]--) + 1;
 }
 
 void
 D2::leftShiftUpdateFd(int* sed, const int framePos) {
     // update sed and fd from rightmost word falling out
-    *sed +=  2*(fdHashMap[s2WordTable[framePos+frameSize-wordSize+1]]++) + 1;
+    *sed +=  2*(fdHashMap[s2WordTable[framePos+NumWordsWin+1]]++) + 1;
     // update sed and fd from new leftmost word
     *sed += -2*(fdHashMap[s2WordTable[framePos]]--) + 1;
 }
@@ -227,10 +246,8 @@ D2::analyze(const int otherEST) {
     EST *estS2 = EST::getEST(otherEST);
     std::string sq1 = estS1->getSequence();
     ASSERT ( sq1.size() > 0 );
-    std::string sq2=estS2->getSequence();
-    ASSERT(sq2.size() > 0);
-
-    // clock_t start = clock();
+    std::string sq2 = estS2->getSequence();
+    ASSERT ( sq2.size() > 0);
 
     // Initialize the word table for s2
     buildWordTable(sq2);
@@ -246,10 +263,11 @@ D2::analyze(const int otherEST) {
     // Main d2 algorithm (from Zimmermann paper)
     while (s1FramePos < numFramesS1) {
       if (s1FramePos != 0) {
-	s1FramePos++;
-	refShiftUpdateFd(&sed, s1FramePos);
-      	if (sed < minSed) minSed = sed;
-        if (minSed==0) break;
+          for (int i = 0; (i < frameShift && s1FramePos++ < numFramesS1); i++) {
+              refShiftUpdateFd(&sed, s1FramePos);
+              if (sed < minSed) minSed = sed;
+              if (minSed==0) break;
+          }
       }
       for (int s2FramePos = 1; s2FramePos <= numFramesS2; s2FramePos++) {
 	rightShiftUpdateFd(&sed, s2FramePos);
@@ -257,10 +275,11 @@ D2::analyze(const int otherEST) {
         if (minSed==0) break;
       }
       if (s1FramePos != numFramesS1) {
-	s1FramePos++;
-	refShiftUpdateFd(&sed, s1FramePos);
-       	if (sed < minSed) minSed = sed;
-        if (minSed==0) break;
+          for (int i = 0; (i < frameShift && s1FramePos++ < numFramesS1); i++) {
+              refShiftUpdateFd(&sed, s1FramePos);
+              if (sed < minSed) minSed = sed;
+              if (minSed==0) break;
+          }
       }
       for (int s2FramePos = numFramesS2-1; s2FramePos >= 0; s2FramePos--) {
 	leftShiftUpdateFd(&sed, s2FramePos);
@@ -268,11 +287,8 @@ D2::analyze(const int otherEST) {
         if (minSed==0) break;
       }
     }
-    //clock_t end = clock();
-    //double timeTaken = ((double)(end-start))/((double)CLOCKS_PER_SEC);
-    //printf("Time %.3f\n", timeTaken);
 
-    //printf("%d %d %d\n", refESTidx, otherEST, minSed);
+    printf("%d %d %d\n", refESTidx, otherEST, minSed);
     
     return minSed;
   } else {
