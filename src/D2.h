@@ -251,7 +251,12 @@ protected:
     */
     std::string reverseComplement(std::string sequence);
 
+    static int frameShift;
+
 private:
+
+    static arg_parser::arg_record argsList[];
+	
     /* The default constructor for this class.
        
         The default constructor for this class.  The constructor is
