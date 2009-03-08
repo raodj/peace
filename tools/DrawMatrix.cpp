@@ -181,7 +181,7 @@ DrawMatrix::showUsage(const arg_parser& ap) {
     std::cout << ap;
 }
 
-DrawMatrix::DrawMatrix(std::ostream &os) : xfig(os) {
+DrawMatrix::DrawMatrix(std::ostream &os) : xfig(os, true) {
     // Nothing else do be done.
 }
 

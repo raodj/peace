@@ -27,6 +27,9 @@
 #include "ESTAnalyzerFactory.h"
 #include "ClusterMaker.h"
 #include "ESTAnalyzer.h"
+#include "HeuristicFactory.h"
+#include "Heuristic.h"
+#include "HeuristicChain.h"
 #include <mpi.h>
 
 /** \func showUsage
