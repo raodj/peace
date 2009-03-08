@@ -288,7 +288,7 @@ D2::analyze(const int otherEST) {
       }
     }
 
-    printf("%d %d %d\n", refESTidx, otherEST, minSed);
+    //printf("%d %d %d\n", refESTidx, otherEST, minSed);
     
     return minSed;
   } else {
