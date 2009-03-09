@@ -28,38 +28,17 @@
 #include <iostream>
 
 #include "ESTAnalyzer.h"
-
-/** \typedef SMEntry
-
-    \brief Typedef for an entry in the Similarity/Distance Metric (SM)
-    List (std::pair<int, float>).
-    
-    A Similarity/Distance Metric (SM) Entry is associated with a given
-    EST.  The EST with which this SMEntry is associated is \b not
-    stored in the SMEntry to save meory.  Instead, a
-    std::vector<SMEntry> (aka SMList) is explicitly associated with a
-    given EST index.  An SMEntry consists of the following two pieces
-    of information:
-
-    <ol>
-
-    <li> An \c int representing the EST index. </li>
-
-    <li> A \c float representing the similarity/distance metric for
-    the given EST index. </li>
-
-    </ol>  
-*/
-typedef std::pair<int, float>  SMEntry;
+#include "CachedESTInfo.h"
 
 /** \def SMList
 
-    \brief Typedef for std::vector<SMEntry>.
+    \brief Typedef for std::vector<CachedESTInfo>.
 
     This typedef is a convenience definition to handle a vector of
-    SMEntry objects associated with a given EST in the MST Cache.
+    CachedESTInfo objects associated with a given EST in the MST
+    Cache.
 */
-typedef std::vector<SMEntry>   SMList;
+typedef std::vector<CachedESTInfo> SMList;
 
 /** \def MSTCacheEntry
 
@@ -244,8 +223,11 @@ public:
         \param[out] metric The similarity/distance metric between the
         srcESTidx and the destESTidx.
 
+        \param[out] alignmentData The alignment data associated with
+        the srcESTidx and the destESTidx.
     */
-    void getBestEntry(int& srcESTidx, int& destESTidx, float& metric) const;
+    void getBestEntry(int& srcESTidx, int& destESTidx,
+                      float& metric, int& alignmentData) const;
 
     /** Sort a Similarity Metric List (SMList) based on similarity
         metric and then prunes it.
@@ -259,7 +241,8 @@ public:
         that the list is no longer than the specified cacheSize.
  
         \param[inout] list The SMList to be sorted based on the
-        similarity metric associated with each SMEntry in the list.
+        (similarity or distance) metric associated with each
+        CachedESTInfo entry in the list.
 
 	\param[in] cacheSize The maximum size of this list after it
 	has been sorted.
@@ -311,47 +294,55 @@ protected:
     */
     bool pruneCache(SMList& list, const int estIdx);
 
-    /** Functor for SMEntry sorting.
+    /** Functor for CachedESTInfo sorting.
 
-        This Functor is used when sorting ESTs based on similarity
-        metric by the sort method defined in this method.
+        This Functor is used when sorting ESTs based on
+        similarity/distance metric by the sort method defined in this
+        class.
     */
-    class LessSMEntry : public std::binary_function<SMEntry, SMEntry, bool> {
+    class LessCachedESTInfo :
+        public std::binary_function<CachedESTInfo, CachedESTInfo, bool> {
     public:
         /** Constructor.
 
             The constructor requires a pointer to the ESTAnalyzer that
             is being used for analysis.  The analyzer is used to
-            compare the metrics for sorting SMEntry objects.  This
-            constructor is called in the MSTCache class for sorting
-            cache entries.
+            compare the metrics for sorting CachedESTInfo objects.
+            This constructor is called in the MSTCache class for
+            sorting cache entries.
 
             \param[in] analyzer The analyzer to be used for comparing
-            the metric values associated with two SMEntry objects.
+            the metric values associated with two CachedESTInfo
+            objects.
         */
-        LessSMEntry(const ESTAnalyzer *analyzer) :
+        LessCachedESTInfo(const ESTAnalyzer *analyzer) :
             comparator(analyzer) {}
+        
         /** \fn operator()
             
-            \brief operator<() for SMEntry.
+            \brief operator<() for CachedESTInfo.
             
             The following operator provides a convenient mechanism for
-            comparing SMEntry objects for sorting.  This operator
-            overrides the default STL operator() by comparing only the
-            similarity metrics of two SMEntry objects (ignoring the
-            EST indexes).  This method uses the metric comparison
-            functionality provided by all EST analyzers.
+            comparing CachedESTInfo objects for sorting.  This
+            operator overrides the default STL operator() by comparing
+            only the metrics of two CachedESTInfo objects (ignoring
+            the EST indexes and any other information).  This method
+            uses the metric comparison functionality provided by all
+            EST analyzers.
             
-            \param[in] sme1 The first SMEntry to be used for comparison.
+            \param[in] estInfo1 The first CachedESTInfo object to be
+            used for comparison.
             
-            \param[in] sme2 The second SMEntry to be used for
-            comparison.
+            \param[in] estInfo2 The second CachedESTInfo object to be
+            used for comparison.
             
-            \return This method returns \c true if sme1.second is
-            better than sme2.second.  Otherwise it returns \c false.
+            \return This method returns \c true if \c estInfo1.metric
+            is better than \c estInfo2.metric.  Otherwise it returns
+            \c false.
         */
-        inline bool operator()(const SMEntry& sme1, const SMEntry& sme2)
-        { return comparator->compareMetrics(sme1.second, sme2.second); }
+        inline bool operator()(const CachedESTInfo& estInfo1,
+                               const CachedESTInfo& estInfo2)
+        { return comparator->compareMetrics(estInfo1.metric, estInfo2.metric); }
         
     private:
         /** The functor for comparing.

@@ -24,27 +24,7 @@
 
 #include "ShowAlignment.h"
 #include "EST.h"
-#include <fstream>
-
-// Font code for COURIER font
-#define COURIER 14
-
-// The size of font (in points) to use
-#define FONT_SIZE 6
-
-// Some color codes to make code a bit more readable
-#define BLACK 0
-#define WHITE 2
-
-// Color code offset from where user colors start
-#define USER_COLOR_START 32
-
-#define CHECK_ARGS(condition, errorMsg)         \
-    if (condition) {                            \
-        std::cout << errorMsg;                  \
-        ShowAlignment::showUsage(ap);           \
-        return 1;                               \
-    }
+#include "Common.h"
 
 int
 ShowAlignment::main(int argc, char *argv[]) {
@@ -54,11 +34,11 @@ ShowAlignment::main(int argc, char *argv[]) {
     char *clstrFileName = NULL; // Flat cluster file
     int  srcIndex       = -1;   // index of reference gene in srcFile 
     bool showOptions    = false;
-    int  rectHeight     = -1;
+    int  rectHeight     = 100;
     
     // Create the list of valid arguments to be used by the arg_parser.
     arg_parser::arg_record arg_list[] = {
-        {"--srcFile", "FASTA file with source gene/transcript sequences",
+        {"--srcFile", "Optional FASTA file with source gene sequences",
          &srcFileName, arg_parser::STRING},
         {"--estFile", "FASTA file with ESTs generated from given srcFile",
          &estFileName, arg_parser::STRING},
@@ -68,7 +48,7 @@ ShowAlignment::main(int argc, char *argv[]) {
          &clstrFileName, arg_parser::STRING},
         {"--output", "File to which the XFIG output must be written",
          &outFileName, arg_parser::STRING},
-        {"--rectSize", "Specify height of rectangles (no seq. chars)",
+        {"--rectSize", "Specify height of rectangles (default=100)",
          &rectHeight, arg_parser::INTEGER},
         {"--options", "Lists options for this tool",
          &showOptions, arg_parser::BOOLEAN},
@@ -81,29 +61,22 @@ ShowAlignment::main(int argc, char *argv[]) {
     arg_parser ap(arg_list);
     ap.check_args(argc, argv, false);
     if (showOptions) {
-        showUsage(ap);
+        showUsage("ShowAlignment", ap);
         // Nothing further to be done.
         return 0;
     }
     // Ensure we have all the necessary parameters.
-    CHECK_ARGS(srcFileName == NULL, "Source FASTA file was not specified.\n" \
-               "Use --srcFile option\n");
-    CHECK_ARGS(estFileName == NULL, "FASTA file to load ESTs was not "  \
+    std::string tool = "ShowAlignment";
+    CHECK_ARGS(tool, estFileName == NULL, "FASTA file to load ESTs was not " \
                "specified.\nUse --estFile option\n");
-    CHECK_ARGS(outFileName == NULL, "Output XFIG file was not specified.\n" \
-               "Use --output option\n");
-    CHECK_ARGS(srcIndex < 0, "Index of source sequence was not specified.\n" \
-               "Use --srcIndex option\n");
-    
-    // Open the output file.
-    std::ofstream outFile(outFileName);
-    if (!outFile.good()) {
-        std::cout << "Unable to open output file " << outFileName
-                  << " for output.\n";
-        return 1;
+    CHECK_ARGS(tool, outFileName == NULL, "Output XFIG file was not "
+               "specified.\nUse --output option\n");
+    if (srcFileName != NULL) {
+        CHECK_ARGS(tool, srcIndex < 0, "Valid index of source sequence was not "
+                   "specified.\nUse --srcIndex option\n");
     }
-    // OK. Create an object.
-    ShowAlignment sa(outFile);
+    // Ok. Create an object.    
+    ShowAlignment sa;
     // Try and load the necessary data.
     if (!sa.loadData(srcIndex, srcFileName, estFileName)) {
         // Free up any ESTs that may have been loaded.
@@ -119,44 +92,42 @@ ShowAlignment::main(int argc, char *argv[]) {
         // Error loading cluster information.
         return 4;
     }
-
+    // Set the output file for XFig rendering.
+    if (!sa.xfig.setOutput(outFileName, true)) {
+        std::cout << "Unable to open output file " << outFileName
+                  << " for output.\n";
+        return 1;
+    }
     // Generate the alignment information.
     sa.drawAlignment(1200 * rectHeight / 72);
-    // Finally close the output file.
-    outFile.close();
     // Free up all ESTs that have been loaded.
     EST::deleteAllESTs();
     // Everything went well.
     return 0;
 }
 
-void
-ShowAlignment::showUsage(const arg_parser& ap) {
-    std::cout << "Usage: pTool --tool=ShowAlignment [options]\n"
-              << "where options are:\n";
-    std::cout << ap;
-}
-
 bool
 ShowAlignment::loadData(const int srcDataIndex, const char* srcFileName,
                         const char *estFileName) {
-    // Try and load the source file
-    if (!loadFastaFile(srcFileName)) {
-        // All the sequences could not be loaded.
-        return false;
+    // Try and load the source file if one is specified.
+    if (srcFileName != NULL) {
+        if (!loadFastaFile(srcFileName)) {
+            // All the sequences could not be loaded.
+            return false;
+        }
+        // Check to ensure the data was loaded.
+        if (srcDataIndex >= EST::getESTCount()) {
+            std::cout << "The source index (for the reference gene/transcript) "
+                      << "value " << srcDataIndex << " is invalid.\n";
+            // Unable to load data from the FASTA file.
+            return false;
+        }
+        // Save off the reference EST for future reference.
+        EST *est = EST::getEST(srcDataIndex);
+        refEST   = new EST(srcDataIndex, est->getInfo(), est->getSequence());
+        // Delete rest of the reference ESTs
+        EST::deleteAllESTs();
     }
-    // Check to ensure the data was loaded.
-    if (srcDataIndex >= EST::getESTCount()) {
-        std::cout << "The source index (for the reference gene/transcript) "
-                  << "value " << srcDataIndex << " is invalid.\n";
-        // Unable to load data from the FASTA file.
-        return false;
-    }
-    // Save off the reference EST for future reference.
-    EST *est = EST::getEST(srcDataIndex);
-    refEST   = new EST(srcDataIndex, est->getInfo(), est->getSequence());
-    // Delete rest of the reference ESTs
-    EST::deleteAllESTs();
     // Try and load the list of ESTs from the FASTA file
     if (!loadFastaFile(estFileName)) {
         // All the sequences could not be loaded.
@@ -166,82 +137,48 @@ ShowAlignment::loadData(const int srcDataIndex, const char* srcFileName,
     return true;
 }
 
-
-bool
-ShowAlignment::loadClusterInfo(const char* fileName) {
-    // Try and open the cluster file
-    std::ifstream clstrFile(fileName);
-    if (!clstrFile.good()) {
-        std::cout << "Error opening clustering info. file " << fileName
-                  << std::endl;
-        return false;
-    }
-    // Now repeatedly read a line from the file and process it.
-    int clusterNum = -1; // The last seen cluster number
-    while (!clstrFile.eof() && clstrFile.good()) {
-        // Read a line from the cluster file.
-        std::string line;
-        std::getline(clstrFile, line);
-        // Process line if it is not empty.
-        if (line.size() == 0) {
-            // nothing to process on this line.
-            continue;
-        }
-        if (line.find("Cluster #") == 0) {
-            // This is a new cluster entry. Update cluster number.
-            sscanf(line.c_str(), "Cluster #%d", &clusterNum);
-        } else {
-            // This is a EST entry. Update color map.
-            colorMap[line] = clusterNum + USER_COLOR_START;
-        }
-    } 
-    // Detect if all the data was read & processed
-    return clstrFile.eof();
-}
-
-bool
-ShowAlignment::loadFastaFile(const char* fileName) {
-   // Try and open the FASTA file
-    FILE *fastaFile = NULL;
-    if ((fastaFile = fopen(fileName, "rt")) == NULL) {
-        std::cout << "Error opening FASTA file " << fileName
-                  << std::endl;
-        return false;
-    }
-    // Now repeatedly load EST entries from the file.
-    int lineNum = 0;
-    EST *est    = NULL;
-    do {
-        // Load a est
-        est = EST::create(fastaFile, lineNum);
-    } while (est != NULL);
-    // Detect if all the data was read & processed
-    bool retVal = feof(fastaFile);
-    // close the file.
-    fclose(fastaFile);
-    // Return if everything went well.
-    return retVal;    
-}
-
-ShowAlignment::ShowAlignment(std::ostream &os) : xfig(os, true) {
+ShowAlignment::ShowAlignment() {
     // Nothing much to do other to initialize variables
     refEST = NULL;
 }
 
 ShowAlignment::~ShowAlignment() {
     // Free up dynamically allocated memory.
-    if (refEST == NULL) {
+    if (refEST != NULL) {
         delete refEST;
     }
 }
 
 bool
+ShowAlignment::isOfInterest(const int estIndex) const {
+    if (refEST == NULL) {
+        // No reference EST.  So we can't do much other than just draw
+        // this EST in the alignment figure
+        return true;
+    }
+
+    // Get this EST
+    const EST *est = EST::getEST(estIndex);
+    // Use data in FASTA header to figure out if this EST is of
+    // interest.
+    int geneIndex;
+    sscanf(est->getInfo(), "g%d_", &geneIndex);
+    // Return if this EST is from the same transcript/gene.
+    return (geneIndex - 1 == refEST->getID());
+}
+
+bool
 ShowAlignment::drawAlignment(const int rectHeight) {
-    // Draw the reference sequence first.
-    drawEST(-1, refEST, rectHeight);
+    // Draw the reference sequence first if we have one.
+    if (refEST != NULL) {
+        drawEST(-1, refEST, rectHeight); // draw reference EST
+    }
     // Draw rest of the ESTs
     for(int index = 0; (index < EST::getESTCount()); index++) {
-        drawEST(index, EST::getEST(index), rectHeight);
+        if (isOfInterest(index)) {
+            // This EST is of interest. So draw the EST.
+            drawEST(index, EST::getEST(index), rectHeight);
+        }
     }
     // Everything went well.
     return true;
@@ -252,7 +189,8 @@ ShowAlignment::getRow(const int start, const int end) {
     size_t row;
     ASSERT ( start < end );
     for(row = 0; (row < rowUsage.size()); row++) {
-        if (rowUsage[row] < start) {
+        if ((rowUsage[row].second < start) ||
+            (rowUsage[row].first  > end)) {
             // Found a row where this EST can fit.
             break;
         }
@@ -260,10 +198,13 @@ ShowAlignment::getRow(const int start, const int end) {
     // Check if an existing row can be reused.
     if (row == rowUsage.size()) {
         // No. an existing row cannot be reused. Add a new row.
-        rowUsage.push_back(end);
+        rowUsage.push_back(UseEntry(start, end));
+    } else {
+        // Update the usage column for the row.
+        rowUsage[row].first  = std::min<int>(start, rowUsage[row].first);
+        rowUsage[row].second = std::max<int>(end,   rowUsage[row].second);
     }
-    // Update the usage column for the row.
-    rowUsage[row] = end;
+
     // return the row to use.
     return row;
 }
@@ -273,26 +214,18 @@ ShowAlignment::drawEST(const int index, const EST* est, const int rectHeight) {
     const int FontHeight = (int) (1200.0 * FONT_SIZE / 72);
     const int FontWidth  = (FontHeight * 54) / 100;
     int  startCol        = 0; // Starting column for drawing EST
+    int  endCol          = 0; // Starting column for drawing EST    
     char estIndex[6];
-    
+
     if (index != -1) {
-        // This is not a reference EST. Use data in FASTA header to
-        // figure out if this EST is of interest.
-        int geneIndex, endCol;
-        sscanf(est->getInfo(), "g%d_%d_%d", &geneIndex, &startCol, &endCol);
-        if (geneIndex - 1 != refEST->getID()) {
-            // This EST is not from the same transcript/gene. Don't
-            // draw it.
+        // Extract start and end column from the EST header.
+        if (!getStartEnd(est, startCol, endCol)) {
+            // Unable to determine alignment information for EST
             return;
         }
-        // Change start col to zero-based value.
-        startCol--;
-        // Convert index to string to ease display
-        sprintf(estIndex, "%05d", index);
-    } else {
-        // Set estIndex to blank spaces
-        sprintf(estIndex, "%5d", 0);
     }
+    // Convert index to string to ease display
+    sprintf(estIndex, "%05d", index);
     
     // Compute the row where the EST is to be drawn.
     const int estLen    = strlen(est->getSequence());
@@ -307,11 +240,7 @@ ShowAlignment::drawEST(const int index, const EST* est, const int rectHeight) {
     // Draw rectangle if needed.
     if (rectHeight != -1) {
         // Draw a color coded rectangle background for the sequence
-        int color = 0;
-        ColorCodeMap::iterator entry = colorMap.find(est->getInfo());
-        if (entry != colorMap.end()) {
-            color = entry->second;
-        }
+        int color = getColor(est);
         // Compute starting xfig coordinate
         const int left = (startCol + 5) * FontWidth;
         xfig.drawRect(left, row * rowHeight,
@@ -337,5 +266,54 @@ ShowAlignment::drawEST(const int index, const EST* est, const int rectHeight) {
         seq = seq.substr(dumpLen);
     }
 }
+
+bool
+ShowAlignment::getStartEnd(const EST* est, int &startCol, int& endCol) const {
+    int dataPos; // Position from where to parse out information
+    // Obtain shortcut to EST's FASTA header to ease processing.
+    std::string header  = est->getInfo();
+    // If the header has a "| symbol then this EST has generated
+    // alignment information. So preferabbly use that.
+    if ((dataPos = header.rfind('|')) == -1) {
+        // Assume EST header has trailing alignment information
+        // separated by underscores "_".
+        dataPos = header.rfind('_', header.rfind('_') - 1);
+    }
+    
+    if ((dataPos == -1) ||
+        (sscanf(est->getInfo() + dataPos + 1, "%d_%d",
+                &startCol, &endCol) != 2)) {
+        // The required alignment position was not found. Can't
+        // process this EST to determine alignment location.
+        std::cout << "Unable to determine alignment information for EST "
+                  << est->getInfo() << std::endl;
+        return false;
+    }
+    // Change start col and endCol to zero-based values
+    startCol--;
+    endCol--;
+    // Got the data successfully.
+    return true;
+}
+
+int
+ShowAlignment::getColor(const EST* est) const {
+    // Get header from est to ease processing
+    std::string header = est->getInfo();
+    // Extract the actual gene name if it has a '|' character
+    int pipePos;
+    if ((pipePos = header.rfind('|')) != -1) {
+        header = header.substr(0, pipePos);
+    }
+    // Determine color code from color map
+    int color = 0;
+    ColorCodeMap::const_iterator entry = colorMap.find(header);
+    if (entry != colorMap.end()) {
+        color = entry->second;
+    }
+    // return the color code.
+    return color;
+}
+
 
 #endif

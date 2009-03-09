@@ -99,7 +99,7 @@ protected:
 	\param[in] os The output stream to which the Xfig information
 	is to be written.
     */
-    DrawMatrix(std::ostream &os);
+    DrawMatrix();
     
     /** The destructor.
         

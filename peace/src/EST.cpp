@@ -167,23 +167,28 @@ EST::deleteAllESTs() {
 void
 EST::dumpESTList(std::ostream& os) {
     const int EstCount = (int) estList.size();
-    const int LineSize = 100;
     for(int id = 0; (id < EstCount); id++) {
-        const EST* est = estList[id];
-        os << ">";
-        os << est->getInfo() << std::endl;
-        // Dump out the sequence to that no sequence display is longer
-        // than LineSize characters.
-        const char *seq   = est->getSequence();
-        const int  seqLen = (int) strlen(seq);
-        for(int pos = 0; (pos < seqLen); pos++) {
-            if ((pos > 0) && ((pos % LineSize) == 0)) {
-                os << "\n";
-            }
-            os << seq[pos];
-        }
-        os << "\n";
+        // Dump the EST information out.
+        estList[id]->dumpEST(os);
     }
+}
+
+void
+EST::dumpEST(std::ostream& os) {
+    const int LineSize = 100;
+    os << ">";
+    os << getInfo() << std::endl;
+    // Dump out the sequence to that no sequence display is longer
+    // than LineSize characters.
+    const char *seq   = getSequence();
+    const int  seqLen = (int) strlen(seq);
+    for(int pos = 0; (pos < seqLen); pos++) {
+        if ((pos > 0) && ((pos % LineSize) == 0)) {
+            os << "\n";
+        }
+        os << seq[pos];
+    }
+    os << "\n";
 }
 
 char*

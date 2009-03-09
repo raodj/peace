@@ -27,7 +27,8 @@
 #include <iterator>
 #include <fstream>
 
-MST::MST(const int maxNodes) {
+MST::MST(const int maxNodes, const bool alignData) :
+    haveAlignmentMetric(alignData) {
     // Reserve space in the nodeList vector to avoid unnecessary
     // memory reallocation.
     nodeList.reserve(maxNodes);
@@ -35,8 +36,8 @@ MST::MST(const int maxNodes) {
 
 void
 MST::addNode(const int parentIdx, const int estIdx,
-             const float similarity) {
-    nodeList.push_back(MSTNode(parentIdx, estIdx, similarity));
+             const float similarity, const int alignmentInfo) {
+    nodeList.push_back(MSTNode(parentIdx, estIdx, similarity, alignmentInfo));
 }
 
 void
@@ -60,7 +61,7 @@ MST::serialize(const char *fileName, const char *srcFile) const {
     
     // Stream the data out to the file.
     for(size_t i = 0; (i < nodeList.size()); i++) {
-        nodeList[i].serialize(outFile);
+        nodeList[i].serialize(outFile, haveAlignmentMetric);
     }
     
     // Close the file and we are all done.
@@ -77,12 +78,13 @@ MST::deSerialize(const char *fileName) {
         return NULL;
     }
     // Create a new MST to hold node information as it is being read.
-    MST *mst   = new MST(20000);
+    MST *mst   = new MST(20000, false);
     int result = 0;
     do {
         // Try and read a node from the input file.
         MSTNode node;
-        if ((result = MSTNode::deSerialize(inFile, node)) == 0) {
+        if ((result = MSTNode::deSerialize(inFile, node,
+                                           mst->haveAlignmentMetric)) == 0) {
             // Successful read.
             mst->nodeList.push_back(node);
         }

@@ -85,14 +85,14 @@ bool
 MSTCache::pruneCache(SMList& list, const int estIdx) {
     SMList::iterator curr = list.begin();
     while (curr != list.end()) {
-        if ((*curr).first == estIdx) {
+        if ((*curr).estIdx == estIdx) {
             // This entry needs to be erased.  Track the number of
             // pruned entries
             prunedEntries++;
             // Erase entry and reset the iterator
             curr = list.erase(curr);
         }  else {
-            // On to the next SMEntry
+            // On to the next EST entry
             curr++;
         }
     }
@@ -132,7 +132,7 @@ MSTCache::mergeList(const int estIdx, const SMList& list,
     if (cacheList.size() > 0) {
         // Cache has entries.  Obtain the least useful (that is, most
         // dissimilar or most distant) entry in the cache.
-        worstMetric = cacheList.back().second;
+        worstMetric = cacheList.back().metric;
     } else {
         // Update the estIdx for this cache entry for the first time.
         cacheEntry.first = estIdx;
@@ -141,7 +141,7 @@ MSTCache::mergeList(const int estIdx, const SMList& list,
     // First check if the merge operation needs to be done by checking
     // similarity/distance metrics of the two lists.
     SMList::const_iterator mergeStart = list.begin();
-    if (analyzer->compareMetrics(worstMetric, (*mergeStart).second) &&
+    if (analyzer->compareMetrics(worstMetric, (*mergeStart).metric) &&
         ((int) cacheList.size() >= maxCacheSize)) {
         // All the entries in the cache have higher similarity metric
         // than the highest similarity in this list and the cache is
@@ -151,7 +151,7 @@ MSTCache::mergeList(const int estIdx, const SMList& list,
 
     // Merge the two lists into a new list
     SMList mergedList(list.size() + cacheList.size());
-    LessSMEntry mergeComparator(analyzer);
+    LessCachedESTInfo mergeComparator(analyzer);
     std::merge(list.begin(), list.end(),
                cacheList.begin(), cacheList.end(),
                mergedList.begin(), mergeComparator);
@@ -171,7 +171,7 @@ MSTCache::mergeList(const int estIdx, const SMList& list,
 
 void
 MSTCache::getBestEntry(int& srcESTidx, int& destESTidx,
-                       float& metric) const {
+                       float& metric, int & alignmentData) const {
     // Initialize the results to an invalid value first.
     srcESTidx= destESTidx = -1;
     metric   = analyzer->getInvalidMetric();
@@ -186,13 +186,14 @@ MSTCache::getBestEntry(int& srcESTidx, int& destESTidx,
         }
         // Get the entry with best metric (namely the first entry as
         // these lists are already sorted) in this list.
-        const SMEntry& smEntry = cacheEntry.second.front();
+        const CachedESTInfo& estInfo = cacheEntry.second.front();
         // Is this entry better than the ones before?
-        if (analyzer->compareMetrics(smEntry.second, metric)) {
+        if (analyzer->compareMetrics(estInfo.metric, metric)) {
             // Yes, it is!  Good. update the necessary information.
-            srcESTidx  = cacheEntry.first;
-            destESTidx = smEntry.first;
-            metric     = smEntry.second;
+            srcESTidx     = cacheEntry.first;
+            destESTidx    = estInfo.estIdx;
+            metric        = estInfo.metric;
+            alignmentData = estInfo.alignmentData;
         }
     }
 }
@@ -201,7 +202,7 @@ void
 MSTCache::sortAndPrune(SMList& list, const int cacheSize) {
     // Sort the list such that the most similar entries are to the top
     // of the list so ease pruning less significant entries.
-    std::sort(list.begin(), list.end(), LessSMEntry(analyzer));
+    std::sort(list.begin(), list.end(), LessCachedESTInfo(analyzer));
     // Use number of entries in the list to determine number of
     // analyses performed
     analysisCount += list.size();

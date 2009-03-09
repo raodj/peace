@@ -172,6 +172,16 @@ public:
 	dumped.
     */
     static void dumpESTList(std::ostream& os);
+
+    /** Dump this EST information in FASTA format.
+
+	This method can be used to dump the information associated
+	with the EST in FASTA format to a given output stream.
+
+	\param[in] os The output stream to which the EST's information
+	must be written in FASTA format.
+    */
+    void dumpEST(std::ostream& os);
     
     /** Delete and clear all ESTs.
 

@@ -24,18 +24,30 @@
 
 #include "XFigHelper.h"
 
-XFigHelper::XFigHelper(std::ostream &outputStream,
-                       const bool genCustomColors) : os(outputStream) {
-    // Dump the XFIG header.
-    dumpHeader(genCustomColors);
+XFigHelper::XFigHelper() {
+    // Nothing to be done for now.
 }
 
 XFigHelper::~XFigHelper() {
     // Nothing else to be done.
 }
 
+bool
+XFigHelper::setOutput(const std::string &fileName,
+                      const bool genCustomColors) {
+    os.open(fileName.c_str());
+    if (!os.good()) {
+        return false;
+    }
+    // Dump the XFIG header.
+    dumpHeader(genCustomColors);
+    // Everything went well.
+    return true;
+}
+
+
 void
-XFigHelper::dumpHeader(const bool genCustomColors) const {
+XFigHelper::dumpHeader(const bool genCustomColors) {
     os << "#FIG 3.2  Produced by PEACE Tools 0.1\n"
        << "Landscape\n"
        << "Center\n"
@@ -91,7 +103,7 @@ XFigHelper::drawRect(int x, int y, int width, int height, int colorCode) {
 }
 
 void
-XFigHelper::generateColorTable() const {
+XFigHelper::generateColorTable() {
     // Dump custom color codes for further use.
     int colorCode = 32;
     for(int red = 0; (red < 256); red += 85) {
