@@ -2,7 +2,7 @@
 #define HEURISTIC_CPP
 
 //---------------------------------------------------------------------------
-//// Copyright (c) Miami University, Oxford, OHIO.
+// Copyright (c) Miami University, Oxford, OHIO.
 // All rights reserved.
 //
 // Miami University (MU) makes no representations or warranties about
@@ -31,3 +31,5 @@ Heuristic::Heuristic(const std::string& name, const int estIdx)
 Heuristic::~Heuristic() {}
 
 // Need some statistical methods later
+
+#endif

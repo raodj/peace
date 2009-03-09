@@ -28,66 +28,86 @@
 class Heuristic;
 
 class HeuristicChain {
-
- public:
+public:
   
-  /** Get a pointer to the instance of the heuristic chain.
-      Since this class is a singleton, the constructor is private
-      and the only way to obtain an instance of the class is through
-      this method.
-  */
-  static HeuristicChain* getHeuristicChain();
+    /** Get a pointer to the instance of the heuristic chain.
+        
+        Since this class is a singleton, the constructor is private
+        and the only way to obtain an instance of the class is through
+        this method.
+    */
+    static HeuristicChain* getHeuristicChain();
 
-  /** Add the given heuristic to the heuristic chain.
+    /** Add the given heuristic to the heuristic chain.
 
-      \param[in] h The instance of class Heuristic that should be
-      added to the heuristic chain.
-  
-      \return This method returns 0 if everything went well.
-  */
-  virtual int addHeuristicToChain(Heuristic* h);
+        This method permits the heuristic chain to takes ownership of
+        a given heuristic object by added it to its internal chain.
 
-  /** Determine whether the analyzer should analyze, according to
-      this heuristic chain.
+        \note The hueristic chain takes ownership of the object
+        therefore that the heuristic pointer passed to this method
+        must not be deleted by the caller.
+        
+        \param[in] heuristic The instance of class Heuristic that
+        should be added to the heuristic chain. 
+        
+        \return This method returns \c true if the heuristic was
+        successfully added. On errors this method returns \c false.
+    */
+    virtual bool addHeuristic(Heuristic* heuristic);
 
-      This method can be used to compare a given EST with the
-      reference EST (set via the call to the setReferenceEST())
-      method.
+    /** Determine whether the analyzer should perform core
+        (computationally intensive) analysis, according to this
+        heuristic chain.
+        
+        This method can be used to compare a given EST with the
+        reference EST (set via the call to the setReferenceEST())
+        method.
+        
+        \param[in] otherEST The index (zero based) of the EST with
+        which the reference EST is to be compared.
+        
+        \return This method returns \c true if all of the heuristics
+        say the EST pair should be analyzed, and \c false if any
+        heuristic does not.  (Conceivably a subclass could extend this
+        class and use some sort of "consensus" among heuristics.)
+    */
+    virtual bool shouldAnalyze(const int otherEST);
+    
+    /** The destructor.
 
-      \param[in] otherEST The index (zero based) of the EST with
-      which the reference EST is to be compared.
+        The destructor frees up all the heuristics added to this
+        heuristic chain.
+    */
+    virtual ~HeuristicChain();
+    
+    
+protected:
+    // Currently this class has no protected members.
+    
+private:
+    /** The constructor.
+        This is made private because the heuristic chain is a singleton,
+        and should only be instantiated from the getHeuristicChain()
+        static method.
+    */
+    HeuristicChain();
+    
+    /** The vector containing a list of heuristics in the chain.
 
-      \return This method returns true if all of the heuristics say the
-      EST pair should be analyzed, and false if any heuristic does not.
-      (Conceivably a subclass could extend this class and use some sort
-      of "consensus" among heuristics.)
-  */
-  virtual bool shouldAnalyze(const int otherEST);
+        This vector contains the list of hueristics assocaited with
+        this chain.  Heuristics are added to the list via the
+        addHeuristic() method.  The heuristics are used by the
+        shouldAnalyze() method.
+    */
+    static std::vector<Heuristic*> chain;
+    
+    /** The pointer to the singleton instance of this class.
 
-  /** The destructor.
-   */
-  virtual ~HeuristicChain();
-
-
- protected:
-
- private:
-  /** The constructor.
-      This is made private because the heuristic chain is a singleton,
-      and should only be instantiated from the getHeuristicChain()
-      static method.
-  */
-  HeuristicChain();
-
-  /** The vector containing a list of heuristics in the chain.
-  */
-  static std::vector<Heuristic*> chain;
-
-  /** The pointer to the singleton instance of this class.  Again, this
-      is made private so that only methods of this class can access it.
-  */
-  static HeuristicChain* ptrInstance;
-
+        Again, this is made private so that only methods of this class
+        can access it. The getHeuristicChain() method in this class
+        must be used to obtain an instance of this class.
+    */
+    static HeuristicChain* ptrInstance;
 };
 
 #endif
