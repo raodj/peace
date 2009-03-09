@@ -2,7 +2,7 @@
 #define HEURISTIC_H
 
 //---------------------------------------------------------------------------
-//// Copyright (c) Miami University, Oxford, OHIO.
+// Copyright (c) Miami University, Oxford, OHIO.
 // All rights reserved.
 //
 // Miami University (MU) makes no representations or warranties about
@@ -28,10 +28,9 @@
     readily used by the heuristics.
 */
 class Heuristic {
-
- public:
-      /** Display valid command line arguments for this heuristic.
-
+public:
+    /** Display valid command line arguments for this heuristic.
+        
         This method must be used to display all valid command line
         options that are supported by this heuristic.  Note that
         derived classes may override this method to display additional
@@ -51,7 +50,7 @@ class Heuristic {
     virtual void showArguments(std::ostream& os);
 
     /** Process command line arguments.
-
+        
         This method is used to process command line arguments specific
         to this heuristic.  This method is typically used from the
         main method just after the heuristic has been instantiated.
@@ -67,32 +66,33 @@ class Heuristic {
         
         \param[inout] argc The number of command line arguments to be
         processed.
-
+        
         \param[inout] argc The array of command line arguments.
-
+        
         \return This method returns \c true if the command line
         arguments were successfully processed.  Otherwise this method
         returns \c false.
     */
     virtual bool parseArguments(int& argc, char **argv);
-
-        /** Method to begin EST analysis.
-
+    
+    /** Method to begin heuristic analysis (if any).
+        
         This method is invoked just before commencement of EST
-        analysis.  This method typically loads the list of ESTs from a
-        given input file.  In addition, it may perform any
-        pre-processing as the case may be.
+        analysis.  This method typically loads additional information
+        that may be necessary for a given heuristic from data files.
+        In addition, it may perform any pre-processing as the case may
+        be.
 
         \note Derived classes must override this method.
-
+        
         \return If the initialization process was sucessful, then this
         method returns 0.  Otherwise this method returns with a
         non-zero error code.
     */
     virtual int initialize() = 0;
-
+    
     /** Set the reference EST id for analysis.
-
+        
         This method is invoked just before a batch of ESTs are
         analyzed via a call to the analyze(EST *) method.  Setting the
         reference EST provides heuristics an opportunity to optimize
@@ -108,14 +108,14 @@ class Heuristic {
 
     /** The destructor.
 
-        The destructor frees memory allocated for holding any EST data
-        in the base class.
+        The destructor frees memory allocated for holding any dynamic
+        data in the base class.
     */
     virtual ~Heuristic();
 
- protected:
+protected:
     /** The default constructor.
-
+        
         The constructor has been made protected to ensure that this
         class is never directly instantiated.  Instead one of the
         derived Heuristic classes must be instantiated via the
@@ -141,9 +141,9 @@ class Heuristic {
         by the setReferenceEST() id.
     */
     int refESTidx;
-
+    
     /** The name of this heuristic.
-
+        
         This instance variable contains the human recognizable name
         for this heuristic.  This value is set when the heuristic is
         instantiated (in the constructor) and is never changed during
@@ -151,59 +151,58 @@ class Heuristic {
         generating errors, warnings, and other output messages.
     */
     const std::string analyzerName;
-
-   
+    
+    
     /** Determine whether the analyzer should analyze, according to
 	this heuristic.
-
+        
         This method can be used to compare a given EST with the
         reference EST (set via the call to the setReferenceEST())
         method.
-
+        
         \param[in] otherEST The index (zero based) of the EST with
         which the reference EST is to be compared.
-
+        
         \return This method returns true if the heuristic says the
 	EST pair should be analyzed, and false if it should not.
     */
     virtual bool shouldAnalyze(const int otherEST) = 0;
+    
+private:
+    /** \def TRACK_IDLE_TIME
+        
+        \brief Convenience macro to track time spent in calling a MPI
+        method.
 
- private:
-/** \def TRACK_IDLE_TIME
+        This macro provides a convenient wrapper around a given MPI
+        method call to track the time spent in calling a MPI method.
+        This macro assumes that the MPI call being made must be
+        accounted as idle time for the process and uses the Wtime()
+        method to appropriately time the method call and adds the
+        elapsed time to MPIStats::idleTime variable.  This macro must
+        be used as shown below:
 
-    \brief Convenience macro to track time spent in calling a MPI
-    method.
+        \code
+        
+        #include "MPI.h"
+        
+        void someMethod() {
+            MPI::Status statusInfo;
+            TRACK_IDLE_TIME(MPI::COMM_WORLD.Probe(MPI_ANY_SOURCE, MPI_ANY_TAG,
+            statusInfo));
+        }
 
-    This macro provides a convenient wrapper around a given MPI method
-    call to track the time spent in calling a MPI method.  This macro
-    assumes that the MPI call being made must be accounted as idle
-    time for the process and uses the Wtime() method to appropriately
-    time the method call and adds the elapsed time to
-    MPIStats::idleTime variable.  This macro must be used as shown
-    below:
+        \endcode
 
-    \code
-
-    #include "MPI.h"
-
-    void someMethod() {
-        MPI::Status statusInfo;
-        TRACK_IDLE_TIME(MPI::COMM_WORLD.Probe(MPI_ANY_SOURCE, MPI_ANY_TAG,
-                                              statusInfo));
-    }
-
-    \endcode
-
-    \note If you are tracking idle time for the Probe method, use
-    MPI_PROBE macro directly as it automatically tracks the idle time
-    too.
+        \note If you are tracking idle time for the Probe method, use
+        MPI_PROBE macro directly as it automatically tracks the idle
+        time too.
 */
 #define TRACK_IDLE_TIME(MPIMethodCall) {                        \
         const double startTime = MPI::Wtime();                  \
         MPIMethodCall;                                          \
         MPIStats::idleTime += (MPI::Wtime() - startTime);       \
     }
-    
 };
 
 #endif

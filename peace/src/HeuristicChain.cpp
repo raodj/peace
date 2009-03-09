@@ -28,22 +28,24 @@
 std::vector<Heuristic*> HeuristicChain::chain;
 
 // The static pointer to the singleton heuristic chain instance.
-HeuristicChain* HeuristicChain::ptrInstance = 0;
+HeuristicChain* HeuristicChain::ptrInstance = NULL;
 
 HeuristicChain*
 HeuristicChain::getHeuristicChain() {
-    if (ptrInstance == 0) {
+    if (ptrInstance == NULL) {
         // Initialize the heuristic chain
         ptrInstance = new HeuristicChain;
     }
+    ASSERT ( ptrInstance != NULL );
     return ptrInstance;
 }
 
-int
-HeuristicChain::addHeuristicToChain(Heuristic* h) {
+bool
+HeuristicChain::addHeuristic(Heuristic* h) {
+    ASSERT( h != NULL );
     chain.push_back(h);
     // Everything went well
-    return 0;
+    return true;
 }
 
 bool
@@ -53,7 +55,10 @@ HeuristicChain::shouldAnalyze() {
 }
 
 HeuristicChain::~HeuristicChain() {
-    // Nothing to be done for now
+    for(size_t i = 0; (i < chain.size()); i++) {
+        delete chain[i];
+    }
+    chain.clear();
 }
 
 HeuristicChain::HeuristicChain() {

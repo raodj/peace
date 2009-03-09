@@ -30,15 +30,14 @@ class Heuristic;
 class HeuristicFactory {
 public:
     /** Method to instantiate a suitable heuristic.
-
+        
         This method must be used to instantiate a suitable heuristic
 	instance.  This method uses the name (parameter) to
         suitably instantiate a heuristic.  If the name is not
         valid, then this method returns NULL.
-
-        \param[in] name The name of the heuristic to be
-        instantiated.
-
+        
+        \param[in] name The name of the heuristic to be instantiated.
+        
         \param[in] refESTidx The reference EST index value to be used
         when instantiating a heuristic.  Index values start from 0
         (zero).  If this value is negative then this method returns
@@ -46,19 +45,19 @@ public:
 
         \param[in] outputFileName The target file to which the
         analysis report is to be written (if any).  Note that this
-        parameter may be ignored if this heuristic is used to
-        generate clusters.  If the value of outputFileName is ""
-        (empty string) then the outputs are streamed to standard out.
+        parameter may be ignored if this heuristic is used to generate
+        clusters.  If the value of outputFileName is "" (empty string)
+        then the outputs are streamed to standard out.
     */
     static Heuristic* create(const char* name, const int refESTidx,
-                               const std::string& outputFileName);
-
+                             const std::string& outputFileName);
+    
     /** Method to display the list of heuristics available.
 
         This method is typically used to display the list of
         heuristics currently available.  This method is typically used
         in the main() method when displaying usage information.
-
+        
         \param[out] os The output stream to which the list of heuristic
         names must be written.
     */
@@ -83,6 +82,5 @@ private:
     */
     ~HeuristicFactory() {}
 };
-
 
 #endif
