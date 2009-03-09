@@ -352,9 +352,13 @@ protected:
 
         \param[out] similarity The similarity metric between the
         srcESTidx and the destESTidx.
+
+	\param[out] alignmentData The alignment information between
+	the two ESTs represented by their index values in parentESTidx
+	and estToAdd.
     */
     void computeNextESTidx(int& parentESTidx, int& estToAdd,
-			   float &similarity) const;
+			   float &similarity, int& alignmentData) const;
     
     /** Determine the owner process Rank for a given estIdx.
 

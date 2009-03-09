@@ -58,7 +58,7 @@ public:
         times the MST has to reallocate memory as nodes are added to
         it.
     */
-    MST(const int maxNodes);
+    MST(const int maxNodes, const bool haveAlignmentMetric);
 
     /** The destructor.
 
@@ -67,6 +67,16 @@ public:
     */
     ~MST() {}
 
+    /** Determine if nodes in this MST have alignment metric values.
+
+	This method can be used to determine if the nodes in this MST
+	have alignment information saved for each node.
+
+	\return This method returns \c true if the nodes in this MST
+	have alignment metric.
+    */
+    inline bool hasAlignmentMetric() const { return haveAlignmentMetric; }
+    
     /** Convenience method to add a MSTNode to the EST.
 
         This method may be used to append a node to the EST.  The
@@ -84,9 +94,13 @@ public:
         
         \param[in] similarityMetric The similarity metric between
         this EST and its parent EST.
+
+	\param[in] alignmentInfo Additional alignment information
+	between the parentIdx and the estIdx to be stored in this
+	node.
     */
     void addNode(const int parentIdx, const int estIdx,
-                 const float similarity);
+                 const float similarity, const int alignmentInfo);
 
     /** Obtain a mutable list of nodes in this MST.
 
@@ -108,8 +122,9 @@ public:
         \param[in] fileName The file to which the MST data is to be
         written.
         
-	\param[in] srcFile The source file from where data would be
-	written.
+	\param[in] srcFile The source file from where the ESTs were
+	read. This file name is simply used for cross reference in the
+	data generated for this MST.
     */
     void serialize(const char *fileName, const char* srcFile) const;
     
@@ -150,6 +165,15 @@ private:
         addNode() method in this class.
     */
     NodeList nodeList;
+
+    /** Instance variable to indicate if alignment metric in nodes is
+	valid.
+
+	This instance variable is initialized when this MST is
+	created.  If this instance variable is \c true then each Node
+	in this MST has a valid alignment information.
+    */
+    bool haveAlignmentMetric;
 };
 
 /** \func operator<<

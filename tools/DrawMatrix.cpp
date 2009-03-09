@@ -82,13 +82,6 @@ DrawMatrix::main(int argc, char *argv[]) {
                "Use --output option\n");
     CHECK_ARGS(sqSize < 2, "Square size must be atleast 2.\n" \
                "Use --sqSize option\n");
-    // Open the output file.
-    std::ofstream outFile(outFileName);
-    if (!outFile.good()) {
-        std::cout << "Unable to open output file " << outFileName
-                  << " for output.\n";
-        return 1;
-    }
     // Open input file.
     std::ifstream inFile(srcFileName);
     if (!inFile.good()) {
@@ -97,12 +90,18 @@ DrawMatrix::main(int argc, char *argv[]) {
         return 2;
     }
     // OK. Create an object.
-    DrawMatrix dm(outFile);
+    DrawMatrix dm;
+    // Open the output file.
+    if (!dm.xfig.setOutput(outFileName, false)) {
+        std::cout << "Unable to open output file " << outFileName
+                  << " for output.\n";
+        return 1;
+    }
+    
     // Draw the matrix.
     dm.drawMatrix(inFile, estCount, 1200 * sqSize / 72);
     // Finally close the streams.
     inFile.close();
-    outFile.close();
     // Everything went well.
     return 0;
 }
@@ -181,7 +180,7 @@ DrawMatrix::showUsage(const arg_parser& ap) {
     std::cout << ap;
 }
 
-DrawMatrix::DrawMatrix(std::ostream &os) : xfig(os, true) {
+DrawMatrix::DrawMatrix() {
     // Nothing else do be done.
 }
 

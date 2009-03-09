@@ -142,7 +142,7 @@ D2::setReferenceEST(const int estIdx) {
         memset(s1WordTable, 0, sizeof(int) * MAX_SEQ_LEN);
         EST *estS1 = EST::getEST(refESTidx);
         std::string s1 = estS1->getSequence();
-         // First compute the hash for a single word.
+        // First compute the hash for a single word.
         //ASSERT ( sequence != NULL );
         int hash = 0;
         int i;
@@ -235,66 +235,95 @@ D2::reverseComplement(std::string sequence) {
 
 float
 D2::analyze(const int otherEST) {
-  if (otherEST == refESTidx) {
-    return 0; // distance to self will be 0
-  } else if ((otherEST >= 0) && (otherEST < EST::getESTCount())) {
-    int sed = 0;
-    int minSed = frameSize*4; // won't be exceeded
-    int s1FramePos = 0;
-    // Get sequences
-    EST *estS1 = EST::getEST(refESTidx);
-    EST *estS2 = EST::getEST(otherEST);
-    std::string sq1 = estS1->getSequence();
-    ASSERT ( sq1.size() > 0 );
-    std::string sq2 = estS2->getSequence();
-    ASSERT ( sq2.size() > 0);
+    if (otherEST == refESTidx) {
+        return 0; // distance to self will be 0
+    } else if ((otherEST >= 0) && (otherEST < EST::getESTCount())) {
+        int sed = 0;
+        int minSed = frameSize*4; // won't be exceeded
+        int s1FramePos = 0;
+        // Get sequences
+        EST *estS1 = EST::getEST(refESTidx);
+        EST *estS2 = EST::getEST(otherEST);
+        std::string sq1 = estS1->getSequence();
+        ASSERT ( sq1.size() > 0 );
+        std::string sq2 = estS2->getSequence();
+        ASSERT ( sq2.size() > 0);
 
-    // Initialize the word table for s2
-    buildWordTable(sq2);
+        // Initialize the word table for s2
+        buildWordTable(sq2);
  
-    // Initialize the frequency differential hashmap for s1-s2
-    buildFdHashMaps(&sed);
+        // Initialize the frequency differential hashmap for s1-s2
+        buildFdHashMaps(&sed);
 
-    minSed = sed;
+        minSed = sed;
 
-    const int numFramesS1 = sq1.size() - frameSize;
-    const int numFramesS2 = sq2.size() - frameSize;
+        const int numFramesS1 = sq1.size() - frameSize;
+        const int numFramesS2 = sq2.size() - frameSize;
 
-    // Main d2 algorithm (from Zimmermann paper)
-    while (s1FramePos < numFramesS1) {
-      if (s1FramePos != 0) {
-          for (int i = 0; (i < frameShift && s1FramePos++ < numFramesS1); i++) {
-              refShiftUpdateFd(&sed, s1FramePos);
-              if (sed < minSed) minSed = sed;
-              if (minSed==0) break;
-          }
-      }
-      for (int s2FramePos = 1; s2FramePos <= numFramesS2; s2FramePos++) {
-	rightShiftUpdateFd(&sed, s2FramePos);
-	if (sed < minSed) minSed = sed;
-        if (minSed==0) break;
-      }
-      if (s1FramePos != numFramesS1) {
-          for (int i = 0; (i < frameShift && s1FramePos++ < numFramesS1); i++) {
-              refShiftUpdateFd(&sed, s1FramePos);
-              if (sed < minSed) minSed = sed;
-              if (minSed==0) break;
-          }
-      }
-      for (int s2FramePos = numFramesS2-1; s2FramePos >= 0; s2FramePos--) {
-	leftShiftUpdateFd(&sed, s2FramePos);
-	if (sed < minSed) minSed = sed;
-        if (minSed==0) break;
-      }
-    }
+        // Main d2 algorithm (from Zimmermann paper)
+        while (s1FramePos < numFramesS1) {
+            if (s1FramePos != 0) {
+                for (int i = 0; (i < frameShift && s1FramePos++ < numFramesS1); i++) {
+                    refShiftUpdateFd(&sed, s1FramePos);
+                    if (sed < minSed) {
+                        alignmentMetric = s1FramePos;
+                        minSed = sed;
+                        if (minSed == 0) {
+                            break;
+                        }
+                    }
+                }
+            }
+            for (int s2FramePos = 1; s2FramePos <= numFramesS2; s2FramePos++) {
+                rightShiftUpdateFd(&sed, s2FramePos);
+                if (sed < minSed)  {
+                    minSed = sed;
+                    alignmentMetric = s1FramePos - s2FramePos;
+                    if (minSed==0) {
+                        break;
+                    }
+                }
+            }
+            if (s1FramePos != numFramesS1) {
+                for (int i = 0; (i < frameShift && s1FramePos++ < numFramesS1); i++) {
+                    refShiftUpdateFd(&sed, s1FramePos);
+                    if (sed < minSed) {
+                        minSed = sed;
+                        alignmentMetric = s1FramePos;
+                        if (minSed==0) {
+                            break;
+                        }
+                    }
+                }
+            }
+            for (int s2FramePos = numFramesS2-1; s2FramePos >= 0; s2FramePos--) {
+                leftShiftUpdateFd(&sed, s2FramePos);
+                if (sed < minSed) {
+                    minSed = sed;
+                    alignmentMetric = s1FramePos - s2FramePos;
+                    if (minSed==0) {
+                        break;
+                    }
+                }
+            }
+        }
 
-    //printf("%d %d %d\n", refESTidx, otherEST, minSed);
+        //printf("%d %d %d\n", refESTidx, otherEST, minSed);
     
-    return minSed;
-  } else {
-    // Invalid est index.
-    return -1;
+        return minSed;
+    } else {
+        // Invalid est index.
+        return -1;
     }
+}
+
+bool
+D2::getAlignmentData(int &alignmentData) {
+    // Simply copy the alignment metric that was computed by the last
+    // successful call to the analyze() method.
+    alignmentData = alignmentMetric;
+    // Let the caller know that the alignment data is available.
+    return true;
 }
 
 #endif

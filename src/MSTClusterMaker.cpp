@@ -160,21 +160,21 @@ MSTClusterMaker::managerUpdateCaches(int estIdx) {
 }
 
 void
-MSTClusterMaker::computeNextESTidx(int& parentESTidx, int&estToAdd,
-                                   float& similarity) const {
+MSTClusterMaker::computeNextESTidx(int& parentESTidx, int& estToAdd,
+                                   float& similarity, int& alignmentData)const {
     // First send request to compute local best EST values to each
     // worker process.
     sendToWorkers(-1, COMPUTE_MAX_SIMILARITY_REQUEST);
     // Now compute local best similarity
-    cache->getBestEntry(parentESTidx, estToAdd, similarity);
+    cache->getBestEntry(parentESTidx, estToAdd, similarity, alignmentData);
     // Receive similarity entry from 
     const int ProcessCount = MPI::COMM_WORLD.Get_size();
     for(int rank = 1; (rank < ProcessCount); rank++) {
         // Choose worker rank depending on strict ordering scheme..
         const int workerRank = (strictOrder ? rank : MPI_ANY_SOURCE);
         // Get the local simlarity information from another worker.
-        int remoteData[3];
-        TRACK_IDLE_TIME(MPI_RECV(remoteData, 3, MPI::INT,
+        int remoteData[4];
+        TRACK_IDLE_TIME(MPI_RECV(remoteData, 4, MPI::INT,
                                  workerRank, MAX_SIMILARITY_RESPONSE));
         // Undo the fudge on similarity done at the sender end.
         const float remoteSim = *((float *) (remoteData + 2));
@@ -183,6 +183,7 @@ MSTClusterMaker::computeNextESTidx(int& parentESTidx, int&estToAdd,
             similarity   = remoteSim;
             parentESTidx = remoteData[0];
             estToAdd     = remoteData[1];
+            alignmentData= remoteData[3];
         }
     }
 }
@@ -192,16 +193,17 @@ MSTClusterMaker::manager() {
     // The number of pending nodes to be added to the MST.
     int pendingESTs = EST::getESTList().size();
     // The minimum spanning tree that is built by this manager.
-    mst = new MST(pendingESTs);
+    int dummy;
+    mst = new MST(pendingESTs, analyzer->getAlignmentData(dummy));
     // Kick of all activities by adding the reference EST as the root
     // of the MST with a similarity metric of 0.
-    int parentESTidx = -1;
-    int estToAdd     = refESTidx;
-    float similarity = 0;
-    
+    int parentESTidx    = -1;
+    int estToAdd        = refESTidx;
+    float similarity    = 0;
+    int   alignmentInfo = 0;
     do {
         // Add the EST to the MST vector.
-        mst->addNode(parentESTidx, estToAdd, similarity);
+        mst->addNode(parentESTidx, estToAdd, similarity, alignmentInfo);
         if (--pendingESTs == 0) {
             // All EST's have been added to the MST.  Nothing more to
             // do.  So break out of the while loop.
@@ -213,7 +215,7 @@ MSTClusterMaker::manager() {
         // Now broadcast request to all workers to provide their best
         // choice for the next EST id to be added to the MST using a
         // helper method.
-        computeNextESTidx(parentESTidx, estToAdd, similarity);
+        computeNextESTidx(parentESTidx, estToAdd, similarity, alignmentInfo);
     } while (pendingESTs > 0);
     
     // Broad cast an estIdx of -1 to all the workers to indicate that
@@ -279,16 +281,17 @@ MSTClusterMaker::workerProcessRequests() {
             int dummy = 0;
             MPI_RECV(&dummy, 1, MPI::INT, MANAGER_RANK,
                      COMPUTE_MAX_SIMILARITY_REQUEST);
-            int   bestEntry[3];
+            int   bestEntry[4];
             float similarity = 0;
             // Get the best possible local similarity match.
-            cache->getBestEntry(bestEntry[0], bestEntry[1], similarity);
+            cache->getBestEntry(bestEntry[0], bestEntry[1],
+                                similarity, bestEntry[3]);
             // Fudge the similarity into the bestEntry array to
             // transmitt the necessary information to the manager.
             // Maybe there is a cleaner way to do it too...
             int *temp    = reinterpret_cast<int*>(&similarity);
             bestEntry[2] = *temp;
-            MPI_SEND(bestEntry, 3, MPI::INT, MANAGER_RANK,
+            MPI_SEND(bestEntry, 4, MPI::INT, MANAGER_RANK,
                      MAX_SIMILARITY_RESPONSE);
         }
     } while (msgInfo.Get_tag() != COMPUTE_MAX_SIMILARITY_REQUEST);
@@ -329,9 +332,14 @@ MSTClusterMaker::populateCache(const int estIdx) {
             // is not needed for MST construction.
             continue;
         }
-        const float similarity = analyzer->analyze(otherIdx);
-        ASSERT ( similarity >= 0 );
-        smList.push_back(std::make_pair(otherIdx, similarity));
+        // Get similarity/distance metric.
+        const float metric = analyzer->analyze(otherIdx);
+        ASSERT ( metric >= 0 );
+        // Obtain any alignemnt data that the analyzer may have.
+        int alignmentData = 0;
+        analyzer->getAlignmentData(alignmentData);
+        // Add the information to metric list
+        smList.push_back(CachedESTInfo(otherIdx, metric, alignmentData));
     }
     // Sort and prune the SMList to place ESTs with maximum similarity
     // at the top.
@@ -347,10 +355,10 @@ MSTClusterMaker::populateCache(const int estIdx) {
         
         // First ensure there is at least one entry to work with.
         if (smList.empty()) {
-            smList.push_back(std::make_pair(-1, -1.0f));
+            smList.push_back(CachedESTInfo(-1, -1.0f, -1));
         }
-        MPI_SEND(&smList[0], smList.size() * 2,
-                 MPI_INT, ownerRank, SIMILARITY_LIST);
+        MPI_SEND(&smList[0], smList.size() * sizeof(CachedESTInfo),
+                 MPI_CHAR, ownerRank, SIMILARITY_LIST);
         // Nothing futher to do if the process is not the owner for
         // this EST.
         return;
@@ -376,12 +384,12 @@ MSTClusterMaker::populateCache(const int estIdx) {
         MPI_PROBE(rank, SIMILARITY_LIST, msgInfo);
         // OK, we have a valid similarity list pending from some other
         // process. So read and process it.
-        const int dataSize = msgInfo.Get_count(MPI::INT);
-        SMList remoteList(dataSize / 2);
+        const int dataSize = msgInfo.Get_count(MPI::CHAR);
+        SMList remoteList(dataSize / sizeof(CachedESTInfo));
         // The following call is a kludge with MPI/STL data types
         // based on several language assumptions.  This part could be
         // cleaned up to be more portable later on.
-        MPI_RECV(&remoteList[0], dataSize, MPI::INT,
+        MPI_RECV(&remoteList[0], dataSize, MPI::CHAR,
                  msgInfo.Get_source(), SIMILARITY_LIST);
         // Merge the list we got from the remote process with our
         // local cache information if the list has a valid entry.
@@ -533,7 +541,7 @@ MSTClusterMaker::hasValidSMEntry(const SMList& list) const {
         // have at least one valid entry.
         return true;
     }
-    if (list[0].first == -1) {
+    if (list[0].estIdx == -1) {
         // The list has 1 entry and the first entry's index is -1 that
         // means this list does not have a even one valid entry.
         return false;

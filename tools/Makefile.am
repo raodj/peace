@@ -34,12 +34,20 @@ pTools_SOURCES = \
 ../src/arg_parser.h\
 ../src/EST.cpp\
 ../src/EST.h\
+Common.h\
 ShowAlignment.h\
 ShowAlignment.cpp\
 XFigHelper.h\
 XFigHelper.cpp\
 DrawMatrix.h\
 DrawMatrix.cpp\
+ShowMST.h\
+ShowMST.cpp\
+Tool.h\
+Tool.cpp\
+MSTguiNode.h\
+Align.h\
+Align.cpp\
 main.cpp
 
 # end of Makefile.am

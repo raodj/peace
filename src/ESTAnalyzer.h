@@ -119,6 +119,8 @@ public:
         \param[in] otherEST The index (zero based) of the EST with
         which the reference EST is to be compared.
 
+        \param[in] alignmentData 
+        
         \return This method returns a similarity metric by comparing
         the ESTs.
     */
@@ -147,6 +149,29 @@ public:
     */
     virtual int analyze() = 0;
 
+    /** Get alignment data for the previous call to analyze method.
+
+        This method can be used to obtain alignment data (if any) that
+        was obtained typically as an byproduct of the previous call
+        tothe analyze() method.
+
+        \param[out] alignmentData The parameter is updated to the
+        alignment information generated as a part of the the
+        immediately preceding analyze(const int) method call is
+        returned in the parameter.
+
+        \note Not all ESTAnalyzer classes may compute additional
+        alignment data.  In this case, this method will return \c
+        false.  Furthermore, if a previous analyze() method call was
+        not made, then the value returned in alignmentData parameter
+        is not defined.
+        
+        \return This method returns \c true if the alignment data is
+        actually computed by this ESTAnalyzer. The default
+        implementation of this method always returns \c false.
+    */
+    virtual bool getAlignmentData(int& alignmentData) { return false; }
+    
     /** Method to load EST information from a FASTA file.
 
         This method can be used to load information regarding ESTs

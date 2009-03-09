@@ -23,6 +23,7 @@
 //---------------------------------------------------------------------------
 
 #include <iostream>
+#include <fstream>
 #include <exception>
 #include <string>
 
@@ -30,21 +31,33 @@ class XFigHelper {
 public:
     /** The constructor.
             
-        The constructor saves off the reference to a output stream for
-        further use in this class.
-
-        \param[out] os The output stream to which data has to be
-        written.
+        The constructor merely initializes all the instance variables
+        to their default initial value. Currently, this constructor is
+        simple and is present merely to adhere to coding conventions.
+    */
+    XFigHelper();
+    
+    /** Method to set output stream and generate initial XFig header.
+        
+        \param[out] fileName The name of the file to which the XFig
+        data is to be written.  This method attempts to open the file
+        and write a standard XFig header to the file.  If this process
+        experiences errors then this method returns \c false.
 
 	\param[in] genCustomColors If this flag is set to \c true then
-	this method adds an user-defined color table to generated
-	XFig. The user-defined color table guarantees a set of visibly
-	different colors for use in applications.	
+	this method adds an user-defined color table to the generated
+	XFig file. The user-defined color table guarantees a set of
+	visibly different colors for use in applications.
+
+        \return This method returns \c true if the file was opened and
+        the header was successfully written.  On errors this method
+        returns \c false.
     */
-    XFigHelper(std::ostream &os, const bool genCustomColors = false);
-
+    bool setOutput(const std::string &fileName,
+                   const bool genCustomColors = false);
+    
     /** The destructor.
-
+        
         Currently the destructor does not have any specific tasks to
         perform.  It is present merely to adhere to coding convetions.
     */
@@ -84,7 +97,21 @@ public:
                  const int colorCode = 0,
                  const int level = 50);
 
+    /** Dump code for displaying a rectangle.
 
+        This method can be used to generate a rectangle filled with a
+        given color on the generated XFig file.
+
+        \param[in] x The top-left x-coordinate for the rectangle (in
+        XFig units).
+
+        \param[in] y The top-left y-coordinate for the rectangle (in
+        XFig units).        
+
+        \param[in] width The width of the rectangle in XFig units.
+
+        \param[in] height The height of the rectangle in XFig units.
+    */
     void drawRect(int x, int y, int width, int height, int colorCode = 0);
     
 protected:
@@ -98,7 +125,7 @@ protected:
 	XFig. The user-defined color table guarantees a set of visibly
 	different colors for use in applications.
     */
-    void dumpHeader(const bool genCustomColors) const;
+    void dumpHeader(const bool genCustomColors);
 
     /** Helper method generate color table.
 
@@ -106,7 +133,7 @@ protected:
         actually generate the table of user-defined colors at the end
         of the header.
     */
-    void generateColorTable() const;
+    void generateColorTable();
     
 private:
     /** The output stream to which data is to be written.
@@ -116,7 +143,7 @@ private:
         refernece is instialized in the constructor and used by
         various methods in this class.
     */
-    std::ostream& os;
+    std::ofstream os;
 };
 
 #endif

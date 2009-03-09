@@ -37,12 +37,16 @@ operator<<(std::ostream& os, const MSTNode& node) {
 }
 
 void
-MSTNode::serialize(std::ostream& os) const {
-    os << parentIdx << "," << estIdx << "," << metric << std::endl;
+MSTNode::serialize(std::ostream& os, const bool addAlignment) const {
+    os << parentIdx << "," << estIdx << "," << metric;
+    if (addAlignment) {
+        os << "," << alignmentMetric;
+    }
+    os << std::endl;
 }
 
 int
-MSTNode::deSerialize(std::istream& is, MSTNode& node) {
+MSTNode::deSerialize(std::istream& is, MSTNode& node, bool& haveAlignment) {
     bool done = false;
     // The following loop repeatedly reads a line from the input
     // stream (is), ignoring comment lines, until a valid line of
@@ -70,15 +74,19 @@ MSTNode::deSerialize(std::istream& is, MSTNode& node) {
         if ((line[0] != '#') && (!is.eof())) {
             // Found a valid line...
             done = true;
+            int fields = 0;
             // Extract the three fields from the line.
-            if (sscanf(line, "%d,%d,%f", &node.parentIdx,
-                       &node.estIdx, &node.metric) != 3) {
+            if ((fields = sscanf(line, "%d,%d,%f,%d", &node.parentIdx,
+                                 &node.estIdx, &node.metric,
+                                 &node.alignmentMetric)) < 3) {
                 // Error occured when processing this line.
                 std::cerr << "Non-comment line with invalid format "
                           << "encountered." << std::endl;
                 std::cerr << "The line is: '" << line << "'\n";
                 return 3;
             }
+            // Set flag to indicate if we have alignment data as well.
+            haveAlignment = (fields == 4);
         }
     } while (!done);
     // Everything went well.

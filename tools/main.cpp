@@ -25,12 +25,16 @@
 #include "arg_parser.h"
 #include "ShowAlignment.h"
 #include "DrawMatrix.h"
+#include "ShowMST.h"
+#include "Align.h"
 
 // The list of valid tools and associated usage.
 const char* ToolInfo[] = {
-    "ShowAlignment", "Show graphical view of EST alignments",
-    "DrawMatrix",    "Draw graphical view of D2  matrix of scores",
-    // Add new tool names and description here.
+    "ShowAlignment","Show graphical view of EST alignments",
+    "DrawMatrix",   "Draw graphical view of D2  matrix of scores",
+    "ShowMST",      "Translate MST to a bracketed form for rendering",
+    "Align",        "Simple alignment generation tool using MST alignment data",
+    // Add new tool names and description before this line.
     NULL, NULL
 };
 
@@ -106,11 +110,15 @@ main(int argc, char* argv[]) {
     case 0: retVal = ShowAlignment::main(argc, argv);
         break;
     case 2: retVal = DrawMatrix::main(argc, argv);
-        break;        
+        break;
+    case 4: retVal = ShowMST::main(argc, argv);
+        break;
+    case 6: retVal = Align::main(argc, argv);
+        break;
     default:
         std::cout << "Invalid or unhandled tool name specified.\n";
     }
-
+    
     // return the result back to the caller.
     return retVal;
 }
