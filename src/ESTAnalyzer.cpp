@@ -26,6 +26,9 @@
 #include "EST.h"
 #include <mpi.h>
 
+// GEt rid of magic numbers
+#define NO_ERROR 0
+
 // The static instance variables for command line arguments.
 bool  ESTAnalyzer::readAhead      = false;
 char* ESTAnalyzer::estFileName    = NULL;
@@ -50,6 +53,17 @@ ESTAnalyzer::ESTAnalyzer(const std::string& name, const int estIdx,
 }
 
 ESTAnalyzer::~ESTAnalyzer() {}
+
+int
+ESTAnalyzer::setHeuristicChain(HeuristicChain* hChain) {
+    chain = hChain;
+    int result;
+    if ((result = chain->initialize()) != NO_ERROR) {
+        // Error occured during initialization. Bail out.
+        return result;
+    }
+    return 0; // Everything went well
+}
 
 void
 ESTAnalyzer::showArguments(std::ostream& os) {

@@ -23,6 +23,7 @@
 //---------------------------------------------------------------------------
 
 #include "arg_parser.h"
+#include "HeuristicChain.h"
 
 /** The base class of all EST analyzers.
 
@@ -170,7 +171,7 @@ public:
         actually computed by this ESTAnalyzer. The default
         implementation of this method always returns \c false.
     */
-    virtual bool getAlignmentData(int& alignmentData) { return false; }
+    virtual bool getAlignmentData(int &alignmentData) { return false; }
     
     /** Method to load EST information from a FASTA file.
 
@@ -256,6 +257,15 @@ public:
     */
     virtual bool compareMetrics(const float metric1, const float metric2) const
     { return (metric1 > metric2); }
+
+    /** Method to attach a heuristic chain to this EST analyzer.
+
+        \param[in] chain The heuristic chain to be attached.
+
+	\return If the initialization process was sucessful, then this
+        method returns 0.  Otherwise this method returns an error code.
+    */
+    virtual int setHeuristicChain(HeuristicChain* chain);
     
     /** The destructor.
 
@@ -306,6 +316,11 @@ protected:
         by the setReferenceEST() id.
     */
     int refESTidx;
+
+    /** The heuristic chain attached to this EST analyzer.
+    */
+
+    HeuristicChain* chain;
 
     /** The FASTA file from where EST data is to be read.
 

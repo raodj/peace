@@ -18,11 +18,16 @@
 // intellectual property laws, and all other applicable laws of the
 // U.S., and the terms of this license.
 //
-// Authors: James C. Moler         molerjc@muohio.edu
+// Authors: Dhananjai M. Rao       raodm@muohio.edu
+//          James C. Moler         molerjc@muohio.edu
 //
 //---------------------------------------------------------------------------
 
 #include "HeuristicChain.h"
+#include "Utilities.h"
+
+// Get rid of magic numbers
+#define NO_ERROR 0
 
 // The static list of heuristics in the heuristic chain.
 std::vector<Heuristic*> HeuristicChain::chain;
@@ -40,6 +45,24 @@ HeuristicChain::getHeuristicChain() {
     return ptrInstance;
 }
 
+void
+HeuristicChain::showArguments(std::ostream& os) {
+    for (size_t i = 0; (i < chain.size()); i++) {
+        chain[i]->showArguments(os);
+    }   
+}
+
+bool
+HeuristicChain::parseArguments(int& argc, char **argv) {
+    bool flag = true;
+    for (size_t i = 0; (i < chain.size()); i++) {
+        if (!chain[i]->parseArguments(argc, argv)) {
+            flag = false;
+        }
+    }
+    return flag;
+}
+
 bool
 HeuristicChain::addHeuristic(Heuristic* h) {
     ASSERT( h != NULL );
@@ -48,9 +71,39 @@ HeuristicChain::addHeuristic(Heuristic* h) {
     return true;
 }
 
+int
+HeuristicChain::initialize() {
+    int result;
+    for (size_t i = 0; (i < chain.size()); i++) {
+        if ((result = chain[i]->initialize()) != NO_ERROR) {
+            // Error occured during initialization. Bail out.
+            return result;
+        }
+    }
+    return 0; // Everything went well
+}
+
+int
+HeuristicChain::setReferenceEST(const int estIdx) {
+    int result;
+    for (size_t i = 0; (i < chain.size()); i++) {
+        if ((result = chain[i]->setReferenceEST(estIdx)) != NO_ERROR) {
+            // Error occured during initialization. Bail out.
+            return result;
+        }
+    }
+    return 0; // Everything went well
+}
+
 bool
-HeuristicChain::shouldAnalyze() {
-    // Return true as a default
+HeuristicChain::shouldAnalyze(const int otherEST) {
+    for (size_t i = 0; (i < chain.size()); i++) {
+        if (!chain[i]->shouldAnalyze(otherEST)) {
+            // Immediately stop when a heuristic says no
+            return false;
+        }
+    }
+    // If all heuristics say yes, return true
     return true;
 }
 

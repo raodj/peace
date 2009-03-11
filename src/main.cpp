@@ -28,9 +28,9 @@
 #include "ClusterMaker.h"
 #include "ESTAnalyzer.h"
 #include "HeuristicFactory.h"
-#include "Heuristic.h"
 #include "HeuristicChain.h"
 #include <mpi.h>
+#include <string>
 
 /** \func showUsage
 
@@ -52,14 +52,17 @@
     NULL, then this parameter is ignored.
 */
 static void showUsage(arg_parser& ap,
-                      ESTAnalyzer *analyzer, ClusterMaker *cMaker) {
+                      ESTAnalyzer *analyzer, ClusterMaker *cMaker,
+                      HeuristicChain *hChain) {
     std::cout << "Usage: PEACE [options]\n"
               << "where options are:\n";
     std::cout << ap;
     std::cout << "Names of EST analyzers available are:\n";
     ESTAnalyzerFactory::displayList(std::cerr);
     std::cout << "Names of cluster makers available are:\n";
-    ClusterMakerFactory::displayList(std::cerr);        
+    ClusterMakerFactory::displayList(std::cerr);
+    std::cout << "Names of heuristics available are:\n";
+    HeuristicFactory::displayList(std::cerr);
     // Display any analyzer specific options.
     if (analyzer != NULL) {
         analyzer->showArguments(std::cout);
@@ -69,7 +72,42 @@ static void showUsage(arg_parser& ap,
     if (cMaker != NULL) {
         cMaker->showArguments(std::cout);
         delete cMaker;
-    }    
+    }
+    // Display any heuristic specific options.
+    if (hChain != NULL) {
+        hChain->showArguments(std::cout);
+        delete hChain;
+    }
+}
+
+/** \func heuristicSetup
+
+Method to set up heuristics.
+*/
+
+HeuristicChain*
+heuristicSetup(const char* heuristicStr, const int refESTidx,
+               const std::string outputFile) {
+    if (heuristicStr == NULL) {
+        return NULL;
+    } else {      
+        std::string hStr(heuristicStr);
+        HeuristicChain* heuristicChain = HeuristicChain::getHeuristicChain();
+        std::string::size_type loc = hStr.find("-");
+        while (loc != std::string::npos) {
+            //printf("%s\n", hStr.substr(0, loc).c_str());
+            heuristicChain->addHeuristic
+                (HeuristicFactory::create((hStr.substr(0, loc)).c_str(),
+                                          refESTidx, outputFile));
+            hStr = hStr.substr(loc+1);
+            loc = hStr.find("-");
+        }
+        //printf("%s\n", hStr.substr(0).c_str());
+        heuristicChain->addHeuristic
+            (HeuristicFactory::create((hStr.substr(0)).c_str(), refESTidx,
+                                     outputFile));
+        return heuristicChain;
+    }
 }
 
 /** \func main
@@ -90,6 +128,7 @@ main(int argc, char* argv[]) {
     char emptyString[1]={'\0'};
     char *analyzerName = NULL;
     char *clusterName  = NULL;
+    char *heuristicStr = NULL;
     char *outputFile   = emptyString;
     bool showOptions   = false;
     int  refESTidx     = -1;
@@ -100,6 +139,8 @@ main(int argc, char* argv[]) {
          &clusterName, arg_parser::STRING},
         {"--analyzer", "Name of the EST analyzer to use",
          &analyzerName, arg_parser::STRING},
+        {"--heuristics", "Name(s) of the heuristic(s) to use, in order",
+         &heuristicStr, arg_parser::STRING},
         {"--estIdx", "Index of reference EST in a EST file",
          &refESTidx, arg_parser::INTEGER},
         {"--output", "File to which output must be written",
@@ -132,12 +173,15 @@ main(int argc, char* argv[]) {
     ClusterMaker *clusterMaker =
         ClusterMakerFactory::create(clusterName, analyzer,
                                     refESTidx, std::string(outputFile));
+
+    HeuristicChain *heuristicChain = heuristicSetup(heuristicStr,
+                                    refESTidx, std::string(outputFile));
     
     // Check if EST analyzer creation was successful.  A valid EST
     // analyzer is needed even to make clusters.
     if ((analyzer == NULL) || (showOptions) ||
         (!analyzer->parseArguments(argc, argv))) {
-        showUsage(ap, analyzer, clusterMaker);
+        showUsage(ap, analyzer, clusterMaker, heuristicChain);
         return 1;
     }
 
@@ -145,9 +189,23 @@ main(int argc, char* argv[]) {
     if (clusterName != NULL)  {
         if ((clusterMaker == NULL) || (showOptions) ||
             (!clusterMaker->parseArguments(argc, argv))) {
-            showUsage(ap, analyzer, clusterMaker);
+            showUsage(ap, analyzer, clusterMaker, heuristicChain);
             return 2;            
         }
+    }
+
+    // Check if heuristic chain was specified and successfully created
+    if (heuristicStr != NULL) {
+        if ((heuristicChain == NULL) || (showOptions) ||
+            (!heuristicChain->parseArguments(argc, argv))) {
+            showUsage(ap, analyzer, clusterMaker, heuristicChain);
+            return 3;
+        }
+    }
+
+    // Attach the heuristic chain (if it exists) to the EST analyzer
+    if (heuristicChain != NULL) {
+        analyzer->setHeuristicChain(heuristicChain);
     }
     
     // Get the cluster maker or est analyzer to analyze.
@@ -157,9 +215,12 @@ main(int argc, char* argv[]) {
         delete clusterMaker;
     } else {
         result = analyzer->analyze();
-    }    
+    }
     // Delete the analyzer as it is no longer needed.
     delete analyzer;
+
+    // Delete the heuristic chain as it is no longer needed
+    delete heuristicChain;
 
     // Shutdown MPI.
     MPI::Finalize();
