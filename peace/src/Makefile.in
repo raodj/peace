@@ -80,7 +80,9 @@ am_peace_OBJECTS = arg_parser.$(OBJEXT) ESTAnalyzer.$(OBJEXT) \
 	ClusterMaker.$(OBJEXT) ClusterMakerFactory.$(OBJEXT) \
 	MSTNode.$(OBJEXT) MST.$(OBJEXT) MSTCache.$(OBJEXT) \
 	MSTClusterMaker.$(OBJEXT) CLU.$(OBJEXT) MSTCluster.$(OBJEXT) \
-	MPIStats.$(OBJEXT)
+	MPIStats.$(OBJEXT) Heuristic.$(OBJEXT) \
+	HeuristicFactory.$(OBJEXT) HeuristicChain.$(OBJEXT) \
+	UVSampleHeuristic.$(OBJEXT)
 peace_OBJECTS = $(am_peace_OBJECTS)
 am__DEPENDENCIES_1 =
 peace_DEPENDENCIES = $(am__DEPENDENCIES_1)
@@ -228,7 +230,15 @@ ESTCustomData.h\
 MSTCluster.h\
 MSTCluster.cpp\
 MPIStats.h\
-MPIStats.cpp
+MPIStats.cpp\
+Heuristic.h\
+Heuristic.cpp\
+HeuristicFactory.h\
+HeuristicFactory.cpp\
+HeuristicChain.h\
+HeuristicChain.cpp\
+UVSampleHeuristic.h\
+UVSampleHeuristic.cpp
 
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
@@ -323,6 +333,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ESTAnalyzerFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FMWSCA.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/FWAnalyzer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Heuristic.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/HeuristicChain.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/HeuristicFactory.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MPIStats.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MST.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MSTCache.Po@am__quote@
@@ -331,6 +344,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MSTNode.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MatrixFileAnalyzer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ResultLog.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UVSampleHeuristic.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Utilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/arg_parser.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/main.Po@am__quote@

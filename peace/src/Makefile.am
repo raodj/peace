@@ -72,6 +72,14 @@ ESTCustomData.h\
 MSTCluster.h\
 MSTCluster.cpp\
 MPIStats.h\
-MPIStats.cpp
+MPIStats.cpp\
+Heuristic.h\
+Heuristic.cpp\
+HeuristicFactory.h\
+HeuristicFactory.cpp\
+HeuristicChain.h\
+HeuristicChain.cpp\
+UVSampleHeuristic.h\
+UVSampleHeuristic.cpp
 
 # end of Makefile.am

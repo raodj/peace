@@ -18,14 +18,13 @@
 // intellectual property laws, and all other applicable laws of the
 // U.S., and the terms of this license.
 //
-// Authors: James C. Moler         molerjc@muohio.edu
+// Authors: Dhananjai M. Rao       raodm@muohio.edu
+//          James C. Moler         molerjc@muohio.edu
 //
 //---------------------------------------------------------------------------
 
 #include <vector>
-
-// Forward declaration to make compiler happy
-class Heuristic;
+#include "Heuristic.h"
 
 class HeuristicChain {
 public:
@@ -38,12 +37,27 @@ public:
     */
     static HeuristicChain* getHeuristicChain();
 
+    /** Display valid command line arguments for this heuristic
+	chain.  This method simply calls the showArguments method
+	on each heuristic in the chain.
+        
+        \param[out] os The output stream to which the valid command
+        line arguments must be written.
+    */
+    virtual void showArguments(std::ostream& os);
+
+    virtual bool parseArguments(int& argc, char **argv);
+
+    virtual int initialize();
+
+    virtual int setReferenceEST(const int estIdx);
+
     /** Add the given heuristic to the heuristic chain.
 
         This method permits the heuristic chain to takes ownership of
         a given heuristic object by added it to its internal chain.
 
-        \note The hueristic chain takes ownership of the object
+        \note The heuristic chain takes ownership of the object
         therefore that the heuristic pointer passed to this method
         must not be deleted by the caller.
         

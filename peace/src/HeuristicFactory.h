@@ -18,7 +18,8 @@
 // intellectual property laws, and all other applicable laws of the
 // U.S., and the terms of this license.
 //
-// Authors: James C. Moler         molerjc@muohio.edu
+// Authors: Dhananjai M. Rao       raodm@muohio.edu
+//          James C. Moler         molerjc@muohio.edu
 //
 //---------------------------------------------------------------------------
 

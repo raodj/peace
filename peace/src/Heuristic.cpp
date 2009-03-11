@@ -17,14 +17,15 @@
 // intellectual property laws, and all other applicable laws of the
 // U.S., and the terms of this license.
 //
-// Authors: James C. Moler         molerjc@muohio.edu
+// Authors: Dhananjai M. Rao       raodm@muohio.edu
+//          James C. Moler         molerjc@muohio.edu
 //
 //---------------------------------------------------------------------------
 
 #include "Heuristic.h"
 
 Heuristic::Heuristic(const std::string& name, const int estIdx)
-    : refESTidx(estIdx), analyzerName(name) {
+    : refESTidx(estIdx), heuristicName(name) {
     // Nothing else to be done for now.
 }
 

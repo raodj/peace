@@ -18,11 +18,13 @@
 // intellectual property laws, and all other applicable laws of the
 // U.S., and the terms of this license.
 //
-// Authors: James C. Moler         molerjc@muohio.edu
+// Authors: Dhananjai M. Rao       raodm@muohio.edu
+//          James C. Moler         molerjc@muohio.edu
 //
 //---------------------------------------------------------------------------
 
 #include "HeuristicFactory.h"
+#include "UVSampleHeuristic.h"
 #include "arg_parser.h"
 
 void
@@ -30,8 +32,8 @@ HeuristicFactory::displayList(std::ostream &os) {
     // Create dummy command-line args to make display prettier and
     // easier.
     arg_parser::arg_record dummy_args[] = {
-        //{"fmwsca", "Framed, Multi-Word String Compare Analyzer",
-        // NULL, arg_parser::STRING},        
+        {"uv", "UV Sample Heuristic",
+         NULL, arg_parser::STRING},        
         {NULL, NULL}
     };
     arg_parser dummyParser(dummy_args);
@@ -50,19 +52,10 @@ HeuristicFactory::create(const char* name, const int refESTidx,
         return NULL;
     }
     
-    // if (!strcmp("fmwsca", name)) {
-    //    return new FMWSCA(refESTidx, outputFileName);
-    //    } else if (!strcmp("clu", name)) {
-    //        return new CLU(refESTidx, outputFileName);
-    //    } else if (!strcmp("matrixFile", name)) {
-    //        return new MatrixFileAnalyzer(refESTidx, outputFileName);
-    //    } else if (!strcmp("d2", name)) {
-    //        return new D2(refESTidx, outputFileName);
-    //    }
-
-    // At present we do not have any heuristics, so any heuristic name
-    // will be invalid.
-    
+    if (!strcmp("uv", name)) {
+        return new UVSampleHeuristic(refESTidx, outputFileName);
+    }
+        
     // invalid heuristic name!
     std::cerr << "Invalid heuristic name." << std::endl;
     return NULL;

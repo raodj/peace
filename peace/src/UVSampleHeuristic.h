@@ -1,5 +1,5 @@
-#ifndef HEURISTIC_H
-#define HEURISTIC_H
+#ifndef UV_SAMPLE_HEURISTIC_H
+#define UV_SAMPLE_HEURISTIC_H
 
 //---------------------------------------------------------------------------
 // Copyright (c) Miami University, Oxford, OHIO.
@@ -23,14 +23,19 @@
 //---------------------------------------------------------------------------
 
 #include "arg_parser.h"
+#include "Heuristic.h"
+#include "HeuristicFactory.h"
+#include "Utilities.h"
+#include <string>
+#include <vector>
 
-/** The base class of all heuristics.
-
-    This class must be the base class of all heuristics in the
-    system. This class provides some default functionality that can be
-    readily used by the heuristics.
+/** Heuristic based upon the "u/v sample heuristic" used in WCD,
+    a type of common word heuristic.  Considers all words of length v
+    in the first sequence and every 16th word of length v in the second
+    sequence.  Returns true if it finds at least u common words.
 */
-class Heuristic {
+class UVSampleHeuristic : public Heuristic {
+  friend class HeuristicFactory;
 public:
     /** Display valid command line arguments for this heuristic.
         
@@ -50,7 +55,7 @@ public:
         \param[out] os The output stream to which the valid command
         line arguments must be written.
     */
-    virtual void showArguments(std::ostream& os) = 0;
+    virtual void showArguments(std::ostream& os);
 
     /** Process command line arguments.
         
@@ -76,7 +81,7 @@ public:
         arguments were successfully processed.  Otherwise this method
         returns \c false.
     */
-    virtual bool parseArguments(int& argc, char **argv) = 0;
+    virtual bool parseArguments(int& argc, char **argv);
     
     /** Method to begin heuristic analysis (if any).
         
@@ -92,7 +97,7 @@ public:
         method returns 0.  Otherwise this method returns with a
         non-zero error code.
     */
-    virtual int initialize() = 0;
+    virtual int initialize();
     
     /** Set the reference EST id for analysis.
         
@@ -107,29 +112,14 @@ public:
         \return If the initialization process was sucessful, then this
         method returns 0.  Otherwise this method returns an error code.
     */
-    virtual int setReferenceEST(const int estIdx) = 0;
-    
-    /** Determine whether the analyzer should analyze, according to
-	this heuristic.
-        
-        This method can be used to compare a given EST with the
-        reference EST (set via the call to the setReferenceEST())
-        method.
-        
-        \param[in] otherEST The index (zero based) of the EST with
-        which the reference EST is to be compared.
-        
-        \return This method returns true if the heuristic says the
-	EST pair should be analyzed, and false if it should not.
-    */
-    virtual bool shouldAnalyze(const int otherEST) = 0;
-    
+    virtual int setReferenceEST(const int estIdx);
+
     /** The destructor.
 
         The destructor frees memory allocated for holding any dynamic
         data in the base class.
     */
-    virtual ~Heuristic();
+    virtual ~UVSampleHeuristic();
 
 protected:
     /** The default constructor.
@@ -149,62 +139,44 @@ protected:
 	in the main() method.  This value is simply copied to the
 	refESTidx member in this class.
     */
-    Heuristic(const std::string& heuristicName, const int refESTidx);
-
-    /** The index of the reference EST in a given file. 
-
-        This member object is used to hold the index of a reference
-        EST in a given file.  The index values begin from 0 (zero).
-        This member is initialized in the constructor and is changed
-        by the setReferenceEST() id.
-    */
-    int refESTidx;
+    UVSampleHeuristic(const int refESTidx, const std::string& outputFileName);
     
-    /** The name of this heuristic.
+    /** Determine whether the analyzer should analyze, according to
+	this heuristic.
         
-        This instance variable contains the human recognizable name
-        for this heuristic.  This value is set when the heuristic is
-        instantiated (in the constructor) and is never changed during
-        the life time of this heuristic.  This information is used when
-        generating errors, warnings, and other output messages.
-    */
-    const std::string heuristicName;
-    
-private:
-    /** \def TRACK_IDLE_TIME
-        
-        \brief Convenience macro to track time spent in calling a MPI
+        This method can be used to compare a given EST with the
+        reference EST (set via the call to the setReferenceEST())
         method.
-
-        This macro provides a convenient wrapper around a given MPI
-        method call to track the time spent in calling a MPI method.
-        This macro assumes that the MPI call being made must be
-        accounted as idle time for the process and uses the Wtime()
-        method to appropriately time the method call and adds the
-        elapsed time to MPIStats::idleTime variable.  This macro must
-        be used as shown below:
-
-        \code
         
-        #include "MPI.h"
+        \param[in] otherEST The index (zero based) of the EST with
+        which the reference EST is to be compared.
         
-        void someMethod() {
-            MPI::Status statusInfo;
-            TRACK_IDLE_TIME(MPI::COMM_WORLD.Probe(MPI_ANY_SOURCE, MPI_ANY_TAG,
-            statusInfo));
-        }
+        \return This method returns true if the heuristic says the
+	EST pair should be analyzed, and false if it should not.
+    */
+    virtual bool shouldAnalyze(const int otherEST);
 
-        \endcode
+ private:
 
-        \note If you are tracking idle time for the Probe method, use
-        MPI_PROBE macro directly as it automatically tracks the idle
-        time too.
-*/
-#define TRACK_IDLE_TIME(MPIMethodCall) {                        \
-        const double startTime = MPI::Wtime();                  \
-        MPIMethodCall;                                          \
-        MPIStats::idleTime += (MPI::Wtime() - startTime);       \
-    }
+    static arg_parser::arg_record argsList[];
+    
+    /** A simple array to map characters A, T, C, and G to 0, 1, 2,
+        and 3 respectively.
+
+        This is a simple array of 255 entries that are used to convert
+        the base pair encoding characters A, T, C, and G to 0, 1, 2,
+        and 3 respectively to compute the hash as defined by CLU.
+        This array is initialized in the constructor and is never
+        changed during the life time of this class.
+    */
+    static char CharToInt[];
+
+    static int u;
+
+    static int v;
+
+    static int wordShift;
+
 };
-
+ 
 #endif
