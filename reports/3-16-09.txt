@@ -1,0 +1,24 @@
+Informal Report for Week of 3/9/09
+
+Ran 56 iterations of a test comparing the clustering quality of Peace 
+and WCD using 5000 ESTs taken from 100 source sequences.  Found that 
+Peace's quality was slightly higher than WCD's using both quality 
+indices (Younden and Rand).
+
+Observed a strange error related to Peace "hanging" near program 
+termination.  Discussed with Dr. Rao and made plans to track and debug 
+this issue.
+
+Also observed that WCD's results were slightly better than Peace's for
+tests run on greater numbers of ESTs (7500, 8000, 9000).  Dr. Rao 
+observed that this could be related to the "threshold value" used by 
+Peace for MST clustering, which is calculated based on the mean and 
+variance of distances in the cluster.  Plan to begin experimenting with 
+this threshold value for 10000 ESTs and see what effect it has on the
+quality of the clustering.
+
+During this week, support for heuristics was also added to Peace.
+
+
+
+Trey Moler
