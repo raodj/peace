@@ -1,0 +1,31 @@
+pipeline.py - The main peace-wcd pipeline script.
+   This script takes a lot of parameters, so they are not discussed in this
+   readme.  See script.pdf for a manual on running this script.
+
+gui.pyw - The GUI that was in development for the pipeline script.
+   Currently does not do anything.
+
+format.py - The format script called by the pipeline script to format FASTA
+   files, making them manageable for peace/wcd and for the pipeline script's
+   analysis routines.  This version of the script selects a certain number
+   of ESTs (hardcoded, but it is at the top of the file and can easily be
+   modified) to use for analysis, instead of running peace/wcd on all ESTs.
+   This script also handles the random shuffling of ESTs.
+
+   Note that if you are running the pipeline script, format.py will be called
+   as part of the script, so you do not need to run it yourself.
+
+formatNoSelect.py - A version of the format script that runs on all the ESTs.
+
+sort.py - A version of the format script that, instead of randomly shuffling
+   ESTs, places them in sorted order (by source sequence and by start index).
+   This was used for the creation of graphical data.
+
+multiruns.py - A helper script to run multiple iterations of some 
+   parameters using the pipeline script.  Takes one parameter n, and
+   proceeds to run the pipeline script n times.  Reports only the 
+   Younden and Rand indexes (no other data) and handles cleanup of 
+   the pipeline script's output files each time.  Writes all output to 
+   the file "multiRunOutput.txt".
+   The parameters to be used for running the pipeline are hardcoded at 
+   the moment but could easily be changed.
