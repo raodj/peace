@@ -49,6 +49,7 @@ arg_parser::arg_record ESTAnalyzer::commonArgsList[] = {
 ESTAnalyzer::ESTAnalyzer(const std::string& name, const int estIdx,
                          const std::string& outputFile) 
     : refESTidx(estIdx), outputFileName(outputFile), analyzerName(name) {
+    chain = NULL;
     // Nothing else to be done for now.
 }
 

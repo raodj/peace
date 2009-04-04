@@ -125,7 +125,7 @@ MSTCluster::makeClusters(NodeList& nodeList, const int percentile) {
 double
 MSTCluster::calculateThreshold(const NodeList& nodeList,
                                const int percentile) const {
-    double totalSim    = 0;
+    /*double totalSim    = 0;
     double totalSimSqr = 0;
     // Iterate over the set of nodes and compute total values to
     // determine mean and standard deviation.
@@ -139,7 +139,9 @@ MSTCluster::calculateThreshold(const NodeList& nodeList,
     const double stDev = sqrt((totalSimSqr / (nodeList.size() - 1))
                               - (mean * mean));
     // Compute the threshold based on percentile value provided.
-    return mean + (stDev * percentile);
+    return mean + (stDev * percentile);*/
+
+    return 100;
 }
 
 void
