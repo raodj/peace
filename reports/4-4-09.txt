@@ -1,0 +1,44 @@
+Informal Report for Weeks of 3/16/09, 3/23/09, 3/30/09
+
+Found that the "hanging" of Peace was not a problem with the program and 
+was possibly an issue with the Redhawk cluster.  Did not encounter the 
+issue again in the month of March.
+
+Ran tests on 10000, 15000, 20000 EST data sets and found that as the 
+number of ESTs increased, Peace's performance compared to WCD's was 
+decreasing, and that the calculated threshold value for Peace was also 
+decreasing (causing the quality of the clusters to drop as the 
+clusters were more sparse than WCD's).
+
+Discussed and researched the issue of setting the threshold value.  
+Chose to use a threshold specific to D2 rather than basing the threshold 
+on the mean and standard deviation of minimum spanning tree node 
+weights, as we did not see a good reason to do so.  Tested comparisons 
+between unrelated simulated ESTs in search of a "cutoff" point where the 
+D2 score for a pair of ESTs becomes meaningless, since the distance 
+between two ESTs taken from different genes should not have any meaning.  
+Dr. Karro found a very clear cutoff point and we were able to set the 
+threshold to a fixed value of 100 (note: this may be moved up to 130).  
+This new threshold caused Peace to yield clustering quality results 
+significantly better than those of WCD on the simulated EST data sets.
+
+Ran Peace on a set of 36K real ESTs, which took slightly over 2 days 
+runtime (on 30 nodes).  The results have not yet been analyzed.
+
+Ran Peace on a set of 1000 real ESTs from a single gene per Dr. Liang's 
+suggestion.  Peace placed these ESTs into two clusters.  These clusters 
+have not been extensively analyzed.
+
+Made plans to run WCD on a large set (300K?) of ESTs to provide 
+clustering data for Dr. Liang.  Eventually we may want to use the same 
+data for comparison with Peace (once Peace can handle the input size).  
+Dr. Liang's website will give us a good way to analyze Peace's output 
+for the real EST data that he has provided.
+
+Development of a filtering heuristic for Peace continues.  The code is 
+already written, but the heuristic needs to be empirically fine-tuned 
+and analytically evaluated.
+
+
+
+James Moler
