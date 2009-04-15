@@ -135,6 +135,7 @@ AC_PROG_ICC
 #AC_CHECK_LIB([pthread], [pthread_create])
 AC_CHECK_LIB([m],[asin])
 AC_SEARCH_LIBS([MPI_Init],[mpi])
+AC_SEARCH_LIBS([readline],[readline])
 #AC_SEARCH_LIBS([gethostname], [c,nsl])
 #AC_CHECK_LIB([nsl],[gethostname])
 #AC_SEARCH_LIBS([bind],[c,nsl,socket])

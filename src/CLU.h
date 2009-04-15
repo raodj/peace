@@ -127,6 +127,18 @@ public:
         returns with a non-zero error code.
     */
     virtual int initialize();
+
+    /** Method to obtain human-readable name for this EST analyzer
+
+        This method provides a human-readable string identifying the
+        EST analyzer.  This string is typically used for
+        display/debugging purposes (particularly via the PEACE
+        Interactive Console).
+
+        \return This method returns the string "CLU" identifiying this
+        analyzer.
+    */    
+    virtual std::string getName() const { return "CLU"; }
     
     /** Set the reference EST id for analysis.
 

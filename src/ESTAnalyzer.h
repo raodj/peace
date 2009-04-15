@@ -96,6 +96,20 @@ public:
     */
     virtual int initialize() = 0;
 
+    /** Method to obtain human-readable name for this EST analyzer
+
+        This method provides a human-readable string identifying the
+        EST analyzer.  This string is typically used for
+        display/debugging purposes (particularly via the PEACE
+        Interactive Console).
+
+        \note Derived classes must override this method.
+
+        \return A string containing a short, human-readable identifier
+        for this analyzer.
+    */    
+    virtual std::string getName() const = 0;
+    
     /** Set the reference EST id for analysis.
 
         This method is invoked just before a batch of ESTs are

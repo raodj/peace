@@ -28,7 +28,7 @@ AM_CXXFLAGS=$(GLOBALCXXFLAGS)
 
 bin_PROGRAMS = peace
 
-peace_LDFLAGS = 
+peace_LDFLAGS = -lreadline
 peace_LDADD = $(STDCPP)
 
 peace_SOURCES = \
@@ -80,6 +80,8 @@ HeuristicFactory.cpp\
 HeuristicChain.h\
 HeuristicChain.cpp\
 UVSampleHeuristic.h\
-UVSampleHeuristic.cpp
+UVSampleHeuristic.cpp\
+InteractiveConsole.h\
+InteractiveConsole.cpp
 
 # end of Makefile.am
