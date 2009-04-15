@@ -28,7 +28,7 @@ AM_CXXFLAGS=$(GLOBALCXXFLAGS)
 
 bin_PROGRAMS = peace
 
-peace_LDFLAGS = -lreadline
+peace_LDFLAGS = -lreadline -lcurses
 peace_LDADD = $(STDCPP)
 
 peace_SOURCES = \
