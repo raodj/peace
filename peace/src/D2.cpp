@@ -137,7 +137,9 @@ D2::initialize() {
 int
 D2::setReferenceEST(const int estIdx) {
     // Call corresponding method in heuristic chain
-    if (chain != NULL) chain->setReferenceEST(estIdx);
+    if (chain != NULL) {
+        chain->setReferenceEST(estIdx);
+    }
     if ((estIdx >= 0) && (estIdx < EST::getESTCount())) {
         refESTidx = estIdx;
         // init ref-est word table
@@ -155,7 +157,7 @@ D2::setReferenceEST(const int estIdx) {
         // Setup the word table entry for the first word.
         s1WordTable[0] = hash;
         // Fill in the word table
-        for (i = 1; (i+wordSize <= s1.size()); i++) {
+        for (i = 1; (i+wordSize <= (int) s1.size()); i++) {
             hash <<= 2;
             hash  |= CharToInt[(int) s1[i]];
             hash  &= BitMask;
@@ -182,7 +184,7 @@ D2::buildWordTable(std::string s2) {
     // Setup the word table entry for the first word.
     s2WordTable[0] = hash;
     // Fill in the word table
-    for (i = 1; (i+wordSize <= s2.size()); i++) {
+    for (i = 1; (i+wordSize <= (int) s2.size()); i++) {
         hash <<= 2;
         hash  |= CharToInt[(int) s2[i]];
         hash  &= BitMask;
@@ -241,7 +243,7 @@ D2::analyze(const int otherEST) {
         return 0; // distance to self will be 0
     } else if ((otherEST >= 0) && (otherEST < EST::getESTCount())) {
         // Check with the heuristic chain
-        if (chain == NULL || chain->shouldAnalyze(otherEST)) {
+        if ((chain == NULL) || (chain->shouldAnalyze(otherEST))) {
             int sed = 0;
             int minSed = frameSize*4; // won't be exceeded
             int s1FramePos = 0;

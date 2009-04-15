@@ -29,6 +29,8 @@
 #include "ESTAnalyzer.h"
 #include "HeuristicFactory.h"
 #include "HeuristicChain.h"
+#include "InteractiveConsole.h"
+
 #include <mpi.h>
 #include <string>
 
@@ -132,7 +134,8 @@ main(int argc, char* argv[]) {
     char *outputFile   = emptyString;
     bool showOptions   = false;
     int  refESTidx     = -1;
-
+    bool interactive   = false;
+    
     // Create the list of valid arguments to be used by the arg_parser.
     arg_parser::arg_record arg_list[] = {
         {"--clusterMaker", "Name of clustering algorithm to use",
@@ -147,6 +150,8 @@ main(int argc, char* argv[]) {
          &outputFile, arg_parser::STRING},              
         {"--options", "Lists options for the specified cluster & analyzer",
          &showOptions, arg_parser::BOOLEAN},
+        {"--interactive", "Lauch PEACE interactive console",
+         &interactive, arg_parser::BOOLEAN},
         {NULL, NULL}
     };
    
@@ -173,10 +178,10 @@ main(int argc, char* argv[]) {
     ClusterMaker *clusterMaker =
         ClusterMakerFactory::create(clusterName, analyzer,
                                     refESTidx, std::string(outputFile));
-
+    // Create the heuristic chain using a helper method.  This helper
+    // method must be in a heuristic chain factory.
     HeuristicChain *heuristicChain = heuristicSetup(heuristicStr,
-                                    refESTidx, std::string(outputFile));
-    
+                                    refESTidx, std::string(outputFile));    
     // Check if EST analyzer creation was successful.  A valid EST
     // analyzer is needed even to make clusters.
     if ((analyzer == NULL) || (showOptions) ||
@@ -213,7 +218,12 @@ main(int argc, char* argv[]) {
     if (clusterMaker != NULL) {
         result = clusterMaker->makeClusters();
         delete clusterMaker;
+    } else if (interactive) {
+        // Launch PEACE interactive console.
+        InteractiveConsole console(analyzer);
+        console.processCommands();
     } else {
+        // Let the analyzer do the analysis.
         result = analyzer->analyze();
     }
     // Delete the analyzer as it is no longer needed.

@@ -121,6 +121,18 @@ public:
     */
     int initialize();
 
+    /** Method to obtain human-readable name for this EST analyzer
+
+        This method provides a human-readable string identifying the
+        EST analyzer.  This string is typically used for
+        display/debugging purposes (particularly via the PEACE
+        Interactive Console).
+
+        \return This method returns the string "MatrixFile"
+        identifiying this analyzer.
+    */    
+    virtual std::string getName() const { return "MatrixFile"; }
+    
     /** Set the reference EST id for analysis.
 
         This method is invoked just before a batch of ESTs are

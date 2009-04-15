@@ -88,6 +88,18 @@ public:
         returns \c false.
     */
     virtual bool parseArguments(int& argc, char **argv);
+
+    /** Method to obtain human-readable name for this EST analyzer
+
+        This method provides a human-readable string identifying the
+        EST analyzer.  This string is typically used for
+        display/debugging purposes (particularly via the PEACE
+        Interactive Console).
+
+        \return This method returns the string "FMWSCA" identifiying
+        this analyzer.
+    */    
+    virtual std::string getName() const { return "FMWSCA"; }
     
 protected:
     /** Flag to perform case sensitive comparisons.
