@@ -122,7 +122,7 @@ public:
         \return This method returns true if the heuristic says the
 	EST pair should be analyzed, and false if it should not.
     */
-    virtual bool shouldAnalyze(const int otherEST) = 0;
+    bool shouldAnalyze(const int otherEST);
     
     /** The destructor.
 
@@ -150,6 +150,10 @@ protected:
 	refESTidx member in this class.
     */
     Heuristic(const std::string& heuristicName, const int refESTidx);
+
+    virtual bool runHeuristic(const int otherEST) = 0;
+
+    // need some method to get statistics here
 
     /** The index of the reference EST in a given file. 
 
