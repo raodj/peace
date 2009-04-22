@@ -142,7 +142,7 @@ UVSampleHeuristic::setReferenceEST(const int estIdx) {
 }
 
 bool
-UVSampleHeuristic::shouldAnalyze(const int otherEST) {
+UVSampleHeuristic::runHeuristic(const int otherEST) {
     if (otherEST == refESTidx) {
         return true; // will end up with distance 0, or max similarity
     } else if ((otherEST >= 0) && (otherEST < EST::getESTCount())) {

@@ -154,7 +154,7 @@ protected:
         \return This method returns true if the heuristic says the
 	EST pair should be analyzed, and false if it should not.
     */
-    virtual bool shouldAnalyze(const int otherEST);
+    virtual bool runHeuristic(const int otherEST);
 
  private:
 

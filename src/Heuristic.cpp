@@ -24,12 +24,21 @@
 
 #include "Heuristic.h"
 
+static int count = 0;
+
 Heuristic::Heuristic(const std::string& name, const int estIdx)
     : refESTidx(estIdx), heuristicName(name) {
     // Nothing else to be done for now.
 }
 
 Heuristic::~Heuristic() {}
+
+bool
+Heuristic::shouldAnalyze(const int otherEST) {
+    bool value = runHeuristic(otherEST);
+    count += 1 ? value : !value;
+    return value;
+}
 
 // Need some statistical methods later
 
