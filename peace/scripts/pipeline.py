@@ -62,7 +62,7 @@ class Pipeline:
 			peaceInvoc = 'time mpiexec ./peace '
 			for param in self.peaceParams:
 				peaceInvoc+=param+' '
-			peaceInvoc+='--estFile '+estOutputFile+'_fmt.fa --output '+peaceOutputFile+'.mst'
+			peaceInvoc+='--estFile '+estOutputFile+'_fmt.fa --output '+peaceOutputFile+'.out --output-mst-file mstFile.mst'
 	
 		if self.runningWcd:
 			dirName = 'wcd_'+estOutputFile
@@ -78,9 +78,10 @@ class Pipeline:
 	
 		if self.specifyESTs:
 			 # run format script only, not estsim
-			estSimInvocs = [formatInvoc]
+			#estSimInvocs = [formatInvoc]
+			estSimInvocs = []
 			
-		elif self.wcdMatrixOut or (not self.runningPeace and not self.runningWcd):
+		elif self.wcdMatrixOut:
 			# need sorted order to produce matrix
 			# if we are just generating ESTs, sort them too
 			formatInvoc = 'python sort.py '+estOutputFile+'.fa'
@@ -160,13 +161,14 @@ class Pipeline:
 			os.system('rm estsim_script.job')
 			os.system('rm wcd_script.job')
 		else:
-			os.system('rm '+scriptName+'.job')
+			#os.system('rm '+scriptName+'.job')
 			os.system('mv '+scriptName+'.o'+jobID+' '+dirName+'/')
 			peaceJobID = jobID
 			wcdJobID = jobID
 		
 		if self.runningPeace:
-			os.system('mv '+peaceOutputFile+'.mst '+dirName+'/')
+			os.system('mv '+peaceOutputFile+'.out '+dirName+'/')
+			os.system('mv mstFile.mst '+dirName+'/')
 			self.getPeaceResults(dirName, peaceOutputFile, peaceJobID)
 		
 		if self.runningWcd:
@@ -180,7 +182,7 @@ class Pipeline:
 		print 'Script finished'
 
 	def getPeaceResults(self, dirName, peaceOutputFile, jobID):
-		oFile = open(dirName+'/'+peaceOutputFile+'.mst', 'r')
+		oFile = open(dirName+'/'+peaceOutputFile+'.out', 'r')
 		# Analyze and print results
 		truePos = 0
 		trueNeg = 0
@@ -404,14 +406,19 @@ class Pipeline:
 		sFile.write('#PBS -N '+scriptName+'\n')
 	
 		sFile.write('#PBS -l nodes=%d:ppn=%d\n' %(nodes, ppn))
-		sFile.write('#PBS -l walltime=1:00:00\n')
+		sFile.write('#PBS -l walltime=100:00:00\n')
 		sFile.write('#PBS -j oe\n')
 	
 		if loadModules:
 			sFile.write('module load java\n')
 			sFile.write('module load python\n')
-		#if self.runningPeace:
+		if self.runningPeace:
+			sFile.write('export VIADEV_DEFAULT_RETRY_COUNT=7\n')
+			sFile.write('export VIADEV_DEFAULT_TIME_OUT=21\n')
 			#sFile.write('module load valgrind\n')
+
+		# change to the correct directory
+		sFile.write('cd '+os.getcwd()+'\n')
 
 		for invoc in invocs:
 			sFile.write(invoc+'\n')
