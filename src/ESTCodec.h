@@ -100,15 +100,15 @@ public:
     { return charToIntComp[(int) bp]; }
 
     
-    template <const int& Shift = 8, const int& Mask = 0xffff>
-    struct NormalEncoder : std::binary_function<int, char, int> {
+    template <const int& Shift, const int& Mask>
+    struct NormalEncoder : public std::binary_function<int, char, int> {
         inline int operator()(const int w, const char bp) const {
             return ((w << 2) | ESTCodec::encode(bp)) & Mask;
         }
     };
 
-    template <const int Shift = 8, const int Mask = 0xffff>
-    struct RevCompEncoder : std::binary_function<int, char, int> {
+    template <const int& Shift, const int& Mask>
+    struct RevCompEncoder : public std::binary_function<int, char, int> {
         inline int operator()(const int w, const char bp) const {
             return ((w >> 2) | (ESTCodec::encode(bp) << Shift)) & Mask;
         }
