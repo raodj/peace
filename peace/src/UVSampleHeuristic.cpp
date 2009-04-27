@@ -86,7 +86,7 @@ UVSampleHeuristic::parseArguments(int& argc, char **argv) {
 
 int
 UVSampleHeuristic::initialize() {
-    const int MapSize = pow(4, v);
+    const int MapSize = (int) pow(4, v);
     s1WordMap = new char[MapSize];
     // Everything went well
     return 0;
@@ -98,9 +98,6 @@ UVSampleHeuristic::setReferenceEST(const int estIdx) {
     // it as a parameter to the templatized NormalEncoder.
     BitMask = (1 << (v * 2)) - 1;
     
-    // Codec for encoding/decoding operations
-    const ESTCodec& codec = ESTCodec::getCodec();
-    
     if ((estIdx < 0) || (estIdx >= EST::getESTCount())) {
         // Invalid est index.
         return 1;
@@ -108,7 +105,7 @@ UVSampleHeuristic::setReferenceEST(const int estIdx) {
     // Setup the look up hash table for the reference est.
     refESTidx = estIdx;
     // Initialize s1 word map for the new reference EST
-    const int MapSize = pow(4, v);
+    const int MapSize = (int) pow(4, v);
 
     // Initialize word map to false throughout.
     memset(s1WordMap, 0, sizeof(char) * MapSize);
@@ -151,13 +148,13 @@ UVSampleHeuristic::runHeuristic(const int otherEST) {
     ASSERT ( sq2.size() > 0);
 
     // Get the codec for encoding/decoding operations
-    const ESTCodec& codec = ESTCodec::getCodec();
-    const int BitMask     = (1 << (v * 2)) - 1;
+    BitMask     = (1 << (v * 2)) - 1;
+    ESTCodec::NormalEncoder<v, BitMask> encoder;
+
     int hash = 0;
     // get initial v-word
     for(int i = 0; (i < v); i++) {
-        hash <<= 2;
-        hash  |= codec.encode(sq2[i]);
+        hash = encoder(hash, sq2[i]);
     }
     
     // Track if this word is found in s1
@@ -166,9 +163,7 @@ UVSampleHeuristic::runHeuristic(const int otherEST) {
     // go through the rest of s2 and check
     const int End = sq2.size() - v + 1;
     for (int i = 1; ((i <= End) && (numMatches < u)); i++) {
-        hash <<= 2;
-        hash  |= codec.encode(sq2[i]);
-        hash  &= BitMask;
+        hash = encoder(hash, sq2[i]);
         numMatches += s1WordMap[hash];
     }
     
