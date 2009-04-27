@@ -82,6 +82,8 @@ HeuristicChain.cpp\
 UVSampleHeuristic.h\
 UVSampleHeuristic.cpp\
 InteractiveConsole.h\
-InteractiveConsole.cpp
+InteractiveConsole.cpp\
+ESTCodec.cpp\
+ESTCodec.h
 
 # end of Makefile.am

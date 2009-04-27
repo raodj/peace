@@ -42,14 +42,14 @@
     \note This method is meant to be in local scope rather than global
     scope.
 
-    \param[inout] ap The argument parser to be used for displaying
+    \param[in,out] ap The argument parser to be used for displaying
     common global options.
     
-    \param[inout] analyzer The EST analyzer (if any) that was created
+    \param[in,out] analyzer The EST analyzer (if any) that was created
     and must now be deleted after showing usage.  If this pointer is
     NULL, then this parameter is ignored.
 
-    \param[inout] cMaker The cluster Maker (if any) that was created
+    \param[in,out] cMaker The cluster Maker (if any) that was created
     and must now be deleted after showing usage.  If this pointer is
     NULL, then this parameter is ignored.
 */
@@ -79,36 +79,6 @@ static void showUsage(arg_parser& ap,
     if (hChain != NULL) {
         hChain->showArguments(std::cout);
         delete hChain;
-    }
-}
-
-/** \func heuristicSetup
-
-Method to set up heuristics.
-*/
-
-HeuristicChain*
-heuristicSetup(const char* heuristicStr, const int refESTidx,
-               const std::string outputFile) {
-    if (heuristicStr == NULL) {
-        return NULL;
-    } else {      
-        std::string hStr(heuristicStr);
-        HeuristicChain* heuristicChain = HeuristicChain::getHeuristicChain();
-        std::string::size_type loc = hStr.find("-");
-        while (loc != std::string::npos) {
-            //printf("%s\n", hStr.substr(0, loc).c_str());
-            heuristicChain->addHeuristic
-                (HeuristicFactory::create((hStr.substr(0, loc)).c_str(),
-                                          refESTidx, outputFile));
-            hStr = hStr.substr(loc+1);
-            loc = hStr.find("-");
-        }
-        //printf("%s\n", hStr.substr(0).c_str());
-        heuristicChain->addHeuristic
-            (HeuristicFactory::create((hStr.substr(0)).c_str(), refESTidx,
-                                     outputFile));
-        return heuristicChain;
     }
 }
 
@@ -178,10 +148,9 @@ main(int argc, char* argv[]) {
     ClusterMaker *clusterMaker =
         ClusterMakerFactory::create(clusterName, analyzer,
                                     refESTidx, std::string(outputFile));
-    // Create the heuristic chain using a helper method.  This helper
-    // method must be in a heuristic chain factory.
-    HeuristicChain *heuristicChain = heuristicSetup(heuristicStr,
-                                    refESTidx, std::string(outputFile));    
+    // Create the heuristic chain using a helper method.
+    HeuristicChain *heuristicChain =
+        HeuristicChain::setupChain(heuristicStr, refESTidx, outputFile);    
     // Check if EST analyzer creation was successful.  A valid EST
     // analyzer is needed even to make clusters.
     if ((analyzer == NULL) || (showOptions) ||

@@ -1,7 +1,8 @@
-#ifndef HEURISTIC_CPP
-#define HEURISTIC_CPP
+#ifndef EST_CODEC_CPP
+#define EST_CODEC_CPP
 
 //---------------------------------------------------------------------------
+//
 // Copyright (c) Miami University, Oxford, OHIO.
 // All rights reserved.
 //
@@ -18,28 +19,30 @@
 // U.S., and the terms of this license.
 //
 // Authors: Dhananjai M. Rao       raodm@muohio.edu
-//          James C. Moler         molerjc@muohio.edu
 //
 //---------------------------------------------------------------------------
 
-#include "Heuristic.h"
+#include "ESTCodec.h"
 
-Heuristic::Heuristic(const std::string& name, const int estIdx)
-    : refESTidx(estIdx), heuristicName(name), runCount(0) {
-    // Nothing else to be done for now.
+// The globally unique instance of ESTCodec.
+ESTCodec ESTCodec::estCodec;
+
+ESTCodec::ESTCodec() {
+    // Initialize the array CharToInt for mapping A, T, C, and G to 0,
+    // 1, 2, and 3 respectively.
+    charToInt = new char[256];
+    // Initialize values for specific base pairs. Leave rest
+    // intentionally uninitialized. So that way if invalid entires are
+    // accessed, valgrind will hopefully report an "uninitialized
+    // memory access" error.
+    charToInt[(int) 'A'] = charToInt[(int) 'a'] = 0;
+    charToInt[(int) 'G'] = charToInt[(int) 'g'] = 1;
+    charToInt[(int) 'C'] = charToInt[(int) 'c'] = 2;
+    charToInt[(int) 'T'] = charToInt[(int) 't'] = 3;
 }
 
-Heuristic::~Heuristic() {
-    // Empty constructor begets an empty destructor
+ESTCodec::~ESTCodec() {
+    delete [] charToInt;
 }
-
-bool
-Heuristic::shouldAnalyze(const int otherEST) {
-    bool value = runHeuristic(otherEST);
-    runCount++;
-    return value;
-}
-
-// Need some statistical methods later
 
 #endif
