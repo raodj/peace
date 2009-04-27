@@ -32,6 +32,7 @@
 int UVSampleHeuristic::u = 2;
 int UVSampleHeuristic::v = 10;
 int UVSampleHeuristic::wordShift = 16;
+int UVSampleHeuristic::BitMask = 0;
 
 
 // The set of arguments for this class.
@@ -93,6 +94,10 @@ UVSampleHeuristic::initialize() {
 
 int
 UVSampleHeuristic::setReferenceEST(const int estIdx) {
+    // The bit mask has been defined to be a static to enable passing
+    // it as a parameter to the templatized NormalEncoder.
+    BitMask = (1 << (v * 2)) - 1;
+    
     // Codec for encoding/decoding operations
     const ESTCodec& codec = ESTCodec::getCodec();
     
@@ -104,28 +109,27 @@ UVSampleHeuristic::setReferenceEST(const int estIdx) {
     refESTidx = estIdx;
     // Initialize s1 word map for the new reference EST
     const int MapSize = pow(4, v);
-    const int BitMask = (1 << (v * 2)) - 1;
+
     // Initialize word map to false throughout.
     memset(s1WordMap, 0, sizeof(char) * MapSize);
     // Obtain EST sequence for quick access.
     const EST *estS1 = EST::getEST(refESTidx);
     ASSERT ( estS1 != NULL );
-    const std::string s1 = estS1->getSequence();
+    const char* s1 = estS1->getSequence();
     
-    // First compute the hash for a single word.
+    // First compute the hash for a single word using a suitable
+    // generator.
+    ESTCodec::NormalEncoder<v, BitMask> encoder;
     int hash = 0;
-     for(int i = 0; (i < v); i++) {
-        hash <<= 2;
-        hash  |= codec.encode(s1[i]);
+    for(int i = 0; (i < v); i++) {
+        hash = encoder(hash, s1[i]);
     }
     // Setup the word map entry for the first word.
     s1WordMap[hash] = 1;
     // Fill in the word map
-    const int End = s1.size() - v;
+    const int End = strlen(s1) - v;
     for (int i = 1; (i <= End); i++) {
-        hash <<= 2;
-        hash  |= codec.encode(s1[i]);
-        hash  &= BitMask;
+        hash = encoder(hash, s1[i]);
         s1WordMap[hash] = 1;
     }
     return 0; // everything went well

@@ -22,6 +22,8 @@
 //
 //---------------------------------------------------------------------------
 
+#include <functional>
+
 /** A helper class to serve as a EST enCOder-DECoder.
 
     <p>This class was introduced to try and centralize a bunch of EST
@@ -74,10 +76,46 @@ public:
         \param[in] bp The base pair character (both upper and lower
         cases are handled correctly) to be encoded.
     */
-    inline char encode(const char bp) const { return charToInt[(int) bp]; }
+    inline static char encode(const char bp)
+    { return charToInt[(int) bp]; }
+
+    /** Obtain 2-bit \b complement code for a given base pair.
+
+        This method can be used to obtain the \b complementary 2-bit
+        encoding for a given base pair (bp).  This method essentially
+        translate base pairs (\c A, \c T, \c C, and \c G, both upper
+        and lower case) into 2-bits codes (\c 11, \c 00, \c 01, and \c
+        10).
+
+        \note In favor of speed, this method does not perform any
+        special checks on the actual character in bp. It is the
+        responsiblity of the caller to ensure that this method is
+        invoked with appropriate parameter value.
+        
+        \param[in] bp The base pair character (both upper and lower
+        cases are handled correctly) whose complementary encoding is
+        required.
+    */
+    inline static char encode2rc(const char bp)
+    { return charToIntComp[(int) bp]; }
+
+    
+    template <const int& Shift = 8, const int& Mask = 0xffff>
+    struct NormalEncoder : std::binary_function<int, char, int> {
+        inline int operator()(const int w, const char bp) const {
+            return ((w << 2) | ESTCodec::encode(bp)) & Mask;
+        }
+    };
+
+    template <const int Shift = 8, const int Mask = 0xffff>
+    struct RevCompEncoder : std::binary_function<int, char, int> {
+        inline int operator()(const int w, const char bp) const {
+            return ((w >> 2) | (ESTCodec::encode(bp) << Shift)) & Mask;
+        }
+    };
     
     /** The destructor.
-
+        
         The destructor frees up memory allocated to hold translation
         tables etc.  The destructor is called only once, when the
         process-wide unique instance is destroyed when program
@@ -104,11 +142,38 @@ private:
         the base pair encoding characters \c A, \c T, \c C, and \c G
         to \c 0, \c 3, \c 2, and \c 1 respectively.  This encoding is
         typically used to compute the hash as defined by various EST
-        analysis algorithms.  This array is initialized in the
+        analysis algorithms.  This array is statically allocated. It
+        is initialized in the constructor and is never changed during
+        the life time of this class.
+
+        \note This array is statically allocated to enable ready
+        access from NormalEncoder and RevCompEncoder functors defined
+        in this class.  Hopefully with static arrays, the compilers
+        more readily optimize and inline the method calls to enocde
+        and encode2rc.
+    */
+    static char charToInt[];
+
+    /** A simple array to map characters \c A, \c T, \c C, and \c G to
+        complementary encodings \c 3, \c 0, \c 1, and \c 2
+        respectively.
+        
+        This is a simple array of 255 entries that are used to convert
+        the base pair encoding characters \c A, \c T, \c C, and \c G
+        to \b complementary codes \c 3, \c 0, \c 1, and \c 2
+        respectively.  This encoding is typically used to compute the
+        hash as defined by various EST analysis algorithms.  This
+        array is statically allocated. It is initialized in the
         constructor and is never changed during the life time of this
         class.
+
+        \note This array is statically allocated to enable ready
+        access from NormalEncoder and RevCompEncoder functors defined
+        in this class.  Hopefully with static arrays, the compilers
+        more readily optimize and inline the method calls to enocde
+        and encode2rc.
     */
-    char *charToInt;
+    static char charToIntComp[];
 
     /** The process-wide unique codec instance.
         
