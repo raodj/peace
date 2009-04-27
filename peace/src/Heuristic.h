@@ -28,7 +28,9 @@
 
     This class must be the base class of all heuristics in the
     system. This class provides some default functionality that can be
-    readily used by the heuristics.
+    readily used by the heuristics. This class enables the
+    HeuristicChain to manage a list of heuristics and dispatch method
+    calls to various heuristics.
 */
 class Heuristic {
 public:
@@ -125,7 +127,7 @@ public:
     bool shouldAnalyze(const int otherEST);
     
     /** The destructor.
-
+        
         The destructor frees memory allocated for holding any dynamic
         data in the base class.
     */
@@ -151,9 +153,24 @@ protected:
     */
     Heuristic(const std::string& heuristicName, const int refESTidx);
 
-    virtual bool runHeuristic(const int otherEST) = 0;
+    /** Determine whether the analyzer should analyze, according to
+	this heuristic.
+        
+        This method is invoked from the shouldAnalyze() method to
+        perform the actual heuristic analysis.  The analysis is
+        performed between the refESTidx (set via earlier call to
+        setReferenceEST) and otherEST.
 
-    // need some method to get statistics here
+        \note Derived heuristic classes must override this method and
+        provide a proper implementation.
+        
+        \param[in] otherEST The index (zero based) of the EST with
+        which the reference EST is to be compared.
+        
+        \return This method must return \c true if the heuristic says
+	the EST pair should be analyzed, and \c false otherwise.
+    */    
+    virtual bool runHeuristic(const int otherEST) = 0;
 
     /** The index of the reference EST in a given file. 
 
@@ -175,40 +192,14 @@ protected:
     const std::string heuristicName;
     
 private:
-    /** \def TRACK_IDLE_TIME
-        
-        \brief Convenience macro to track time spent in calling a MPI
-        method.
+    /** Variable to track the number of times this heuristic was run.
 
-        This macro provides a convenient wrapper around a given MPI
-        method call to track the time spent in calling a MPI method.
-        This macro assumes that the MPI call being made must be
-        accounted as idle time for the process and uses the Wtime()
-        method to appropriately time the method call and adds the
-        elapsed time to MPIStats::idleTime variable.  This macro must
-        be used as shown below:
-
-        \code
-        
-        #include "MPI.h"
-        
-        void someMethod() {
-            MPI::Status statusInfo;
-            TRACK_IDLE_TIME(MPI::COMM_WORLD.Probe(MPI_ANY_SOURCE, MPI_ANY_TAG,
-            statusInfo));
-        }
-
-        \endcode
-
-        \note If you are tracking idle time for the Probe method, use
-        MPI_PROBE macro directly as it automatically tracks the idle
-        time too.
-*/
-#define TRACK_IDLE_TIME(MPIMethodCall) {                        \
-        const double startTime = MPI::Wtime();                  \
-        MPIMethodCall;                                          \
-        MPIStats::idleTime += (MPI::Wtime() - startTime);       \
-    }
+        This instance variable is used to track the number of times
+        this heuristic was run. This variable is initialized to zero
+        in the constructor.  It is incremented each time the
+        shouldAnalyze() method is invoked to run the the heuristic.
+    */
+    int runCount;
 };
 
 #endif

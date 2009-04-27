@@ -24,13 +24,11 @@
 //---------------------------------------------------------------------------
 
 #include "HeuristicChain.h"
+#include "HeuristicFactory.h"
 #include "Utilities.h"
 
 // Get rid of magic numbers
 #define NO_ERROR 0
-
-// The static list of heuristics in the heuristic chain.
-std::vector<Heuristic*> HeuristicChain::chain;
 
 // The static pointer to the singleton heuristic chain instance.
 HeuristicChain* HeuristicChain::ptrInstance = NULL;
@@ -116,6 +114,34 @@ HeuristicChain::~HeuristicChain() {
 
 HeuristicChain::HeuristicChain() {
     // Nothing to be done for now
+}
+
+HeuristicChain*
+HeuristicChain::setupChain(const char* heuristicStr, const int refESTidx,
+                           const std::string& outputFile) {
+    if (heuristicStr == NULL) {
+        return NULL;
+    }
+    // Process the non-empty heuristic string.
+    std::string hStr(heuristicStr);
+    HeuristicChain* heuristicChain = HeuristicChain::getHeuristicChain();
+    ASSERT ( heuristicChain != NULL );
+    // Process one word at a time. Words are separated by a "hypen"
+    // character.
+    while (!hStr.empty()) {
+        // Locate the next hypen character and get name of heuristic
+        const std::string::size_type hypenLoc = hStr.find('-');
+        const std::string name = hStr.substr(0, hypenLoc);
+        // Create heuristic and add it to the chain
+        Heuristic *heuristic =
+            HeuristicFactory::create(name.c_str(), refESTidx, outputFile);
+        ASSERT( heuristic != NULL );
+        heuristicChain->addHeuristic(heuristic);
+        // Remove already created heuristic to process next one in chain.
+        hStr = hStr.substr(hypenLoc + 1);
+    }
+    // Return the newly populated heuristic chain for easy reference
+    return heuristicChain;
 }
 
 #endif

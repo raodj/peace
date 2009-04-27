@@ -457,7 +457,6 @@ private:
         \return Reference to this.
     */
     EST& operator=(const EST& src);
-
 };
 
 #endif

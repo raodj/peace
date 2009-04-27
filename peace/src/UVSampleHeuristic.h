@@ -157,19 +157,17 @@ protected:
     virtual bool runHeuristic(const int otherEST);
 
  private:
+    /** The set of arguments specific to the UV heuristic.
 
-    static arg_parser::arg_record argsList[];
-    
-    /** A simple array to map characters A, T, C, and G to 0, 1, 2,
-        and 3 respectively.
+        This instance variable contains a static list of arguments
+        that are specific only to this analyzer class.  This argument
+        list is statically defined and shared by all instances of this
+        class.
 
-        This is a simple array of 255 entries that are used to convert
-        the base pair encoding characters A, T, C, and G to 0, 1, 2,
-        and 3 respectively to compute the hash as defined by CLU.
-        This array is initialized in the constructor and is never
-        changed during the life time of this class.
+        \note Use of static arguments and parameters renders this UV
+        sample heuristic class not to be MT-safe.
     */
-    static char CharToInt[];
+    static arg_parser::arg_record argsList[];    
 
     static int u;
 
@@ -177,6 +175,8 @@ protected:
 
     static int wordShift;
 
+    // Indicates whether or not the given v-word appears in s1
+    char* s1WordMap;
 };
  
 #endif
