@@ -156,6 +156,15 @@ protected:
     */
     virtual bool runHeuristic(const int otherEST);
 
+    /** Instance variable to track if a given word (of length \c v)
+	appears in reference EST.
+
+	This instance variable is created in the initialize() method
+	to point to an array of 4<sup>v</sup>
+
+    */
+    char* s1WordMap;
+    
  private:
     /** The set of arguments specific to the UV heuristic.
 
@@ -175,8 +184,7 @@ protected:
 
     static int wordShift;
 
-    // Indicates whether or not the given v-word appears in s1
-    char* s1WordMap;
+    static int BitMask;
 };
  
 #endif
