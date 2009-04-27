@@ -1,0 +1,25 @@
+Informal Report for Weeks of 4/6/09, 4/13/09, 4/20/09
+
+The analysis of D2 scores for unrelated EST sequences was completed, and
+based on these results, the decision was made to fix Peace's clustering 
+threshold value at 130.
+
+Tests were run on the performance of Peace versus WCD using a fixed 
+threshold of 40 for both programs, and it was found that WCD slightly
+outperformed Peace on the clustering quality indices.  It is possible,
+however, that Peace's method of clustering works better using a higher
+threshold value.  Plans have been made to run the same tests using a
+clustering threshold of 130 for both programs when time permits.
+
+A bug related to heuristic chains was fixed in the Peace code, and the
+code underwent some general cleanup and refactoring to prepare it for 
+heuristic development.  In addition, an interactive console feature was 
+added to the program.
+
+The actual development of heuristics did not progress much, but some 
+ideas have been generated and the next few weeks should feature more
+dedicated development and testing.
+
+
+
+James Moler
