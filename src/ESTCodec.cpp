@@ -23,6 +23,7 @@
 //---------------------------------------------------------------------------
 
 #include "ESTCodec.h"
+#include "Utilities.h"
 
 // The statically allocated array to translate characters to their
 // normal encoding.
@@ -49,11 +50,57 @@ ESTCodec::ESTCodec() {
     charToIntComp[(int) 'A'] = charToIntComp[(int) 'a'] = 3;
     charToIntComp[(int) 'G'] = charToIntComp[(int) 'g'] = 2;
     charToIntComp[(int) 'C'] = charToIntComp[(int) 'c'] = 1;
-    charToIntComp[(int) 'T'] = charToIntComp[(int) 't'] = 0;    
+    charToIntComp[(int) 'T'] = charToIntComp[(int) 't'] = 0;
+    // Initialize pointers
+    revCompTable = NULL;
 }
 
 ESTCodec::~ESTCodec() {
-    // Nothing to be done for now.
+    // Free up all the reverse complement table that was constructed.
+    HashMap<int, int*>::iterator curr = revCompTables.begin();
+    while (curr != revCompTables.end()) {
+        int *rcTable = curr->second;
+        delete [] rcTable;
+    }
+    // Clear out all the entires in the hash map
+    revCompTables.clear();
+}
+
+void
+ESTCodec::setRevCompTable(const int wordSize) {
+    if ((revCompTable = revCompTables[wordSize]) == NULL) {
+        // A table does not exist. So create one
+        revCompTable = addRevCompTable(wordSize);
+    }
+    ASSERT ( revCompTable != NULL );
+}
+
+int*
+ESTCodec::addRevCompTable(const int wordSize) {
+    // Create a reverse complement table with 4^wordSize entries.
+    const int EntryCount = 1 << (wordSize * 2); // 4^wordSize
+    // Create the translation table.
+    int *rcTable = new int[EntryCount];
+    // Populate the rcTable now.
+    for(int entry = 0; (entry < EntryCount); entry++) {
+        // Obtain complement
+        int word    = ~entry; 
+        // Reverse 2-bits at a time to obtain
+        int rcValue = 0;
+        for(int bp = 0; (bp < wordSize); bp++) {
+            // Shift two words over and OR-in the 2 bits.
+            rcValue = (rcValue << 2) | (word & 3);
+            // Get rid of the two bits we used
+            word >>= 2;
+        }
+        // Update the reverse-complement entry
+        rcTable[entry] = rcValue;
+    }
+    // Add newly created reverse-complement entry to the hash map for
+    // future lookups and use.
+    revCompTables[wordSize] = rcTable;
+    // Return newly created table back to caller as per API contract
+    return rcTable;
 }
 
 #endif

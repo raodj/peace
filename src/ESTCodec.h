@@ -23,6 +23,7 @@
 //---------------------------------------------------------------------------
 
 #include <functional>
+#include "HashMap.h"
 
 /** A helper class to serve as a EST enCOder-DECoder.
 
@@ -59,7 +60,7 @@ public:
 
         \endcode
     */
-    inline static const ESTCodec& getCodec() { return estCodec; }
+    inline static ESTCodec& getCodec() { return estCodec; }
 
     /** Obtain 2-bit code for a given base pair.
 
@@ -99,7 +100,45 @@ public:
     inline static char encode2rc(const char bp)
     { return charToIntComp[(int) bp]; }
 
+
+    /** Obtain the reverse-complement for a given word.
+
+        This method can be used to obtain the reverse-complement
+        encoding for a given encoded word.  This method essentially
+        translates a given encoded word to its reverse-complement
+        representation.
+
+        \note In favor of speed, this method does not perform any
+        special checks on the word to be translated.  It is the
+        responsiblity of the caller to ensure that this method is
+        invoked with appropriate parameter value after the \c
+        setRevCompTable method is invoked.
+        
+        \param[in] word The encoded word that must be translated to
+        its corresponding reverse complement representation.
+
+	\return The reverse-complement representation for a given
+	word.
+    */
+    inline int encode2rc(const int word) const { return revCompTable[word]; }
     
+    /** Set the reverse-complement translation table to be used whe
+	next time encode2rc method is called.
+
+	This method must be invoked to set the correct translation
+	table to be used by the encode2rc(int) method.  If a
+	translation table does not exist in the \c revCompTables, then
+	a new reverse-complement table is created by the \c
+	addRevCompTable method.
+	
+	\param[in] wordSize The number of base pairs in the word for
+	which a reverse-complement translation table is to be created.
+    */
+    void setRevCompTable(const int wordSize);
+
+    /** A functor to generate a encoded word (serves as a hash entry).
+	
+     */
     template <const int& Shift, const int& Mask>
     struct NormalEncoder : public std::binary_function<int, char, int> {
         inline int operator()(const int w, const char bp) const {
@@ -133,6 +172,22 @@ protected:
         and \c G) into 2-bits codes (\c 00, \c 11, \c 10, and \c 01)
     */
     ESTCodec();
+
+    /** Creates and adds a new reverse-complement translation table
+	for the given word size.
+
+	This method is a helper method that is invoked from the \c
+	setRevCompTable whenever a new reverse-complement translation
+	table is needed.  This method creates a reverse-complement
+	table with 4<sup>wordSize</sup> entries.
+
+	\param[in] wordSize The number of base pairs in the word for
+	which a reverse-complement translation table is to be created.
+
+	\return This method returns the newly created
+	reverse-complement translation table.
+    */
+    int* addRevCompTable(const int wordSize);
     
 private:
     /** A simple array to map characters \c A, \c T, \c C, and \c G to
@@ -175,6 +230,40 @@ private:
     */
     static char charToIntComp[];
 
+    /** A hash map that holds tables to aid in translating a given
+	word to its reverse complement.
+
+	<p>Converting a given encoded word (some fixed \i n number of
+	base pairs, with each base pair encoded into 2-bits) to its
+	reverse complement (that is, given the encoded sequence for \c
+	attcggct it must be converted to the encoded sequence for \c
+	agccgaat) needs to be computed as a part of EST analysis
+	algorithms and heuristics. In order to enable rapid
+	translation pre-populated tabes are used.</p>
+
+	<p>However, the reverse-complement translation tables need to
+	have entries corresponding to the size of words to be
+	translated. Different algorithms use different word sizes
+	(such as: 8 bps or 10 bps etc).  Accordingly, this hash_map is
+	used to hold pre-computed reverse-complement translation
+	tables. The key in the hash map is the word size. The
+	translation tables contained in this hash map are used via the
+	\c setRevCompTable method. If a reverse-complement entry does
+	not exist, then a new entry is added by the addRevCompTable
+	method. </p>
+    */
+    HashMap<int, int*> revCompTables;
+
+    /** The reverse-complement translation table to be used by the
+	encode2rc method.
+
+	This array is set by the \c setRevCompTable method to refer to
+	the reverse-complement translation table to translate words of
+	given size to their corresponding reverse-complement
+	encodings.
+    */
+    const int* revCompTable;
+    
     /** The process-wide unique codec instance.
         
         This instance variable is a process-wide unique codec that is
