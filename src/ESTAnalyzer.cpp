@@ -26,7 +26,7 @@
 #include "EST.h"
 #include <mpi.h>
 
-// GEt rid of magic numbers
+// Get rid of magic numbers
 #define NO_ERROR 0
 
 // The static instance variables for command line arguments.
@@ -42,18 +42,19 @@ arg_parser::arg_record ESTAnalyzer::commonArgsList[] = {
      &ESTAnalyzer::estFileName, arg_parser::STRING}, 
     {"--html", "Generate analysis report in HTML format",
      &ESTAnalyzer::htmlLog, arg_parser::BOOLEAN},   
- 
     {NULL, NULL}
 };
 
 ESTAnalyzer::ESTAnalyzer(const std::string& name, const int estIdx,
                          const std::string& outputFile) 
-    : refESTidx(estIdx), outputFileName(outputFile), analyzerName(name) {
-    chain = NULL;
+    : refESTidx(estIdx), outputFileName(outputFile), analyzerName(name),
+      chain(NULL) {
     // Nothing else to be done for now.
 }
 
-ESTAnalyzer::~ESTAnalyzer() {}
+ESTAnalyzer::~ESTAnalyzer() {
+    // Empty constructor begets an empty destructor
+}
 
 int
 ESTAnalyzer::setHeuristicChain(HeuristicChain* hChain) {

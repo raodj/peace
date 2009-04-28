@@ -280,11 +280,32 @@ protected:
 	a different class.
     */
     std::string reverseComplement(std::string sequence);
-    
+
+    /** Parameter to define number of characters to shift the frame
+	on the reference sequence, when computing D2.
+
+	This parameter is used to enable D2-asymmetric behavior.
+	The default value is 1, which means D2 symmetric: all frames
+	in both sequences will be compared.  Higher values mean that
+	the algorithm will shift by more than one character when
+	shifting the frame on the reference sequence, resulting in
+	fewer computations but a possible loss of accuracy from not
+	comparing every frame in both sequences.
+    */	
     static int frameShift;
     
 private:
 
+    /** The set of arguments specific to the D2 algorithm
+
+        This instance variable contains a static list of arguments
+        that are specific only to the D2 analyzer class.  This
+        argument list is statically defined and shared by all
+        instances of this class.
+
+	\note Use of static arguments and parameters makes D2 class
+	hierarchy not MT-safe.
+    */
     static arg_parser::arg_record argsList[];
 	
     /* The default constructor for this class.
