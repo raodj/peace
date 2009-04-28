@@ -126,19 +126,25 @@ HeuristicChain::setupChain(const char* heuristicStr, const int refESTidx,
     std::string hStr(heuristicStr);
     HeuristicChain* heuristicChain = HeuristicChain::getHeuristicChain();
     ASSERT ( heuristicChain != NULL );
-    // Process one word at a time. Words are separated by a "hypen"
+    // Process one word at a time. Words are separated by a "hyphen"
     // character.
     while (!hStr.empty()) {
-        // Locate the next hypen character and get name of heuristic
-        const std::string::size_type hypenLoc = hStr.find('-');
-        const std::string name = hStr.substr(0, hypenLoc);
+        // Locate the next hyphen character and get name of heuristic
+        const std::string::size_type hyphenLoc = hStr.find('-');
+        const std::string name = hStr.substr(0, hyphenLoc);
         // Create heuristic and add it to the chain
         Heuristic *heuristic =
             HeuristicFactory::create(name.c_str(), refESTidx, outputFile);
         ASSERT( heuristic != NULL );
         heuristicChain->addHeuristic(heuristic);
         // Remove already created heuristic to process next one in chain.
-        hStr = hStr.substr(hypenLoc + 1);
+        if (hyphenLoc == std::string::npos) {
+            // No hyphen, so this was the last heuristic in the chain
+            hStr.clear();
+        } else {
+            // hStr becomes the remaining heuristics in the chain
+            hStr = hStr.substr(hyphenLoc + 1);
+        }
     }
     // Return the newly populated heuristic chain for easy reference
     return heuristicChain;
