@@ -164,8 +164,28 @@ protected:
 
     */
     char* s1WordMap;
+
+    /** Instance variable to track if a given word (of length \c v)
+	appears in reference EST.
+
+	This instance variable is created in the initialize() method
+	to point to an array of 4<sup>v</sup> 
+    */
+    char* s1RCWordMap;
+
+    /** Flag to indicate if normal or reverse-complement version
+	provided best match.
+
+	This flag is set at the end of the runHeuristic method in this
+	class to indicate if the normal or the reverse-complement
+	check yielded the best possible match. If this flag is \c
+	false, then the normal check yielded the best match. If this
+	value is \c true, then the reverse-complement check yielded
+	the best match.
+    */
+    bool bestMatchIsRC;
     
- private:
+private:
     /** The set of arguments specific to the UV heuristic.
 
         This instance variable contains a static list of arguments

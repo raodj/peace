@@ -34,7 +34,6 @@ int UVSampleHeuristic::v = 10;
 int UVSampleHeuristic::wordShift = 16;
 int UVSampleHeuristic::BitMask = 0;
 
-
 // The set of arguments for this class.
 arg_parser::arg_record UVSampleHeuristic::argsList[] = {
     {"--uv_u", "u (number of v-word matches) (default=2)",
@@ -87,7 +86,10 @@ UVSampleHeuristic::parseArguments(int& argc, char **argv) {
 int
 UVSampleHeuristic::initialize() {
     const int MapSize = (int) pow(4, v);
+    // Create the normal encoded word map
     s1WordMap = new char[MapSize];
+    // Create the reverse-complement encoded word map
+    s1RCWordMap = new char[MapSize];
     // Everything went well
     return 0;
 }
@@ -107,8 +109,9 @@ UVSampleHeuristic::setReferenceEST(const int estIdx) {
     // Initialize s1 word map for the new reference EST
     const int MapSize = (int) pow(4, v);
 
-    // Initialize word map to false throughout.
-    memset(s1WordMap, 0, sizeof(char) * MapSize);
+    // Initialize word maps to false throughout.
+    memset(s1WordMap,   0, sizeof(char) * MapSize);
+    memset(s1RCWordMap, 0, sizeof(char) * MapSize);
     // Obtain EST sequence for quick access.
     const EST *estS1 = EST::getEST(refESTidx);
     ASSERT ( estS1 != NULL );
@@ -117,17 +120,20 @@ UVSampleHeuristic::setReferenceEST(const int estIdx) {
     // First compute the hash for a single word using a suitable
     // generator.
     ESTCodec::NormalEncoder<v, BitMask> encoder;
-    int hash = 0;
-    for(int i = 0; (i < v); i++) {
+    ESTCodec& codec = ESTCodec::getCodec();
+    
+    int hash  = 0;
+    for(int i = 0; (i < v - 1); i++) {
         hash = encoder(hash, s1[i]);
     }
-    // Setup the word map entry for the first word.
-    s1WordMap[hash] = 1;
     // Fill in the word map
     const int End = strlen(s1) - v;
-    for (int i = 1; (i <= End); i++) {
+    for (int i = v - 1; (i <= End); i++) {
         hash = encoder(hash, s1[i]);
+        // Setup the word map for the regular word
         s1WordMap[hash] = 1;
+        // Setup the word map entry for the reverse-complement word.
+        s1RCWordMap[codec.encode2rc(hash)] = 1;
     }
     return 0; // everything went well
 }
@@ -141,7 +147,7 @@ UVSampleHeuristic::runHeuristic(const int otherEST) {
         // Invalid est index.
         return false;
     }
-    int numMatches = 0;
+    int numMatches = 0, numRCmatches = 0;
     // Get s2 sequence (we're done with s1 at this point)
     EST *estS2 = EST::getEST(otherEST);
     std::string sq2 = estS2->getSequence();
@@ -158,17 +164,21 @@ UVSampleHeuristic::runHeuristic(const int otherEST) {
     }
     
     // Track if this word is found in s1
-    numMatches += s1WordMap[hash];
-    
+    numMatches   += s1WordMap[hash];
+    numRCmatches += s1RCWordMap[hash];
     // go through the rest of s2 and check
     const int End = sq2.size() - v + 1;
     for (int i = 1; ((i <= End) && (numMatches < u)); i++) {
-        hash = encoder(hash, sq2[i]);
-        numMatches += s1WordMap[hash];
+        hash          = encoder(hash, sq2[i]);
+        numMatches   += s1WordMap[hash];
+        numRCmatches += s1RCWordMap[hash];
     }
+    // Set the flag to indicate if the normal or the reverse
+    // complement version of checks yielded the best result
+    bestMatchIsRC = (numMatches < numRCmatches);
     
     //printf("UV heuristic: %d %d %d\n", refESTidx, otherEST, numMatches);
-    return (numMatches >= u);
+    return ((numMatches >= u) || (numRCmatches >= u));
 }
 
 #endif
