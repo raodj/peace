@@ -83,8 +83,6 @@ HeuristicChain.h\
 HeuristicChain.cpp\
 UVSampleHeuristic.h\
 UVSampleHeuristic.cpp\
-CommonalityRegion.h\
-CommonalityRegion.cpp\
 InteractiveConsole.h\
 InteractiveConsole.cpp\
 ESTCodec.cpp\
