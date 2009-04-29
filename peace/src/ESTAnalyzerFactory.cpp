@@ -28,6 +28,7 @@
 #include "FMWSCA.h"
 #include "CLU.h"
 #include "D2.h"
+#include "SimulationD2.h"
 #include "MatrixFileAnalyzer.h"
 
 void
@@ -42,7 +43,9 @@ ESTAnalyzerFactory::displayList(std::ostream &os) {
         {"matrixFile", "Use distance data stored in a matrix file",
          NULL, arg_parser::STRING},
         {"d2", "Use D2 distance metric generation algorithm",
-         NULL, arg_parser::STRING},        
+         NULL, arg_parser::STRING},
+        {"d2sim", "Use special version of D2 for simulation project",
+         NULL, arg_parser::STRING},
         {NULL, NULL}
     };
     arg_parser dummyParser(dummy_args);
@@ -69,6 +72,8 @@ ESTAnalyzerFactory::create(const char* name, const int refESTidx,
         return new MatrixFileAnalyzer(refESTidx, outputFileName);
     } else if (!strcmp("d2", name)) {
         return new D2(refESTidx, outputFileName);
+    } else if (!strcmp("d2sim", name)) {
+       return new SimulationD2(refESTidx, outputFileName);
     }
     
     // invalid analyzer name!

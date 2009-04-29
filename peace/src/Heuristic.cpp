@@ -40,6 +40,4 @@ Heuristic::shouldAnalyze(const int otherEST) {
     return value;
 }
 
-// Need some statistical methods later
-
 #endif

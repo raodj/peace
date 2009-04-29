@@ -81,8 +81,9 @@ am_peace_OBJECTS = arg_parser.$(OBJEXT) ESTAnalyzer.$(OBJEXT) \
 	MSTNode.$(OBJEXT) MST.$(OBJEXT) MSTCache.$(OBJEXT) \
 	MSTClusterMaker.$(OBJEXT) CLU.$(OBJEXT) MSTCluster.$(OBJEXT) \
 	MPIStats.$(OBJEXT) Heuristic.$(OBJEXT) \
-	HeuristicFactory.$(OBJEXT) HeuristicChain.$(OBJEXT) \
-	UVSampleHeuristic.$(OBJEXT) InteractiveConsole.$(OBJEXT) \
+	HeuristicFactory.$(OBJEXT) SimulationD2.$(OBJEXT) \
+	HeuristicChain.$(OBJEXT) UVSampleHeuristic.$(OBJEXT) \
+	CommonalityRegion.$(OBJEXT) InteractiveConsole.$(OBJEXT) \
 	ESTCodec.$(OBJEXT)
 peace_OBJECTS = $(am_peace_OBJECTS)
 am__DEPENDENCIES_1 =
@@ -236,10 +237,14 @@ Heuristic.h\
 Heuristic.cpp\
 HeuristicFactory.h\
 HeuristicFactory.cpp\
+SimulationD2.h\
+SimulationD2.cpp\
 HeuristicChain.h\
 HeuristicChain.cpp\
 UVSampleHeuristic.h\
 UVSampleHeuristic.cpp\
+CommonalityRegion.h\
+CommonalityRegion.cpp\
 InteractiveConsole.h\
 InteractiveConsole.cpp\
 ESTCodec.cpp\
@@ -332,6 +337,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CLU.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ClusterMaker.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ClusterMakerFactory.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/CommonalityRegion.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/D2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/EST.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ESTAnalyzer.Po@am__quote@
@@ -351,6 +357,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MSTNode.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/MatrixFileAnalyzer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/ResultLog.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/SimulationD2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/UVSampleHeuristic.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/Utilities.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/arg_parser.Po@am__quote@
