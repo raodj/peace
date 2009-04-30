@@ -28,8 +28,6 @@
 #include <cmath>
 #include <algorithm>
 
-#define MAX_SEQ_LEN 5000
-
 // The simple translation table to convert chars to int.
 char D2::CharToInt[256];
 
@@ -37,12 +35,13 @@ char D2::CharToInt[256];
 int D2::frameShift = 1;
 
 static int MapSize;
-static int BitMask;
+
 static int NumWordsWin;
 
-int* fdHashMap;
-int* s1WordTable;
-int* s2WordTable;
+int D2::BitMask = 0;
+
+// Size of the word tables
+size_t D2::wordTableSize = 0;
 
 // The set of arguments for this class.
 arg_parser::arg_record D2::argsList[] = {
@@ -61,6 +60,9 @@ D2::D2(const int refESTidx, const std::string& outputFileName)
     CharToInt[(int) 'G'] = CharToInt[(int) 'g'] = 1;
     CharToInt[(int) 'C'] = CharToInt[(int) 'c'] = 2;
     CharToInt[(int) 'T'] = CharToInt[(int) 't'] = 3;
+    fdHashMap = NULL;
+    s1WordTable = NULL;
+    s2WordTable = NULL;
 }
 
 D2::~D2() {
@@ -116,19 +118,13 @@ D2::initialize() {
     NumWordsWin = frameSize-wordSize;
     
     // Initialize the fd hash map
-    // This maps hashes of words to integers, just like in CLU.
-    // However, in this case, we are keeping track of the frequency
-    // difference.  So fdHashMap contains the frequency differences
-    // for each word in s1 and s2. This is done according to the
-    // D2 algorithm pseudocode in Zimmerman's paper.
+
     fdHashMap = new int[MapSize];
 
-    // Initialize the word tables, which map indices in the sequences
-    // s1 and s2 to hashes of words.  These greatly speed up performance
-    // as we just compute the hashes of all the words at the beginning
-    // instead of doing it as we go along.
-    s1WordTable = new int[MAX_SEQ_LEN];
-    s2WordTable = new int[MAX_SEQ_LEN];
+    // Compute word table size and initialize word tables
+    wordTableSize = EST::getMaxESTLen() + frameSize;
+    s1WordTable = new int[wordTableSize];
+    s2WordTable = new int[wordTableSize];
     
     // Everything went on well.
     return 0;
@@ -143,26 +139,9 @@ D2::setReferenceEST(const int estIdx) {
     if ((estIdx >= 0) && (estIdx < EST::getESTCount())) {
         refESTidx = estIdx;
         // init ref-est word table
-        memset(s1WordTable, 0, sizeof(int) * MAX_SEQ_LEN);
         EST *estS1 = EST::getEST(refESTidx);
         std::string s1 = estS1->getSequence();
-        // First compute the hash for a single word.
-        //ASSERT ( sequence != NULL );
-        int hash = 0;
-        int i;
-        for(i = 0; (i < wordSize); i++) {
-            hash <<= 2;
-            hash  |= CharToInt[(int) s1[i]];
-        }
-        // Setup the word table entry for the first word.
-        s1WordTable[0] = hash;
-        // Fill in the word table
-        for (i = 1; (i+wordSize <= (int) s1.size()); i++) {
-            hash <<= 2;
-            hash  |= CharToInt[(int) s1[i]];
-            hash  &= BitMask;
-            s1WordTable[i] = hash;
-        }
+        buildWordTable(s1WordTable, s1);
         return 0; // everything went well
     }
     // Invalid est index.
@@ -170,25 +149,25 @@ D2::setReferenceEST(const int estIdx) {
 }
 
 void
-D2::buildWordTable(std::string s2) {
+D2::buildWordTable(int* wordTable, std::string s) {
     // init ref-est word table
-    memset(s2WordTable, 0, sizeof(int) * MAX_SEQ_LEN);
-    // First compute the hash for a single
+    memset(wordTable, 0, sizeof(int) * wordTableSize);
+    // First compute the hash for a single word.
     //ASSERT ( sequence != NULL );
     int hash = 0;
     int i;
     for(i = 0; (i < wordSize); i++) {
         hash <<= 2;
-        hash  |= CharToInt[(int) s2[i]];
+        hash  |= CharToInt[(int) s[i]];
     }
     // Setup the word table entry for the first word.
-    s2WordTable[0] = hash;
+    wordTable[0] = hash;
     // Fill in the word table
-    for (i = 1; (i+wordSize <= (int) s2.size()); i++) {
+    for (i = 1; (i+wordSize <= (int) s.size()); i++) {
         hash <<= 2;
-        hash  |= CharToInt[(int) s2[i]];
+        hash  |= CharToInt[(int) s[i]];
         hash  &= BitMask;
-        s2WordTable[i] = hash;
+        wordTable[i] = hash;
     }
 }
 
@@ -256,7 +235,7 @@ D2::analyze(const int otherEST) {
             ASSERT ( sq2.size() > 0);
 
             // Initialize the word table for s2
-            buildWordTable(sq2);
+            buildWordTable(s2WordTable, sq2);
  
             // Initialize the frequency differential hashmap for s1-s2
             buildFdHashMaps(&sed);
