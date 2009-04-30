@@ -209,6 +209,21 @@ protected:
         // Return number of matches encountered.
         return maxMatch;
     }
+
+    /** Method to display statistics regarding operation of this
+        heuristic.
+            
+        This method can be used to obtain a dump of the statistics
+        gathered regarding the operation of this heuristic. This
+        method calls the base class method first which prints some
+        common statistics.  It then displays the number of times the
+        <i>u/v</i> sample heuristic (the base class) returned success
+        causing the <i>t/v</i> heuristic to be run.
+        
+        \param[out] os The output stream to which the statistics
+        regarding the heuristic is to be dumped.
+    */
+    virtual void printStats(std::ostream& os) const;
     
 private:
     /** The set of arguments specific to the TV heuristic.
@@ -227,11 +242,20 @@ private:
 
         This instance variable contains the minimum number of words
         (that are close but not too close) that have matching values
-        in pairs of ESTs.  The default is 5. However, this value can
+        in pairs of ESTs.  The default is 65. However, this value can
         be overridden by a command line argument.
     */
     static int t;
 
+    /** The window length to be used for <i>t/v</i> heuristic.
+
+        The window length defines the length of the window within
+        which common words are tracked and reported by this heuristic.
+        Typically, this window length must match the window length
+        used for D2 analysis for the heuristic to be meanigful. The
+        default value is 100.  This value can be overridden by the
+        user via suitable command line arguments.
+    */
     static int windowLen;
     
     /** A large table to track matches.
@@ -240,6 +264,17 @@ private:
         matches encountered as this heuristic tracks matching words.
     */
     char *matchTable;
+
+    /** Instance variable to track the number of times UV sample
+        heuristic passed.
+
+        This instance variable is used to track the number of times
+        the UV sample heuristic passed.  This value indicates the
+        number of times the TV heuristic was actually run.  This value
+        is incremented in the runHeuristic method and is displayed by
+        the printStats() method.
+    */
+    int uvSuccessCount;
 };
 
 #endif

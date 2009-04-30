@@ -97,13 +97,17 @@ int
 main(int argc, char* argv[]) {
     // Values of the following variables are processed by the argument
     // parser further below.
-    char emptyString[1]={'\0'};
-    char *analyzerName = NULL;
-    char *clusterName  = NULL;
-    char *heuristicStr = NULL;
+    char emptyString[1]     = {'\0'};
+    char defAnalyzer[3]     = "d2";
+    char defClusterMaker[4] = "mst";
+    char defHeuristic[3]    = "tv";
+    
+    char *analyzerName = defAnalyzer;
+    char *clusterName  = defClusterMaker;
+    char *heuristicStr = defHeuristic;
     char *outputFile   = emptyString;
     bool showOptions   = false;
-    int  refESTidx     = -1;
+    int  refESTidx     = 0;
     bool interactive   = false;
     
     // Create the list of valid arguments to be used by the arg_parser.
@@ -200,6 +204,14 @@ main(int argc, char* argv[]) {
         // Let the analyzer do the analysis.
         result = analyzer->analyze();
     }
+
+    // Print statistics regarding operation of heuristics. Maybe the
+    // printing of stats must be done based on a command line
+    // argument.
+    if (heuristicChain != NULL) {
+        heuristicChain->printStats(std::cout);
+    }
+    
     // Delete the analyzer as it is no longer needed.
     delete analyzer;
 

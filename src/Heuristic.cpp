@@ -25,7 +25,7 @@
 #include "Heuristic.h"
 
 Heuristic::Heuristic(const std::string& name, const int estIdx)
-    : refESTidx(estIdx), heuristicName(name), runCount(0) {
+    : refESTidx(estIdx), heuristicName(name), runCount(0), successCount(0) {
     // Nothing else to be done for now.
 }
 
@@ -35,9 +35,23 @@ Heuristic::~Heuristic() {
 
 bool
 Heuristic::shouldAnalyze(const int otherEST) {
-    bool value = runHeuristic(otherEST);
+    bool value;
+    if ((value = runHeuristic(otherEST))) {
+        // This pair should be analyzed further. 
+        successCount++;
+    }
+    // Track number of times this heuristic was run.
     runCount++;
+    // Return true (indicating further analysis is needed) or false
+    // (no further analysis required).
     return value;
+}
+
+void
+Heuristic::printStats(std::ostream& os) const {
+    os << "Statistics from " << getName()   << " heuristic:\n"
+       << "\tNumber of calls        : " << runCount     << "\n"
+       << "\tNumber of successes    : " << successCount << std::endl;
 }
 
 #endif
