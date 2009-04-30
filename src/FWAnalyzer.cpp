@@ -143,7 +143,13 @@ FWAnalyzer::initialize() {
         // Loading EST's was not successful.  Can't do much further.
         return 1;
     }
-    
+    // Now initialize our heuristic chain to prep heuristics for
+    // analysis.
+    if (chain->initialize()) {
+        // Error occured during initialization. Bail out.
+        return 2;
+    }
+    // Initializawtion successful.
     return 0;
 }
 

@@ -29,7 +29,7 @@
 #include <cmath>
 
 // default params
-int UVSampleHeuristic::u = 4;
+int UVSampleHeuristic::u = 2;
 int UVSampleHeuristic::v = 8;
 int UVSampleHeuristic::wordShift = 16;
 int UVSampleHeuristic::BitMask = 0;
@@ -133,7 +133,9 @@ UVSampleHeuristic::setReferenceEST(const int estIdx) {
     for(int i = 0; (i < v - 1); i++) {
         hash = encoder(hash, s1[i]);
     }
-    // Fill in the word map
+    // Fill in the word map. But first setup the table to quickly
+    // generate reverse complement values.
+    codec.setRevCompTable(v);
     const int End = strlen(s1) - v;
     for (int i = v - 1; (i <= End); i++) {
         hash = encoder(hash, s1[i]);
@@ -165,14 +167,15 @@ UVSampleHeuristic::runHeuristic(const int otherEST) {
     ESTCodec::NormalEncoder<v, BitMask> encoder;
 
     // go through the EST s2 and track number of matching words
-    const int End = sq2.size() - v + 1;
-    for (register int start = 0; (start <= End); start += wordShift) {
+    const int End = sq2.size();
+    for (register int start = 0; (start < End); start += wordShift) {
         // Compute the hash for the next v words. The question to
         // answer here is, is looking up the string in a hash_map to
         // obtain the hash value faster than computing the hash value
         // here using a loop.
         register int hash = 0;
-        for(register int i = start; (i < v); i++) {
+        const int endBP   = start + v;
+        for(register int i = start; (i < endBP); i++) {
             hash = encoder(hash, sq2[i]);
         }
         // Track number of positive and negative matches on this word

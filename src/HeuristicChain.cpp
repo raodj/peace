@@ -75,6 +75,8 @@ HeuristicChain::initialize() {
     for (size_t i = 0; (i < chain.size()); i++) {
         if ((result = chain[i]->initialize()) != NO_ERROR) {
             // Error occured during initialization. Bail out.
+            std::cerr << "Error initializing heuristic "
+                      << chain[i]->getName() << std::endl;
             return result;
         }
     }

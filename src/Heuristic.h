@@ -125,6 +125,16 @@ public:
 	EST pair should be analyzed, and false if it should not.
     */
     bool shouldAnalyze(const int otherEST);
+
+    /** Obtain human-readable name for this heuristic.
+
+        This method must be used to obtain the human readable name set
+        for this heuristic. This method essentially returns the value
+        set when this heuristic class was instantiated.
+
+        \return A human readable name associated with this heuristic.
+    */
+    const std::string& getName() const { return heuristicName; }
     
     /** The destructor.
         

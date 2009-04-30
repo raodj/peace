@@ -331,11 +331,17 @@ protected:
     */
     int refESTidx;
 
-    /** The heuristic chain attached to this EST analyzer.
+    /** The heuristic chain associated with this EST analyzer.
+
+	The heuristic chain contains a sequence of heuristics that
+	must be used to minimize the number of pairs of ESTs that must
+	be actually analyzed (using heavy weight algorithms such as
+	D2).  The chain is created in the \c main method via a call to
+	HeuristicChain::setupChain method and is set by \c main method
+	via a call to setHeuristicChain method.
     */
-
     HeuristicChain* chain;
-
+    
     /** The FASTA file from where EST data is to be read.
 
         This member object is used to hold the file name from where
