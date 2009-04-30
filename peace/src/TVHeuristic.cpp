@@ -87,11 +87,7 @@ TVHeuristic::initialize() {
     // First let base class do initialization
     UVSampleHeuristic::initialize();
     // First compute the longest EST we have.
-    size_t maxESTlen = 0;
-    const std::vector<EST*>& estList = EST::getESTList();
-    for(size_t i = 0; (i < estList.size()); i++) {
-        maxESTlen = std::max(maxESTlen, strlen(estList[i]->getSequence()));
-    }
+    size_t maxESTlen = EST::getMaxESTLen();
     
     // Add extra 100 characters to ease processing.
     matchTable = new char[maxESTlen + windowLen];

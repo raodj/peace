@@ -31,6 +31,9 @@
 
 // The shared static list of ESTs currently available.
 std::vector<EST*> EST::estList;
+
+// The length of the longest EST we have
+size_t EST::maxESTlen = 0;
         
 EST::EST(const int idValue, const char *information, const char* seq,
          const int fileOffset) : id(idValue), offset(fileOffset),
@@ -140,8 +143,10 @@ EST::create(FILE* fastaFile, int& lineNum) {
         // Convert est information to upper case
         std::transform(sequence.begin(), sequence.end(), sequence.begin(),
                        toupper);
-        // Create a new est with all the information.
         const char* const seqBP = sequence.c_str();
+        // Compute new max EST length
+        maxESTlen = std::max(maxESTlen, strlen(seqBP));
+        // Create a new est with all the information.
         EST *est = new EST((int) estList.size(), headerLine.c_str(), seqBP,
                            offset);
         // Add it to the est list.

@@ -236,11 +236,9 @@ protected:
         Creates a "word table" mapping integer indices to integer hashes
 	of words, in effect translating the sequence from a sequence of
 	characters to a sequence of n-words (where n = wordSize).
-	The word table built by this method is for the comparison EST
-	(not the reference EST) and is reset whenever this method is called.
     */
 
-    void buildWordTable(std::string s2);
+    void buildWordTable(int* wordTable, std::string s);
 
     /** Helper method to build frequency distribution hash map.
 
@@ -281,6 +279,41 @@ protected:
     */
     std::string reverseComplement(std::string sequence);
 
+    /** Instance variable that keeps track of the frequency differentials
+	for words found in the current windows on the reference and
+	comparison sequences.  These frequency differentials are used
+	in the calculation of the D2 distance between two windows.
+
+	This variable is created in the initialize() method and	contains
+	4<sup>wordSize</sup> entries.
+    */
+    int* fdHashMap;
+
+    /** Instance variable that maps an index in the reference sequence
+	(sequence s1) to the hash of a word.  This hash can then be used
+	as an index in the fdHashMap to get the frequency differential
+	for that word.
+
+	The word table is created in the initialize() method and
+	filled in using the buildWordTable() method.  For the reference
+	EST, buildWordTable() is called in the setReferenceEST() method,
+	meaning it does not need to be rebuilt every time we analyze
+	a new comparison sequence.
+    */
+    int* s1WordTable;
+
+    /** Instance variable that maps an index in the comparison sequence
+	(sequence s2) to the hash of a word.  This hash can then be used
+	as an index in the fdHashMap to get the frequency differential
+	for that word.
+
+	The word table is created in the initialize() method and
+	filled in using the buildWordTable() method.  For the comparison
+	EST, buildWordTable() must be called in the analyze() method because
+	a new comparison sequence is given every time analyze() is called.
+    */
+    int* s2WordTable;
+
     /** Parameter to define number of characters to shift the frame
 	on the reference sequence, when computing D2.
 
@@ -293,6 +326,10 @@ protected:
 	comparing every frame in both sequences.
     */	
     static int frameShift;
+
+    static size_t wordTableSize;
+
+    static int BitMask;
     
 private:
 

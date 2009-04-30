@@ -148,6 +148,8 @@ public:
 	\return The number of ESTs currently defined.
     */
     static int getESTCount() { return estList.size(); }
+
+    static size_t getMaxESTLen() { return maxESTlen; }
     
     /** Obtain a given EST from the EST list.
 
@@ -444,6 +446,8 @@ private:
         New entries are added to the list by the create method.
     */
     static std::vector<EST*> estList;
+
+    static size_t maxESTlen;
 
     /** A dummy operator=
 
