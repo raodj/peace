@@ -139,7 +139,8 @@ protected:
 	in the main() method.  This value is simply copied to the
 	refESTidx member in this class.
     */
-    UVSampleHeuristic(const int refESTidx, const std::string& outputFileName);
+    UVSampleHeuristic(const std::string& name, const int refESTidx,
+		      const std::string& outputFileName);
     
     /** Determine whether the analyzer should analyze, according to
 	this heuristic.
@@ -184,6 +185,12 @@ protected:
 	the best match.
     */
     bool bestMatchIsRC;
+
+    static int v;
+
+    static int wordShift;
+
+    static int BitMask;
     
 private:
     /** The set of arguments specific to the UV heuristic.
@@ -199,12 +206,6 @@ private:
     static arg_parser::arg_record argsList[];    
 
     static int u;
-
-    static int v;
-
-    static int wordShift;
-
-    static int BitMask;
 };
  
 #endif
