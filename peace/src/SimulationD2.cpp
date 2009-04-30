@@ -157,15 +157,14 @@ SimulationD2::setReferenceEST(const int estIdx) {
         // First compute the hash for a single word.
         //ASSERT ( sequence != NULL );
         int hash = 0;
-        int i;
-        for(i = 0; (i < wordSize); i++) {
+        for(int i = 0; (i < wordSize); i++) {
             hash <<= 2;
             hash  |= CharToInt[(int) s1[i]];
         }
         // Setup the word table entry for the first word.
         s1WordTable[0] = hash;
         // Fill in the word table
-        for (i = 1; (i+wordSize <= s1.size()); i++) {
+        for (size_t i = 1; (i+wordSize <= s1.size()); i++) {
             hash <<= 2;
             hash  |= CharToInt[(int) s1[i]];
             hash  &= BitMask;
@@ -184,15 +183,14 @@ SimulationD2::buildWordTable(std::string s2) {
     // First compute the hash for a single
     //ASSERT ( sequence != NULL );
     int hash = 0;
-    int i;
-    for(i = 0; (i < wordSize); i++) {
+    for(int i = 0; (i < wordSize); i++) {
         hash <<= 2;
         hash  |= CharToInt[(int) s2[i]];
     }
     // Setup the word table entry for the first word.
     s2WordTable[0] = hash;
     // Fill in the word table
-    for (i = 1; (i+wordSize <= s2.size()); i++) {
+    for (size_t i = 1; (i+wordSize <= s2.size()); i++) {
         hash <<= 2;
         hash  |= CharToInt[(int) s2[i]];
         hash  &= BitMask;

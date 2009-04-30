@@ -61,6 +61,8 @@ ESTCodec::~ESTCodec() {
     while (curr != revCompTables.end()) {
         int *rcTable = curr->second;
         delete [] rcTable;
+        // Onto the next entry
+        curr++;
     }
     // Clear out all the entires in the hash map
     revCompTables.clear();

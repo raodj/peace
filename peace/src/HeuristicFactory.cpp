@@ -25,6 +25,7 @@
 
 #include "HeuristicFactory.h"
 #include "UVSampleHeuristic.h"
+#include "TVHeuristic.h"
 #include "arg_parser.h"
 
 void
@@ -54,10 +55,12 @@ HeuristicFactory::create(const char* name, const int refESTidx,
     
     if (!strcmp("uv", name)) {
         return new UVSampleHeuristic("uv", refESTidx, outputFileName);
+    } else if (!strcmp("tv", name)) {
+        return new TVHeuristic(refESTidx, outputFileName);
     }
         
     // invalid heuristic name!
-    std::cerr << "Invalid heuristic name." << std::endl;
+    std::cerr << "Invalid heuristic name '" << name << "'." << std::endl;
     return NULL;
 }
 

@@ -193,11 +193,12 @@ protected:
             hash = encoder(hash, otherSeq[i]);
         }
         // Set first window length entries to zero.
-        memset(matchTable, 0, sizeof(char) * windowLen);
+        memset(matchTable, 0, sizeof(char) *( windowLen + v));
         // Skip first windowLen entries to simplify logic in loop below.
         char *matchTicker = matchTable + windowLen;
         // Now see how many common words exist in the two ESTs
-        int numMatch = 0, maxMatch = 0, oldWindowPos = -windowLen;
+        int numMatch     = 0, maxMatch = 0;
+	int oldWindowPos = -windowLen;
         for(int i = UVSampleHeuristic::v - 1; (i < otherESTLen); i++) {
             hash = encoder(hash, otherSeq[i]);
             matchTicker[i] = refWordMap[hash];
