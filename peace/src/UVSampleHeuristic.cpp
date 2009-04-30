@@ -29,7 +29,7 @@
 #include <cmath>
 
 // default params
-int UVSampleHeuristic::u = 2;
+int UVSampleHeuristic::u = 4;
 int UVSampleHeuristic::v = 8;
 int UVSampleHeuristic::wordShift = 16;
 int UVSampleHeuristic::BitMask = 0;
@@ -159,15 +159,16 @@ UVSampleHeuristic::runHeuristic(const int otherEST) {
     int numMatches = 0, numRCmatches = 0;
     // Get s2 sequence (we're done with s1 at this point)
     EST *estS2 = EST::getEST(otherEST);
-    std::string sq2 = estS2->getSequence();
-    ASSERT ( sq2.size() > 0);
-
+    const char *sq2 = estS2->getSequence();
+    ASSERT ( sq2 != NULL );
+    ASSERT ( strlen(sq2) > 0 );
+    
     // Get the codec for encoding/decoding operations
     BitMask     = (1 << (v * 2)) - 1;
     ESTCodec::NormalEncoder<v, BitMask> encoder;
 
     // go through the EST s2 and track number of matching words
-    const int End = sq2.size();
+    const int End = strlen(sq2) - v;
     for (register int start = 0; (start < End); start += wordShift) {
         // Compute the hash for the next v words. The question to
         // answer here is, is looking up the string in a hash_map to
@@ -186,7 +187,8 @@ UVSampleHeuristic::runHeuristic(const int otherEST) {
     // complement version of checks yielded the best result
     bestMatchIsRC = (numMatches < numRCmatches);
     
-    //printf("UV heuristic: %d %d %d\n", refESTidx, otherEST, numMatches);
+    // printf("uv(%d, %d) = %d, %d\n", refESTidx, otherEST, numMatches,
+    //       numRCmatches);
     return ((numMatches >= u) || (numRCmatches >= u));
 }
 

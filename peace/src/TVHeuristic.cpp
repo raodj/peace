@@ -27,7 +27,7 @@
 #include "EST.h"
 
 // Define the static parameters
-int TVHeuristic::t = 5;
+int TVHeuristic::t = 65;
 
 int TVHeuristic::windowLen = 100;
 
@@ -43,7 +43,8 @@ arg_parser::arg_record TVHeuristic::argsList[] = {
 TVHeuristic::TVHeuristic(const int refESTIdx,
                          const std::string& outputFileName)
     : UVSampleHeuristic("tv", refESTIdx, outputFileName) {
-    matchTable = NULL;
+    matchTable     = NULL;
+    uvSuccessCount = 0;
 }
 
 TVHeuristic::~TVHeuristic() {
@@ -109,6 +110,8 @@ TVHeuristic::runHeuristic(const int otherEST) {
         // This pair need not be analyzed further.
         return false;
     }
+    // Track number of successful base-class checks.
+    uvSuccessCount++;
     // Now apply tv-heuristic to see if this pair should be analyzed
     // further.
     int numMatches = 0;
@@ -119,8 +122,21 @@ TVHeuristic::runHeuristic(const int otherEST) {
         ESTCodec::NormalEncoder<v, BitMask> encoder;
         numMatches = countCommonWords(otherEST, encoder, s1WordMap);
     }
+    // Print intermediate stats to compare with wcd
+    // std::cout << "tv" << (bestMatchIsRC ? "'" : "")
+    //          << "("  << refESTidx << ", " << otherEST << ") = "
+    //          << numMatches << std::endl;
+    
     // Ensure number of matches exceeds threshold limits
-    return (numMatches >= 65);
+    return (numMatches >= TVHeuristic::t);
+}
+
+void
+TVHeuristic::printStats(std::ostream& os) const {
+    // First let the base class do its thing.
+    UVSampleHeuristic::printStats(os);
+    // Display additional information about uv success
+    os << "\tNumber of u/v successes: " << uvSuccessCount << std::endl;
 }
 
 #endif

@@ -118,6 +118,14 @@ HeuristicChain::HeuristicChain() {
     // Nothing to be done for now
 }
 
+void
+HeuristicChain::printStats(std::ostream& os) const {
+    for (size_t i = 0; (i < chain.size()); i++) {
+        chain[i]->printStats(os);
+    }
+}
+
+
 HeuristicChain*
 HeuristicChain::setupChain(const char* heuristicStr, const int refESTidx,
                            const std::string& outputFile) {
