@@ -53,7 +53,7 @@ HeuristicFactory::create(const char* name, const int refESTidx,
     }
     
     if (!strcmp("uv", name)) {
-        return new UVSampleHeuristic(refESTidx, outputFileName);
+        return new UVSampleHeuristic("uv", refESTidx, outputFileName);
     }
         
     // invalid heuristic name!

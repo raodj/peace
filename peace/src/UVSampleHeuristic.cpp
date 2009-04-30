@@ -29,30 +29,37 @@
 #include <cmath>
 
 // default params
-int UVSampleHeuristic::u = 2;
-int UVSampleHeuristic::v = 10;
+int UVSampleHeuristic::u = 4;
+int UVSampleHeuristic::v = 8;
 int UVSampleHeuristic::wordShift = 16;
 int UVSampleHeuristic::BitMask = 0;
 
 // The set of arguments for this class.
 arg_parser::arg_record UVSampleHeuristic::argsList[] = {
-    {"--uv_u", "u (number of v-word matches) (default=2)",
+    {"--uv_u", "u (number of v-word matches) (default=4)",
      &UVSampleHeuristic::u, arg_parser::INTEGER},
-    {"--uv_v", "v (length of common words) (default=10)",
+    {"--uv_v", "v (length of common words) (default=8)",
      &UVSampleHeuristic::v, arg_parser::INTEGER},
     {"--uv_wordShift", "Word Shift (default=16)",
      &UVSampleHeuristic::wordShift, arg_parser::INTEGER},
     {NULL, NULL}
 };
 
-UVSampleHeuristic::UVSampleHeuristic(const int refESTIdx,
+UVSampleHeuristic::UVSampleHeuristic(const std::string& name,
+                                     const int refESTIdx,
                                      const std::string& outputFileName)
-    : Heuristic("uv", refESTIdx) {
+    : Heuristic(name, refESTIdx) {
+    // Initialize hash table arrays
+    s1WordMap   = NULL;
+    s1RCWordMap = NULL;
 }
 
 UVSampleHeuristic::~UVSampleHeuristic() {
     if (s1WordMap != NULL) {
         delete [] s1WordMap;
+    }
+    if (s1RCWordMap != NULL) {
+        delete [] s1RCWordMap;
     }
 }
 
@@ -157,19 +164,18 @@ UVSampleHeuristic::runHeuristic(const int otherEST) {
     BitMask     = (1 << (v * 2)) - 1;
     ESTCodec::NormalEncoder<v, BitMask> encoder;
 
-    int hash = 0;
-    // get initial v-word
-    for(int i = 0; (i < v); i++) {
-        hash = encoder(hash, sq2[i]);
-    }
-    
-    // Track if this word is found in s1
-    numMatches   += s1WordMap[hash];
-    numRCmatches += s1RCWordMap[hash];
-    // go through the rest of s2 and check
+    // go through the EST s2 and track number of matching words
     const int End = sq2.size() - v + 1;
-    for (int i = 1; ((i <= End) && (numMatches < u)); i++) {
-        hash          = encoder(hash, sq2[i]);
+    for (register int start = 0; (start <= End); start += wordShift) {
+        // Compute the hash for the next v words. The question to
+        // answer here is, is looking up the string in a hash_map to
+        // obtain the hash value faster than computing the hash value
+        // here using a loop.
+        register int hash = 0;
+        for(register int i = start; (i < v); i++) {
+            hash = encoder(hash, sq2[i]);
+        }
+        // Track number of positive and negative matches on this word
         numMatches   += s1WordMap[hash];
         numRCmatches += s1RCWordMap[hash];
     }
