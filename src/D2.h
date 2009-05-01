@@ -237,8 +237,7 @@ protected:
 	of words, in effect translating the sequence from a sequence of
 	characters to a sequence of n-words (where n = wordSize).
     */
-
-    void buildWordTable(int* wordTable, std::string s);
+    void buildWordTable(int* wordTable, const char* s);
 
     /** Helper method to build frequency distribution hash map.
 
@@ -255,30 +254,36 @@ protected:
 	Euclidean distance after the frame is shifted by 1 character
 	on the reference sequence.
     */
-    void refShiftUpdateFd(int* sed, const int framePos);
+    inline void refShiftUpdateFd(int* sed, const int framePos) {
+        // update sed and fd from leftmost word falling out
+        *sed += -2*(fdHashMap[s1WordTable[framePos-1]]--) + 1;
+        // update sed and fd from new rightmost word
+        *sed +=  2*(fdHashMap[s1WordTable[framePos+NumWordsWin]]++) + 1;
+    }
 
     /** Helper method to update the frequency hash map and squared
 	Euclidean distance after a 1 character right-shift on the
 	comparison sequence.
     */
-    void rightShiftUpdateFd(int* sed, const int framePos);
+    inline void rightShiftUpdateFd(int* sed, const int framePos) {
+        // update sed and fd from leftmost word falling out
+        *sed +=  2*(fdHashMap[s2WordTable[framePos-1]]++) + 1;
+        // update sed and fd from new rightmost word
+        *sed += -2*(fdHashMap[s2WordTable[framePos+NumWordsWin]]--) + 1;
+    }
 
 
     /** Helper method to update the frequency hash map and squared
 	Euclidean distance after a 1 character left-shift on the
 	comparison sequence.
     */
-    void leftShiftUpdateFd(int* sed, const int framePos);
-
-    /** Helper method to generate the reverse-complement of a sequence.
-	(code borrowed from a routine in the buildHashMaps method
-	of CLU.cpp).
-
-	Currently not used, as reverse complementing may be moved to
-	a different class.
-    */
-    std::string reverseComplement(std::string sequence);
-
+    inline void leftShiftUpdateFd(int* sed, const int framePos) {
+        // update sed and fd from rightmost word falling out
+        *sed +=  2*(fdHashMap[s2WordTable[framePos+NumWordsWin+1]]++) + 1;
+        // update sed and fd from new leftmost word
+        *sed += -2*(fdHashMap[s2WordTable[framePos]]--) + 1;
+    }
+    
     /** Instance variable that keeps track of the frequency differentials
 	for words found in the current windows on the reference and
 	comparison sequences.  These frequency differentials are used
@@ -366,18 +371,6 @@ private:
     */
     D2(const int refESTidx, const std::string& outputFileName);
 
-    /** A simple array to map characters A, T, C, and G to 0, 1, 2,
-        and 3 respectively.
-
-        This is a simple array of 255 entries that are used to convert
-        the base pair encoding characters A, T, C, and G to 0, 1, 2,
-        and 3 respectively to compute the hash as defined by CLU.
-        This array is initialized in the constructor and is never
-        changed during the life time of this class.
-     */
-    static char CharToInt[];
-
-
     /** Instance variable to track alignment metric computed by the
     analyze() method.
 
@@ -388,6 +381,8 @@ private:
         ESTs being analyzed) with the minimum d2 distance.
     */
     int alignmentMetric;
+
+    int NumWordsWin;
 };
 
 #endif

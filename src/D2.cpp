@@ -25,18 +25,11 @@
 
 #include "D2.h"
 #include "EST.h"
-#include <cmath>
+#include "ESTCodec.h"
 #include <algorithm>
-
-// The simple translation table to convert chars to int.
-char D2::CharToInt[256];
 
 // Skip parameter for d2 asymmetric.  Defaults to 1 (i.e. d2 symmetric).
 int D2::frameShift = 1;
-
-static int MapSize;
-
-static int NumWordsWin;
 
 int D2::BitMask = 0;
 
@@ -52,15 +45,7 @@ arg_parser::arg_record D2::argsList[] = {
 
 D2::D2(const int refESTidx, const std::string& outputFileName)
     : FWAnalyzer("D2", refESTidx, outputFileName) {
-    // Initialize the array CharToInt for mapping A, T, C, and G to 0,
-    // 1, 2, and 3 respectively.
-    memset(CharToInt, 0, sizeof(CharToInt));
-    // Initialize values for specific base pairs.
-    CharToInt[(int) 'A'] = CharToInt[(int) 'a'] = 0;
-    CharToInt[(int) 'G'] = CharToInt[(int) 'g'] = 1;
-    CharToInt[(int) 'C'] = CharToInt[(int) 'c'] = 2;
-    CharToInt[(int) 'T'] = CharToInt[(int) 't'] = 3;
-    fdHashMap = NULL;
+    fdHashMap   = NULL;
     s1WordTable = NULL;
     s2WordTable = NULL;
 }
@@ -108,7 +93,7 @@ D2::initialize() {
         return result;
     }
     // Compute the size of the frequency differential hashmap
-    MapSize = pow(4, wordSize);
+    const int MapSize = 1 << (wordSize * 2);
 
     // Compute bit mask that will retain only the bits corresponding
     // to a given word size.  Each entry in a word takes up 2 bits and
@@ -123,8 +108,8 @@ D2::initialize() {
 
     // Compute word table size and initialize word tables
     wordTableSize = EST::getMaxESTLen() + frameSize;
-    s1WordTable = new int[wordTableSize];
-    s2WordTable = new int[wordTableSize];
+    s1WordTable   = new int[wordTableSize];
+    s2WordTable   = new int[wordTableSize];
     
     // Everything went on well.
     return 0;
@@ -140,7 +125,7 @@ D2::setReferenceEST(const int estIdx) {
         refESTidx = estIdx;
         // init ref-est word table
         EST *estS1 = EST::getEST(refESTidx);
-        std::string s1 = estS1->getSequence();
+        const char* s1 = estS1->getSequence();
         buildWordTable(s1WordTable, s1);
         return 0; // everything went well
     }
@@ -149,24 +134,22 @@ D2::setReferenceEST(const int estIdx) {
 }
 
 void
-D2::buildWordTable(int* wordTable, std::string s) {
+D2::buildWordTable(int* wordTable, const char* s) {
     // init ref-est word table
     memset(wordTable, 0, sizeof(int) * wordTableSize);
     // First compute the hash for a single word.
-    //ASSERT ( sequence != NULL );
-    int hash = 0;
-    int i;
-    for(i = 0; (i < wordSize); i++) {
-        hash <<= 2;
-        hash  |= CharToInt[(int) s[i]];
+    ASSERT ( s != NULL );
+    const int length = strlen(s) - wordSize;
+    ESTCodec::NormalEncoder<wordSize, BitMask> encoder;
+    register int hash = 0;
+    for(int i = 0; (i < wordSize); i++) {
+        hash = encoder(hash, s[i]);
     }
     // Setup the word table entry for the first word.
     wordTable[0] = hash;
     // Fill in the word table
-    for (i = 1; (i+wordSize <= (int) s.size()); i++) {
-        hash <<= 2;
-        hash  |= CharToInt[(int) s[i]];
-        hash  &= BitMask;
+    for (int i = 1; (i <= length); i++) {
+        hash = encoder(hash, s[i]);
         wordTable[i] = hash;
     }
 }
@@ -174,6 +157,7 @@ D2::buildWordTable(int* wordTable, std::string s) {
 void
 D2::buildFdHashMaps(int* sed) {
     // Clear out any old entries in the hash maps.
+    const int MapSize = 1 << (wordSize * 2);
     memset(fdHashMap, 0, sizeof(int) * MapSize);
 
     for (int i = 0; (i+wordSize <= frameSize); i++) {
@@ -182,128 +166,94 @@ D2::buildFdHashMaps(int* sed) {
     }
 }
 
-void
-D2::refShiftUpdateFd(int* sed, const int framePos) {
-    // update sed and fd from leftmost word falling out
-    *sed += -2*(fdHashMap[s1WordTable[framePos-1]]--) + 1;
-    // update sed and fd from new rightmost word
-    *sed +=  2*(fdHashMap[s1WordTable[framePos+NumWordsWin]]++) + 1;
-}
-
-void
-D2::rightShiftUpdateFd(int* sed, const int framePos) {
-    // update sed and fd from leftmost word falling out
-    *sed +=  2*(fdHashMap[s2WordTable[framePos-1]]++) + 1;
-    // update sed and fd from new rightmost word
-    *sed += -2*(fdHashMap[s2WordTable[framePos+NumWordsWin]]--) + 1;
-}
-
-void
-D2::leftShiftUpdateFd(int* sed, const int framePos) {
-    // update sed and fd from rightmost word falling out
-    *sed +=  2*(fdHashMap[s2WordTable[framePos+NumWordsWin+1]]++) + 1;
-    // update sed and fd from new leftmost word
-    *sed += -2*(fdHashMap[s2WordTable[framePos]]--) + 1;
-}
-
-std::string
-D2::reverseComplement(std::string sequence) {
-    std::reverse(sequence.begin(), sequence.end());
-    const char Complements[] = {'T', 'C', 'G', 'A'};
-    for (int i = 0; i < ((int) sequence.size()); i++) {
-        sequence[i] = Complements[(int) CharToInt[(int) sequence[i]]];
-    }
-    return sequence;
-}
-
 float
 D2::analyze(const int otherEST) {
     if (otherEST == refESTidx) {
         return 0; // distance to self will be 0
-    } else if ((otherEST >= 0) && (otherEST < EST::getESTCount())) {
-        // Check with the heuristic chain
-        if ((chain == NULL) || (chain->shouldAnalyze(otherEST))) {
-            int sed = 0;
-            int minSed = frameSize*4; // won't be exceeded
-            int s1FramePos = 0;
-            // Get sequences
-            EST *estS1 = EST::getEST(refESTidx);
-            EST *estS2 = EST::getEST(otherEST);
-            std::string sq1 = estS1->getSequence();
-            ASSERT ( sq1.size() > 0 );
-            std::string sq2 = estS2->getSequence();
-            ASSERT ( sq2.size() > 0);
+    }
+    if ((otherEST < 0) || (otherEST >= EST::getESTCount())) {
+        // Invalid EST index!
+        return -1;
+    }
+    // Check with the heuristic chain
+    if ((chain != NULL) && (!chain->shouldAnalyze(otherEST))) {
+        // Heuristics indicate we should not do D2. So skip it.
+        return (4 * frameSize);
+    }
+    
+    // Perform operations for D2
+    int sed = 0;
+    int minSed = frameSize * 4; // won't be exceeded
+    int s1FramePos = 0;
+    // Get sequences
+    EST *estS1 = EST::getEST(refESTidx);
+    EST *estS2 = EST::getEST(otherEST);
+    const char* sq1 = estS1->getSequence();
+    ASSERT ( sq1 != NULL );
+    const char* sq2 = estS2->getSequence();
+    ASSERT ( sq2 != NULL );
 
-            // Initialize the word table for s2
-            buildWordTable(s2WordTable, sq2);
- 
-            // Initialize the frequency differential hashmap for s1-s2
-            buildFdHashMaps(&sed);
+    // Initialize the word table for s2
+    buildWordTable(s2WordTable, sq2);
+    
+    // Initialize the frequency differential hashmap for s1-s2
+    buildFdHashMaps(&sed);
+    
+    minSed = sed;
 
-            minSed = sed;
-
-            const int numFramesS1 = sq1.size() - frameSize;
-            const int numFramesS2 = sq2.size() - frameSize;
-
-            // Main d2 algorithm (from Zimmermann paper)
-            while (s1FramePos < numFramesS1) {
-                if (s1FramePos != 0) {
-                    for (int i = 0; (i < frameShift && s1FramePos++ < numFramesS1); i++) {
-                        refShiftUpdateFd(&sed, s1FramePos);
-                        if (sed < minSed) {
-                            alignmentMetric = s1FramePos;
-                        minSed = sed;
-                        if (minSed == 0) {
-                            break;
-                        }
-                        }
-                    }
-                }
-                for (int s2FramePos = 1; s2FramePos <= numFramesS2; s2FramePos++) {
-                    rightShiftUpdateFd(&sed, s2FramePos);
-                    if (sed < minSed)  {
-                        minSed = sed;
-                        alignmentMetric = s1FramePos - s2FramePos;
-                        if (minSed==0) {
-                            break;
-                        }
-                    }
-                }
-                if (s1FramePos != numFramesS1) {
-                    for (int i = 0; (i < frameShift && s1FramePos++ < numFramesS1); i++) {
-                        refShiftUpdateFd(&sed, s1FramePos);
-                        if (sed < minSed) {
-                            minSed = sed;
-                            alignmentMetric = s1FramePos;
-                            if (minSed==0) {
-                                break;
-                            }
-                        }
-                    }
-                }
-                for (int s2FramePos = numFramesS2-1; s2FramePos >= 0; s2FramePos--) {
-                    leftShiftUpdateFd(&sed, s2FramePos);
-                    if (sed < minSed) {
-                        minSed = sed;
-                        alignmentMetric = s1FramePos - s2FramePos;
-                        if (minSed==0) {
-                            break;
-                        }
+    const int numFramesS1 = strlen(sq1) - frameSize;
+    const int numFramesS2 = strlen(sq2) - frameSize;
+    
+    // Main d2 algorithm (from Zimmermann paper)
+    while (s1FramePos < numFramesS1) {
+        if (s1FramePos != 0) {
+            for (int i = 0; (i < frameShift && s1FramePos++ < numFramesS1); i++) {
+                refShiftUpdateFd(&sed, s1FramePos);
+                if (sed < minSed) {
+                    alignmentMetric = s1FramePos;
+                    minSed = sed;
+                    if (minSed == 0) {
+                        break;
                     }
                 }
             }
-
-            //printf("%d %d %d\n", refESTidx, otherEST, minSed);
-    
-            return minSed;
-        } else {
-            // Heuristic chain said no, so return a dummy distance
-            return (4*frameSize);
         }
-    } else {
-        // Invalid est index.
-        return -1;
+        for (int s2FramePos = 1; s2FramePos <= numFramesS2; s2FramePos++) {
+            rightShiftUpdateFd(&sed, s2FramePos);
+            if (sed < minSed)  {
+                minSed = sed;
+                alignmentMetric = s1FramePos - s2FramePos;
+                if (minSed==0) {
+                    break;
+                }
+            }
+        }
+        if (s1FramePos != numFramesS1) {
+            for (int i = 0; (i < frameShift && s1FramePos++ < numFramesS1); i++) {
+                refShiftUpdateFd(&sed, s1FramePos);
+                if (sed < minSed) {
+                    minSed = sed;
+                    alignmentMetric = s1FramePos;
+                    if (minSed==0) {
+                        break;
+                    }
+                }
+            }
+        }
+        for (int s2FramePos = numFramesS2-1; s2FramePos >= 0; s2FramePos--) {
+            leftShiftUpdateFd(&sed, s2FramePos);
+            if (sed < minSed) {
+                minSed = sed;
+                alignmentMetric = s1FramePos - s2FramePos;
+                if (minSed==0) {
+                    break;
+                }
+            }
+        }
     }
+    
+    //printf("%d %d %d\n", refESTidx, otherEST, minSed);   
+    return minSed;
 }
 
 bool
