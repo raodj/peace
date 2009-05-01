@@ -44,6 +44,7 @@ char*  MSTClusterMaker::outputMSTFile = NULL;
 bool   MSTClusterMaker::dontCluster   = false;
 bool   MSTClusterMaker::prettyPrint   = false;
 double MSTClusterMaker::percentile    = 1.0;
+int    MSTClusterMaker::maxUse        = 1;
 
 // The common set of arguments for all FW EST analyzers
 arg_parser::arg_record MSTClusterMaker::argsList[] = {
@@ -62,7 +63,9 @@ arg_parser::arg_record MSTClusterMaker::argsList[] = {
     {"--dont-cluster", "Just generate MST data. Don't do clustering",
      &MSTClusterMaker::dontCluster, arg_parser::BOOLEAN},
     {"--pretty-print", "Print a pretty cluster tree.",
-     &MSTClusterMaker::prettyPrint, arg_parser::BOOLEAN},    
+     &MSTClusterMaker::prettyPrint, arg_parser::BOOLEAN},
+    {"--maxUse", "Set a threshold to aggressively use metrics",
+     &MSTClusterMaker::maxUse, arg_parser::INTEGER},    
     {NULL, NULL}
 };
 
@@ -103,13 +106,12 @@ MSTClusterMaker::parseArguments(int& argc, char **argv) {
     return ClusterMaker::parseArguments(argc, argv);
 }
 
-int
-MSTClusterMaker::managerUpdateCaches(int estIdx) {
-    // Broad cast the newly added mst node to all the workers.
-    MPI_BCAST(&estIdx, 1, MPI::INT, MANAGER_RANK);
+void
+MSTClusterMaker::estAdded(const int estIdx, std::vector<int>& repopulateList) {
+    // Distribute the newly added mst node to all the workers.
+    sendToWorkers(estIdx, ADD_EST);
     // A new est node has been added.  First prune our caches and
     // obtain list of nodes to be computed.
-    std::vector<int> repopulateList;
     cache->pruneCaches(estIdx, repopulateList, false);
     // Obtain and process requests to repopulate the cache from every
     // worker.
@@ -134,11 +136,23 @@ MSTClusterMaker::managerUpdateCaches(int estIdx) {
         }
         // Free up memory..
         delete [] requestData;
+    }    
+}
+
+int
+MSTClusterMaker::managerUpdateCaches(int estIdx, const bool refreshEST) {
+    // This vector is used to hold the index of ESTs whose neighbors
+    // need to be recomputed as the cache for them is empty.
+    std::vector<int> repopulateList;
+    if (estIdx != -1) {
+        estAdded(estIdx, repopulateList);
     }
     // Now that we have collected cache re-population requests from
     // all workers, add the newly added node's cache to be repopulated
-    // as well.
-    repopulateList.push_back(estIdx);
+    // as well, as needed.
+    if (refreshEST) {
+        repopulateList.push_back(estIdx);
+    }
     // Now get each entry in the repopulateList to be processed.
     for(std::vector<int>::iterator curr = repopulateList.begin();
         (curr != repopulateList.end()); curr++) {
@@ -179,13 +193,53 @@ MSTClusterMaker::computeNextESTidx(int& parentESTidx, int& estToAdd,
         // Undo the fudge on similarity done at the sender end.
         const float remoteSim = *((float *) (remoteData + 2));
         if (analyzer->compareMetrics(remoteSim, similarity)) {
-            // Found a higher similarity in a remote process!
+            // Found a higher similarity or a shorter distance in a
+            // remote process!
             similarity   = remoteSim;
             parentESTidx = remoteData[0];
             estToAdd     = remoteData[1];
             alignmentData= remoteData[3];
         }
     }
+}
+
+void
+MSTClusterMaker::addMoreChildESTs(const int parentESTidx, int& estToAdd,
+                                  float &metric, int& alignmentData,
+                                  int& pendingESTs) {
+    // variable to track parent of next EST to be added.
+    int newParent = -1;
+    
+    do {
+        // Add the current node to the MST.
+        mst->addNode(parentESTidx, estToAdd, metric, alignmentData);
+        if (--pendingESTs == 0) {
+            // All EST's have been added to the MST.  Nothing more to
+            // do.  So break out of the while loop.
+            break;
+        }
+        // Have the manager and worker update their caches to
+        // appropriately prune entries for the newly added EST.
+        managerUpdateCaches(estToAdd, false);
+        // Now determine if there is another child that can be added using
+        // an helper method and without destroying current values.
+        int newChild       = -1;
+        float childMetric  = 0;
+        int childAlignment = 0;
+        computeNextESTidx(newParent, newChild, childMetric, childAlignment);
+        // Check if we have a child with a useful alignment data.
+        if ((newParent == parentESTidx) &&
+            (analyzer->compareMetrics(childMetric, maxUse))) {
+            // Found a child of the same parent with a good metric. So
+            // update parameters with the new child.
+            estToAdd      = newChild;
+            metric        = childMetric;
+            alignmentData = childAlignment;
+        } else {
+            // No more children to add!
+            newParent = -1;
+        }
+    } while (newParent == parentESTidx);
 }
 
 int
@@ -195,19 +249,21 @@ MSTClusterMaker::manager() {
     // The minimum spanning tree that is built by this manager.
     int dummy;
     mst = new MST(pendingESTs, analyzer->getAlignmentData(dummy));
-    // Kick of all activities by adding the reference EST as the root
+    // Kick off all activities by adding the reference EST as the root
     // of the MST with a similarity metric of 0.
     int parentESTidx    = -1;
     int estToAdd        = refESTidx;
-    float similarity    = 0;
+    float metric        = 0;
     int   alignmentInfo = 0;
     do {
-        // Add the EST to the MST vector.
-        mst->addNode(parentESTidx, estToAdd, similarity, alignmentInfo);
-        if (--pendingESTs == 0) {
-            // All EST's have been added to the MST.  Nothing more to
-            // do.  So break out of the while loop.
-            break;
+        // Add the EST to the MST vector, if needed.
+        if ((maxUse == -1) || (parentESTidx == -1)) {
+            mst->addNode(parentESTidx, estToAdd, metric, alignmentInfo);
+            if (--pendingESTs == 0) {
+                // All EST's have been added to the MST.  Nothing more to
+                // do.  So break out of the while loop.
+                break;
+            }
         }
         // process requests to repopulate caches and populate cache
         // for the newly addded EST entry.
@@ -215,49 +271,28 @@ MSTClusterMaker::manager() {
         // Now broadcast request to all workers to provide their best
         // choice for the next EST id to be added to the MST using a
         // helper method.
-        computeNextESTidx(parentESTidx, estToAdd, similarity, alignmentInfo);
+        computeNextESTidx(parentESTidx, estToAdd, metric, alignmentInfo);
+        if (maxUse != -1) {
+            // Try to add as many ESTs as possible rooted at the given
+            // parentESTidx using a helper method.
+            addMoreChildESTs(parentESTidx, estToAdd, metric,
+                             alignmentInfo, pendingESTs);
+        }
     } while (pendingESTs > 0);
     
     // Broad cast an estIdx of -1 to all the workers to indicate that
     // MST building is done.
-    estToAdd = -1;
-    MPI_BCAST(&estToAdd, 1, MPI::INT, MANAGER_RANK);
+    sendToWorkers(-1, ADD_EST);
     // All done with no problems...
     return NO_ERROR;
 }
 
 int
 MSTClusterMaker::worker() {
-    // In each step the worker first receives a broadcast from the
-    // manager regarding the est node that was just added to the MST.
-    // If the estNode added is -1, then the MST building process is
-    // done.
+    // In the first step the worker first receives the index of the
+    // EST was just added to the MST.  If the estNode added is -1,
+    // then the MST building process is done.
     int estAdded = -1;
-    do {
-        // Wait for manager to broad cast next estAdded.  Since we are
-        // waiting we should track this under idle time category.
-        TRACK_IDLE_TIME(MPI_BCAST(&estAdded, 1, MPI_INT, MANAGER_RANK));
-        if (estAdded == -1) {
-            // No more ESTs to add.  Clustering is done.  So it is time
-            // for this worker to stop too.
-            break;
-        }
-        // A new est node has been added.  First prune our caches and post
-        // any new cache computation requests back to the Manager.
-        std::vector<int> repopulateList;
-        cache->pruneCaches(estAdded, repopulateList);
-        // Send the repopulate list to the manager.
-        MPI_SEND(&repopulateList[0], repopulateList.size(),
-                 MPI_INT, MANAGER_RANK, REPOPULATE_REQUEST);
-        // Now process requests from the manager.
-        workerProcessRequests();
-    } while (estAdded != -1);
-    // Everything went on without a hitch.
-    return NO_ERROR;
-}
-
-void
-MSTClusterMaker::workerProcessRequests() {
     // Wait for the Manager to send requests to this worker to perform
     // different tasks.
     MPI::Status msgInfo;
@@ -293,8 +328,25 @@ MSTClusterMaker::workerProcessRequests() {
             bestEntry[2] = *temp;
             MPI_SEND(bestEntry, 4, MPI::INT, MANAGER_RANK,
                      MAX_SIMILARITY_RESPONSE);
+        } else if (msgInfo.Get_tag() == ADD_EST) {
+            // The manager has broad casted the next est to be added.
+            MPI_RECV(&estAdded, 1, MPI::INT, MANAGER_RANK, ADD_EST);
+            if (estAdded == -1) {
+                // No more ESTs to add.  Clustering is done.  So it is time
+                // for this worker to stop too.
+                break;
+            }
+            // A new est node has been added.  First prune our caches and post
+            // any new cache computation requests back to the Manager.
+            std::vector<int> repopulateList;
+            cache->pruneCaches(estAdded, repopulateList);
+            // Send the repopulate list to the manager.
+            MPI_SEND(&repopulateList[0], repopulateList.size(),
+                     MPI_INT, MANAGER_RANK, REPOPULATE_REQUEST);
         }
-    } while (msgInfo.Get_tag() != COMPUTE_MAX_SIMILARITY_REQUEST);
+    } while (estAdded != -1);
+    // Everything went on without a hitch.
+    return NO_ERROR;
 }
 
 int

@@ -166,6 +166,17 @@ D2::buildFdHashMaps(int* sed) {
     }
 }
 
+// This common code fragement is used 4 times in the D2::analyze()
+// method below. It was pulled out into a macro to streamline the
+// analyze method.
+#define CHECK_SED_AND_BREAK           \
+    if (sed < minSed) {               \
+        alignmentMetric = s1FramePos; \
+        if ((minSed = sed) == 0) {    \
+            break;                    \
+        }                             \
+}
+
 float
 D2::analyze(const int otherEST) {
     if (otherEST == refESTidx) {
@@ -207,48 +218,24 @@ D2::analyze(const int otherEST) {
     // Main d2 algorithm (from Zimmermann paper)
     while (s1FramePos < numFramesS1) {
         if (s1FramePos != 0) {
-            for (int i = 0; (i < frameShift && s1FramePos++ < numFramesS1); i++) {
+            for(int i = 0; (i < frameShift && s1FramePos++ < numFramesS1); i++){
                 refShiftUpdateFd(&sed, s1FramePos);
-                if (sed < minSed) {
-                    alignmentMetric = s1FramePos;
-                    minSed = sed;
-                    if (minSed == 0) {
-                        break;
-                    }
-                }
+                CHECK_SED_AND_BREAK;
             }
         }
-        for (int s2FramePos = 1; s2FramePos <= numFramesS2; s2FramePos++) {
+        for(int s2FramePos = 1; s2FramePos <= numFramesS2; s2FramePos++) {
             rightShiftUpdateFd(&sed, s2FramePos);
-            if (sed < minSed)  {
-                minSed = sed;
-                alignmentMetric = s1FramePos - s2FramePos;
-                if (minSed==0) {
-                    break;
-                }
-            }
+            CHECK_SED_AND_BREAK;
         }
         if (s1FramePos != numFramesS1) {
-            for (int i = 0; (i < frameShift && s1FramePos++ < numFramesS1); i++) {
+            for(int i = 0; (i < frameShift && s1FramePos++ < numFramesS1); i++){
                 refShiftUpdateFd(&sed, s1FramePos);
-                if (sed < minSed) {
-                    minSed = sed;
-                    alignmentMetric = s1FramePos;
-                    if (minSed==0) {
-                        break;
-                    }
-                }
+                CHECK_SED_AND_BREAK;
             }
         }
-        for (int s2FramePos = numFramesS2-1; s2FramePos >= 0; s2FramePos--) {
+        for(int s2FramePos = numFramesS2-1; s2FramePos >= 0; s2FramePos--) {
             leftShiftUpdateFd(&sed, s2FramePos);
-            if (sed < minSed) {
-                minSed = sed;
-                alignmentMetric = s1FramePos - s2FramePos;
-                if (minSed==0) {
-                    break;
-                }
-            }
+            CHECK_SED_AND_BREAK;
         }
     }
     
