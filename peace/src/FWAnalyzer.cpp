@@ -145,7 +145,7 @@ FWAnalyzer::initialize() {
     }
     // Now initialize our heuristic chain to prep heuristics for
     // analysis.
-    if (chain->initialize()) {
+    if ((chain != NULL) && (chain->initialize())) {
         // Error occured during initialization. Bail out.
         return 2;
     }
