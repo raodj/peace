@@ -51,7 +51,8 @@ public:
     */
     enum MessageTags{REPOPULATE_REQUEST, COMPUTE_SIMILARITY_REQUEST,
 		     SIMILARITY_LIST, SIMILARITY_COMPUTATION_DONE,
-		     COMPUTE_MAX_SIMILARITY_REQUEST, MAX_SIMILARITY_RESPONSE};
+		     COMPUTE_MAX_SIMILARITY_REQUEST, MAX_SIMILARITY_RESPONSE,
+		     ADD_EST};
     
     /** The destructor.
         
@@ -234,6 +235,18 @@ protected:
 	time decreases. </p>
     */
     static bool noCacheRepop;
+
+    /** Command line option to enable maximum use of precomputed
+        scores for building MST.
+
+        <p>If this member variable is set to a value other than -1,
+        then the MSTClusterMaker will try to use all the ESTs that
+        have a metric better than the value specified for
+        maxUse. Maximally using good metrics will ultimately reduce
+        the total number of analysis that need to be performed,
+        thereby reducing overall time for clustering.</p>
+    */
+    static int  maxUse;
     
     /** Helper method to perform manager tasks.
 
@@ -317,10 +330,14 @@ protected:
 
         \param[in] estIdx The index of the newly added EST.
 
+	\param[in] refreshEST If this flag is \c true (the default
+	value), then the neighbors for the newly added EST (specified
+	by estIdx) are computed and the caches are updated.
+	
         \return This method returns MPI::SUCCESS on success or an
         suitable error code on failure.
     */
-    int managerUpdateCaches(int estIdx);
+    int managerUpdateCaches(int estIdx, const bool refreshEST = true);
 
     /** Helper method in \b Manager process to collaboratively compute
 	the next EST to be added to the MST.
@@ -452,6 +469,90 @@ protected:
 	\param[in] list The list to check if it has a valid entry.
     */
     bool hasValidSMEntry(const SMList& list) const;
+
+    /** Helper method to distribute index of newly added EST to all
+        workers and gather cache repopulation requests.
+
+        This is a helper method that was added to streamline the code
+        in managerUpdateCaches method.  This method performs the
+        following tasks:
+
+        <ol>
+
+        <li>First it uses the \c sendToWorkers() method to distribute
+        the \c estIdx (parameter) value to all the workers. </li>
+
+        <li> Next it prunes the local caches on the manager.</li>
+
+        <li>It then obtains repopulation requests from each worker and
+        places EST indexes to be repopulated in the repoulateList
+        parameter.</li>
+
+        </ol>
+
+        \note This method must be inovked only on the manager.
+
+        \param[in] estIdx The index of the newly added EST that must
+        be distributed to all the workers.
+
+        \param[out] repopulateList A vector that will contain the list
+        of ESTs that need to be repopulated (based on requests
+        received from various workers).
+    */
+    void estAdded(const int estIdx, std::vector<int>& repopulateList);
+
+    /** Helper method in \b Manager process to add as many child nodes
+	as possible for the given parent.
+
+        This is a helper method that is used only in the Manager
+        process <b>only when the \c maxUse parameter is != -1</b>.
+        This method tries to add more children rooted at the given
+        parent to the MST as long as the metric is better than \c
+        maxUse value.  This method operates as follows:
+
+        <ol>
+
+        <li>First, this method sends request to compute the best local
+        choice to each of the worker processes.</li>
+
+        <li>Next it computes its own local (at the Manager's end) best
+        choice for the next EST node to be added.</li>
+
+        <li>It then collects response for best local choice from each
+        worker process and tracks the best reported value.</li>
+
+        <li>If the next best entry is still rooted at this parent and
+        the metric is better than \c maxUse then the EST is added to
+        MST and the process is repeated from step 1. Otherwise, the
+        parameters are updated to the last added EST and the method
+        returns.</li>
+
+        </ol>
+
+        \param[in] parentESTidx The source EST index from where the
+        similarity metric is being measured.  The parentESTidx is
+        already present in the MST.
+
+        \param[in,out] estToAdd The EST that has just been added to
+        the MST.  This method updates this value if additional ESTs
+        are added to the MST by this method.
+
+        \param[in,out] metric The similarity/distance metric between
+        the parentESTidx and the estToAdd.  This method updates this
+        value if additional ESTs are added to the MST by this method.
+
+	\param[in,out] alignmentData The alignment information between
+	the two ESTs represented by their index values in parentESTidx
+	and estToAdd.  This method updates this value if additional
+	ESTs are added to the MST by this method.
+
+        \param[in,out] pendingESTs The number of pending ESTs that
+        have not yet been added to the MST.  This value is used and
+        udpated by this method each time it adds a EST.
+    */
+    void addMoreChildESTs(const int parentESTidx, int& estToAdd,
+                          float &metric, int& alignmentData,
+                          int& pendingESTs);
     
 private:
     /** The default constructor.
