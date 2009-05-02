@@ -61,6 +61,9 @@ UVSampleHeuristic::~UVSampleHeuristic() {
     if (s1RCWordMap != NULL) {
         delete [] s1RCWordMap;
     }
+    // Clear out all the entires in the uvCache as they are no longer
+    // needed.
+    uvCache.clear();
 }
 
 void
@@ -147,6 +150,38 @@ UVSampleHeuristic::setReferenceEST(const int estIdx) {
     return 0; // everything went well
 }
 
+void
+UVSampleHeuristic::computeHash(const int estIdx) {
+    // Pre-compute values that will be used in the for-loop below to
+    // reduce duplicate computations.
+    const EST *estS2 = EST::getEST(estIdx);
+    ASSERT ( estS2  != NULL );
+    const char *sq2  = estS2->getSequence();
+    ASSERT ( sq2 != NULL );
+    const int End    = strlen(sq2) - v;
+    ASSERT ( End > 0 );
+    
+    // Get the codec for encoding/decoding operations
+    BitMask     = (1 << (v * 2)) - 1;
+    ESTCodec::NormalEncoder<v, BitMask> encoder;
+    // Obtain the vector from the hash_map and ensure it has
+    // sufficient space to hold all the hash values.
+    std::vector<unsigned short>& hashList = uvCache[estIdx];
+    hashList.reserve(End / wordShift + 1);
+    
+    // Now, go through the EST sq2 and build hash values
+    for (register int start = 0; (start < End); start += wordShift) {
+        // Compute the hash for the next v words.
+        register unsigned short hash = 0;
+        const int endBP   = start + v;
+        for(register int i = start; (i < endBP); i++) {
+            hash = encoder(hash, sq2[i]);
+        }
+        // Store the hash value
+        hashList.push_back(hash);
+    }
+}
+
 bool
 UVSampleHeuristic::runHeuristic(const int otherEST) {
     if (otherEST == refESTidx) {
@@ -157,31 +192,24 @@ UVSampleHeuristic::runHeuristic(const int otherEST) {
         return false;
     }
     int numMatches = 0, numRCmatches = 0;
-    // Get s2 sequence (we're done with s1 at this point)
-    EST *estS2 = EST::getEST(otherEST);
-    const char *sq2 = estS2->getSequence();
-    ASSERT ( sq2 != NULL );
-    ASSERT ( strlen(sq2) > 0 );
+    // Get otherEST's hash values from the uvCache. If an entry for
+    // otherEST is not present in uvCache then build one.
+    if (uvCache.find(otherEST) == uvCache.end()) {
+        // An entry does not exist. Create one and cache it for future
+        // references.
+        computeHash(otherEST);
+    }
+    // Obtain a reference to the hash list from the cache.
+    const std::vector<unsigned short>& otherHash = uvCache[otherEST];
+    const int hashSize = otherHash.size();
+    ASSERT ( hashSize > 0 );
     
-    // Get the codec for encoding/decoding operations
-    BitMask     = (1 << (v * 2)) - 1;
-    ESTCodec::NormalEncoder<v, BitMask> encoder;
-
-    // go through the EST s2 and track number of matching words
-    const int End = strlen(sq2) - v;
-    for (register int start = 0; (start < End); start += wordShift) {
-        // Compute the hash for the next v words. The question to
-        // answer here is, is looking up the string in a hash_map to
-        // obtain the hash value faster than computing the hash value
-        // here using a loop.
-        register int hash = 0;
-        const int endBP   = start + v;
-        for(register int i = start; (i < endBP); i++) {
-            hash = encoder(hash, sq2[i]);
-        }
-        // Track number of positive and negative matches on this word
-        numMatches   += s1WordMap[hash];
-        numRCmatches += s1RCWordMap[hash];
+    // go through the otherHash and track number of matching words
+    for (register int start = 0; (start < hashSize); start++) {
+        // Track number of positive and reverse-complement matches on
+        // this hash word
+        numMatches   += s1WordMap  [otherHash[start]];
+        numRCmatches += s1RCWordMap[otherHash[start]];
     }
     // Set the flag to indicate if the normal or the reverse
     // complement version of checks yielded the best result
