@@ -155,11 +155,6 @@ main(int argc, char* argv[]) {
     // Create the heuristic chain using a helper method.
     HeuristicChain *heuristicChain =
         HeuristicChain::setupChain(heuristicStr, refESTidx, outputFile);
-    if (heuristicChain == NULL) {
-        // An invalid heuristic was specified. Quit now.
-        showUsage(ap, analyzer, clusterMaker, heuristicChain);
-        return 4;
-    }
     // Check if EST analyzer creation was successful.  A valid EST
     // analyzer is needed even to make clusters.
     if ((analyzer == NULL) || (showOptions) ||

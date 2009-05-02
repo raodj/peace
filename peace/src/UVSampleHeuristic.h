@@ -28,6 +28,23 @@
 #include "Utilities.h"
 #include <string>
 #include <vector>
+#include <HashMap.h>
+
+/** \typedef HashMap<int, std::vector<short> > UVHashTable;
+
+    \brief A hash map to provide rapid access to the set of
+    pre-computed hash values for a given EST.
+
+    This typedef provides a convenient short cut to refer to a hash
+    map that is used to cache pre-computed hash values for a given
+    EST.  The zero-based index of the EST is used as the key into this
+    hash map.  Each entry in the hash map contains a std::vector that
+    essentially contains the array of hash values.
+
+    \note Refer to the additional documentation with the instance
+    variable uvCache for motivation for this hash map.
+*/
+typedef HashMap<int, std::vector<unsigned short> > UVHashTable;
 
 /** Heuristic based upon the "u/v sample heuristic" used in WCD,
     a type of common word heuristic.  Considers all words of length v
@@ -35,7 +52,7 @@
     sequence.  Returns true if it finds at least u common words.
 */
 class UVSampleHeuristic : public Heuristic {
-  friend class HeuristicFactory;
+    friend class HeuristicFactory;
 public:
     /** Display valid command line arguments for this heuristic.
         
@@ -157,6 +174,21 @@ protected:
     */
     virtual bool runHeuristic(const int otherEST);
 
+    /** Method to compute the <i>u/v</i> hash values for a given EST.
+
+        This method is a utility method that was introduced to
+        streamline the process of computing and caching <i>u/v</i>
+        hash values for a given EST.  This method uses the variables
+        \c u, \c v, and \c wordShift (all of them user configurable)
+        along with a ESTCodec::NormalEncoder object to compute hash
+        values into a std::vector. The vector is added to the \c
+        uvCache hash map for future reference.
+
+        \param[in] estIdx The zero-based index of the EST whose hash
+        values is to be computed and cached.
+    */
+    void computeHash(const int estIdx);
+    
     /** Instance variable to track if a given word (of length \c v)
 	appears in reference EST.
 
@@ -206,6 +238,30 @@ private:
     static arg_parser::arg_record argsList[];    
 
     static int u;
+
+    /** A hash map to cache hash values (<i>v</i> base pairs in
+        length) to seedup <i>u/v</i> heuristic.
+
+        <p>The <i>u/v</i> heuristic \b used to generate hash values
+        (in the \c runHeuristic method) by iterating over the base
+        pairs in a given EST sequence.  However, this approach turned
+        out to be rather slow. Furthermore, it was observed that the
+        same set of hash values were recomputed for various pair-wise
+        EST comparisons.</p>
+        
+        <p>Therefore, to improve the overall performance of the
+        <i>u/v</i> heuristic, it was proposed that the hash values be
+        cached to improve performance. Of course, this does increase
+        the net amount of memory consumed. Consequently, to aid in
+        caching only the required subset of EST hash values, this hash
+        map was introduced to store the necessary sequences and
+        rapidly access them when needed.</p>
+
+        <p>The entries in this hash map are computed by the \c
+        computeHash method, which is invoked from the runHeuristic
+        method.</p>
+    */
+    UVHashTable uvCache;
 };
  
 #endif
