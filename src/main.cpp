@@ -188,13 +188,14 @@ main(int argc, char* argv[]) {
     
     // Get the cluster maker or est analyzer to analyze.
     int result = 0;
-    if (clusterMaker != NULL) {
-        result = clusterMaker->makeClusters();
-        delete clusterMaker;
-    } else if (interactive) {
+   
+    if (interactive) {
         // Launch PEACE interactive console.
         InteractiveConsole console(analyzer);
         console.processCommands();
+    } else if (clusterMaker != NULL) {
+        result = clusterMaker->makeClusters();
+        delete clusterMaker;
     } else {
         // Let the analyzer do the analysis.
         result = analyzer->analyze();

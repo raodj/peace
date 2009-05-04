@@ -88,6 +88,8 @@ InteractiveConsole.cpp\
 ESTCodec.cpp\
 ESTCodec.h\
 TVHeuristic.h\
-TVHeuristic.cpp
+TVHeuristic.cpp\
+D2Zim.h\
+D2Zim.cpp
 
 # end of Makefile.am

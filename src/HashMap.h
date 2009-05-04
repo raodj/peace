@@ -45,14 +45,23 @@ struct EqualStr {
     }
 };
 
-/** \typedef A hash_map<const char *, int>
+namespace __gnu_cxx {
+    template<> struct hash<std::string> {
+        inline size_t operator()(const std::string& str) const {
+            return hash<const char*>()(str.c_str());
+        }
+    };
+}       
 
-    A typedef for a hash map whose key is char* and contains integers.
+/** \typedef A hash_map<std::string, int>
 
-    The following typedef provides a short cut for using a hash map 
-    whose key is a C string and contains integers.
+    A typedef for a hash map whose key is std::string and contains
+    integers.
+    
+    The following typedef provides a short cut for using a hash map
+    whose key is a std::string and contains integers.
 */
-typedef HashMap<const char *, int, Hash<const char *>, EqualStr> StringIntMap;
+typedef HashMap<std::string, int> StringIntMap;
 
 #else
 

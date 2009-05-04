@@ -23,16 +23,19 @@
 //---------------------------------------------------------------------------
 
 #include "UVSampleHeuristic.h"
-#include "EST.h"
+#include "HeuristicChain.h"
 #include "ESTCodec.h"
-
-#include <cmath>
+#include "EST.h"
 
 // default params
-int UVSampleHeuristic::u = 4;
-int UVSampleHeuristic::v = 8;
-int UVSampleHeuristic::wordShift = 16;
-int UVSampleHeuristic::BitMask = 0;
+int UVSampleHeuristic::u           = 4;
+int UVSampleHeuristic::v           = 8;
+int UVSampleHeuristic::wordShift   = 16;
+int UVSampleHeuristic::BitMask     = 0;
+
+// Instance variable to track number of bits to shift for building
+// hash values.  This is set to 2*(v-1) in initialize method.
+int UVSampleHeuristic::bitsToShift = 0;
 
 // The set of arguments for this class.
 arg_parser::arg_record UVSampleHeuristic::argsList[] = {
@@ -48,7 +51,7 @@ arg_parser::arg_record UVSampleHeuristic::argsList[] = {
 UVSampleHeuristic::UVSampleHeuristic(const std::string& name,
                                      const int refESTIdx,
                                      const std::string& outputFileName)
-    : Heuristic(name, refESTIdx) {
+    : Heuristic(name, refESTIdx), hintKey("D2_DoRC") {
     // Initialize hash table arrays
     s1WordMap   = NULL;
     s1RCWordMap = NULL;
@@ -95,11 +98,13 @@ UVSampleHeuristic::parseArguments(int& argc, char **argv) {
 
 int
 UVSampleHeuristic::initialize() {
-    const int MapSize = (int) pow(4, v);
+    const int MapSize = (1 << (v * 2));
     // Create the normal encoded word map
     s1WordMap = new char[MapSize];
     // Create the reverse-complement encoded word map
     s1RCWordMap = new char[MapSize];
+    // Setup the bits to be shifted to create hash values.
+    bitsToShift = 2 * (v - 1);
     // Everything went well
     return 0;
 }
@@ -117,7 +122,7 @@ UVSampleHeuristic::setReferenceEST(const int estIdx) {
     // Setup the look up hash table for the reference est.
     refESTidx = estIdx;
     // Initialize s1 word map for the new reference EST
-    const int MapSize = (int) pow(4, v);
+    const int MapSize = (1 << (v * 2));
 
     // Initialize word maps to false throughout.
     memset(s1WordMap,   0, sizeof(char) * MapSize);
@@ -129,7 +134,7 @@ UVSampleHeuristic::setReferenceEST(const int estIdx) {
     
     // First compute the hash for a single word using a suitable
     // generator.
-    ESTCodec::NormalEncoder<v, BitMask> encoder;
+    ESTCodec::NormalEncoder<bitsToShift, BitMask> encoder;
     ESTCodec& codec = ESTCodec::getCodec();
     
     int hash  = 0;
@@ -162,8 +167,8 @@ UVSampleHeuristic::computeHash(const int estIdx) {
     ASSERT ( End > 0 );
     
     // Get the codec for encoding/decoding operations
-    BitMask     = (1 << (v * 2)) - 1;
-    ESTCodec::NormalEncoder<v, BitMask> encoder;
+
+    ESTCodec::NormalEncoder<bitsToShift, BitMask> encoder;
     // Obtain the vector from the hash_map and ensure it has
     // sufficient space to hold all the hash values.
     std::vector<unsigned short>& hashList = uvCache[estIdx];
@@ -173,7 +178,7 @@ UVSampleHeuristic::computeHash(const int estIdx) {
     for (register int start = 0; (start < End); start += wordShift) {
         // Compute the hash for the next v words.
         register unsigned short hash = 0;
-        const int endBP   = start + v;
+        const int endBP    = start + v;
         for(register int i = start; (i < endBP); i++) {
             hash = encoder(hash, sq2[i]);
         }
@@ -184,40 +189,58 @@ UVSampleHeuristic::computeHash(const int estIdx) {
 
 bool
 UVSampleHeuristic::runHeuristic(const int otherEST) {
-    if (otherEST == refESTidx) {
-        return true; // will end up with distance 0, or max similarity
-    }
-    if ((otherEST < 0) || (otherEST >= EST::getESTCount())) {
-        // Invalid est index.
-        return false;
-    }
-    int numMatches = 0, numRCmatches = 0;
+    // Extra sanity checks on uncommon scenarios.
+    VALIDATE({
+        if (otherEST == refESTidx) {
+            return true; // will end up with distance 0, or max similarity
+        }
+        if ((otherEST < 0) || (otherEST >= EST::getESTCount())) {
+            // Invalid est index.
+            return false;
+        }
+    });
+
     // Get otherEST's hash values from the uvCache. If an entry for
     // otherEST is not present in uvCache then build one.
-    if (uvCache.find(otherEST) == uvCache.end()) {
+    UVHashTable::iterator cacheEntry = uvCache.find(otherEST);
+    if (cacheEntry == uvCache.end()) {
         // An entry does not exist. Create one and cache it for future
         // references.
         computeHash(otherEST);
+        // Update our iterator for use below
+        cacheEntry = uvCache.find(otherEST);
     }
     // Obtain a reference to the hash list from the cache.
-    const std::vector<unsigned short>& otherHash = uvCache[otherEST];
+    const std::vector<unsigned short>& otherHash = cacheEntry->second;
     const int hashSize = otherHash.size();
     ASSERT ( hashSize > 0 );
-    
     // go through the otherHash and track number of matching words
-    for (register int start = 0; (start < hashSize); start++) {
+    // Initialize local variables.
+    register int numMatches = 0, numRCmatches = 0;
+    for (register int word = 0; (word < hashSize); word++) {
         // Track number of positive and reverse-complement matches on
         // this hash word
-        numMatches   += s1WordMap  [otherHash[start]];
-        numRCmatches += s1RCWordMap[otherHash[start]];
+        numMatches   += s1WordMap  [otherHash[word]];
+        numRCmatches += s1RCWordMap[otherHash[word]];
     }
-    // Set the flag to indicate if the normal or the reverse
-    // complement version of checks yielded the best result
-    bestMatchIsRC = (numMatches < numRCmatches);
-    
+
+    // Print some information for analysis purposes.
     // printf("uv(%d, %d) = %d, %d\n", refESTidx, otherEST, numMatches,
     //       numRCmatches);
-    return ((numMatches >= u) || (numRCmatches >= u));
+    
+    // Check if we had sufficient matches to warrant further
+    // operations
+    if ((numMatches >= u) || (numRCmatches >= u)) {
+        // Set the flag to indicate if the normal or the reverse
+        // complement version of checks yielded the best result
+        bestMatchIsRC = (numMatches < numRCmatches);
+        // Setup a hint for D2.
+        HeuristicChain::getHeuristicChain()->setHint(hintKey, bestMatchIsRC);
+        // return success indication
+        return true;
+    }
+    // When control drops here that means number of matches were not met
+    return false;
 }
 
 #endif

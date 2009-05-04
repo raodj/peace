@@ -43,13 +43,13 @@ ESTCodec::ESTCodec() {
     // invalid entires are accessed, valgrind will hopefully report an
     // "uninitialized memory access" error.
     charToInt[(int) 'A'] = charToInt[(int) 'a'] = 0;
-    charToInt[(int) 'G'] = charToInt[(int) 'g'] = 1;
-    charToInt[(int) 'C'] = charToInt[(int) 'c'] = 2;
+    charToInt[(int) 'G'] = charToInt[(int) 'g'] = 2;
+    charToInt[(int) 'C'] = charToInt[(int) 'c'] = 1;
     charToInt[(int) 'T'] = charToInt[(int) 't'] = 3;
     // Now initialize the complementary array.
     charToIntComp[(int) 'A'] = charToIntComp[(int) 'a'] = 3;
-    charToIntComp[(int) 'G'] = charToIntComp[(int) 'g'] = 2;
-    charToIntComp[(int) 'C'] = charToIntComp[(int) 'c'] = 1;
+    charToIntComp[(int) 'G'] = charToIntComp[(int) 'g'] = 1;
+    charToIntComp[(int) 'C'] = charToIntComp[(int) 'c'] = 2;
     charToIntComp[(int) 'T'] = charToIntComp[(int) 't'] = 0;
     // Initialize pointers
     revCompTable = NULL;
