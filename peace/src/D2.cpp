@@ -219,7 +219,7 @@ D2::runD2(const int otherEST) {
         updateWindow(s1WordTable[s1Win], s1WordTable[s1Win + numWordsInWindow],
                      score, minScore);
         // Break out of this loop if we have found a a potential match
-        if (minScore <= 40) {
+        if (minScore <= 0) {
             break;
         }
         
@@ -241,7 +241,7 @@ D2::runD2(const int otherEST) {
                      s1WordTable[s1Win + 1 + numWordsInWindow],
                      score, minScore);
         // Break out of this loop if we have found a a potential match
-        if (minScore <= 40) {
+        if (minScore <= 0) {
             break;
         }
     }

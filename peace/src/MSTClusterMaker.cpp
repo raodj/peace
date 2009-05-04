@@ -106,6 +106,7 @@ MSTClusterMaker::parseArguments(int& argc, char **argv) {
     return ClusterMaker::parseArguments(argc, argv);
 }
 
+// This method is invoked only on the manager process
 void
 MSTClusterMaker::estAdded(const int estIdx, std::vector<int>& repopulateList) {
     // Distribute the newly added mst node to all the workers.
@@ -136,7 +137,7 @@ MSTClusterMaker::estAdded(const int estIdx, std::vector<int>& repopulateList) {
         }
         // Free up memory..
         delete [] requestData;
-    }    
+    }
 }
 
 int
