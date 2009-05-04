@@ -200,6 +200,10 @@ public:
         returns 0 (zero).
         
         </ol>
+
+        \return This method returns zero if all the processing
+        proceeded successfully. On errors this method returns a
+        non-zero value.
     */
     virtual int analyze();
     
@@ -230,10 +234,10 @@ protected:
         0.  Derived FWAnalyzer-based classes must override this method
         to perform the necessary operations.
     */
-    virtual float analyze(const std::string& refFrame,
-                          const std::string& otherFrame,
-                          const int wordSize);
-
+    virtual float analyzeFrame(const std::string& refFrame,
+			       const std::string& otherFrame,
+			       const int wordSize);
+    
     /** Helper method to dump result log header.
 
 	This is a helper method that is invoked from the analyze()

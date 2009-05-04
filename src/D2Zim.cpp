@@ -189,7 +189,7 @@ D2Zim::analyze(const int otherEST) {
     // Check with the heuristic chain
     if ((chain != NULL) && (!chain->shouldAnalyze(otherEST))) {
         // Heuristics indicate we should not do D2. So skip it.
-        return (4 * frameSize);
+        return (4.0f * frameSize);
     }
     
     // Perform operations for D2
@@ -240,7 +240,7 @@ D2Zim::analyze(const int otherEST) {
     }
     
     //printf("%d %d %d\n", refESTidx, otherEST, minSed);   
-    return minSed;
+    return (float) minSed;
 }
 
 bool

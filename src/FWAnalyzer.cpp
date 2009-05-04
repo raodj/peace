@@ -183,7 +183,7 @@ FWAnalyzer::analyze(const int estIdx) {
     }
 
     const EST* est = EST::getESTList()[estIdx];
-    return  analyze(referenceFrame, getFrame(est), wordSize);
+    return  analyzeFrame(referenceFrame, getFrame(est), wordSize);
 }
 
 int
@@ -274,9 +274,9 @@ FWAnalyzer::dumpHeader(ResultLog& log, const double mean,
 }
 
 float 
-FWAnalyzer::analyze(const std::string&,
-                    const std::string&,
-                    const int) {
+FWAnalyzer::analyzeFrame(const std::string&,
+                         const std::string&,
+                         const int) {
     return 0;
 }
 

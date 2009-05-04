@@ -161,7 +161,7 @@ InteractiveConsole::tokenize(const std::string& str,
 }
 
 void
-InteractiveConsole::printStats(const std::vector<std::string>& cmdWords) {
+InteractiveConsole::printStats(const std::vector<std::string>& UNREFERENCED_PARAMETER(cmdWords)) {
     // Collate and print statistics about the ESTs
     const double startTime = MPI::Wtime();
     // Obtain the list of ESTs to process
@@ -196,12 +196,12 @@ InteractiveConsole::printStats(const std::vector<std::string>& cmdWords) {
 }
 
 void
-InteractiveConsole::exit(const std::vector<std::string>& cmdWords) {
+InteractiveConsole::exit(const std::vector<std::string>& UNREFERENCED_PARAMETER(cmdWords)) {
     std::cout << "PEACE out.\n";
 }
 
 void
-InteractiveConsole::list(const std::vector<std::string>& cmdWords) {
+InteractiveConsole::list(const std::vector<std::string>& UNREFERENCED_PARAMETER(cmdWords)) {
     // Obtain the list of ESTs to print
     const std::vector<EST*>& estList = EST::getESTList();
     // Print the header for additional information.
@@ -312,7 +312,7 @@ InteractiveConsole::print(const std::vector<std::string>& cmdWords) {
 }
 
 void
-InteractiveConsole::help(const std::vector<std::string>& cmdWords) {
+InteractiveConsole::help(const std::vector<std::string>& UNREFERENCED_PARAMETER(cmdWords)) {
     // Maybe this help method can load data from a help text file and
     // show the results. However, for now, this should suffice.
     std::cout << "Command   Description                                 \n"

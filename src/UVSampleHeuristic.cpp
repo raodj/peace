@@ -50,7 +50,7 @@ arg_parser::arg_record UVSampleHeuristic::argsList[] = {
 
 UVSampleHeuristic::UVSampleHeuristic(const std::string& name,
                                      const int refESTIdx,
-                                     const std::string& outputFileName)
+                                     const std::string& UNREFERENCED_PARAMETER(outputFileName))
     : Heuristic(name, refESTIdx), hintKey("D2_DoRC") {
     // Initialize hash table arrays
     s1WordMap   = NULL;
@@ -180,7 +180,7 @@ UVSampleHeuristic::computeHash(const int estIdx) {
         register unsigned short hash = 0;
         const int endBP    = start + v;
         for(register int i = start; (i < endBP); i++) {
-            hash = encoder(hash, sq2[i]);
+            hash = (unsigned short) encoder(hash, sq2[i]);
         }
         // Store the hash value
         hashList.push_back(hash);

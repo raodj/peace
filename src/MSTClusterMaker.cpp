@@ -230,7 +230,7 @@ MSTClusterMaker::addMoreChildESTs(const int parentESTidx, int& estToAdd,
         computeNextESTidx(newParent, newChild, childMetric, childAlignment);
         // Check if we have a child with a useful alignment data.
         if ((newParent == parentESTidx) &&
-            (analyzer->compareMetrics(childMetric, maxUse))) {
+            (analyzer->compareMetrics(childMetric, (float) maxUse))) {
             // Found a child of the same parent with a good metric. So
             // update parameters with the new child.
             estToAdd      = newChild;
@@ -550,7 +550,7 @@ MSTClusterMaker::makeClusters() {
     if (!dontCluster) {
         // Now get the helper to build the clusters.
         MSTCluster root;
-        const double threshold = root.makeClusters(mst->getNodes(), percentile);
+        root.makeClusters(mst->getNodes(), percentile);
         // Redirect cluster output to outputFile as needed.
         std::ofstream outFile;
         if (!outputFileName.empty()) {

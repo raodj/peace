@@ -51,7 +51,7 @@ MSTCluster::add(const MSTNode& node) {
 }
 
 double
-MSTCluster::makeClusters(NodeList& nodeList, const int percentile) {
+MSTCluster::makeClusters(NodeList& nodeList, const double percentile) {
     // Compute the threshold based on the percentile value provided.
     const double threshold = calculateThreshold(nodeList, percentile);
     // Now create a hash map to track cluster for a given node
@@ -123,8 +123,8 @@ MSTCluster::makeClusters(NodeList& nodeList, const int percentile) {
 }
 
 double
-MSTCluster::calculateThreshold(const NodeList& nodeList,
-                               const int percentile) const {
+MSTCluster::calculateThreshold(const NodeList& UNREFERENCED_PARAMETER(nodeList),
+                               const double UNREFERENCED_PARAMETER(percentile)) const {
     /*double totalSim    = 0;
     double totalSimSqr = 0;
     // Iterate over the set of nodes and compute total values to

@@ -64,7 +64,8 @@ class arg_parser {
   friend std::ostream &operator<<(std::ostream &, const arg_parser &);
 
 public:
-  enum arg_type {BOOLEAN, INTEGER, STRING, STRING_LIST, DOUBLE, LONG_LONG};
+  enum arg_type {BOOLEAN, INTEGER, STRING, STRING_LIST, FLOAT,
+		 DOUBLE, LONG_LONG};
 
   struct arg_record {
     const char *arg_text;

@@ -49,7 +49,7 @@ public:
     MSTCluster(MSTCluster* owner = NULL);
     ~MSTCluster();
 
-    double makeClusters(NodeList& nodeList, const int percentile);
+    double makeClusters(NodeList& nodeList, const double percentile);
     void add(const MSTNode& node);
 
     void printClusterTree(std::ostream& os = std::cout,
@@ -57,7 +57,7 @@ public:
                
 protected:
     double calculateThreshold(const NodeList& nodeList,
-                              const int percentile) const;
+                              const double percentile) const;
     
 private:
     ClusterList clusterList;
