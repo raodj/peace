@@ -1,5 +1,5 @@
-#ifndef D2_H
-#define D2_H
+#ifndef D2_ZIM_H
+#define D2_ZIM_H
 
 //---------------------------------------------------------------------------
 //
@@ -31,13 +31,13 @@
 class EST;
 class ResultLog;
 
-/** \brief EST Analyzer that uses the D2 algorithm to compute
+/** \brief EST Analyzer that uses the d2 algorithm to compute
     distances between two ESTs.
 
-    <p>This analyzer provides the mechanism to use D2 algorithm to
-    compute the distance values between a pair of ESTs. The D2
-    implementation has been adapted purely from the implementations of
-    WCD, Zimmerman, and CLU.<p>
+    <p>This analyzer provides the mechanism to use vanilla D2
+    algorithm to compute the distance values between a pair of
+    ESTs. The D2 implementation has been adapted from the
+    implementations of WCD and CLU.<p>
 
     \note This D2 analyzer uses a word size of 8 base pairs.  This is
     hard coded into the algorithm in the form of various assumptions
@@ -45,7 +45,7 @@ class ResultLog;
     other D2 implementations as well.  This is a compromise between
     performance and flexibility of the implementation.
 */
-class D2 : public FWAnalyzer {
+class D2Zim : public FWAnalyzer {
     friend class ESTAnalyzerFactory;
 public:
     /** The destructor.
@@ -53,7 +53,7 @@ public:
         The destructor frees up all any dynamic memory allocated by
         this object for its operations.
     */
-    virtual ~D2();
+    virtual ~D2Zim();
     
     /** Display valid command line arguments for this analyzer.
 	
@@ -81,16 +81,15 @@ public:
         arguments.  If the command line arguments were valid and
         successfully processed, then this method returns \c true. </p>
 
-        <p>Currently, this EST analyzer accepts an optional \c
-        frameShift value to control the stride used for D2
-        algorithm. However, the default value of 1 for \c frameShift
-        is the preferred value for this parameter.</p>
+        <p>Currently, this EST analyzer does not require any
+        additional command line parameters.  Consequently, it simply
+        calls the corresponding method in the base class.</p>
 
         \note The \c ESTAnalyzer base class requires that derived EST
         analyzer classes <b>must</b> override this method to process
         any command line arguments that are custom to their operation.
-        However, as per API requirement, this methodcalls the
-        corresponding base class implementation to display additional
+        When this method is overridden don't forget to call the
+        corresponding base class implementation to display common
         options.
         
         \param[inout] argc The number of command line arguments to be
@@ -108,11 +107,8 @@ public:
     /** Method to begin EST analysis.
 
         This method is invoked just before commencement of EST
-        analysis.  This method first invokes the base class's \c
-        initialize method that initializes the heuristic chain, if a
-        chain has been set for this analyzer. It then initializes
-        memory for the word tables used to store hash values for the
-        pairs of ESTs to be analyzed.
+        analysis.  This method currently does not have any specific
+        tasks to perform.  It simply returns 0.
 
         \return Currently, this method always returns 0 (zero) to
         indicate initialization was successfully completed.
@@ -126,25 +122,25 @@ public:
         display/debugging purposes (particularly via the PEACE
         Interactive Console).
 
-        \return This method returns the string "d2" identifiying this
-        analyzer.
+        \return This method returns the string "d2zim" identifiying
+        this d2 analyzer was based on description in Zimmermann's
+        paper.
     */    
-    virtual std::string getName() const { return "d2"; }
+    virtual std::string getName() const { return "d2zim"; }
     
     /** Set the reference EST id for analysis.
 
         This method is invoked just before a batch of ESTs are
         analyzed via a call to the analyze(EST *) method.  This method
-        currently saves the index in the \c refESTidx instance
-        variable for further look up.  Next it creates a "word table"
-        (via a call to the \c buildWordTable method) mapping integer
-        indices to integer hashes of words, in effect translating the
-        sequence from a sequence of characters to a sequence of
-        n-words (where n = wordSize).  This word table is kept until
-        the reference EST is changed, which reduces overhead.
+        currently saves the index in the instance variable for further
+        look up.  Next it creates a "word table" mapping integer indices
+	to integer hashes of words, in effect translating the sequence
+	from a sequence of characters to a sequence of n-words (where n =
+	wordSize).  This word table is kept until the reference EST is
+	changed, which reduces overhead.
 
-        \note This method must be called only after the \c
-        initialize() method is called.
+        \note This method must be called only after the initialize()
+        method is called.
 
         \return This method returns \c true if the estIdx was within
         the given range of values.  Otherwise this method returns a
@@ -182,7 +178,7 @@ protected:
 
         \param[in] metric2 The second metric to be compared against.
         
-        \return This method returns \c true if \c metric1 is
+        \return This method returns \c true if metric1 is
         comparatively better than \c metric2.
     */
     inline bool compareMetrics(const float metric1, const float metric2) const
@@ -237,34 +233,67 @@ protected:
     */
     bool isDistanceMetric() const { return true; }
 
-    /** Helper method to create a word table.
-        
-        Creates a "word table" mapping integer indices to integer
-	hashes of words, in effect translating the sequence from a
-	sequence of characters to a sequence of n-words (where n =
-	wordSize).
-
-        \param[out] wordTable The word table to be populated with with
-        hash values.
-
-        \param[in] estSeq The sequence of base pairs associated with
-        this EST that must be converted to hash values.
+    /**
+        Creates a "word table" mapping integer indices to integer hashes
+	of words, in effect translating the sequence from a sequence of
+	characters to a sequence of n-words (where n = wordSize).
     */
-    template <typename Encoder>
-    void buildWordTable(int* wordTable, const char* estSeq, Encoder encoder) {
-        // Compute the has for the first word using the encoder. The
-        // encoder may do normal or reverse-complement encoding for us.
-        register int hash = 0;
-        for(register int i = 0; ((*estSeq != 0) && (i < wordSize - 1));
-	    i++, estSeq++) {
-            hash = encoder(hash, *estSeq);
-        }
-        // Now compute the hash for each word
-        for(int entry = 0; (*estSeq != 0); entry++, estSeq++) {
-            hash = encoder(hash, *estSeq);
-            wordTable[entry] = hash;
-        }
+    void buildWordTable(int* wordTable, const char* s);
+
+    /** Helper method to build frequency distribution hash map.
+
+        This is a helper method that is used to build the initial frequency
+	differential hash map for the pair of ESTs currently being
+	compared.  This structure maps integer hashes of words to
+	integers denoting the difference in word frequency from sequence
+	1 to sequence 2.  Additionally, it computes the initial squared
+	Euclidean distance (d2's distance measure).
+    */
+    void buildFdHashMaps(int* sed);
+
+    /** Helper method to update the frequency hash map and squared
+	Euclidean distance after the frame is shifted by 1 character
+	on the reference sequence.
+    */
+    inline void refShiftUpdateFd(int* sed, const int framePos) {
+        // update sed and fd from leftmost word falling out
+        *sed += -2*(fdHashMap[s1WordTable[framePos-1]]--) + 1;
+        // update sed and fd from new rightmost word
+        *sed +=  2*(fdHashMap[s1WordTable[framePos+NumWordsWin]]++) + 1;
     }
+
+    /** Helper method to update the frequency hash map and squared
+	Euclidean distance after a 1 character right-shift on the
+	comparison sequence.
+    */
+    inline void rightShiftUpdateFd(int* sed, const int framePos) {
+        // update sed and fd from leftmost word falling out
+        *sed +=  2*(fdHashMap[s2WordTable[framePos-1]]++) + 1;
+        // update sed and fd from new rightmost word
+        *sed += -2*(fdHashMap[s2WordTable[framePos+NumWordsWin]]--) + 1;
+    }
+
+
+    /** Helper method to update the frequency hash map and squared
+	Euclidean distance after a 1 character left-shift on the
+	comparison sequence.
+    */
+    inline void leftShiftUpdateFd(int* sed, const int framePos) {
+        // update sed and fd from rightmost word falling out
+        *sed +=  2*(fdHashMap[s2WordTable[framePos+NumWordsWin+1]]++) + 1;
+        // update sed and fd from new leftmost word
+        *sed += -2*(fdHashMap[s2WordTable[framePos]]--) + 1;
+    }
+    
+    /** Instance variable that keeps track of the frequency differentials
+	for words found in the current windows on the reference and
+	comparison sequences.  These frequency differentials are used
+	in the calculation of the D2 distance between two windows.
+
+	This variable is created in the initialize() method and	contains
+	4<sup>wordSize</sup> entries.
+    */
+    int* fdHashMap;
 
     /** Instance variable that maps an index in the reference sequence
 	(sequence s1) to the hash of a word.  This hash can then be used
@@ -280,10 +309,9 @@ protected:
     int* s1WordTable;
 
     /** Instance variable that maps an index in the comparison sequence
-	(sequence s2) to the hash of a word.
-
-        This hash is used as an index in the fdHashMap to get the
-	frequency differential for that word.
+	(sequence s2) to the hash of a word.  This hash can then be used
+	as an index in the fdHashMap to get the frequency differential
+	for that word.
 
 	The word table is created in the initialize() method and
 	filled in using the buildWordTable() method.  For the comparison
@@ -292,14 +320,6 @@ protected:
     */
     int* s2WordTable;
 
-    /** Array to track the delta values in the core D2 algorithm.
-
-        This array is initialized to point to an array of size
-        4<sup>wordSize</sup>.  This array is used to track the delta
-        values generated in the core D2 algorithm.
-    */
-    int *delta;
-    
     /** Parameter to define number of characters to shift the frame
 	on the reference sequence, when computing D2.
 
@@ -310,14 +330,15 @@ protected:
 	shifting the frame on the reference sequence, resulting in
 	fewer computations but a possible loss of accuracy from not
 	comparing every frame in both sequences.
-
-	\note Currently this value is not used.
-    */
+    */	
     static int frameShift;
 
-    static int bitShift;
+    static size_t wordTableSize;
+
+    static int BitMask;
     
 private:
+
     /** The set of arguments specific to the D2 algorithm
 
         This instance variable contains a static list of arguments
@@ -349,11 +370,11 @@ private:
 	the empty string then output is written to standard output.
 	This value is simply passed onto the base class.
     */
-    D2(const int refESTidx, const std::string& outputFileName);
+    D2Zim(const int refESTidx, const std::string& outputFileName);
 
     /** Instance variable to track alignment metric computed by the
-        analyze() method.
-        
+    analyze() method.
+
         This instance variable is used to hold the alignment metric
         that was computed in the previous \c analyze method call. By
         default this value is set to zero.  The alignment metric is
@@ -362,53 +383,7 @@ private:
     */
     int alignmentMetric;
 
-    /** The bitmak to be used when build hash values.
-            
-        This bitmask is used to drop higher order bits when building
-        hash values for \c wordSize (defined in base class) base pairs
-        in a given EST. This instance variable is actually passed on
-        to the ESTCodec::NormalEncoder or ESTCodec::RevCompEncoder
-        when computing hash values.  Since this is value is passed in
-        a template parameter, it is defined to be static (to ensure
-        that it has external linkage as per the ISO/ANSI standards
-        requirement).
-    */
-    static int BitMask;
-
-    /** Instance variable to track the number of words (of \c
-        wordSize) that can fit into a window (of \c frameSize).
-
-        This instance variable is set in the initialize() method and
-        its value is used by various methods in this class.  Rather
-        than computing this value repeatedly, it is computed once and
-        used throughout.
-    */
-    int numWordsInWindow;
-
-    inline void updateWindow(const int wordIn, const int wordOut,
-                             int& score, int& minScore) {
-        // Update score and delta for word moving in
-        score -= (delta[wordIn] << 1) - 1;
-        delta[wordIn]--;
-        // Update score and delta for word moving out
-        score += (delta[wordOut] << 1) + 1;
-        delta[wordOut]++;
-        // Track the minimum score.
-        if (score < minScore) {
-            minScore = score;
-        }
-    }
-
-    float runD2(const int otherEST);
-
-        /** The hint key that is used to add hint for normal or
-	reverse-complement D2 computation.
-
-	This hint key is used to set a hint in the \c hints hash
-	map. This string is defined as a constant to save compute time
-	in the core \c runHeuristics method.
-    */
-    const std::string hintKey;
+    int NumWordsWin;
 };
 
 #endif

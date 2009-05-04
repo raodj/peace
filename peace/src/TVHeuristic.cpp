@@ -116,16 +116,18 @@ TVHeuristic::runHeuristic(const int otherEST) {
     // further.
     int numMatches = 0;
     if (bestMatchIsRC) {
-        ESTCodec::RevCompEncoder<v, BitMask> encoder;
+        // bitsToShift is set to 2*(v-1) in the base class.
+        ESTCodec::RevCompEncoder<bitsToShift, BitMask> encoder;
         numMatches = countCommonWords(otherEST, encoder, s1RCWordMap);
     } else {
-        ESTCodec::NormalEncoder<v, BitMask> encoder;
+        // bitsToShift is set to 2*(v-1) in the base class.
+        ESTCodec::NormalEncoder<bitsToShift, BitMask> encoder;
         numMatches = countCommonWords(otherEST, encoder, s1WordMap);
     }
     // Print intermediate stats to compare with wcd
     // std::cout << "tv" << (bestMatchIsRC ? "'" : "")
-    //          << "("  << refESTidx << ", " << otherEST << ") = "
-    //          << numMatches << std::endl;
+    //           << "("  << refESTidx << ", " << otherEST << ") = "
+    //           << numMatches << std::endl;
     
     // Ensure number of matches exceeds threshold limits
     return (numMatches >= TVHeuristic::t);

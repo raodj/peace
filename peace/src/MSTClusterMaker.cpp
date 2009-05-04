@@ -37,7 +37,7 @@
 
 // The static instance variables for command line arguments.
 int    MSTClusterMaker::cacheSize     = 128;
-bool   MSTClusterMaker::noCacheRepop  = false;
+bool   MSTClusterMaker::noCacheRepop  = true;
 bool   MSTClusterMaker::strictOrder   = false;
 char*  MSTClusterMaker::inputMSTFile  = NULL;
 char*  MSTClusterMaker::outputMSTFile = NULL;

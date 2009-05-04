@@ -31,10 +31,8 @@
 // Skip parameter for d2 asymmetric.  Defaults to 1 (i.e. d2 symmetric).
 int D2::frameShift = 1;
 
-int D2::BitMask = 0;
-
-// Size of the word tables
-size_t D2::wordTableSize = 0;
+int D2::BitMask  = 0;
+int D2::bitShift = 0;
 
 // The set of arguments for this class.
 arg_parser::arg_record D2::argsList[] = {
@@ -45,20 +43,21 @@ arg_parser::arg_record D2::argsList[] = {
 
 D2::D2(const int refESTidx, const std::string& outputFileName)
     : FWAnalyzer("D2", refESTidx, outputFileName) {
-    fdHashMap   = NULL;
-    s1WordTable = NULL;
-    s2WordTable = NULL;
+    s1WordTable     = NULL;
+    s2WordTable     = NULL;
+    delta           = NULL;
+    alignmentMetric = 0;
 }
 
 D2::~D2() {
-    if (fdHashMap != NULL) {
-        delete [] fdHashMap;
-    }
     if (s1WordTable != NULL) {
         delete [] s1WordTable;
     }
     if (s2WordTable != NULL) {
         delete [] s2WordTable;
+    }
+    if (delta != NULL) {
+        delete [] delta;
     }
 }
 
@@ -87,29 +86,28 @@ D2::parseArguments(int& argc, char **argv) {
 
 int
 D2::initialize() {
+    // Let the base class initialize any additional heuristics
     int result = FWAnalyzer::initialize();
     if (result != 0) {
-        // Error occured when loading ESTs.  This is no good.
+        // Error occured when initializing.  This is no good.
         return result;
     }
-    // Compute the size of the frequency differential hashmap
-    const int MapSize = 1 << (wordSize * 2);
-
+    // Setup the frequency delta table
+    const int MapSize = (1 << (wordSize * 2));
+    delta = new int[MapSize];
     // Compute bit mask that will retain only the bits corresponding
     // to a given word size.  Each entry in a word takes up 2 bits and
     // that is why the following formula involves a 2.
     BitMask = (1 << (wordSize * 2)) - 1;
-
-    NumWordsWin = frameSize-wordSize;
-    
-    // Initialize the fd hash map
-
-    fdHashMap = new int[MapSize];
-
+    // Compute the number of bits to shift when building hashes
+    bitShift = 2 * (wordSize - 1);
     // Compute word table size and initialize word tables
-    wordTableSize = EST::getMaxESTLen() + frameSize;
-    s1WordTable   = new int[wordTableSize];
-    s2WordTable   = new int[wordTableSize];
+    const int wordTableSize = EST::getMaxESTLen() + frameSize;
+    s1WordTable = new int[wordTableSize];
+    s2WordTable = new int[wordTableSize];
+    
+    // Set the number of words in a window.
+    numWordsInWindow = frameSize - wordSize + 1;
     
     // Everything went on well.
     return 0;
@@ -124,57 +122,15 @@ D2::setReferenceEST(const int estIdx) {
     if ((estIdx >= 0) && (estIdx < EST::getESTCount())) {
         refESTidx = estIdx;
         // init ref-est word table
-        EST *estS1 = EST::getEST(refESTidx);
-        const char* s1 = estS1->getSequence();
-        buildWordTable(s1WordTable, s1);
+        const EST *estS1 = EST::getEST(refESTidx);
+        const char* s1   = estS1->getSequence();
+        // Create the word table using our encoder.
+        ESTCodec::NormalEncoder<bitShift, BitMask> encoder;
+        buildWordTable(s1WordTable, s1, encoder);
         return 0; // everything went well
     }
     // Invalid est index.
     return 1;
-}
-
-void
-D2::buildWordTable(int* wordTable, const char* s) {
-    // init ref-est word table
-    memset(wordTable, 0, sizeof(int) * wordTableSize);
-    // First compute the hash for a single word.
-    ASSERT ( s != NULL );
-    const int length = strlen(s) - wordSize;
-    ESTCodec::NormalEncoder<wordSize, BitMask> encoder;
-    register int hash = 0;
-    for(int i = 0; (i < wordSize); i++) {
-        hash = encoder(hash, s[i]);
-    }
-    // Setup the word table entry for the first word.
-    wordTable[0] = hash;
-    // Fill in the word table
-    for (int i = 1; (i <= length); i++) {
-        hash = encoder(hash, s[i]);
-        wordTable[i] = hash;
-    }
-}
-
-void
-D2::buildFdHashMaps(int* sed) {
-    // Clear out any old entries in the hash maps.
-    const int MapSize = 1 << (wordSize * 2);
-    memset(fdHashMap, 0, sizeof(int) * MapSize);
-
-    for (int i = 0; (i+wordSize <= frameSize); i++) {
-        *sed +=  2*(fdHashMap[s1WordTable[i]]++) + 1;
-        *sed += -2*(fdHashMap[s2WordTable[i]]--) + 1;
-    }
-}
-
-// This common code fragement is used 4 times in the D2::analyze()
-// method below. It was pulled out into a macro to streamline the
-// analyze method.
-#define CHECK_SED_AND_BREAK           \
-    if (sed < minSed) {               \
-        alignmentMetric = s1FramePos; \
-        if ((minSed = sed) == 0) {    \
-            break;                    \
-        }                             \
 }
 
 float
@@ -191,56 +147,108 @@ D2::analyze(const int otherEST) {
         // Heuristics indicate we should not do D2. So skip it.
         return (4 * frameSize);
     }
-    
-    // Perform operations for D2
-    int sed = 0;
-    int minSed = frameSize * 4; // won't be exceeded
-    int s1FramePos = 0;
-    // Get sequences
-    EST *estS1 = EST::getEST(refESTidx);
-    EST *estS2 = EST::getEST(otherEST);
-    const char* sq1 = estS1->getSequence();
-    ASSERT ( sq1 != NULL );
-    const char* sq2 = estS2->getSequence();
-    ASSERT ( sq2 != NULL );
 
-    // Initialize the word table for s2
-    buildWordTable(s2WordTable, sq2);
-    
-    // Initialize the frequency differential hashmap for s1-s2
-    buildFdHashMaps(&sed);
-    
-    minSed = sed;
+    // OK. Run the actual d2 algorithm
+    return runD2(otherEST);
+}
 
-    const int numFramesS1 = strlen(sq1) - frameSize;
-    const int numFramesS2 = strlen(sq2) - frameSize;
+float
+D2::runD2(const int otherEST) {
+    // Get basic information about the reference EST
+    const EST *estS1   = EST::getEST(refESTidx);
+    const char* sq1    = estS1->getSequence();
+    const int   sq1Len = strlen(sq1);
+    // Get basic information about the otherEST EST
+    const EST *estS2   = EST::getEST(otherEST);
+    const char* sq2    = estS2->getSequence();
+    const int   sq2Len = strlen(sq2);
     
-    // Main d2 algorithm (from Zimmermann paper)
-    while (s1FramePos < numFramesS1) {
-        if (s1FramePos != 0) {
-            for(int i = 0; (i < frameShift && s1FramePos++ < numFramesS1); i++){
-                refShiftUpdateFd(&sed, s1FramePos);
-                CHECK_SED_AND_BREAK;
-            }
+    // Build the word table for otherEST depending on normal or
+    // reverse complement suggestion using hint UVSampleHeuristic.
+    int bestMatchIsRC = 0;
+    HeuristicChain::getHeuristicChain()->getHint("D2_DoRC", bestMatchIsRC);
+    if (bestMatchIsRC == 0) {
+        ESTCodec::NormalEncoder<bitShift, BitMask> encoder;
+        buildWordTable(s2WordTable, sq2, encoder);
+    } else {
+        ESTCodec::RevCompEncoder<bitShift, BitMask> encoder;
+        buildWordTable(s2WordTable, sq2, encoder);
+    }
+
+    // Currently, the bounds on the word compares in d2 is set to the
+    // sizes of the two ESTs to compare. However, the bounds can be
+    // reduced based on hints from the <i>t/v</i> heuristic.
+    int sq1Start = 0, sq1End = sq1Len;
+    int sq2Start = 0, sq2End = sq2Len;
+
+    // Initialize the delta tables.
+    memset(delta, 0, sizeof(int) * (1 << (wordSize * 2)));
+    register int score = 0;
+    // First compute the score for first windows.
+    for(int i = 0; (i < numWordsInWindow); i++) {
+        // Process i'th word in EST 1
+        const int w1 = s1WordTable[sq1Start + i];
+        score += (delta[w1] << 1) + 1;
+        delta[w1]++;
+        // Process i'th word in EST 2
+        const int w2 = s2WordTable[sq2Start + i];
+        score -= (delta[w2] << 1) - 1;
+        delta[w2]--;
+    }
+
+    // Precompute iteration bounds for the for-loops below to
+    // hopefully save on compuation.
+    const int LastWordInSq1  = (sq1End - wordSize + 1) - numWordsInWindow;
+    const int LastWordInSq2  = (sq2End - wordSize + 1) - numWordsInWindow;
+    const int FirstWordInSq2 = sq2Start + numWordsInWindow - 1;
+    // Variable to track the minimum d2 distance observed.
+    register int minScore   = score;
+    for(int s1Win = sq1Start; (s1Win < LastWordInSq1); s1Win += 2) {
+        // Check each window in EST #2 against current window in EST
+        // #1 by sliding EST #2 window to right
+        for(int s2Win = sq2Start; (s2Win < LastWordInSq2); s2Win++) {
+            // The word at s2Win + numWordsInWindow is moving in while
+            // the word at s2Win is moving out as we move window
+            // associated with EST #2 from left-to-right.
+            updateWindow(s2WordTable[s2Win + numWordsInWindow],
+                         s2WordTable[s2Win], score, minScore);
         }
-        for(int s2FramePos = 1; s2FramePos <= numFramesS2; s2FramePos++) {
-            rightShiftUpdateFd(&sed, s2FramePos);
-            CHECK_SED_AND_BREAK;
+        // Move onto the next window in EST #1.  In this window at
+        // (s1Win + numWordsWin) is moving in, while window at s1Win
+        // is moving out as we move from left-to-right in EST #1.
+        updateWindow(s1WordTable[s1Win], s1WordTable[s1Win + numWordsInWindow],
+                     score, minScore);
+        // Break out of this loop if we have found a a potential match
+        if (minScore <= 40) {
+            break;
         }
-        if (s1FramePos != numFramesS1) {
-            for(int i = 0; (i < frameShift && s1FramePos++ < numFramesS1); i++){
-                refShiftUpdateFd(&sed, s1FramePos);
-                CHECK_SED_AND_BREAK;
-            }
+        
+        // Check every window in EST #2 against current window in EST
+        // #1 by sliding EST #2 window to left.
+        for(int s2Win = sq2End - wordSize; (s2Win > FirstWordInSq2);
+            s2Win--) {
+            // The word at s2Win - numWordsInWindow is moving in while
+            // the word at s2Win is moving out as we move window
+            // associated with EST #2 from right-to-left.
+            updateWindow(s2WordTable[s2Win - numWordsInWindow],
+                         s2WordTable[s2Win], score, minScore);
         }
-        for(int s2FramePos = numFramesS2-1; s2FramePos >= 0; s2FramePos--) {
-            leftShiftUpdateFd(&sed, s2FramePos);
-            CHECK_SED_AND_BREAK;
+        // Move onto the next window in EST #1.  In this window at
+        // (s1Win + numWordsWin + 1) is moving in, while window at
+        // s1Win + 1 is moving out as we move from left-to-right in
+        // EST #1.
+        updateWindow(s1WordTable[s1Win + 1],
+                     s1WordTable[s1Win + 1 + numWordsInWindow],
+                     score, minScore);
+        // Break out of this loop if we have found a a potential match
+        if (minScore <= 40) {
+            break;
         }
     }
-    
-    //printf("%d %d %d\n", refESTidx, otherEST, minSed);   
-    return minSed;
+    // Now we have the minimum score to report.
+    // printf("d2(%d, %d, %s) = %d\n", refESTidx, otherEST,
+    //        bestMatchIsRC ? "rc" : "norm", minScore);
+    return minScore;
 }
 
 bool

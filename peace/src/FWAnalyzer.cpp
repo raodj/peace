@@ -30,8 +30,8 @@
 #include <time.h>
 
 // The static instance variables for command line arguments.
-int FWAnalyzer::frameSize = 20; // 20 is default from CLU implementation
-int FWAnalyzer::wordSize  = 6;  // 6  is default from CLU implementation.
+int FWAnalyzer::frameSize = 100; // 100 is default from WCD implementation
+int FWAnalyzer::wordSize  = 6;   // 6   is default from CLU implementation.
 
 // The common set of arguments for all FW EST analyzers
 arg_parser::arg_record FWAnalyzer::commonArgsList[] = {

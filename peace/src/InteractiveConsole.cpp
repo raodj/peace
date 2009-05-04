@@ -250,7 +250,7 @@ InteractiveConsole::analyze(const std::vector<std::string>& cmdWords) {
               << (analyzer->isDistanceMetric() ? " distance" : " similarity")
               << " metric: " << metric;
     // Print alignment information if the analyzer provides it.
-    int alignmentData;
+    int alignmentData = 0;
     if (analyzer->getAlignmentData(alignmentData)) {
         std::cout << " (Alignment pos: " << alignmentData << ")";
     }

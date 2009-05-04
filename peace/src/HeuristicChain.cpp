@@ -33,16 +33,6 @@
 // The static pointer to the singleton heuristic chain instance.
 HeuristicChain* HeuristicChain::ptrInstance = NULL;
 
-HeuristicChain*
-HeuristicChain::getHeuristicChain() {
-    if (ptrInstance == NULL) {
-        // Initialize the heuristic chain
-        ptrInstance = new HeuristicChain;
-    }
-    ASSERT ( ptrInstance != NULL );
-    return ptrInstance;
-}
-
 void
 HeuristicChain::showArguments(std::ostream& os) {
     for (size_t i = 0; (i < chain.size()); i++) {
@@ -95,18 +85,6 @@ HeuristicChain::setReferenceEST(const int estIdx) {
     return 0; // Everything went well
 }
 
-bool
-HeuristicChain::shouldAnalyze(const int otherEST) {
-    for (size_t i = 0; (i < chain.size()); i++) {
-        if (!chain[i]->shouldAnalyze(otherEST)) {
-            // Immediately stop when a heuristic says no
-            return false;
-        }
-    }
-    // If all heuristics say yes, return true
-    return true;
-}
-
 HeuristicChain::~HeuristicChain() {
     for(size_t i = 0; (i < chain.size()); i++) {
         delete chain[i];
@@ -129,12 +107,16 @@ HeuristicChain::printStats(std::ostream& os) const {
 HeuristicChain*
 HeuristicChain::setupChain(const char* heuristicStr, const int refESTidx,
                            const std::string& outputFile) {
+    // First validate and create a blank heuristic chain.
+    ASSERT ( ptrInstance == NULL );
+    ptrInstance = new HeuristicChain;
+    // Check if there is anything to be created.
     if (heuristicStr == NULL) {
         return NULL;
     }
     // Process the non-empty heuristic string.
     std::string hStr(heuristicStr);
-    HeuristicChain* heuristicChain = HeuristicChain::getHeuristicChain();
+    HeuristicChain* heuristicChain = ptrInstance;
     ASSERT ( heuristicChain != NULL );
     // Process one word at a time. Words are separated by a "hyphen"
     // character.

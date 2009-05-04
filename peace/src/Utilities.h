@@ -148,6 +148,32 @@ operator<<(std::ostream& os, const std::string& str) {
 #endif
 #endif
 
+/** \def VALIDATE(x)
+
+    \brief Define a convenient macro for extra checks that can be
+    easily compiled out to improve performance.
+
+    Define a custom macro VALIDATE (note the all caps) to be used
+    around additional extra checks that can be easily compiled out to
+    improve performance. When the compiler flag \c ENABLE_VALIDATES is
+    specified then the VALIDATE call defaults to the normal operation
+    and are included in the source code.  If the compiler flag \c
+    ENABLE_VALIDATES is not specified then the VALIDATE code simply
+    gets compiled out.
+*/
+#ifndef VALIDATE
+#ifdef ENABLE_VALIDATES
+
+#define VALIDATE(x) x
+
+#else // !ENABLE_VALIDATES
+
+#define VALIDATE(x)
+
+#endif
+#endif
+
+
 /** \def getTimeStamp
 
     \brief Get's the file modification timestamp for a given file

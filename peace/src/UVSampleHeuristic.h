@@ -218,11 +218,33 @@ protected:
     */
     bool bestMatchIsRC;
 
+    /** Instance variable to maintain the \i v parameter for the
+	<i>u/v</i> heuristic.
+
+    */
     static int v;
 
     static int wordShift;
 
     static int BitMask;
+
+    /** Instance variable to store the number of bits to be shifted to
+        create hash values.
+
+        <p>This instance variable is set to the value of 2 * (\i v -
+        1) (in the \c initialize method) to reflect the number of bits
+        that need to be shifted in order to build the hash values for
+        common words (including the values stored in \c s1WordMap and
+        \c s1RCWordMap).</p>
+
+        <p>This instance variable is actually passed on to the
+        ESTCodec::NormalEncoder or ESTCodec::RevCompEncoder when
+        computing hash values.  Since this is value is passed in a
+        template parameter, it is defined to be static (to ensure that
+        it has external linkage as per the ISO/ANSI standards
+        requirement).</p>
+    */
+    static int bitsToShift;
     
 private:
     /** The set of arguments specific to the UV heuristic.
@@ -262,6 +284,15 @@ private:
         method.</p>
     */
     UVHashTable uvCache;
+
+    /** The hint key that is used to add hint for normal or
+	reverse-complement D2 computation.
+
+	This hint key is used to set a hint in the \c hints hash
+	map. This string is defined as a constant to save compute time
+	in the core \c runHeuristics method.
+    */
+    const std::string hintKey;
 };
  
 #endif

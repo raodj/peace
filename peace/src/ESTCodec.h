@@ -142,14 +142,14 @@ public:
     template <const int& Shift, const int& Mask>
     struct NormalEncoder : public std::binary_function<int, char, int> {
         inline int operator()(const int w, const char bp) const {
-            return ((w << 2) | ESTCodec::encode(bp)) & Mask;
+            return ((w >> 2) | (ESTCodec::encode(bp) << Shift)) & Mask;
         }
     };
-
+    
     template <const int& Shift, const int& Mask>
     struct RevCompEncoder : public std::binary_function<int, char, int> {
         inline int operator()(const int w, const char bp) const {
-            return ((w >> 2) | (ESTCodec::encode(bp) << Shift)) & Mask;
+            return ((w << 2) | ESTCodec::encode2rc(bp)) & Mask;
         }
     };
     
