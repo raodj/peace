@@ -145,11 +145,11 @@ D2::analyze(const int otherEST) {
     // Check with the heuristic chain
     if ((chain != NULL) && (!chain->shouldAnalyze(otherEST))) {
         // Heuristics indicate we should not do D2. So skip it.
-        return (4 * frameSize);
+        return (4.0f * frameSize);
     }
 
     // OK. Run the actual d2 algorithm
-    return runD2(otherEST);
+    return (float) runD2(otherEST);
 }
 
 float
@@ -248,7 +248,7 @@ D2::runD2(const int otherEST) {
     // Now we have the minimum score to report.
     // printf("d2(%d, %d, %s) = %d\n", refESTidx, otherEST,
     //        bestMatchIsRC ? "rc" : "norm", minScore);
-    return minScore;
+    return (float) minScore;
 }
 
 bool

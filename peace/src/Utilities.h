@@ -54,15 +54,16 @@ operator<<(std::ostream& os, const std::string& str) {
 
 #endif // _WINDOWS
 
-/** \def UNREFERENCED_PARAMETER Workaround warning C4100 in VS 2005.
+/** \def UNREFERENCED_PARAMETER Workaround warning C4100 in VS 2005
+    and remark #869 in icc.
 
     This macro is a simple work around to supress the C4100 warning
-	(unreferenced parameter).  This warning is generated at Level 4
-	under visual studio 2005.  This warning has not been observed 
-	under gcc (4.2) and therefore on Linux/gcc this macro resolves to
-	nothing.
+    (unreferenced parameter).  This warning is generated at Level 4
+    under visual studio 2005.  This warning has not been observed 
+    under gcc (4.2) and therefore on Linux/gcc this macro resolves to
+    nothing.
 */
-#ifdef _WINDOWS
+#if !defined(_WINDOWS) && !defined(ICC)
 
 #ifndef UNREFERENCED_PARAMETER
 #define UNREFERENCED_PARAMETER(param) param

@@ -24,6 +24,7 @@
 
 #include "arg_parser.h"
 #include "HeuristicChain.h"
+#include "Utilities.h"
 
 /** The base class of all EST analyzers.
 
@@ -185,7 +186,8 @@ public:
         actually computed by this ESTAnalyzer. The default
         implementation of this method always returns \c false.
     */
-    virtual bool getAlignmentData(int &alignmentData) { return false; }
+    virtual bool getAlignmentData(int& UNREFERENCED_PARAMETER(alignmentData))
+    { return false; }
     
     /** Method to load EST information from a FASTA file.
 

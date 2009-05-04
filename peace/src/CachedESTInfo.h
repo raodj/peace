@@ -61,8 +61,8 @@ public:
     */
     CachedESTInfo(const int estIdxValue, const float metricValue,
                   const int alignmentDataValue) :
-        estIdx(estIdxValue), metric(metricValue),
-        alignmentData(alignmentDataValue) {}
+      estIdx(estIdxValue), metric(metricValue),
+      alignmentData(alignmentDataValue) {}
     
     /** The destructor.
 
@@ -96,7 +96,7 @@ public:
         This instance variable is used to maintain the alignment data
         (if any) associated with the EST indicated by estIdx.
     */
-    float alignmentData;
+    int alignmentData;
 
 protected:
     // Currently this class does not have any protected members.

@@ -130,6 +130,15 @@ arg_parser::check_args(int &argc, char *argv[], bool caxoe) {
 	}
 	break;
       }
+      case FLOAT:{
+	if (i < argc && strcmp(argv[i], array_of_arg_records[j].arg_text) == 0) {
+	  matched_one = true;
+	  remove_arg( i, argc, argv );
+	  *(float*)(array_of_arg_records[j].data) = (float) atof(argv[i]);
+	  remove_arg( i, argc, argv );
+	}
+	break;
+      }          
 #ifndef _WINDOWS
       case LONG_LONG:{
 	if (i < argc && strcmp(argv[i], array_of_arg_records[j].arg_text) == 0) {

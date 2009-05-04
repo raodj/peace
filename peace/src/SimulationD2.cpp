@@ -116,7 +116,7 @@ SimulationD2::initialize() {
         return result;
     }
     // Compute the size of the frequency differential hashmap
-    MapSize = pow(4, wordSize);
+    MapSize = (int) pow(4, wordSize);
 
     // Compute bit mask that will retain only the bits corresponding
     // to a given word size.  Each entry in a word takes up 2 bits and
@@ -318,10 +318,10 @@ SimulationD2::analyze(const int otherEST) {
             }
         }
     
-        return minSed;
+        return (float) minSed;
     } else {
         // Invalid est index.
-        return -1;
+        return -1.0f;
     }
 }
 
