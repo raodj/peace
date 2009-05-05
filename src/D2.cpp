@@ -31,13 +31,23 @@
 // Skip parameter for d2 asymmetric.  Defaults to 1 (i.e. d2 symmetric).
 int D2::frameShift = 1;
 
-int D2::BitMask  = 0;
-int D2::bitShift = 0;
+// The bitmak to be used when build hash values.
+int D2::BitMask   = 0;
+
+// Instance variable to store the number of bits to be shifted to
+// create hash values. This value is initialized to 2*(wordSize-1)
+int D2::bitShift  = 0;
+
+// The threshold score below which two ESTs are considered
+// sufficiently similar to be clustered.
+int D2::threshold = 0;
 
 // The set of arguments for this class.
 arg_parser::arg_record D2::argsList[] = {
     {"--frameShift", "Frame Shift (default=1)",
      &D2::frameShift, arg_parser::INTEGER},
+    {"--threshold", "Threshold score to break out of D2 (default=40)",
+     &D2::threshold, arg_parser::INTEGER},    
     {NULL, NULL}
 };
 
@@ -219,7 +229,7 @@ D2::runD2(const int otherEST) {
         updateWindow(s1WordTable[s1Win], s1WordTable[s1Win + numWordsInWindow],
                      score, minScore);
         // Break out of this loop if we have found a a potential match
-        if (minScore <= 0) {
+        if (minScore <= threshold) {
             break;
         }
         
@@ -241,7 +251,7 @@ D2::runD2(const int otherEST) {
                      s1WordTable[s1Win + 1 + numWordsInWindow],
                      score, minScore);
         // Break out of this loop if we have found a a potential match
-        if (minScore <= 0) {
+        if (minScore <= threshold) {
             break;
         }
     }
