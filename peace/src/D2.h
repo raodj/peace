@@ -333,8 +333,36 @@ protected:
 	\note Currently this value is not used.
     */
     static int frameShift;
+    
+    /** Instance variable to store the number of bits to be shifted to
+        create hash values.
 
+        <p>This instance variable is set to the value of 2 * (\i
+        wordSize - 1) (in the \c initialize method) to reflect the
+        number of bits that need to be shifted in order to build the
+        hash values for common words (including the values stored in
+        \c s1WordMap and \c s1RCWordMap).</p>
+
+        <p>This instance variable is actually passed on to the
+        ESTCodec::NormalEncoder or ESTCodec::RevCompEncoder when
+        computing hash values.  Since this is value is passed in a
+        template parameter, it is defined to be static (to ensure that
+        it has external linkage as per the ISO/ANSI standards
+        requirement).</p>
+    */    
     static int bitShift;
+
+    /** The threshold score below which two ESTs are considered
+        sufficiently similar to be clustered.
+
+        This instance variable tracks the threshold value to be used
+        to break out of the core D2 loop.  This value essentially
+        represents the D2 score below which two ESTs are considered
+        sufficiently similar. Currently, the default threshold value
+        is set to 40.  This value can be overridden by the user with
+        the "--threshold" command line argument.
+    */
+    static int threshold;
     
 private:
     /** The set of arguments specific to the D2 algorithm

@@ -50,19 +50,25 @@ public:
         the instance variables to corresponding values specified by
         the parameters.
 
-        \param[in] estIdxValue The EST index value to be stored in
-        this class.
-
+        \param[in] refESTidx The zero-based index of the EST that was
+        used as the reference EST which which EST at index \c
+        estIdxValue was compared/analyzed to generate the \c
+        metricValue.
+        
+        \param[in] estIdxValue The zero-based index of the EST that
+        was compared against the EST at index \c refESTidx to generate
+        \c metricValue.
+        
         \param[in] metricValue The similarity/distance metric value to
         be stored in this object.
-
+        
         \param[in] alignmentDataValue Additional alignment information
         to be stored in this class.
     */
-    CachedESTInfo(const int estIdxValue, const float metricValue,
-                  const int alignmentDataValue) :
-      estIdx(estIdxValue), metric(metricValue),
-      alignmentData(alignmentDataValue) {}
+    CachedESTInfo(const int refESTidxValue, const int estIdxValue,
+		  const float metricValue, const int alignmentDataValue) :
+        refESTidx(refESTidxValue), estIdx(estIdxValue), metric(metricValue),
+        alignmentData(alignmentDataValue) {}
     
     /** The destructor.
 
@@ -73,6 +79,14 @@ public:
     */
     ~CachedESTInfo() {}
 
+    /** The zero-based index of the reference EST.
+
+        This instance variable is used to store the zero-based index
+        of the reference EST against which the EST at \c estIdx was
+        analyzed to generate the \c metric and \c alginmentData.
+    */
+    int refESTidx;
+    
     /** The index of the EST for which this data is relevant.
 
         This instance variable is used to store the index of one of

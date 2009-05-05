@@ -25,6 +25,8 @@
 #include "MSTClusterMaker.h"
 #include "ESTAnalyzer.h"
 #include "MSTCluster.h"
+#include "MSTMultiListCache.h"
+#include "MSTHeapCache.h"
 #include "EST.h"
 #include "MPIStats.h"
 #include <fstream>
@@ -35,6 +37,9 @@
 // Another define to remove magic 0 (zero) success checks.
 #define NO_ERROR 0
 
+// The default cache type to be used
+char DefCacheType[10] = "heap";
+
 // The static instance variables for command line arguments.
 int    MSTClusterMaker::cacheSize     = 128;
 bool   MSTClusterMaker::noCacheRepop  = true;
@@ -44,7 +49,8 @@ char*  MSTClusterMaker::outputMSTFile = NULL;
 bool   MSTClusterMaker::dontCluster   = false;
 bool   MSTClusterMaker::prettyPrint   = false;
 double MSTClusterMaker::percentile    = 1.0;
-int    MSTClusterMaker::maxUse        = 1;
+int    MSTClusterMaker::maxUse        = 0;
+char*  MSTClusterMaker::cacheType     = DefCacheType;
 
 // The common set of arguments for all FW EST analyzers
 arg_parser::arg_record MSTClusterMaker::argsList[] = {
@@ -64,8 +70,10 @@ arg_parser::arg_record MSTClusterMaker::argsList[] = {
      &MSTClusterMaker::dontCluster, arg_parser::BOOLEAN},
     {"--pretty-print", "Print a pretty cluster tree.",
      &MSTClusterMaker::prettyPrint, arg_parser::BOOLEAN},
-    {"--maxUse", "Set a threshold to aggressively use metrics",
-     &MSTClusterMaker::maxUse, arg_parser::INTEGER},    
+    {"--maxUse", "Set a threshold to aggressively use metrics (default=0)",
+     &MSTClusterMaker::maxUse, arg_parser::INTEGER},
+    {"--cacheType", "Set type of cache (heap or mlist) to use (default=heap)",
+     &MSTClusterMaker::cacheType, arg_parser::STRING},    
     {NULL, NULL}
 };
 
@@ -392,11 +400,12 @@ MSTClusterMaker::populateCache(const int estIdx) {
         int alignmentData = 0;
         analyzer->getAlignmentData(alignmentData);
         // Add the information to metric list
-        smList.push_back(CachedESTInfo(otherIdx, metric, alignmentData));
+        smList.push_back(CachedESTInfo(estIdx, otherIdx,
+                                       metric, alignmentData));
     }
-    // Sort and prune the SMList to place ESTs with maximum similarity
-    // at the top.
-    cache->sortAndPrune(smList, cacheSize);
+    // Preprocess the SMList to make it optimal for the MSTCache to
+    // process in a distributed manner.
+    cache->preprocess(smList);
     // Now further process smList...
     const int ownerRank = getOwnerProcess(estIdx);
     if (ownerRank != MPI::COMM_WORLD.Get_rank()) {
@@ -408,7 +417,7 @@ MSTClusterMaker::populateCache(const int estIdx) {
         
         // First ensure there is at least one entry to work with.
         if (smList.empty()) {
-            smList.push_back(CachedESTInfo(-1, -1.0f, -1));
+            smList.push_back(CachedESTInfo(-1, -1, -1.0f, -1));
         }
         MPI_SEND(&smList[0], smList.size() * sizeof(CachedESTInfo),
                  MPI_CHAR, ownerRank, SIMILARITY_LIST);
@@ -420,7 +429,7 @@ MSTClusterMaker::populateCache(const int estIdx) {
     // owns this EST.  This process must obtain similarity_lists from
     // other processes and merge them together into its local cache.
     // First merge the locally computed smList first.
-    cache->mergeList(estIdx, smList, cacheSize);
+    cache->mergeList(estIdx, smList);
     // Obtain similarity lists from all other processes (other than
     // ourselves).
     const int MyRank = MPI::COMM_WORLD.Get_rank();
@@ -447,7 +456,7 @@ MSTClusterMaker::populateCache(const int estIdx) {
         // Merge the list we got from the remote process with our
         // local cache information if the list has a valid entry.
         if (hasValidSMEntry(remoteList)) {
-            cache->mergeList(estIdx, remoteList, cacheSize);
+            cache->mergeList(estIdx, remoteList);
         }
     }
     // Now finally let the manager know that the round of similarity
@@ -512,9 +521,16 @@ MSTClusterMaker::makeClusters() {
         // is computed first.
         int startESTidx, endESTidx;
         getOwnedESTidx(startESTidx, endESTidx);
-        cache = new MSTCache(EST::getESTList().size(), startESTidx,
-                             endESTidx - startESTidx, analyzer,
-                             !noCacheRepop);
+        if (!strcmp(cacheType, "mlist")) {
+            cache = new MSTMultiListCache(EST::getESTList().size(), startESTidx,
+                                          endESTidx - startESTidx, analyzer,
+                                          !noCacheRepop, cacheSize);
+        } else {
+            cache = new MSTHeapCache(EST::getESTList().size(), startESTidx,
+                                     endESTidx - startESTidx, analyzer,
+                                     !noCacheRepop, cacheSize);
+        }
+        
         // Act as manager or worker depending on MPI rank.
         if (MPI::COMM_WORLD.Get_rank() == MANAGER_RANK) {
             // Get this MPI process to act as the manager.

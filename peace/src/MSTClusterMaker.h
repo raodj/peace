@@ -247,6 +247,19 @@ protected:
         thereby reducing overall time for clustering.</p>
     */
     static int  maxUse;
+
+    /** Command line option to set the type of cache to be used by
+        PEACE.
+
+        This member variable is used to indicate the type of cache
+        that must be used to store metrics to facilitate rapid
+        construction of the MST.  The default cache used in the
+        MSTHashCache indicated by the cacheType set to \c "hash".  The
+        alternative cache in the MSTMultiListCache (indicated by
+        cacheType value of \c "mlist").  The user may override the
+        default using the command line parameter \c --cacheType.
+    */
+    static char* cacheType;
     
     /** Helper method to perform manager tasks.
 

@@ -90,6 +90,11 @@ ESTCodec.h\
 TVHeuristic.h\
 TVHeuristic.cpp\
 D2Zim.h\
-D2Zim.cpp
+D2Zim.cpp\
+MSTMultiListCache.h\
+MSTMultiListCache.cpp\
+MSTHeapCache.h\
+MSTHeapCache.cpp\
+CachedESTInfoHelper.h
 
 # end of Makefile.am

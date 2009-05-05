@@ -28,7 +28,7 @@
 #include <iostream>
 
 #include "ESTAnalyzer.h"
-#include "CachedESTInfo.h"
+#include "CachedESTInfoHelper.h"
 
 /** \def SMList
 
@@ -36,56 +36,188 @@
 
     This typedef is a convenience definition to handle a vector of
     CachedESTInfo objects associated with a given EST in the MST
-    Cache.
+    Cache.  This data type is used by the MSTClusterMaker to create a
+    temporary list of cache entries and then add a whole bunch of
+    entries to the MSTCache.  Adding a bunch of cache entries at a
+    time facilitates distribution of data (to various workers) and
+    streamlines management of cached information.
 */
 typedef std::vector<CachedESTInfo> SMList;
-
-/** \def MSTCacheEntry
-
-    \brief Shortcut typedef for std::pair<int, SMList>
-
-    This typedef is a shortcut for a cache entry that contains the
-    following pair of information:
-
-    <ol>
-
-    <li>The first entry is an \c int that indicates the EST index with
-    which this cache entry is associated. </li>
-
-    <li>The second entry is a \c SMList that contains the closet (most
-    similar) ESTs for the EST indicated by the first entry.</li>
-
-    </ol>
-*/
-typedef std::pair<int, SMList> MSTCacheEntry;
 
 /** A cache to maintain similarity/distance metrics to build a Minimum
     Spanning Tree (MST).
 
-    <p>This class provides some convenience methods to manage a cache
-    of similarity metrics to facilitate rapid construction of a
-    Minimum Spanning Tree (MST).  Furthermore, this class streamlines
-    the operation of the Master and Worker processes when building a
-    MST in a distributed manner.  The MSTCache caches similarity
-    metrics to minimize the number of times the expensive operation of
-    computing similarity metrics is performed via an EST
-    analyzer. </p>
-
-    \tparam<Comparator> The Comparator is a functor that is compatible
-    with a binary predicate (or an adaptable binary predicate) that
-    can be used to compare two floating point number to choose one of
-    the them.  Examples are: std::less_equal<float> and
-    std::greater_equal<float>.  In general if \c Comparator(x, y)
-    returns \c true, then \c x is the result otherwise \c y is the
-    result of comparison.  This comparator provides the MSTCache the
-    feature to use either distance metrics (where smaller values are
-    better) or similarity metrics (where larger values are better)
-    without impacting the overall organization and functionality of
-    this class.
+    <p>This class is the base class of all distributed-cache
+    maintainers used for rapdily building a Minimum Spanning Tree
+    (MST) for clustering.  This class defines the core API for all
+    ESTCache classes.  In addition, it includes a few helper methods
+    that provides some convenience methods to manage the caches.
+    Furthermore, this class streamlines the operation of the Master
+    and Worker processes when building a MST in a distributed manner.
+    This class (and its children) essentially cache
+    similarity/distance metrics to minimize the number of times the
+    expensive operation of computing similarity metrics is performed
+    via an EST analyzer. </p>
 */
 class MSTCache {
 public:
-    /** The constructor.
+    /** The destructor.
+        
+        The parent class (std::vector) manages all the memory
+        operations for this class.  Consequently, the destructor does
+        not have any special tasks to perform.  It here present merely
+        to adhere to coding conventions.
+    */
+    virtual ~MSTCache() {}
+    
+    /** Determine if a EST (given its index) is already present in the
+        MST.
+
+        This method can be used to determine if a given EST has been
+        added to the MST.  This method was introduces to make the code
+        a bit more readable at certain spots.
+
+        \param[in] estIdx The index of the EST to be tested.
+
+        \return This method returns \c true if the EST (with the given
+        index) is present in the MST.  Otherwise it returns \c false.
+    */
+    inline bool isESTinMST(const int estIdx) const
+    { return nodesAdded[estIdx]; }
+
+    /** Suggest to clear caches that contain entries for a newly added
+        EST.
+
+        This method can be used to suggest to the cache to prune
+        entries corresponding to the \c estIdxAdded from the various
+        data structures maintained by this cache.  The pruning
+        operation is useful for the following two purposes:
+
+        <ol>
+
+        <li>First it removes entries from various lists corresponding
+        to estIdxAdded (because these entries are vestigial as the
+        node as already been added to the MST) thereby reducing memory
+        usage. </li>
+
+        <li>Second, if a list becomes empty then the cache needs to be
+        repopulated with fresh entries for further MST
+        computations.</li>
+
+        </ol>
+
+        \note Some dervied classes may choose not to prune caches or
+        add entries to the \c repopulateList. Consequently, this
+        method must be viewed as a suggestion to the \c MSTCache to
+        give it a chance to prune caches as needed.
+        
+        \param[in] estIdxAdded The index of the EST that has just been
+        added to the MST.
+
+        \param[out] repopulateList The index values of ESTs whose
+        cache needs to be repopulated.  The list of EST indexes added
+        to this list are only the ESTs that are owned by this process.
+        If none of the caches need to be recomputed then this list is
+        empty (all existing entries are removed).
+
+	\param[in] prefixListSize If this parameter is set to \c true,
+	then the number of entries added to the repopulateList is
+	inserted at the beginning of the vector.  This eases
+	transmission of lists via MPI to the master process.
+    */
+    virtual void pruneCaches(const int estIdxAdded,
+                             std::vector<int>& repopulateList,
+                             const bool prefixListSize = true) = 0;
+
+    /** Give the MSTCache a chance to preprocess lists before
+        distributing them over the network.
+
+        This method is a helper method that can be used by the
+        MSTClusterMaker to have a local metric list to be preprocessed
+        prior to dispatching it over the network. Preprocessing a
+        local list possibly reduces the size and distributes some of
+        the processing overheads (thereby accelerating overall
+        processing).
+
+        \note The default method implementation in the base class does
+        absolutely nothing.
+        
+        \param[in,out] list The list of entries that must be
+        preprocessed.
+    */
+    virtual void preprocess(SMList& list) {}
+    
+    /** Add/merges a batch of new cache entries with the current
+        entries in the cache for a given EST.
+
+        This method merges a given batch of new cache entries with
+        existing cache entries for the given EST.  Some dervied
+        classes may ensure that only MaxCacheSize entries are retained
+        in the cache (retained entries \b must be chosen so that they
+        have the best metrics).  Entries in the cache are removed to
+        accommodate new entries.
+
+        \note Derived classes must override this method.  However,
+        they may choose to ignore the \c MaxCacheSize suggestion and
+        retain more entries than necessary to reduce unnecessary
+        computations.
+        
+        \param[in] estIdx The zero-based index of the reference EST
+        against which the batch of cache entries in \c list were
+        analyzed and generated.
+
+        \param[in] list A SMList containing the batch of new cache
+        entries to be merged with any existing entries in the cache
+        for the given EST (whose zero-based index is \c estIdx).
+    */
+    virtual void mergeList(const int estIdx, const SMList& list) = 0;
+
+    /** Obtains the top-most similar entry from the MSTCache.
+
+        This method searches the similarity metrics stored in this
+        cache for various ESTs to locate the best entry with the
+        highest similarity.  It populates the parameters with the
+        appropriate value.  Note that the parameters are initialized
+        to -1, -1, -1.0f, and -1 respectively.
+
+        \param[out] srcESTidx The source EST index from where the
+        similarity metric is being measured.  The srcESTidx is already
+        present in the MST.
+
+        \param[out] destESTidx The destination EST index that is the
+        best choice to be added to the MST (based on the local
+        information).
+
+        \param[out] metric The similarity/distance metric between the
+        srcESTidx and the destESTidx.
+
+        \param[out] alignmentData The alignment data associated with
+        the srcESTidx and the destESTidx.
+    */
+    virtual void getBestEntry(int& srcESTidx, int& destESTidx,
+                              float& metric, int& alignmentData) const = 0;
+
+    /** Display cache usage statistics.
+
+        This method can be used to print the current cache usage
+        statistics.  Different derived classes track and report
+        different statistics.  Consequently, the actual statistics
+        reported by this method will vary.
+
+        \note Derived classes must override this method.
+        
+        \param[out] os The output stream to which statistics must be
+        written.
+        
+        \param[in] MyRank The MPI rank of the process to which this
+        cache is assocaited.  This information is used merely for
+        displaying more informative statistics and does not influence
+        the actual values displayed by this method.
+    */
+    virtual void displayStats(std::ostream &os, const int MyRank) const = 0;
+    
+protected:
+     /** The constructor.
 
         The MST cache requires information about the total number of
         ESTs in the system in order to effectively track the ESTs
@@ -115,248 +247,35 @@ public:
 	needed. Repopulating lists guarantees that ultimately a MST
 	will be developed.  If repopulation is suppressed then the
 	resulting spanning tree may not be a MST.
+
+        \param[in] maxCachePerEST This parameter \b suggests the
+        maximum number of cached entries that must be maintained for a
+        given EST. This parameter may not be really used by all
+        dervied classes (this is only a suggestion).
     */
     MSTCache(const int totalESTCount, const int startOwnESTidx,
              const int numOwnESTs, const ESTAnalyzer *analyzer,
-             const bool repopulateCaches);
+             const bool repopulateCaches, const int maxCachePerEST);
 
-    /** The destructor.
-        
-        The parent class (std::vector) manages all the memory
-        operations for this class.  Consequently, the destructor does
-        not have any special tasks to perform.  It here present merely
-        to adhere to coding conventions.
+    /** Utility method to copy first n-entries from input to output SMList.
+
+        This is a rather straightforward method that can be used to
+        copy the first \c cout entries from the \c input list and
+        append them to the \c output list.
+
+        \param[in] input The list of entries that must be copied to
+        the \c output list.
+
+        \param[in] count The number of entries to be copied.  If this
+        value is greater then input.size(), then only input.size()
+        entries are copied.
+
+        \param[out] output The output list to which the entries are to
+        be copied.
     */
-    virtual ~MSTCache() {}
-    
-    /** Determine if a EST (given its index) is already present in the
-        MST.
-
-        This method can be used to determine if a given EST has been
-        added to the MST.  This method was introduces to make the code
-        a bit more readable at certain spots.
-
-        \param[in] estIdx The index of the EST to be tested.
-
-        \return This method returns \c true if the EST (with the given
-        index) is present in the MST.  Otherwise it returns \c false.
-    */
-    inline bool isESTinMST(const int estIdx) const
-    { return nodesAdded[estIdx]; }
-
-    /** Clear caches that contain entries for a newly added estIdx.
-
-        This method must be used to prune entries corresponding to the
-        estIdxAdded from the various lists maintained by this cache. 
-        The pruning operation is necessary for the following two
-        purposes:
-
-        <ol>
-
-        <li>First it removes entries from various lists corresponding
-        to estIdxAdded (because these entries are vestigial as the
-        node as already been added to the MST) thereby reducing memory
-        usage. </li>
-
-        <li>Second, if a list become empty then the cache needs to be
-        repopulated with fresh entries for further MST computations. </li>
-
-        </ol>
-
-        \param[in] estIdxAdded The index of the EST that has just been
-        added to the MST.
-
-        \param[out] repopulateList The index values of ESTs whose
-        cache needs to be repopulated.  The list of EST indexes added
-        to this list are only the ESTs that are owned by this process.
-        If none of the caches need to be recomputed then this list is
-        empty (all existing entries are removed).
-
-	\param[in] prefixListSize If this parameter is set to true,
-	then the number of entries added to the repopulateList is
-	inserted at the beginning of the vector.  This eases
-	transmission of lists via MPI to the master process.
-    */
-    void pruneCaches(const int estIdxAdded, std::vector<int>& repopulateList,
-		     const bool prefixListSize = true);
-
-    /** Merges a given SMList with current entries in the cache for a
-        given EST.
-
-        This method merges a given list with existing cache entries
-        for the given EST such that only MaxCacheSize entries are
-        retained in the cache.  The entries are chosen so that they
-        have maximum similarity metrics.  Entries in the cache are
-        removed to accommodate new entries.  Care is taken to ensure
-        that the cache continues to remain sorted with the most
-        similar entries at the top of the cache.
-
-        \param[in] estIdx The index of the EST with which the given
-        list must be merged.
-
-
-        \param[in] list The SMList to be merged with any existing
-        entries in the cache for the given estIdx.
-
-        \param[in] maxCacheSize The maximum number of entries that
-        must be retained in the cache after the list is merged.
-    */
-    void mergeList(const int estIdx, const SMList& list,
-                   const int maxCacheSize);
-
-    /** Obtains the top-most similar entry from the MSTCache.
-
-        This method searches the similarity metrics stored in this
-        cache for various ESTs to locate the best entry with the
-        highest similarity.  It populates the parameters with the
-        appropriate value.  Note that the parameters are initialized
-        to -1, -1, and -1.0f respectively.
-
-        \param[out] srcESTidx The source EST index from where the
-        similarity metric is being measured.  The srcESTidx is already
-        present in the MST.
-
-        \param[out] destESTidx The destination EST index that is the
-        best choice to be added to the MST (based on the local
-        information).
-
-        \param[out] metric The similarity/distance metric between the
-        srcESTidx and the destESTidx.
-
-        \param[out] alignmentData The alignment data associated with
-        the srcESTidx and the destESTidx.
-    */
-    void getBestEntry(int& srcESTidx, int& destESTidx,
-                      float& metric, int& alignmentData) const;
-
-    /** Sort a Similarity Metric List (SMList) based on similarity
-        metric and then prunes it.
-        
-        This method provides a convenient method for sorting a
-        similarity metric list based on the similarity metric.  This
-        method simply uses the STL sort method with a suitable Functor
-        for performing this task.  Sorting is performed such that the
-        highest similarity metric is first in the vector after
-        sorting.  Once sorting has been completed, this method ensures
-        that the list is no longer than the specified cacheSize.
- 
-        \param[inout] list The SMList to be sorted based on the
-        (similarity or distance) metric associated with each
-        CachedESTInfo entry in the list.
-
-	\param[in] cacheSize The maximum size of this list after it
-	has been sorted.
-    */
-    void sortAndPrune(SMList& list, const int cacheSize);
-
-    /** Display cache usage statistics.
-
-        This method can be used to print the current cache usage
-        statistics.  This method prints the following information:
-
-        <ul>
-
-        <li>Number of ESTs cached by this cache.</li>
-        
-        <li>Total number of SMEntries currently in the cache.</li>
-
-        <li>Average length of each list and the standard deviation.</li>
-
-        <li>The number of times the cache had to be repopulated.</li>
-
-        </ul>
-
-        \param[out] os The output stream to which statistics must be
-        written.
-
-        \param[in] MyRank The MPI rank of the process to which this
-        cache is assocaited.  This information is used merely for
-        displaying more informative statistics and does not influence
-        the actual values displayed by this method.
-    */
-    void displayStats(std::ostream &os, const int MyRank) const;
-    
-protected:
-    /** Helper method to prune a given SMList.
-
-        This is a helper method that is called from the pruneCaches()
-        method to remove all entries corresponding to the given
-        estIdx.
-
-        \param[inout] list The SMList whose entries needs to be
-        pruned.
-
-        \param[in] estIdx The index of the EST whose entries must be
-        removed from this list.
-
-        \return This method returns \c true if the list becomes empty
-        once all the entries have been removed.
-    */
-    bool pruneCache(SMList& list, const int estIdx);
-
-    /** Functor for CachedESTInfo sorting.
-
-        This Functor is used when sorting ESTs based on
-        similarity/distance metric by the sort method defined in this
-        class.
-    */
-    class LessCachedESTInfo :
-        public std::binary_function<CachedESTInfo, CachedESTInfo, bool> {
-    public:
-        /** Constructor.
-
-            The constructor requires a pointer to the ESTAnalyzer that
-            is being used for analysis.  The analyzer is used to
-            compare the metrics for sorting CachedESTInfo objects.
-            This constructor is called in the MSTCache class for
-            sorting cache entries.
-
-            \param[in] analyzer The analyzer to be used for comparing
-            the metric values associated with two CachedESTInfo
-            objects.
-        */
-        LessCachedESTInfo(const ESTAnalyzer *analyzer) :
-            comparator(analyzer) {}
-        
-        /** \fn operator()
-            
-            \brief operator<() for CachedESTInfo.
-            
-            The following operator provides a convenient mechanism for
-            comparing CachedESTInfo objects for sorting.  This
-            operator overrides the default STL operator() by comparing
-            only the metrics of two CachedESTInfo objects (ignoring
-            the EST indexes and any other information).  This method
-            uses the metric comparison functionality provided by all
-            EST analyzers.
-            
-            \param[in] estInfo1 The first CachedESTInfo object to be
-            used for comparison.
-            
-            \param[in] estInfo2 The second CachedESTInfo object to be
-            used for comparison.
-            
-            \return This method returns \c true if \c estInfo1.metric
-            is better than \c estInfo2.metric.  Otherwise it returns
-            \c false.
-        */
-        inline bool operator()(const CachedESTInfo& estInfo1,
-                               const CachedESTInfo& estInfo2)
-        { return comparator->compareMetrics(estInfo1.metric, estInfo2.metric); }
-        
-    private:
-        /** The functor for comparing.
-
-            This comparator is set based on the template parameter
-            associated with the enclosing class.
-        */
-        const ESTAnalyzer *const comparator;
-    };
-
     static void copy_n(const SMList& input, const size_t count, 
                        SMList &output);
 
-private:
     /**  The analyzer to be used for any EST comparison.
          
          This pointer is initialized in the constructor to point to
@@ -364,17 +283,8 @@ private:
          pointer is essentially used for comparing EST metrics for
          ordering information in the cache.
     */
-    const ESTAnalyzer *analyzer;
-    
-    /** The actual vector of cache entries for various nodes.
-
-        This cache contains the list of cache entries for each node
-        owned and managed by this MSTCache.  The list is initialized
-        to have a set of empty lists in the constructor, when the
-        cache is instantiated for use.
-    */
-    std::vector<MSTCacheEntry> cache;
-    
+    const ESTAnalyzer* const analyzer;
+        
     /** Bit-vector to determine if a given node has been added to the
         MST.
         
@@ -392,45 +302,32 @@ private:
     /** The index of the first EST whose information is cached.
 
         The starting index of the EST that is owned by the process
-        that is using this cache.  This value is used to internally
-        normalize est index values to 0 for the first EST owned by
-        this process.  This value is initialized in the constructor
-        and is never changed during the lifetime of this object.
+        that is using this cache.  This value is used by some derived
+        classes to internally normalize EST index values to zero for
+        the first EST owned by this process.  This value is
+        initialized in the constructor and is never changed during the
+        lifetime of this object.
     */
     const int startOwnESTidx;
 
-    /** Number of times the cache needed to be repopulated.
- 
-        This instance variable is used to track the number of times
-        the cache had to be repopulated as one of the entries ran out
-        of data.  This variable is initialized to 0 (zero),
-        incremented in the pruneCaches() method, and displayed in the
-        displayStats() method.
+    /** The number of ESTs that this cache logically owns and manages.
+        
+        This instance variable maintains the number of ESTs that are
+        logically owned and managed by this cache.  This value is
+        initialized in the constructor and is never changed during the
+        lifetime of this object.
     */
-    int cacheRepopulation;
+    const int numOwnESTs;
 
-    /** Number of entries that were pruned from the cache.
+    /** The \b suggested maximum number of cached entries per EST.
 
-	This instance variable is used to track the number of entries
-	that were pruned from the cache by the pruneCache() method.
-	This value indicates the number of entries in the cache that
-	were unused.  Moreover, this value also a measure of the
-	amount of unnecessary adjacency information calculation
-	operations that were performed for this cache by all the
-	processes put together.
+        This instance variable is a \b suggested maximum number of
+        cached entries that must be maintained for a given EST. This
+        parameter may not be really used by all dervied classes (as
+        this is only a suggestion).
     */
-    int prunedEntries;
-
-    /** Number of times comparisons of ESTs were performed.
-	
-	Tracks the number of times EST comparisons were performed.
-	This instance variable is initialized to 0 (zero).  The set of
-	values sorted via teh sortAndPrune() method are used to track
-	the number of comparisons performed and this instance variable
-	is suitably adjusted.
-    */
-    long analysisCount;
-
+    const int maxCachePerEST;
+    
     /** Flag to control if caches must be repopulated.
 
 	<p> If this parameter is \c true then the MSTCache will
