@@ -42,7 +42,7 @@ arg_parser::arg_record TVHeuristic::argsList[] = {
 
 TVHeuristic::TVHeuristic(const int refESTIdx,
                          const std::string& outputFileName)
-    : UVSampleHeuristic("tv", refESTIdx, outputFileName) {
+    : NewUVHeuristic("tv", refESTIdx, outputFileName) {
     matchTable     = NULL;
     uvSuccessCount = 0;
 }
@@ -56,7 +56,7 @@ TVHeuristic::~TVHeuristic() {
 void
 TVHeuristic::showArguments(std::ostream& os) {
     // First let the base class do the operation
-    UVSampleHeuristic::showArguments(os);
+    NewUVHeuristic::showArguments(os);
     // Use a arg parser object to conveniently display common options.
     arg_parser ap(TVHeuristic::argsList);
     os << ap;
@@ -65,7 +65,7 @@ TVHeuristic::showArguments(std::ostream& os) {
 bool
 TVHeuristic::parseArguments(int& argc, char **argv) {
     // Let the base class do the same operation first
-    if (!UVSampleHeuristic::parseArguments(argc, argv)) {
+    if (!NewUVHeuristic::parseArguments(argc, argv)) {
         // Error parsing base class parameters
         return false;
     }
@@ -86,7 +86,7 @@ TVHeuristic::parseArguments(int& argc, char **argv) {
 int
 TVHeuristic::initialize() {
     // First let base class do initialization
-    UVSampleHeuristic::initialize();
+    NewUVHeuristic::initialize();
     // First compute the longest EST we have.
     size_t maxESTlen = EST::getMaxESTLen();
     
@@ -99,14 +99,14 @@ TVHeuristic::initialize() {
 int
 TVHeuristic::setReferenceEST(const int estIdx) {
     // Simply let the base class to its job
-    return UVSampleHeuristic::setReferenceEST(estIdx);
+    return NewUVHeuristic::setReferenceEST(estIdx);
 }
 
 bool
 TVHeuristic::runHeuristic(const int otherEST) {
     // First check if this pair passes UV Sample heuristic.  If not do
     // no further analysis.
-    if (!UVSampleHeuristic::runHeuristic(otherEST)) {
+    if (!NewUVHeuristic::runHeuristic(otherEST)) {
         // This pair need not be analyzed further.
         return false;
     }
@@ -136,7 +136,7 @@ TVHeuristic::runHeuristic(const int otherEST) {
 void
 TVHeuristic::printStats(std::ostream& os) const {
     // First let the base class do its thing.
-    UVSampleHeuristic::printStats(os);
+    NewUVHeuristic::printStats(os);
     // Display additional information about uv success
     os << "\tNumber of u/v successes: " << uvSuccessCount << std::endl;
 }
