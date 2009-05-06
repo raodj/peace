@@ -1,0 +1,21 @@
+Informal Report for Week of 4/27/09
+
+Early in the week, a bug in the construction of heuristic chains was 
+discovered and fixed.  The implementation of the UV heuristic was 
+verified and fixed.  Some research was done on the Trac system as a 
+potential solution for project management, providing a layer on top of 
+Subversion.
+
+Later in the week, a great deal of progress was made as the TV heuristic 
+was added to the system and the operation of both heuristics was 
+verified.  The code was cleaned up and optimizations were made across 
+the board.  This began a dedicated process of optimizing Peace code and 
+comparing its performance to wcd in terms of execution time.  As of this 
+writing, wcd is still faster than Peace, although the gap has become 
+much smaller.  There are no conclusive results as far as the clustering 
+quality of Peace compared to wcd's, though some tests on simulated 
+EST data have been performed.
+
+
+
+James Moler
