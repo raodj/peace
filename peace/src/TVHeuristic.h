@@ -22,7 +22,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include "UVSampleHeuristic.h"
+#include "NewUVHeuristic.h"
 #include "EST.h"
 #include <utility>
 
@@ -50,7 +50,7 @@
     
     </ol>
 */
-class TVHeuristic : public UVSampleHeuristic {
+class TVHeuristic : public NewUVHeuristic {
     friend class HeuristicFactory;
 public:
     /** Display valid command line arguments for this heuristic.
@@ -168,7 +168,7 @@ protected:
         <li>If the pair passes UV-sample heuristic then this method
         invokes the overloaded \c runHeuristic method with a suitable
         encoder (normal or reverse-complement encoder depending on the
-        value of UVSampleHeuristic::bestMatchIsRC flag) to analyze
+        value of NewUVHeuristic::bestMatchIsRC flag) to analyze
         the pair of ESTs using the TV heuristic.</li>
         
         </ol>
@@ -189,7 +189,7 @@ protected:
         const char *otherSeq   = EST::getEST(otherEST)->getSequence();
         const int  otherESTLen = strlen(otherSeq);
         register int hash      = 0;
-        for(int i = 0; (i < UVSampleHeuristic::v - 1); i++) {
+        for(int i = 0; (i < NewUVHeuristic::v - 1); i++) {
             hash = encoder(hash, otherSeq[i]);
         }
         // Set first window length entries to zero.
@@ -199,7 +199,7 @@ protected:
         // Now see how many common words exist in the two ESTs
         int numMatch     = 0, maxMatch = 0;
 	int oldWindowPos = -windowLen;
-        for(int i = UVSampleHeuristic::v - 1; (i < otherESTLen); i++) {
+        for(int i = NewUVHeuristic::v - 1; (i < otherESTLen); i++) {
             hash = encoder(hash, otherSeq[i]);
             matchTicker[i] = refWordMap[hash];
             numMatch += refWordMap[hash];
