@@ -46,7 +46,7 @@ int D2::threshold = 0;
 arg_parser::arg_record D2::argsList[] = {
     {"--frameShift", "Frame Shift (default=1)",
      &D2::frameShift, arg_parser::INTEGER},
-    {"--threshold", "Threshold score to break out of D2 (default=40)",
+    {"--threshold", "Threshold score to break out of D2 (default=0)",
      &D2::threshold, arg_parser::INTEGER},    
     {NULL, NULL}
 };
@@ -145,17 +145,19 @@ D2::setReferenceEST(const int estIdx) {
 
 float
 D2::analyze(const int otherEST) {
-    if (otherEST == refESTidx) {
-        return 0; // distance to self will be 0
-    }
-    if ((otherEST < 0) || (otherEST >= EST::getESTCount())) {
-        // Invalid EST index!
-        return -1;
-    }
+    VALIDATE({
+        if (otherEST == refESTidx) {
+            return 0; // distance to self will be 0
+        }
+        if ((otherEST < 0) || (otherEST >= EST::getESTCount())) {
+            // Invalid EST index!
+            return -1;
+        }
+    });
     // Check with the heuristic chain
     if ((chain != NULL) && (!chain->shouldAnalyze(otherEST))) {
         // Heuristics indicate we should not do D2. So skip it.
-        return (4.0f * frameSize);
+        return 4.0f * frameSize;
     }
 
     // OK. Run the actual d2 algorithm
