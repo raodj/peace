@@ -38,7 +38,7 @@ MSTHeapCache::MSTHeapCache(const int totalESTCount,
 
 void
 MSTHeapCache::pruneCaches(const int estIdxAdded,
-                          std::vector<int>& UNREFERENCED_PARAMETER(repopulateList),
+                          std::vector<int>& repopulateList,
                           const bool prefixListSize) {
     // Clear out any entries in the list of ESTs whose cache
     // information needs to be recomputed.
@@ -61,7 +61,8 @@ MSTHeapCache::pruneCaches(const int estIdxAdded,
 }
 
 void
-MSTHeapCache::mergeList(const int estIdx, const SMList& list) {
+MSTHeapCache::mergeList(const int UNREFERENCED_PARAMETER(estIdx), 
+                        const SMList& list) {
     // Add all entries in the list to our cache.
     for(size_t i = 0; (i < list.size()); i++) {
         cache.push(list[i]);

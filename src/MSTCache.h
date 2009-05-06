@@ -145,7 +145,7 @@ public:
         \param[in,out] list The list of entries that must be
         preprocessed.
     */
-    virtual void preprocess(SMList& list) {}
+    virtual void preprocess(SMList& UNREFERENCED_PARAMETER(list)) {}
     
     /** Add/merges a batch of new cache entries with the current
         entries in the cache for a given EST.
