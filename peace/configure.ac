@@ -113,11 +113,14 @@ AC_DEFUN([AC_PROG_ICC],
      fi
 
      if test "yes" == "$icc"; then
-          ICC_NO_WARN_SOME="-wd981 -wd383"         
+	  USING_ICC="-DICC"
+          ICC_NO_WARN_SOME="-wd981 -wd383"
      else
+     	  USING_ICC=""
           ICC_NO_WARN_SOME=""
      fi
-     
+
+     AC_SUBST(USING_ICC)          
      AC_SUBST(ICC_NO_WARN_SOME)
 ])
 
@@ -133,9 +136,9 @@ AC_PROG_ICC
 
 # Checks for libraries.
 #AC_CHECK_LIB([pthread], [pthread_create])
-AC_CHECK_LIB([m],[asin])
-AC_SEARCH_LIBS([MPI_Init],[mpi])
-AC_SEARCH_LIBS([readline],[readline])
+AC_CHECK_LIB([m],[asin],,,[-lstdc++])
+AC_CHECK_LIB([mpi],[MPI_Init],,,[-lstdc++])
+AC_CHECK_LIB([readline],[readline],,,[-lstdc++])
 #AC_SEARCH_LIBS([gethostname], [c,nsl])
 #AC_CHECK_LIB([nsl],[gethostname])
 #AC_SEARCH_LIBS([bind],[c,nsl,socket])
