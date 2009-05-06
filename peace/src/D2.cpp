@@ -178,7 +178,9 @@ D2::runD2(const int otherEST) {
     // Build the word table for otherEST depending on normal or
     // reverse complement suggestion using hint UVSampleHeuristic.
     int bestMatchIsRC = 0;
-    HeuristicChain::getHeuristicChain()->getHint("D2_DoRC", bestMatchIsRC);
+    if (chain != NULL) {
+        HeuristicChain::getHeuristicChain()->getHint("D2_DoRC", bestMatchIsRC);
+    }
     if (bestMatchIsRC == 0) {
         ESTCodec::NormalEncoder<bitShift, BitMask> encoder;
         buildWordTable(s2WordTable, sq2, encoder);

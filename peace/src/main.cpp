@@ -109,6 +109,7 @@ main(int argc, char* argv[]) {
     bool showOptions   = false;
     int  refESTidx     = 0;
     bool interactive   = false;
+    bool noHeuristics  = false;
     
     // Create the list of valid arguments to be used by the arg_parser.
     arg_parser::arg_record arg_list[] = {
@@ -118,6 +119,8 @@ main(int argc, char* argv[]) {
          &analyzerName, arg_parser::STRING},
         {"--heuristics", "Name(s) of the heuristic(s) to use, in order",
          &heuristicStr, arg_parser::STRING},
+        {"--noHeuristics", "Disable the default heuristics",
+         &noHeuristics, arg_parser::BOOLEAN},
         {"--estIdx", "Index of reference EST in a EST file",
          &refESTidx, arg_parser::INTEGER},
         {"--output", "File to which output must be written",
@@ -153,8 +156,14 @@ main(int argc, char* argv[]) {
         ClusterMakerFactory::create(clusterName, analyzer,
                                     refESTidx, std::string(outputFile));
     // Create the heuristic chain using a helper method.
-    HeuristicChain *heuristicChain =
-        HeuristicChain::setupChain(heuristicStr, refESTidx, outputFile);
+    HeuristicChain *heuristicChain = NULL;
+    if (!noHeuristics) {
+        heuristicChain =
+            HeuristicChain::setupChain(heuristicStr, refESTidx, outputFile);
+    } else {
+        // Default heuristics have been disabled
+        heuristicStr = NULL;
+     }
     // Check if EST analyzer creation was successful.  A valid EST
     // analyzer is needed even to make clusters.
     if ((analyzer == NULL) || (showOptions) ||

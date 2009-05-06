@@ -34,7 +34,9 @@ HeuristicFactory::displayList(std::ostream &os) {
     // easier.
     arg_parser::arg_record dummy_args[] = {
         {"uv", "UV Sample Heuristic",
-         NULL, arg_parser::STRING},        
+         NULL, arg_parser::STRING},
+        {"tv", "TV Heuristic",
+         NULL, arg_parser::STRING},
         {NULL, NULL}
     };
     arg_parser dummyParser(dummy_args);
