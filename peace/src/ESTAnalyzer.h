@@ -132,16 +132,22 @@ public:
         reference EST (set via the call to the setReferenceEST())
         method.
 
+	\note This method may return -1, if the otherEST is
+        significantly different from the reference EST (possibly
+        warranting no further analysis) that a meanigful metric cannot
+        be generated.
+	
         \param[in] otherEST The index (zero based) of the EST with
         which the reference EST is to be compared.
 
-        \param[in] alignmentData 
-        
-        \return This method returns a similarity metric by comparing
-        the ESTs.
+        \return This method returns a similarity/distance metric by
+        comparing the ESTs. This method may return -1, if the otherEST
+        is significantly different from the reference EST (possibly
+        warranting no further analysis) that a meanigful metric cannot
+        be generated.
     */
     virtual float analyze(const int otherEST) = 0;
-        
+
     /** Method to perform EST analysis.
 
         This method must be used to perform EST analysis.  This method
