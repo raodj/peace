@@ -127,7 +127,12 @@ HeuristicChain::setupChain(const char* heuristicStr, const int refESTidx,
         // Create heuristic and add it to the chain
         Heuristic *heuristic =
             HeuristicFactory::create(name.c_str(), refESTidx, outputFile);
-        ASSERT( heuristic != NULL );
+        if (heuristic == NULL) {
+            // Break out and return null, which will cause main to show usage
+            return NULL;
+        }
+        // This assert caused errors if invalid heuristics were entered
+        //ASSERT( heuristic != NULL );
         heuristicChain->addHeuristic(heuristic);
         // Remove already created heuristic to process next one in chain.
         if (hyphenLoc == std::string::npos) {
