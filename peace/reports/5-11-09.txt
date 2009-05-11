@@ -1,0 +1,30 @@
+Informal Report for Week of 5/4/09
+
+Work on optimizing Peace's performance continued in this week.  Some 
+performance testing was done via a profiler and statistical 
+instrumentation.  It was determined that the parts of the analysis 
+incurring the greatest performance costs were the UV heuristic and the 
+D2 algorithm.  The UV heuristic incurrs a high performance cost simply 
+because of the sheer volume of calls; the D2 algorithm is O(n^2) so one 
+would have expected a high performance cost.
+
+It was observed that wcd's implementation of the UV heuristic is split 
+into two loops.  In the first loop, half of the words to be checked are 
+checked for matches.  If a certain number of matches is not found, the 
+heuristic returns false.  Otherwise, it proceeds to the second loop, 
+where the other half of the words are checked.  Empirically, the first 
+loop takes up the most time by far, so wcd is saving time by using this 
+two-loop approach.  We were able to save even more time by splitting it 
+into three loops, and have parameterized this "multiple pass" 
+capability in our implementation of the UV heuristic.
+
+It was also observed that wcd is performing a significantly smaller 
+number of D2 comparisons, and that this has to do with the method of 
+constructing the clusters.  Currently, alternative approaches toward 
+building the minimum spanning tree are being investigated.  It is 
+believed that, if the number of D2 calls in Peace can be cut down to a 
+number close to wcd's, Peace will end up with better performance.
+
+
+
+James Moler
