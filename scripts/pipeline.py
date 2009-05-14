@@ -4,10 +4,10 @@ from optparse import OptionParser
 
 
 class Pipeline:
-	def __init__(self, specifyESTs, faFile, digFile):
+	def __init__(self, specifyESTs, faFile, digFile, peace, wcd):
 		self.specifyESTs = specifyESTs
-		self.runningPeace = False
-		self.runningWcd = False
+		self.runningPeace = peace
+		self.runningWcd = wcd
 		if specifyESTs:
 			self.estFile = faFile
 		else:
@@ -18,16 +18,8 @@ class Pipeline:
 	def setESTParams(self, estSimParams):
 		self.estSimParams = estSimParams
 		
-	def setPeaceParams(self, peaceParams):
-		self.runningPeace = True
-		self.peaceParams = peaceParams
-
 	def setProcessors(self, proc):
 		self.proc = proc
-		
-	def setWcdParams(self, matrix):
-		self.runningWcd = True
-		self.wcdMatrixOut = matrix
 		
 	def run(self):
 		# Setup things
@@ -53,23 +45,14 @@ class Pipeline:
 		dirName = estOutputFile
 	
 		if self.runningPeace:
-		        peaceOutputFile = 'peace_'+estOutputFile+'['
-		        
-			for x in self.peaceParams:
-				peaceOutputFile+=x+'_'
-			peaceOutputFile+=']'
-			dirName = peaceOutputFile
+		        peaceOutputFile = 'peace_'+estOutputFile
+		        dirName = peaceOutputFile
 			peaceInvoc = 'time mpiexec ./peace '
-			for param in self.peaceParams:
-				peaceInvoc+=param+' '
 			peaceInvoc+='--estFile '+estOutputFile+'_fmt.fa --output '+peaceOutputFile+'.out --output-mst-file mstFile.mst'
 	
 		if self.runningWcd:
 			dirName = 'wcd_'+estOutputFile
-			if self.wcdMatrixOut:
-				wcdInvoc = 'time ./wcd -y'
-			else:
-				wcdInvoc = 'time ./wcd -c'
+			wcdInvoc = 'time ./wcd -c'
 			wcdInvoc += ' -o wcd_'+estOutputFile+'.txt '+estOutputFile+'_fmt.fa'
 	
 		# directory in which to store output and intermediate files
@@ -78,8 +61,8 @@ class Pipeline:
 	
 		if self.specifyESTs:
 			 # run format script only, not estsim
-			#estSimInvocs = [formatInvoc]
-			estSimInvocs = []
+		       	formatInvoc = 'python formatNoSelect.py '+estOutputFile+'.fa'
+			estSimInvocs = [formatInvoc]
 			
 		elif self.wcdMatrixOut:
 			# need sorted order to produce matrix
@@ -434,21 +417,24 @@ def main():
 
 	usage= "usage: %prog [options] dataf cutf estsimparams"
 	parser = OptionParser(usage=usage)
-	parser.add_option("-p", "--peace", type="string", dest="peaceParams",
-	                  nargs=10, metavar=" PARAMS", help="run peace with PARAMS, where PARAMS are "+
-	                  "of the form: --analyzer clu --clusterMaker mst --estIdx 0")
-	parser.add_option("-w", "--wcd", type="string", dest="wcdParams",
-			  nargs=1, metavar=" PARAM", help="run wcd with PARAM, where PARAM is "+
-			  "either -y or -c (specifies output format: -y for matrix, -c for clusters")
+	parser.add_option("-p", "--peace", action="store_true", dest="runPeace", 
+ 			help="run peace with the default parameters.  Alternate parameters currently not supported.")
+	parser.add_option("-w", "--wcd", 
+			action="store_true", dest="runWcd",
+			help="run wcd with the default parameters.  Alternate parameters currently not supported.")
+	# TODO enable wcd parallel, and handle case where proc*2 > max 
+	# procs allowed (when doing peace vs. wcd)
 	parser.add_option("-c", "--processors", type="int", dest="proc",
 	                  metavar=" PROC", help="request PROC processors")
 	parser.add_option("-e", "--estfile", action="store_true", dest="specifyESTs",
 			  help="specify an input file containing ESTs (don't create new simulated ESTs)")
-	parser.set_defaults(runningWCD=False, specifyESTs=False, peaceParams=[], proc=1)
+	parser.set_defaults(runWcd=False, specifyESTs=False, runPeace=False, proc=1)
 	(options, args) = parser.parse_args()
 	if (len(args) < 2 and not options.specifyESTs) or (len(args) != 1 and options.specifyESTs):
 	        parser.error("Incorrect number of arguments")
 
+	# TODO there's no reason to do this.  request 1 extra and then 
+	# invoke mpiexec -n proc
 	proc = options.proc
 	if proc <= 0:
 		parser.error("Invalid argument, must have 1 or more processors")
@@ -456,29 +442,14 @@ def main():
         	print "Odd number of processors specified, will be incremented by 1"
         	proc = proc+1
 
-	peaceParams = options.peaceParams
-	wcdParams = options.wcdParams
-	runningWcd = False
-	specifyESTs = options.specifyESTs
-	runningPeace = False
-	if peaceParams != []:
-		runningPeace=True
-	if wcdParams != None:
-		runningWcd = True
-
-	if specifyESTs:
-		pl = Pipeline(specifyESTs, args[0], None)
+	if options.specifyESTs:
+		pl = Pipeline(options.specifyESTs, args[0], None, 
+			options.runPeace, options.runWcd)
 	else:
-		pl = Pipeline(specifyESTs, args[0], args[1])
+		pl = Pipeline(options.specifyESTs, args[0], args[1], 
+			options.runPeace, options.runWcd)
 		pl.setESTParams(args[2:])
 	pl.setProcessors(proc)
-	if runningPeace:
-	       	pl.setPeaceParams(peaceParams)
-	if runningWcd:
-		if wcdParams == "-y":
-			pl.setWcdParams(True)
-		else:
-			pl.setWcdParams(False)
 	pl.run()
 
 if __name__ == "__main__":
