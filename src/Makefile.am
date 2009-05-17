@@ -93,6 +93,8 @@ TVHeuristic.h\
 TVHeuristic.cpp\
 D2Zim.h\
 D2Zim.cpp\
+TwoPassD2.h\
+TwoPassD2.cpp\
 MSTMultiListCache.h\
 MSTMultiListCache.cpp\
 MSTHeapCache.h\
