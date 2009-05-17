@@ -31,13 +31,18 @@
 class EST;
 class ResultLog;
 
-/** \brief EST Analyzer that uses the D2 algorithm to compute
-    distances between two ESTs.
+/** \brief EST Analyzer that uses the D2 algorithm in both its
+	symmetric and asymmetric variations to compute distances between two ESTs.
 
     <p>This analyzer provides the mechanism to use D2 algorithm to
-    compute the distance values between a pair of ESTs. The D2
-    implementation has been adapted purely from the implementations of
-    WCD, Zimmerman, and CLU.<p>
+    compute the distance values between a pair of ESTs. For improved
+	performance, the analyzer uses D2 asymmetric and symmetric together.
+	It runs a fast "first pass" using D2 asymmetric and finds the minimum
+	D2 score, as well as the two windows between which the score was
+	computed.  The analyzer then computes bounds and runs a bounded
+	version of D2 symmetric.  Ideally this analyzer will provide
+	faster runtime because of the asymmetric pass, and not sacrifice any
+	precision because of the bounded symmetric pass.<p>
 
     \note This D2 analyzer uses a word size of 8 base pairs.  This is
     hard coded into the algorithm in the form of various assumptions
@@ -445,12 +450,21 @@ private:
     */
     int numWordsInWindow;
 
-	// updateWindow method for asymmetric pass (in this case we need to update
-	// the indices at which the best match is found)
+	/** Helper method to update the delta table as well as the
+		minimum score (if it has changed) when the window is shifted.
+		
+		For d2 asymmetric, the updateWindow method also has to keep
+		track of the location on each sequence where the minimum
+		score was found, which is the function of the variables
+		s1MinScoreIdx and s2MinScoreIdx.  The variables s1CurWindowIdx
+		and s2CurWindowIdx mark the start of the current window on each 
+		sequence.  All of these variables are numbers, corresponding to
+		indices of the word tables.
+    */
     inline void updateWindowAsym(const int wordIn, const int wordOut,
                              int& score, int& minScore,
-			     const int s1Idx, const int s2Idx,
-			     int* s1index, int* s2index) {
+							const int s1CurWindowIdx, const int s2CurWindowIdx,
+							int* s1MinScoreIdx, int* s2MinScoreIdx) {
         // Update score and delta for word moving in
         score -= (delta[wordIn] << 1) - 1;
         delta[wordIn]--;
@@ -460,12 +474,17 @@ private:
         // Track the minimum score.
         if (score < minScore) {
             minScore = score;
-	    *s1index = s1Idx;
-	    *s2index = s2Idx;
+			// Update the indices for the new min score
+			*s1MinScoreIdx = s1CurWindowIdx;
+			*s2MinScoreIdx = s2CurWindowIdx;
         }
     }
 
-	// updateWindow method for symmetric pass (identical to D2.h updateWindow)
+	/** Helper method to update the delta table as well as the
+		minimum score (if it has changed) when the window is shifted.
+		This method is identical to the updateWindow method found in
+		D2.h (Peace's base D2 implementation).
+    */
     inline void updateWindow(const int wordIn, const int wordOut,
                              int& score, int& minScore) {
         // Update score and delta for word moving in
@@ -480,10 +499,27 @@ private:
         }
     }
 
-	// Run asymmetric D2, finding the indices for the best match on sequences 1 and 2.
-    float runD2Asymmetric(const int otherEST, int* s1Index, int* s2Index); 	
+	/** Method to run the D2 algorithm, asymmetric version.
+		This method runs D2 asymmetric on the two EST sequences
+		and finds the minimum D2 score.  Since this is D2 asymmetric,
+		the score is not guaranteed to be the true minimum.  Thus,
+		this method also finds the indices of the windows on each
+		sequence where the minimum D2 score was found.  The analyzer
+		will use these to compute appropriate bounds for the bounded
+		symmetric D2 function.
+	*/
+    float runD2Asymmetric(const int otherEST, int* s1MinScoreIdx,
+						int* s2MinScoreIdx); 	
 
-	// Run symmetric D2 on the given bounds.
+	/** Method to run the D2 algorithm, symmetric version.
+		This method is essentially identical to the runD2 method
+		in the D2.cpp class (Peace's base D2 implementation) with
+		the exception that this method places bounds on each sequence.
+		It will not search beyond these bounds.  This saves a great
+		deal of computation time (though the asymptotic runtime
+		is unchanged) by avoiding unnecessary computations and only
+		searching in the area where the best match might be found.
+	*/
     float runD2Bounded(const int otherEST, int s1Lower, int s1Upper, 
 					int s2Lower, int s2Upper);
 
