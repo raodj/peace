@@ -193,7 +193,8 @@ TwoPassD2::analyze(const int otherEST) {
 }
 
 float
-TwoPassD2::runD2Asymmetric(const int otherEST, int* s1Index, int* s2Index) {
+TwoPassD2::runD2Asymmetric(const int otherEST, int* s1MinScoreIdx, 
+						int* s2MinScoreIdx) {
     // Get basic information about the reference EST
     const EST *estS1   = EST::getEST(refESTidx);
     const char* sq1    = estS1->getSequence();
@@ -254,7 +255,7 @@ TwoPassD2::runD2Asymmetric(const int otherEST, int* s1Index, int* s2Index) {
             // associated with EST #2 from left-to-right.
             updateWindowAsym(s2WordTable[s2Win + numWordsInWindow],
                          s2WordTable[s2Win], score, minScore, 
-			 s1Win, s2Win+1, s1Index, s2Index);
+			 s1Win, s2Win+1, s1MinScoreIdx, s2MinScoreIdx);
         }
         // Move onto the next window in EST #1.  In this window at
         // (s1Win + numWordsWin) is moving in, while window at s1Win
@@ -266,7 +267,7 @@ TwoPassD2::runD2Asymmetric(const int otherEST, int* s1Index, int* s2Index) {
 						s1WordTable[s1Win + i + numWordsInWindow],
 						score, minScore, 
 						s1Win+i+1, LastWordInSq2,
-						s1Index, s2Index);
+						s1MinScoreIdx, s2MinScoreIdx);
 		}
         // Break out of this loop if we have found a a potential match
         if (minScore <= threshold) {
@@ -283,7 +284,7 @@ TwoPassD2::runD2Asymmetric(const int otherEST, int* s1Index, int* s2Index) {
             updateWindowAsym(s2WordTable[s2Win - numWordsInWindow],
                          s2WordTable[s2Win], score, minScore, 
 			 s1Win+i, s2Win-numWordsInWindow, 
-			 s1Index, s2Index);
+			 s1MinScoreIdx, s2MinScoreIdx);
         }
         // Move onto the next window in EST #1.  In this window at
         // (s1Win + numWordsWin + 1) is moving in, while window at
@@ -295,7 +296,7 @@ TwoPassD2::runD2Asymmetric(const int otherEST, int* s1Index, int* s2Index) {
 						s1WordTable[s1Win + i + numWordsInWindow],
 						score, minScore, 
 						s1Win+i+1, 0, 
-						s1Index, s2Index);
+						s1MinScoreIdx, s2MinScoreIdx);
 		}
         // Break out of this loop if we have found a a potential match
         if (minScore <= threshold) {
