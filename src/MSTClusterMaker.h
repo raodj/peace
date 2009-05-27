@@ -52,14 +52,14 @@ public:
     enum MessageTags{REPOPULATE_REQUEST, COMPUTE_SIMILARITY_REQUEST,
 		     SIMILARITY_LIST, SIMILARITY_COMPUTATION_DONE,
 		     COMPUTE_MAX_SIMILARITY_REQUEST, MAX_SIMILARITY_RESPONSE,
-		     ADD_EST};
+		     ADD_EST, TRANSITIVITY_LIST};
     
     /** The destructor.
         
         The destructor frees up all any dynamic memory allocated by
         this object for its operations.
     */
-    ~MSTClusterMaker();
+    virtual ~MSTClusterMaker();
 
     /** Display valid command line arguments for this cluster maker.
 
@@ -105,6 +105,18 @@ public:
         
     */
     virtual int makeClusters();
+
+    /** Method to display performance statistics.
+
+        This method overrides the empty implementation in the base
+        class to display statistics on cache usage and MPI calls for
+        tracking and reporting the performance and behavior of this
+        class.
+
+        \param[out] os The output stream to which the statistics must
+        be written.        
+    */
+    virtual void displayStats(std::ostream& os);
     
 protected:
     /** Variable to indicate per-EST similarity cache size.
@@ -290,6 +302,28 @@ protected:
     */
     virtual int worker();
 
+    /** Helper method to call the actual heavy-weight analysis
+        method(s).
+
+        This is a helper method that is invoked from the
+        populateCache() method to obtain the relationship metric
+        (either via CLU or d2) between the current parent EST and the
+        given otherEST. This method was introduced to enable chlid
+        classes (such as TransMSTClusterMaker) to conveniently
+        intercept analyzer calls and potentially shortcircuit them
+        using concepts of conditional-transitivity.
+
+        \param[in] otherEST The index of the other EST to which the
+        metric is required.
+
+        \return This method returns a similarity/distance metric by
+        comparing the ESTs. This method may return -1, if the otherEST
+        is significantly different from the reference EST (possibly
+        warranting no further analysis) that a meanigful metric cannot
+        be generated.
+    */
+    virtual float analyze(const int otherEST);
+    
     /** Computes sends/receives similarity list for a given EST.
 
         This method is a shared method that is used by both the
@@ -314,8 +348,20 @@ protected:
         similarity metrics to the owner process. <li>
         
         </ol>
+
+        \param[in] estIdx The index of the EST that was just added to
+        the MST and for which the adjacent neighbors need to be
+        determined.
+
+        \param[out] smList If this pointer is not NULL, then this
+        vector is populated with the set of metrics that were computed
+        for estIdx <b>only on the owner process</b>.  This list
+        contains the metrics collated from all the processes
+        participating in the distributed computing process. Currently,
+        this feature is used by TransMSTClusterMaker to obtain the
+        list of metrics computed.
     */
-    virtual void populateCache(const int estIdx);
+    virtual void populateCache(const int estIdx, SMList* metricList = NULL);
 
     /** Helper method in Manager process to update distributed caches.
 
@@ -567,13 +613,12 @@ protected:
                           float &metric, int& alignmentData,
                           int& pendingESTs);
     
-private:
     /** The default constructor.
 
         The default constructor for this class.  The constructor is
         made private so that this class cannot be directly
         instantiated.  However, since the ClusterMakerFactory is a
-        friend of this class, an object can be instantiated via teh
+        friend of this class, an object can be instantiated via the
         ClusterMakerFactory::create() method.
 
         \param[inout] analyzer The EST analyzer to be used for
@@ -617,7 +662,8 @@ private:
         process (to minimize memory footprint).
     */
     MSTCache *cache;
-
+    
+private:    
     /** The Minimum Spanning Tree (MST) built by this class.
 
         This instance variable holds a pointer to the MST created by

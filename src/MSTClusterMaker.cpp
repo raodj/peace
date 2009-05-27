@@ -377,16 +377,26 @@ MSTClusterMaker::getOwnerProcess(const int estIdx) const {
     return (estIdx - ExtraESTs) / ESTsPerProcess;
 }
 
+float
+MSTClusterMaker::analyze(const int otherEST) {
+    return analyzer->analyze(otherEST);
+}
+
 void
-MSTClusterMaker::populateCache(const int estIdx) {
+MSTClusterMaker::populateCache(const int estIdx, SMList* metricList) {
     // First determine the list of ESTs that this process must deal
     // with using the helper method.
     int startESTidx, endESTidx;
     getOwnedESTidx(startESTidx, endESTidx);
+    // Setup the reference estIdx in the analyzer which given the
+    // analyzer a chance to optimize initialization.
+    analyzer->setReferenceEST(estIdx);
     // Now compute similarity metric and store information in a SMList
     // data structure.
     SMList smList;
-    analyzer->setReferenceEST(estIdx);
+    const  float InvalidMetric = analyzer->getInvalidMetric();
+    // Flag to ensure only one invalid metric gets added
+    bool needInvalidMetric = true;
     for(int otherIdx = startESTidx; (otherIdx < endESTidx); otherIdx++) {
         if ((otherIdx == estIdx) || (cache->isESTinMST(otherIdx))) {
             // This EST entry can be ignored as this similarity metric
@@ -394,14 +404,22 @@ MSTClusterMaker::populateCache(const int estIdx) {
             continue;
         }
         // Get similarity/distance metric.
-        const float metric = analyzer->analyze(otherIdx);
+        const float metric = analyze(otherIdx);
         ASSERT ( metric >= 0 );
         // Obtain any alignemnt data that the analyzer may have.
         int alignmentData = 0;
         analyzer->getAlignmentData(alignmentData);
-        // Add the information to metric list
-        smList.push_back(CachedESTInfo(estIdx, otherIdx,
-                                       metric, alignmentData));
+        // Add only the first invalid entry. One is enough to do build
+        // a valid MST. There is no need for multiple vestigial
+        // entries.
+        if ((metric != InvalidMetric) || (needInvalidMetric)) {
+            // Add the information to metric list
+            smList.push_back(CachedESTInfo(estIdx, otherIdx,
+                                           metric, alignmentData));
+            // If this is an invalid entry, then one is enough. Don't
+            // add more.
+            needInvalidMetric= (needInvalidMetric && (metric != InvalidMetric));
+        }
     }
     // Preprocess the SMList to make it optimal for the MSTCache to
     // process in a distributed manner.
@@ -430,6 +448,11 @@ MSTClusterMaker::populateCache(const int estIdx) {
     // other processes and merge them together into its local cache.
     // First merge the locally computed smList first.
     cache->mergeList(estIdx, smList);
+    // Add the entries to the metricList if requested
+    if (metricList != NULL) {
+        metricList->insert(metricList->end(), smList.begin(), smList.end());
+    }
+    // Add data to the parameter
     // Obtain similarity lists from all other processes (other than
     // ourselves).
     const int MyRank = MPI::COMM_WORLD.Get_rank();
@@ -457,6 +480,11 @@ MSTClusterMaker::populateCache(const int estIdx) {
         // local cache information if the list has a valid entry.
         if (hasValidSMEntry(remoteList)) {
             cache->mergeList(estIdx, remoteList);
+            // Add the entries to the metricList if requested
+            if (metricList != NULL) {
+                metricList->insert(metricList->end(), remoteList.begin(),
+                                   remoteList.end());
+            }
         }
     }
     // Now finally let the manager know that the round of similarity
@@ -496,6 +524,14 @@ MSTClusterMaker::getOwnedESTidx(int& startIndex, int& endIndex) {
         // divisible by the number of processes.
         endIndex++;
     }
+}
+
+void
+MSTClusterMaker::displayStats(std::ostream& os) {
+    // Dump cache usage statistics for this process.
+    cache->displayStats(os, MPI::COMM_WORLD.Get_rank());
+    // Display MPI usage statistics.
+    MPIStats::displayStats(os);
 }
 
 int
@@ -540,10 +576,8 @@ MSTClusterMaker::makeClusters() {
             // worker
             result = worker();
         }
-        // Dump cache usage statistics for this process.
-        cache->displayStats(std::cout, MPI::COMM_WORLD.Get_rank());
-        // Display MPI usage statistics.
-        MPIStats::displayStats(std::cout);
+        // Display statistics
+        displayStats(std::cout);
         // Delete the cache as we no longer needed it.
         delete cache;
     } else {

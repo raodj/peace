@@ -53,7 +53,7 @@ arg_parser::arg_record TwoPassD2::argsList[] = {
      &TwoPassD2::frameShift, arg_parser::INTEGER},
     {"--threshold", "Threshold score to break out of D2 (default=0)",
      &TwoPassD2::threshold, arg_parser::INTEGER},    
-	{"--maxThreshold", "Threshold score to run bounded symmetric D2 (default=130)",
+    {"--maxThreshold", "Threshold score to run bounded symmetric D2 (default=130)",
      &TwoPassD2::maxThreshold, arg_parser::INTEGER},    
     {NULL, NULL}
 };
@@ -153,14 +153,14 @@ TwoPassD2::setReferenceEST(const int estIdx) {
 float
 TwoPassD2::analyze(const int otherEST) {
     VALIDATE({
-        if (otherEST == refESTidx) {
-            return 0; // distance to self will be 0
-        }
-        if ((otherEST < 0) || (otherEST >= EST::getESTCount())) {
-            // Invalid EST index!
-            return -1;
-        }
-    });
+            if (otherEST == refESTidx) {
+                return 0; // distance to self will be 0
+            }
+            if ((otherEST < 0) || (otherEST >= EST::getESTCount())) {
+                // Invalid EST index!
+                return -1;
+            }
+        });
     // Check with the heuristic chain
     if ((chain != NULL) && (!chain->shouldAnalyze(otherEST))) {
         // Heuristics indicate we should not do D2. So skip it.
@@ -168,33 +168,33 @@ TwoPassD2::analyze(const int otherEST) {
     }
 
     // OK. Run the asymmetric D2 algorithm
-	int s1Index = 0;
-	int s2Index = 0;
+    int s1Index = 0;
+    int s2Index = 0;
     float distance = (float) runD2Asymmetric(otherEST, &s1Index, &s2Index);
-	if (distance > maxThreshold) {
-		return distance;
-	}
-	else {
-		// Now run the bounded symmetric D2 algorithm
-		int boundDist = frameShift/2;
-		return (float) runD2Bounded(otherEST, s1Index-boundDist, 
-					s1Index+boundDist+frameSize, 
-					s2Index-boundDist, 
-					s2Index+boundDist+frameSize);
-		/*if (dist2 > distance) {
-			printf("%f %f\n", distance, dist2);
-			dist2 = (float) runD2Bounded(otherEST, s1Index-boundDist, 
-					s1Index+boundDist+frameSize, 
-					s2Index-boundDist, 
-					s2Index+boundDist+frameSize, true);
-		}
-		return dist2;*/
-	}
+    if (distance > maxThreshold) {
+        return distance;
+    }
+    else {
+        // Now run the bounded symmetric D2 algorithm
+        int boundDist = frameShift/2;
+        return (float) runD2Bounded(otherEST, s1Index-boundDist, 
+                                    s1Index+boundDist+frameSize, 
+                                    s2Index-boundDist, 
+                                    s2Index+boundDist+frameSize);
+        /*if (dist2 > distance) {
+          printf("%f %f\n", distance, dist2);
+          dist2 = (float) runD2Bounded(otherEST, s1Index-boundDist, 
+          s1Index+boundDist+frameSize, 
+          s2Index-boundDist, 
+          s2Index+boundDist+frameSize, true);
+          }
+          return dist2;*/
+    }
 }
 
 float
 TwoPassD2::runD2Asymmetric(const int otherEST, int* s1MinScoreIdx, 
-						int* s2MinScoreIdx) {
+                           int* s2MinScoreIdx) {
     // Get basic information about the reference EST
     const EST *estS1   = EST::getEST(refESTidx);
     const char* sq1    = estS1->getSequence();
@@ -254,21 +254,21 @@ TwoPassD2::runD2Asymmetric(const int otherEST, int* s1MinScoreIdx,
             // the word at s2Win is moving out as we move window
             // associated with EST #2 from left-to-right.
             updateWindowAsym(s2WordTable[s2Win + numWordsInWindow],
-                         s2WordTable[s2Win], score, minScore, 
-			 s1Win, s2Win+1, s1MinScoreIdx, s2MinScoreIdx);
+                             s2WordTable[s2Win], score, minScore, 
+                             s1Win, s2Win+1, s1MinScoreIdx, s2MinScoreIdx);
         }
         // Move onto the next window in EST #1.  In this window at
         // (s1Win + numWordsWin) is moving in, while window at s1Win
         // is moving out as we move from left-to-right in EST #1.
-		// For asymmetric D2, we shift s1 more than one word at a time
-		int i;
-		for (i = 0; (i < frameShift && s1Win+i < LastWordInSq1); i++) {
-			updateWindowAsym(s1WordTable[s1Win + i], 
-						s1WordTable[s1Win + i + numWordsInWindow],
-						score, minScore, 
-						s1Win+i+1, LastWordInSq2,
-						s1MinScoreIdx, s2MinScoreIdx);
-		}
+        // For asymmetric D2, we shift s1 more than one word at a time
+        int i;
+        for (i = 0; (i < frameShift && s1Win+i < LastWordInSq1); i++) {
+            updateWindowAsym(s1WordTable[s1Win + i], 
+                             s1WordTable[s1Win + i + numWordsInWindow],
+                             score, minScore, 
+                             s1Win+i+1, LastWordInSq2,
+                             s1MinScoreIdx, s2MinScoreIdx);
+        }
         // Break out of this loop if we have found a a potential match
         if (minScore <= threshold) {
             break;
@@ -282,22 +282,22 @@ TwoPassD2::runD2Asymmetric(const int otherEST, int* s1MinScoreIdx,
             // the word at s2Win is moving out as we move window
             // associated with EST #2 from right-to-left.
             updateWindowAsym(s2WordTable[s2Win - numWordsInWindow],
-                         s2WordTable[s2Win], score, minScore, 
-			 s1Win+i, s2Win-numWordsInWindow, 
-			 s1MinScoreIdx, s2MinScoreIdx);
+                             s2WordTable[s2Win], score, minScore, 
+                             s1Win+i, s2Win-numWordsInWindow, 
+                             s1MinScoreIdx, s2MinScoreIdx);
         }
         // Move onto the next window in EST #1.  In this window at
         // (s1Win + numWordsWin + 1) is moving in, while window at
         // s1Win + 1 is moving out as we move from left-to-right in
         // EST #1.
-		// For asymmetric D2, we shift s1 more than one word at a time
-		for (i = frameShift; (i < frameShift*2 && s1Win+i < LastWordInSq1); i++) {
-			updateWindowAsym(s1WordTable[s1Win + i],
-						s1WordTable[s1Win + i + numWordsInWindow],
-						score, minScore, 
-						s1Win+i+1, 0, 
-						s1MinScoreIdx, s2MinScoreIdx);
-		}
+        // For asymmetric D2, we shift s1 more than one word at a time
+        for (i = frameShift; (i < frameShift*2 && s1Win+i < LastWordInSq1); i++) {
+            updateWindowAsym(s1WordTable[s1Win + i],
+                             s1WordTable[s1Win + i + numWordsInWindow],
+                             score, minScore, 
+                             s1Win+i+1, 0, 
+                             s1MinScoreIdx, s2MinScoreIdx);
+        }
         // Break out of this loop if we have found a a potential match
         if (minScore <= threshold) {
             break;
@@ -311,8 +311,8 @@ TwoPassD2::runD2Asymmetric(const int otherEST, int* s1MinScoreIdx,
 
 float
 TwoPassD2::runD2Bounded(const int otherEST, int sq1Start, int sq1End, 
-						int sq2Start, int sq2End) {
-	// Get basic information about the reference EST
+                        int sq2Start, int sq2End) {
+    // Get basic information about the reference EST
     const EST *estS1   = EST::getEST(refESTidx);
     const char* sq1    = estS1->getSequence();
     const int   sq1Len = strlen(sq1);
@@ -320,16 +320,16 @@ TwoPassD2::runD2Bounded(const int otherEST, int sq1Start, int sq1End,
     const EST *estS2   = EST::getEST(otherEST);
     const char* sq2    = estS2->getSequence();
     const int   sq2Len = strlen(sq2);
-	//printf("%d %d %d %d\n", sq1Start, sq1End, sq2Start, sq2End);
+    //printf("%d %d %d %d\n", sq1Start, sq1End, sq2Start, sq2End);
 	
-	// sanity checks, since it is possible to pass in bounds beyond the sequence
-	if (sq1Start < 0) sq1Start = 0;
-	if (sq2Start < 0) sq2Start = 0;
-	if (sq1End > sq1Len) sq1End = sq1Len;
-	if (sq2End > sq2Len) sq2End = sq2Len;
+    // sanity checks, since it is possible to pass in bounds beyond the sequence
+    if (sq1Start < 0) sq1Start = 0;
+    if (sq2Start < 0) sq2Start = 0;
+    if (sq1End > sq1Len) sq1End = sq1Len;
+    if (sq2End > sq2Len) sq2End = sq2Len;
 	
-	//printf("%d %d %d %d\n", sq1Start, sq1End, sq2Start, sq2End);
-	// word table was already built
+    //printf("%d %d %d %d\n", sq1Start, sq1End, sq2Start, sq2End);
+    // word table was already built
 
     // Initialize the delta tables.
     memset(delta, 0, sizeof(int) * (1 << (wordSize * 2)));
@@ -367,9 +367,9 @@ TwoPassD2::runD2Bounded(const int otherEST, int sq1Start, int sq1End,
         // Move onto the next window in EST #1.  In this window at
         // (s1Win + numWordsWin) is moving in, while window at s1Win
         // is moving out as we move from left-to-right in EST #1.
-		updateWindow(s1WordTable[s1Win], 
-					s1WordTable[s1Win + numWordsInWindow],
-					score, minScore);
+        updateWindow(s1WordTable[s1Win], 
+                     s1WordTable[s1Win + numWordsInWindow],
+                     score, minScore);
         // Break out of this loop if we have found a a potential match
         if (minScore <= threshold) {
             break;
@@ -389,9 +389,9 @@ TwoPassD2::runD2Bounded(const int otherEST, int sq1Start, int sq1End,
         // (s1Win + numWordsWin + 1) is moving in, while window at
         // s1Win + 1 is moving out as we move from left-to-right in
         // EST #1.
-		updateWindow(s1WordTable[s1Win + 1],
-					s1WordTable[s1Win + 1 + numWordsInWindow],
-					score, minScore);
+        updateWindow(s1WordTable[s1Win + 1],
+                     s1WordTable[s1Win + 1 + numWordsInWindow],
+                     score, minScore);
         // Break out of this loop if we have found a a potential match
         if (minScore <= threshold) {
             break;

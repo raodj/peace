@@ -183,7 +183,9 @@ public:
     virtual void displayStats(std::ostream &os, const int MyRank) const;
     
 protected:
-                    
+    // Currently this class does not have any protected instance
+    // variables or methods for use.
+    
 private:
     /** Number of entries that were pruned from the cache.
 

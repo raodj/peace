@@ -99,6 +99,10 @@ MSTMultiListCache.h\
 MSTMultiListCache.cpp\
 MSTHeapCache.h\
 MSTHeapCache.cpp\
-CachedESTInfoHelper.h
+CachedESTInfoHelper.h\
+TransCacheEntry.h\
+TransCacheEntry.cpp\
+TransMSTClusterMaker.cpp\
+TransMSTClusterMaker.h
 
 # end of Makefile.am
