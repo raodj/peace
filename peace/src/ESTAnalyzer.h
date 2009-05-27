@@ -288,6 +288,38 @@ public:
         method returns 0.  Otherwise this method returns an error code.
     */
     virtual int setHeuristicChain(HeuristicChain* chain);
+
+    /** Method to obtain the heuristic chain set for this EST
+        analyzer.
+
+        This method may be used to obtain a pointer to the heuristic
+        chain set for use by this analyzer. If a heuristic chain has
+        not been set, then this method returns NULL.
+
+        \note The caller must \c not modify or delete the returned
+        heuristic pointer.
+        
+	\return A pointer to the heuristic chain associated set for
+        this analyzer.  If a heuristic has not been set, then this
+        method returns NULL.
+    */
+    virtual HeuristicChain* getHeuristicChain() const { return chain; }
+    
+    /** Method to display performance statistics.
+
+        This method can be used to display any statistics collated by
+        this class (and its descendants) regarding their operation and
+        performance.  This method was primarily introduced to enable
+        derived classes a mechanism to override statistics display and
+        print additional information.
+
+        \note The default implementation in the base class does
+        absolutely nothing.
+
+        \param[out] os The output stream to which the statistics must
+        be written.
+     */
+    virtual void displayStats(std::ostream& os) {}
     
     /** The destructor.
 

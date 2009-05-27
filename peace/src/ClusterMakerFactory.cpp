@@ -27,6 +27,7 @@
 #include "arg_parser.h"
 
 #include "MSTClusterMaker.h"
+#include "TransMSTClusterMaker.h"
 
 void
 ClusterMakerFactory::displayList(std::ostream &os) {
@@ -61,7 +62,10 @@ ClusterMakerFactory::create(const char* name, ESTAnalyzer *analyzer,
     
     if (!strcmp("mst", name)) {
         return new MSTClusterMaker(analyzer, refESTidx, outputFileName);
+    } else if (!strcmp("tmst", name)) {
+        return new TransMSTClusterMaker(analyzer, refESTidx, outputFileName);
     }
+    
     // invalid analyzer name!
     std::cerr << "Invalid analyzer name." << std::endl;
     return NULL;

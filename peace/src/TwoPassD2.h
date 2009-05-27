@@ -226,7 +226,7 @@ protected:
         \return This method returns an invalid (or the worst) metric
         of 1e7 for this EST analyzer.
     */
-    inline float getInvalidMetric() const { return 1e7; }
+    inline float getInvalidMetric() const { return 4.0f * frameSize; }
 
     /** Get alignment data for the previous call to analyze method.
 

@@ -111,6 +111,12 @@ UVSampleHeuristic::initialize() {
 
 int
 UVSampleHeuristic::setReferenceEST(const int estIdx) {
+    if (refESTidx == estIdx) {
+        // This EST is already the reference EST. Nothing further to
+        // do. So just get out.
+        return 0;
+    }
+    
     // The bit mask has been defined to be a static to enable passing
     // it as a parameter to the templatized NormalEncoder.
     BitMask = (1 << (v * 2)) - 1;

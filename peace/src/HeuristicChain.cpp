@@ -85,6 +85,18 @@ HeuristicChain::setReferenceEST(const int estIdx) {
     return 0; // Everything went well
 }
 
+Heuristic*
+HeuristicChain::getHeuristic(const std::string& name) const {
+    for(size_t i = 0; (i < chain.size()); i++) {
+        if (chain[i]->getName() == name) {
+            // Found a match!
+            return chain[i];
+        }
+    }
+    // A matching heuristic was not found.
+    return NULL;
+}
+
 HeuristicChain::~HeuristicChain() {
     for(size_t i = 0; (i < chain.size()); i++) {
         delete chain[i];

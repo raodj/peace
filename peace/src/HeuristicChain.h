@@ -267,6 +267,22 @@ public:
         // Hint not found.
         return false;
     }
+
+    /** Method to obtain pointer to a given heuristic object.
+
+	This method can be used to obtain a pointer to a specific
+	heuristic class present in this chain.  If the heruistic does
+	not exist then this method returns NULL.
+
+	\note The caller must \b not delete the returned pointer.
+
+	\param[in] name The name associated with a given heuristic.
+	
+	\return If the heursitic was found then this method returns a
+	valid (non-NULL) pointer to the heuristic object. If the
+	heuristic was not found, then this method returns NULL.
+    */
+    Heuristic* getHeuristic(const std::string& name) const;
     
     /** The destructor.
 
