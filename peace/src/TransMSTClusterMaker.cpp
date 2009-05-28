@@ -124,8 +124,7 @@ TransMSTClusterMaker::pruneMetricEntries(const SMList& list,
     goodEntries.reserve(list.size());    
     for(SMList::const_iterator entry = list.begin();
         (entry != list.end()); entry++) {
-        if ((entry->metric != badMetric) &&
-            (analyzer->compareMetrics(entry->metric, badMetric))) {
+        if ((analyzer->compareMetrics(entry->metric, badMetric))) {
             // This is a good entry. Save it.
             goodEntries.push_back(*entry);
         }
