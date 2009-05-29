@@ -154,6 +154,12 @@ AC_TYPE_SIZE_T
 AC_HEADER_TIME
 AC_C_VOLATILE
 
+# check if recent version of hash map is available in c++ land
+AC_LANG_PUSH([C])
+AC_LANG([C++])
+AC_CHECK_HEADERS([tr1/unordered_map])
+AC_LANG_POP([C++])
+
 # Checks for library functions.
 AC_FUNC_MALLOC
 AC_FUNC_MEMCMP
