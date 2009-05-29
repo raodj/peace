@@ -174,8 +174,12 @@ TransMSTClusterMaker::populateCache(const int estIdx,
     MPI_PROBE(ownerRank, TRANSITIVITY_LIST, msgInfo);
     // Now allocate the necessary space and obtain the SMList
     const int dataSize = msgInfo.Get_count(MPI::CHAR);
+    if (dataSize <= 0) {
+        // There are no remote cache entries to process.
+        return;
+    }
     SMList remoteList(dataSize / sizeof(CachedESTInfo));
-    MPI_RECV(&remoteList[0], dataSize, MPI::CHAR, ownerRank, TRANSITIVITY_LIST);
+    MPI_RECV(&remoteList[0], dataSize, MPI::CHAR, ownerRank,TRANSITIVITY_LIST);
     // Check to ensure that this not just a dummy list with one
     // invalid entry. Such dummy lists are required to work around MPI
     // implementations that do not permit zero-length messages.

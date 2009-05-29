@@ -22,6 +22,8 @@
 //
 //---------------------------------------------------------------------------
 
+#include <cstring>
+#include <memory>
 #include "config.h"
 
 #ifdef HAVE_TR1_UNORDERED_MAP
@@ -49,7 +51,6 @@
 
 #endif
 
-#include <cstring>
 
 /** String comparison structure for HashMap.
     
@@ -76,6 +77,16 @@ struct EqualInteger {
         return (i1 == i2);
     }
 };
+
+#ifdef ICC
+namespace __gnu_cxx {
+    template<> struct hash<std::string> {
+        inline size_t operator()(const std::string& str) const {
+            return hash<const char*>()(str.c_str());
+        }
+    };
+}
+#endif
 
 /** \typedef A hash_map<std::string, int>
 
