@@ -129,6 +129,12 @@ TransMSTClusterMaker::pruneMetricEntries(const SMList& list,
             goodEntries.push_back(*entry);
         }
     }
+    // If the list has zero entries, then add at least one invalid
+    // entry to ensure that the list is not empty.
+    if (goodEntries.empty()) {
+        CachedESTInfo dummy(-1, -1, badMetric, -1);
+        goodEntries.push_back(dummy);
+    }
 }
 
 void
@@ -170,6 +176,13 @@ TransMSTClusterMaker::populateCache(const int estIdx,
     const int dataSize = msgInfo.Get_count(MPI::CHAR);
     SMList remoteList(dataSize / sizeof(CachedESTInfo));
     MPI_RECV(&remoteList[0], dataSize, MPI::CHAR, ownerRank, TRANSITIVITY_LIST);
+    // Check to ensure that this not just a dummy list with one
+    // invalid entry. Such dummy lists are required to work around MPI
+    // implementations that do not permit zero-length messages.
+    if ((remoteList.size() == 1) && (remoteList[0].estIdx == -1)) {
+        // This is just an empty list. So don't process it.
+        return;
+    }
     // Now process the list of metrics we just received and build
     // caches for rapidly computing transitivity information. First
     // determine the set of ESTs this process owns
