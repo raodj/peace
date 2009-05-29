@@ -319,7 +319,7 @@ public:
         \param[out] os The output stream to which the statistics must
         be written.
      */
-    virtual void displayStats(std::ostream& os) {}
+    virtual void displayStats(std::ostream& UNREFERENCED_PARAMETER(os)) {}
     
     /** The destructor.
 
