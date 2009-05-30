@@ -32,7 +32,8 @@ TransCacheEntry::TransCacheEntry(const int refEstIdx) : estIdx(refEstIdx) {
 void
 TransCacheEntry::addEntries(const CachedESTInfo& reference,
                             const SMList& metrics,
-                            const int startIndex, const int endIndex) {
+                            const int UNREFERENCED_PARAMETER(startIndex), 
+                            const int UNREFERENCED_PARAMETER(endIndex)) {
     // First ensure that the pre-conditions are met.
     ASSERT (reference.estIdx == estIdx);
     ASSERT (parentInfo.find(reference.refESTidx) == parentInfo.end());

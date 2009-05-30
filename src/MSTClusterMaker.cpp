@@ -419,13 +419,14 @@ MSTClusterMaker::populateCache(const int estIdx, SMList* metricList) {
         // Add only the first invalid entry. One is enough to do build
         // a valid MST. There is no need for multiple vestigial
         // entries.
-        if ((metric != InvalidMetric) || (needInvalidMetric)) {
+        const bool isMetricOK= analyzer->compareMetrics(metric, InvalidMetric);
+        if ((isMetricOK) || (needInvalidMetric)) {
             // Add the information to metric list
             smList.push_back(CachedESTInfo(estIdx, otherIdx,
                                            metric, alignmentData));
             // If this is an invalid entry, then one is enough. Don't
             // add more.
-            needInvalidMetric= (needInvalidMetric && (metric != InvalidMetric));
+            needInvalidMetric= (needInvalidMetric && isMetricOK);
         }
     }
     // Preprocess the SMList to make it optimal for the MSTCache to
