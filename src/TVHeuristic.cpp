@@ -40,9 +40,9 @@ arg_parser::arg_record TVHeuristic::argsList[] = {
     {NULL, NULL}
 };
 
-TVHeuristic::TVHeuristic(const int refESTIdx,
-                         const std::string& outputFileName)
-    : NewUVHeuristic("tv", refESTIdx, outputFileName) {
+TVHeuristic::TVHeuristic(const std::string&
+                         UNREFERENCED_PARAMETER(outputFileName))
+    : NewUVHeuristic("tv", outputFileName) {
     matchTable     = NULL;
     uvSuccessCount = 0;
 }
@@ -98,6 +98,10 @@ TVHeuristic::initialize() {
 
 int
 TVHeuristic::setReferenceEST(const int estIdx) {
+    if (refESTidx == estIdx) {
+        // The reference EST is the same. Nothing to be done.
+        return 0;
+    }
     // Simply let the base class to its job
     return NewUVHeuristic::setReferenceEST(estIdx);
 }

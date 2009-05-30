@@ -150,14 +150,11 @@ protected:
         This name is used when generating errors, warnings, and other
         output messages for this heuristic.
 
-	\param[in] refESTidx The reference EST's index in a given
-	multi-FASTA file.  Index values start with 0 (zero).  The
-	refESTidx is supplied as a global argument that is processed
-	in the main() method.  This value is simply copied to the
-	refESTidx member in this class.
+	\param[in] outptuFileName The output file to which any
+	analysis information is to be written. Currently this
+	parameter is unused.
     */
-    UVSampleHeuristic(const std::string& name, const int refESTidx,
-		      const std::string& outputFileName);
+    UVSampleHeuristic(const std::string& name, const std::string& outputFileName);
     
     /** Determine whether the analyzer should analyze, according to
 	this heuristic.

@@ -33,6 +33,7 @@
 
 #include <mpi.h>
 #include <string>
+#include <sstream>
 
 /** \func showUsage
 
@@ -214,7 +215,13 @@ main(int argc, char* argv[]) {
     // printing of stats must be done based on a command line
     // argument.
     if (heuristicChain != NULL) {
-        heuristicChain->printStats(std::cout);
+        // Display statistics by writing all the data to a string
+        // stream and then flushing the stream.  This tries to working
+        // around (it is not perfect solution) interspersed data from
+        // multiple MPI processes
+        std::ostringstream buffer;
+        heuristicChain->printStats(buffer, MPI::COMM_WORLD.Get_rank());
+        std::cout << buffer.str() << std::endl;
     }
     
     // Delete the analyzer as it is no longer needed.

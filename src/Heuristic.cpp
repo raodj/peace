@@ -24,8 +24,8 @@
 
 #include "Heuristic.h"
 
-Heuristic::Heuristic(const std::string& name, const int estIdx)
-    : refESTidx(estIdx), heuristicName(name), runCount(0), successCount(0) {
+Heuristic::Heuristic(const std::string& name)
+    : refESTidx(-1), heuristicName(name), runCount(0), successCount(0) {
     // Nothing else to be done for now.
 }
 

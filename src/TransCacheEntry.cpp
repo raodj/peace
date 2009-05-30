@@ -65,7 +65,7 @@ TransCacheEntry::getMetric(const int otherESTidx, float& metric) const {
         parentInfo.find(peerEntry->second.refESTidx);
     ASSERT ( parentEntry != parentInfo.end() );
     // Now use potential transitivity to compute the metric.
-    metric = std::max(parentEntry->second.metric, peerEntry->second.metric);
+    metric = std::min(parentEntry->second.metric, peerEntry->second.metric);
     // Return true to indicate we did find an entry.
     return true;
 }
