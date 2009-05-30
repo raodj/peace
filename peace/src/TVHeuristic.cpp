@@ -40,8 +40,7 @@ arg_parser::arg_record TVHeuristic::argsList[] = {
     {NULL, NULL}
 };
 
-TVHeuristic::TVHeuristic(const std::string&
-                         UNREFERENCED_PARAMETER(outputFileName))
+TVHeuristic::TVHeuristic(const std::string& outputFileName)
     : NewUVHeuristic("tv", outputFileName) {
     matchTable     = NULL;
     uvSuccessCount = 0;
