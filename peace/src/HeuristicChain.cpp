@@ -109,7 +109,9 @@ HeuristicChain::HeuristicChain() {
 }
 
 void
-HeuristicChain::printStats(std::ostream& os) const {
+HeuristicChain::printStats(std::ostream& os, const int rank) const {
+    os << "Heuristics on process with Rank " << rank << "\n"
+       << "-------------------------------------------\n";
     for (size_t i = 0; (i < chain.size()); i++) {
         chain[i]->printStats(os);
     }

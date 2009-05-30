@@ -56,9 +56,9 @@ HeuristicFactory::create(const char* name, const int refESTidx,
     }
     
     if (!strcmp("uv", name)) {
-        return new UVSampleHeuristic("uv", refESTidx, outputFileName);
+        return new UVSampleHeuristic("uv", outputFileName);
     } else if (!strcmp("tv", name)) {
-        return new TVHeuristic(refESTidx, outputFileName);
+        return new TVHeuristic(outputFileName);
     }
         
     // invalid heuristic name!

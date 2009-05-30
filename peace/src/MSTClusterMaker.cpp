@@ -30,6 +30,7 @@
 #include "EST.h"
 #include "MPIStats.h"
 #include <fstream>
+#include <sstream>
 
 // A define to remove magic 0 (zero) in code
 #define MANAGER_RANK 0
@@ -201,9 +202,11 @@ MSTClusterMaker::computeNextESTidx(int& parentESTidx, int& estToAdd,
                                  workerRank, MAX_SIMILARITY_RESPONSE));
         // Undo the fudge on similarity done at the sender end.
         const float remoteSim = *((float *) (remoteData + 2));
-        if (analyzer->compareMetrics(remoteSim, similarity)) {
+        // Use a better or first valid entry
+        if (analyzer->compareMetrics(remoteSim, similarity) ||
+            (estToAdd == -1)) {
             // Found a higher similarity or a shorter distance in a
-            // remote process!
+            // remote process or this is the first valid entry thusfar
             similarity   = remoteSim;
             parentESTidx = remoteData[0];
             estToAdd     = remoteData[1];
@@ -221,6 +224,7 @@ MSTClusterMaker::addMoreChildESTs(const int parentESTidx, int& estToAdd,
     
     do {
         // Add the current node to the MST.
+        ASSERT ( estToAdd != -1 );
         mst->addNode(parentESTidx, estToAdd, metric, alignmentData);
         if (--pendingESTs == 0) {
             // All EST's have been added to the MST.  Nothing more to
@@ -267,6 +271,7 @@ MSTClusterMaker::manager() {
     do {
         // Add the EST to the MST vector, if needed.
         if ((maxUse == -1) || (parentESTidx == -1)) {
+            ASSERT ( estToAdd != -1 );
             mst->addNode(parentESTidx, estToAdd, metric, alignmentInfo);
             if (--pendingESTs == 0) {
                 // All EST's have been added to the MST.  Nothing more to
@@ -281,6 +286,8 @@ MSTClusterMaker::manager() {
         // choice for the next EST id to be added to the MST using a
         // helper method.
         computeNextESTidx(parentESTidx, estToAdd, metric, alignmentInfo);
+        ASSERT( parentESTidx != -1 );
+        ASSERT( estToAdd     != -1 );
         if (maxUse != -1) {
             // Try to add as many ESTs as possible rooted at the given
             // parentESTidx using a helper method.
@@ -576,8 +583,13 @@ MSTClusterMaker::makeClusters() {
             // worker
             result = worker();
         }
-        // Display statistics
-        displayStats(std::cout);
+        // Display statistics by writing all the data to a string
+        // stream and then flushing the stream.  This tries to working
+        // around (it is not perfect solution) interspersed data from
+        // multiple MPI processes
+        std::ostringstream buffer;
+        displayStats(buffer);
+        std::cout << buffer.str() << std::endl;
         // Delete the cache as we no longer needed it.
         delete cache;
     } else {

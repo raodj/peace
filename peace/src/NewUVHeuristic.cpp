@@ -52,9 +52,8 @@ arg_parser::arg_record NewUVHeuristic::argsList[] = {
 };
 
 NewUVHeuristic::NewUVHeuristic(const std::string& name,
-                                     const int refESTIdx,
-                                     const std::string& UNREFERENCED_PARAMETER(outputFileName))
-    : Heuristic(name, refESTIdx), hintKey("D2_DoRC") {
+                               const std::string& UNREFERENCED_PARAMETER(file))
+    : Heuristic(name), hintKey("D2_DoRC") {
     // Initialize hash table arrays
     s1WordMap   = NULL;
     s1RCWordMap = NULL;

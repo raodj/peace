@@ -219,8 +219,11 @@ public:
 
         \param[out] os The output stream to which the statistics
         regarding the heuristics is to be dumped.
+
+	\param[in] rank The rank of the process for which the
+	statistics is being displayed.
     */
-    void printStats(std::ostream& os) const;
+    void printStats(std::ostream& os, const int rank) const;
 
     /** Set a hint to be used by other algorithms.
 
