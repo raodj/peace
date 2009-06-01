@@ -16,14 +16,24 @@ for line in linkf:
 linkf.close()
 
 # read estf and write to newestf
+writing = True
+unmatchedCount = 0
 for line in estf:
 	if line[0] == '>':
 		# identifier line so find the identifier in dict
-		newestf.write(linkDict[line[1:].strip()]+'\n')
-	else:
+		try:
+			newestf.write(linkDict[line[1:].strip()]+'\n')
+			writing = True
+		except KeyError:
+			# Can't map the EST, so don't write it to file
+			writing = False
+			unmatchedCount += 1
+	elif writing:
 		# EST data so write the data
 		newestf.write(line)
 estf.close()
 newestf.close()
+
+print "Count of unmatched ESTs: %d\n" %(unmatchedCount)
 
 # done
