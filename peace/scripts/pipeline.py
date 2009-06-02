@@ -14,6 +14,7 @@ class Pipeline:
 			self.faFile = faFile
 			self.digFile = digFile
 		self.wcdMatrixOut = False
+		self.proc = 1
 	
 	def setESTParams(self, estSimParams):
 		self.estSimParams = estSimParams
@@ -53,6 +54,8 @@ class Pipeline:
 		if self.runningWcd:
 			dirName = 'wcd_'+estOutputFile
 			wcdInvoc = 'time ./wcd -c'
+			if self.proc > 1:
+				wcdInvoc+=' -N '+self.proc
 			wcdInvoc += ' -o wcd_'+estOutputFile+'.txt '+estOutputFile+'_fmt.fa'
 	
 		# directory in which to store output and intermediate files
@@ -74,9 +77,6 @@ class Pipeline:
 			# normal case
 			estSimInvocs = [estSimInvoc, formatInvoc]
 			
-		if not self.runningPeace:
-			self.proc = 1
-			
 		# create and run job(s)
 		if self.runningPeace and self.runningWcd:
 		        # need to create and run 3 jobs
@@ -88,7 +88,7 @@ class Pipeline:
 			while not os.path.exists('estsim_script.o'+jobID):
 		               	time.sleep(10)
 		        # now create both peace and wcd job files, and run them in parallel
-		        self.createJobFile('wcd_script', 1, [wcdInvoc])
+		        self.createJobFile('wcd_script', self.proc, [wcdInvoc])
 		        self.createJobFile('peace_script', self.proc, [peaceInvoc])
 		        #startTime = time.time()
 			p = popen2.popen2('qsub peace_script.job')
