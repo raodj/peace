@@ -53,9 +53,9 @@ class Pipeline:
 	
 		if self.runningWcd:
 			dirName = 'wcd_'+estOutputFile
-			wcdInvoc = 'time ./wcd -c'
+			wcdInvoc = 'time mpiexec ./wcd -c'
 			if self.proc > 1:
-				wcdInvoc+=' -N '+self.proc
+				wcdInvoc+=' -N %d' %(self.proc)
 			wcdInvoc += ' -o wcd_'+estOutputFile+'.txt '+estOutputFile+'_fmt.fa'
 	
 		# directory in which to store output and intermediate files
