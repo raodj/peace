@@ -5,6 +5,8 @@ import os, sys, random
 # Splits the sequences up, making them 80 characters to a line, and outputs them to new files.
 # Also now randomly shuffles the ESTs and keeps track of their source genes (for the analysis routine later on).
 
+# If peace format is used for wcd's output, the dictionary here is not needed.
+
 for arg in sys.argv:
 	newfn = arg[0:-3]
 	ext = arg[-3:len(arg)]

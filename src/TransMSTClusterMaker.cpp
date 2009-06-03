@@ -162,11 +162,18 @@ TransMSTClusterMaker::populateCache(const int estIdx,
         const int MsgSize      = goodEntries.size() * sizeof(CachedESTInfo);
         const int ProcessCount = MPI::COMM_WORLD.Get_size();
         const char *data       = reinterpret_cast<char*>(&goodEntries[0]);
+        // An if check is necessary here when running on MPI
+        // implementations that do not permit processes to
+        // send/receive messages to themselves.
         for(int rank = 0; (rank < ProcessCount); rank++) {
-            MPI_SEND(data, MsgSize, MPI_CHAR, rank, TRANSITIVITY_LIST);
+            if (rank != ownerRank) {
+                MPI_SEND(data, MsgSize, MPI_CHAR, rank, TRANSITIVITY_LIST);
+            }
         }
+        // The owner process will not receive from itself
+        return;
     }
-    
+
     // When control drops here, all the processes new receive the
     // SMList from the latest round of analysis. First probe to find
     // out size of the SMList.
