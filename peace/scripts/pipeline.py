@@ -53,7 +53,7 @@ class Pipeline:
 	
 		if self.runningWcd:
 			dirName = 'wcd_'+estOutputFile
-			wcdInvoc = 'time mpiexec ./wcd -c'
+			wcdInvoc = 'time mpiexec ./wcd -b'
 			if self.proc > 1:
 				wcdInvoc+=' -N %d' %(self.proc)
 			wcdInvoc += ' -o wcd_'+estOutputFile+'.txt '+estOutputFile+'_fmt.fa'
@@ -271,62 +271,64 @@ class Pipeline:
 	
 	
 	
-	def getWcdResults(self, dirName, estOutputFile, jobID):
-		# Build dictionary from the output of the format script that ran earlier, linking EST indices to genes
-		indexDict = dict()
-	
-		dictFile = open(dirName+'/'+estOutputFile+'_dict.txt', 'r')
-		keys = dictFile.readline().strip().split(', ')
-		values = dictFile.readline().strip().split(', ')
-		dictFile.close()
-		for i in range (0, len(keys)):
-			indexDict[keys[i]] = values[i]
-		
+	def getWcdResults(self, dirName, estOutputFile, jobID):		
 		oFile = open(dirName+'/wcd_'+estOutputFile+'.txt', 'r')
 		# Analyze and print results
 		truePos = 0
 		trueNeg = 0
 		falsePos = 0
 		falseNeg = 0
-		estCount = 0
 		currentCluster = {}
-		geneTruePositives = {}
 		geneCounts = {}
-		eoc = False
+		geneTruePositives = {}
+		estCount = 0
 		
 		for line in oFile:
-			clu = line.split()
-			for idx in clu:
-				if idx[-1] == '.':
-					idx = idx[0:-1]
-					eoc = True
-				estCount+=1
-				gene = indexDict[idx]
-				val = currentCluster.get(gene, 0)
-				currentCluster[gene] = val+1
-				count = geneCounts.get(gene, 0)
-				geneCounts[gene] = count+1
-				if eoc:
-					# end of cluster, calculate true/false positives
-					iter = currentCluster.iteritems()
-					thisCluTruePos = 0
-					total = 0
-					while True:
-						try:
-							cur = iter.next()
-							oldVal = geneTruePositives.get(cur[0], 0)
-							newVal = ((cur[1])*(cur[1]-1))/2
-							geneTruePositives[cur[0]] = oldVal+newVal
-							thisCluTruePos+=newVal
-							total+=cur[1]
-						except StopIteration:
-							break
-					truePos+=thisCluTruePos
-					falsePos+=((total*(total-1))/2)-thisCluTruePos
-					currentCluster = {}
-					eoc = False
+			if line[0] == 'g':
+				# an EST
+				gTag = line.split('_')[0]
+				estCount += 1
+				val = currentCluster.get(gTag, 0)
+				currentCluster[gTag] = val+1
+				count = geneCounts.get(gTag, 0)
+				geneCounts[gTag] = count+1
+			elif line[0] == 'C':
+				# new cluster
+				# calc currentCluster, then reset
+				iter = currentCluster.iteritems()
+				thisCluTruePos = 0
+				total = 0
+				while True:
+					try:
+						cur = iter.next()
+						oldVal = geneTruePositives.get(cur[0], 0)
+						newVal = ((cur[1])*(cur[1]-1))/2
+						geneTruePositives[cur[0]] = oldVal+newVal
+						thisCluTruePos+=newVal
+						total+=cur[1]
+					except StopIteration:
+						break
+				truePos+=thisCluTruePos
+				falsePos+=((total*(total-1))/2)-thisCluTruePos
+				currentCluster = {}
 		oFile.close()
 		
+		# calc currentCluster for the final time
+		iter = currentCluster.iteritems()
+		thisCluTruePos = 0
+		total = 0
+		while True:
+			try:
+				cur = iter.next()
+				oldVal = geneTruePositives.get(cur[0], 0)
+				newVal = ((cur[1])*(cur[1]-1))/2
+				geneTruePositives[cur[0]] = oldVal+newVal
+				thisCluTruePos+=newVal
+				total+=cur[1]
+			except StopIteration:
+				break
+			truePos+=thisCluTruePos
+			falsePos+=((total*(total-1))/2)-thisCluTruePos
 		# calc false negatives
 		iter = geneCounts.iteritems()
 		while True:
@@ -335,12 +337,12 @@ class Pipeline:
 				falseNeg+=((cur[1]*(cur[1]-1))/2)-geneTruePositives.get(cur[0], 0)
 			except StopIteration:
 				break
-			
+				
 		# calc true negatives (using n choose 2 minus other counts)
 		trueNeg = ((estCount * (estCount-1))/2) - truePos - falsePos - falseNeg
 		
-		# calculate the time it took to run wcd
-		#runTime = os.stat(dirName+'/wcd_script.o'+jobID)[8] - startTime
+		# calculate the time it took to run peace - note, take this out and replace with "time" call
+		#runTime = os.stat(dirName+'/peace_script.o'+jobID)[8] - startTime
 
 		# calculate Younden index (form: (a/(a+b) + d/(c+d) - 1))
 		younden = -1.0
@@ -350,6 +352,7 @@ class Pipeline:
 			younden+=(trueNeg/(1.0*(falsePos+trueNeg)))
 
 		rand = (1.0*(truePos+trueNeg))/(1.0*(falsePos+falseNeg+truePos+trueNeg))
+	
 		
 		# Write analysis file to new directory
 		aFile = open(dirName+'/analysis.txt', 'a')
