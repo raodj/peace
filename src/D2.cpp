@@ -260,8 +260,8 @@ D2::runD2(const int otherEST) {
         }
     }
     // Now we have the minimum score to report.
-    printf("d2(%d, %d, %s) = %d\n", refESTidx, otherEST,
-           bestMatchIsRC ? "rc" : "norm", minScore);
+    //printf("d2(%d, %d, %s) = %d\n", refESTidx, otherEST,
+    //       bestMatchIsRC ? "rc" : "norm", minScore);
     return (float) minScore;
 }
 
