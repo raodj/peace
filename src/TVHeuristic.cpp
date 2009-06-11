@@ -118,13 +118,11 @@ TVHeuristic::runHeuristic(const int otherEST) {
     // Now apply tv-heuristic to see if this pair should be analyzed
     // further.
     int numMatches = 0;
+    // bitsToShift is set to 2*(v-1) in the base class.
+    ESTCodec::NormalEncoder<bitsToShift, BitMask> encoder;
     if (bestMatchIsRC) {
-        // bitsToShift is set to 2*(v-1) in the base class.
-        ESTCodec::RevCompEncoder<bitsToShift, BitMask> encoder;
         numMatches = countCommonWords(otherEST, encoder, s1RCWordMap);
     } else {
-        // bitsToShift is set to 2*(v-1) in the base class.
-        ESTCodec::NormalEncoder<bitsToShift, BitMask> encoder;
         numMatches = countCommonWords(otherEST, encoder, s1WordMap);
     }
     // Print intermediate stats to compare with wcd
