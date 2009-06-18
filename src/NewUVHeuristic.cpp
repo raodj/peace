@@ -232,7 +232,7 @@ NewUVHeuristic::runHeuristic(const int otherEST) {
             numMatches   += s1WordMap  [otherHash[word]];
             numRCmatches += s1RCWordMap[otherHash[word]];
         }
-        if (pass != 2) {
+        if (pass != passes-1) {
             register int numMatchesReq = factor*(pass+1);
             if ((numMatches < numMatchesReq) && (numRCmatches < numMatchesReq)) {
                 // Not enough matches, so break out immediately

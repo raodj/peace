@@ -210,11 +210,11 @@ TwoPassD2::runD2Asymmetric(const int otherEST, int* s1MinScoreIdx,
     if (chain != NULL) {
         HeuristicChain::getHeuristicChain()->getHint("D2_DoRC", bestMatchIsRC);
     }
-    if (bestMatchIsRC == 0) {
-        ESTCodec::NormalEncoder<bitShift, BitMask> encoder;
+    if (bestMatchIsRC) {
+        ESTCodec::RevCompEncoder<bitShift, BitMask> encoder;
         buildWordTable(s2WordTable, sq2, encoder);
     } else {
-        ESTCodec::RevCompEncoder<bitShift, BitMask> encoder;
+        ESTCodec::NormalEncoder<bitShift, BitMask> encoder;
         buildWordTable(s2WordTable, sq2, encoder);
     }
 

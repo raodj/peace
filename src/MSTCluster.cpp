@@ -141,7 +141,7 @@ MSTCluster::calculateThreshold(const NodeList& UNREFERENCED_PARAMETER(nodeList),
     // Compute the threshold based on percentile value provided.
     return mean + (stDev * percentile);*/
 
-    return 130;
+    return 40;
 }
 
 void
