@@ -32,7 +32,8 @@ class EST;
 class ResultLog;
 
 /** \brief EST Analyzer that uses the D2 algorithm in both its
-	symmetric and asymmetric variations to compute distances between two ESTs.
+	symmetric and asymmetric variations to compute distance between
+	two ESTs.
 
     <p>This analyzer provides the mechanism to use D2 algorithm to
     compute the distance values between a pair of ESTs. For improved
