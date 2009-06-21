@@ -99,7 +99,7 @@ main(int argc, char* argv[]) {
     // Values of the following variables are processed by the argument
     // parser further below.
     char emptyString[1]     = {'\0'};
-    char defAnalyzer[10]     = "twopassD2";
+    char defAnalyzer[10]    = "twopassD2";
     char defClusterMaker[4] = "mst";
     char defHeuristic[3]    = "tv";
     
@@ -110,18 +110,15 @@ main(int argc, char* argv[]) {
     bool showOptions   = false;
     int  refESTidx     = 0;
     bool interactive   = false;
-    bool noHeuristics  = false;
     
     // Create the list of valid arguments to be used by the arg_parser.
     arg_parser::arg_record arg_list[] = {
-        {"--clusterMaker", "Name of clustering algorithm to use",
+        {"--clusterMaker", "Name of clustering algorithm to use (null for none)",
          &clusterName, arg_parser::STRING},
         {"--analyzer", "Name of the EST analyzer to use",
          &analyzerName, arg_parser::STRING},
-        {"--heuristics", "Name(s) of the heuristic(s) to use, in order",
+        {"--heuristics", "Name(s) of the heuristic(s) to use, in order (null for none)",
          &heuristicStr, arg_parser::STRING},
-        {"--noHeuristics", "Disable the default heuristics",
-         &noHeuristics, arg_parser::BOOLEAN},
         {"--estIdx", "Index of reference EST in a EST file",
          &refESTidx, arg_parser::INTEGER},
         {"--output", "File to which output must be written",
@@ -152,19 +149,20 @@ main(int argc, char* argv[]) {
     ESTAnalyzer *analyzer =
         ESTAnalyzerFactory::create(analyzerName, refESTidx,
                                    std::string(outputFile));
-    // Create an cluster generating using clusterName;
+
+    // Check for null clustermaker input
+    if (!strcmp(clusterName, "null")) clusterName = NULL;
+    // Create an cluster generating using clusterName
     ClusterMaker *clusterMaker =
         ClusterMakerFactory::create(clusterName, analyzer,
                                     refESTidx, std::string(outputFile));
+
+    // Check for null heuristic chain input
+    if (!strcmp(heuristicStr, "null")) heuristicStr = NULL;
     // Create the heuristic chain using a helper method.
-    HeuristicChain *heuristicChain = NULL;
-    if (!noHeuristics) {
-        heuristicChain =
-            HeuristicChain::setupChain(heuristicStr, refESTidx, outputFile);
-    } else {
-        // Default heuristics have been disabled
-        heuristicStr = NULL;
-     }
+    HeuristicChain *heuristicChain =
+        HeuristicChain::setupChain(heuristicStr, refESTidx, outputFile);
+
     // Check if EST analyzer creation was successful.  A valid EST
     // analyzer is needed even to make clusters.
     if ((analyzer == NULL) || (showOptions) ||
