@@ -348,14 +348,18 @@ SimulationD2::analyze() {
             secondEST = random() % estCount;
             EST* est1 = EST::getEST(firstEST);
             EST* est2 = EST::getEST(secondEST);
-            char* first = strtok((char*) ((*est1).getInfo()), "_");
-            char* second = strtok((char*) ((*est2).getInfo()), "_");
+	    char* est1Info = (char*) est1->getInfo();
+	    char* est2Info = (char*) est2->getInfo();
+	    char* first = strtok(est1Info, "_");
+            char* second = strtok(est2Info, "_");
+
             if (strcmp(first, second) != 0) break;
         }
         setReferenceEST(firstEST);
         int d2score = (int) analyze(secondEST);
-        if (d2score <= 20) i--;
-        else printf("%d\n", d2score);
+//        if (d2score <= 20) i--;
+//        else printf("%d\n", d2score);
+	printf("%d\n", d2score);
     }
 
     return 0; // everything went well
