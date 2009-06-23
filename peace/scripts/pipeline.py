@@ -53,9 +53,7 @@ class Pipeline:
 	
 		if self.runningWcd:
 			dirName = 'wcd_'+estOutputFile
-			wcdInvoc = 'time mpiexec ./wcd -b'
-			if self.proc > 1:
-				wcdInvoc+=' -N %d' %(self.proc)
+			wcdInvoc = 'time mpiexec ./wcd -b -s'
 			wcdInvoc += ' -o wcd_'+estOutputFile+'.txt '+estOutputFile+'_fmt.fa'
 	
 		# directory in which to store output and intermediate files
@@ -397,7 +395,6 @@ class Pipeline:
 	
 		if loadModules:
 			sFile.write('module load java\n')
-			sFile.write('module load python\n')
 		if self.runningPeace:
 			sFile.write('export VIADEV_DEFAULT_RETRY_COUNT=7\n')
 			sFile.write('export VIADEV_DEFAULT_TIME_OUT=21\n')
