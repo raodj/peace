@@ -599,11 +599,6 @@ MSTClusterMaker::makeClusters() {
             totalSuccesses = tvSuccesses;
             MPI::COMM_WORLD.Reduce(&tvSuccesses, &totalSuccesses, 1,
                                    MPI::INT, MPI::SUM, MANAGER_RANK);
-            // (The above code has both worked and not worked at times.
-            // I replaced it with the code below (doing send/receive
-            // in place of collective communication) which also has
-            // both worked and not worked at times.  I assume something
-            // strange is going on with redhawk.)
 
             // Get each worker's number of successes and add them
             /*if (MPI::COMM_WORLD.Get_rank() == MANAGER_RANK) {
