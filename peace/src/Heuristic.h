@@ -171,6 +171,14 @@ public:
         regarding the heuristic is to be dumped.
     */
     virtual void printStats(std::ostream& os) const;
+
+    inline int getRunCount() {
+      return runCount;
+    }
+
+    inline int getSuccessCount() {
+      return successCount;
+    }
     
 protected:
     /** The default constructor.

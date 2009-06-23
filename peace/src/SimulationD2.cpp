@@ -338,7 +338,7 @@ SimulationD2::analyze() {
     srandom(seed);
     printf("#Seed: %d\n", seed);
     int estCount = EST::getESTCount();
-
+        
     for (int i = 0; i < numComparisons; i++) {
         int firstEST, secondEST;
         while (true) {
@@ -347,18 +347,24 @@ SimulationD2::analyze() {
             firstEST = random() % estCount;
             secondEST = random() % estCount;
             EST* est1 = EST::getEST(firstEST);
-            EST* est2 = EST::getEST(secondEST);
+            EST* est2 = EST::getEST(secondEST);        
 	    char* est1Info = (char*) est1->getInfo();
 	    char* est2Info = (char*) est2->getInfo();
-	    char* first = strtok(est1Info, "_");
-            char* second = strtok(est2Info, "_");
-
-            if (strcmp(first, second) != 0) break;
+            // for comparing chlamy ESTs from different genes
+            //const char* searchChar = "_";
+            //char* loc1 = strpbrk(est1Info, searchChar);
+            //char* loc2 = strpbrk(est2Info, searchChar);
+            char* gene1 = new char[9];
+            char* gene2 = new char[9];
+            strncpy(gene1, est1Info, 8);
+            gene1[8] = '\0';
+            strncpy(gene2, est2Info, 8);
+            gene2[8] = '\0';
+                        
+            if (strcmp(gene1, gene2)) break;
         }
         setReferenceEST(firstEST);
         int d2score = (int) analyze(secondEST);
-//        if (d2score <= 20) i--;
-//        else printf("%d\n", d2score);
 	printf("%d\n", d2score);
     }
 
