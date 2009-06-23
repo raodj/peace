@@ -29,6 +29,8 @@
 #include "MSTHeapCache.h"
 #include "EST.h"
 #include "MPIStats.h"
+#include "HeuristicChain.h"
+#include "Heuristic.h"
 #include <fstream>
 #include <sstream>
 
@@ -552,6 +554,8 @@ MSTClusterMaker::makeClusters() {
         // Error occured during initialization. Bail out.
         return result;
     }
+    
+    int totalSuccesses = 0;
 
     if (inputMSTFile == NULL) {
         // No input MST file supplied.  That means the MST must be
@@ -584,6 +588,38 @@ MSTClusterMaker::makeClusters() {
             // worker
             result = worker();
         }
+        // In order to build clusters using the new threshold computation
+        // method, we need to collate some statistics from all processes.
+        Heuristic* tv = (HeuristicChain::getHeuristicChain())
+            ->getHeuristic("tv");
+        if (tv != NULL) {
+            // We are good to go for summing the statistics
+            int tvSuccesses = tv->getSuccessCount();
+            // Add the manager's successes first
+            totalSuccesses = tvSuccesses;
+            MPI::COMM_WORLD.Reduce(&tvSuccesses, &totalSuccesses, 1,
+                                   MPI::INT, MPI::SUM, MANAGER_RANK);
+            // (The above code has both worked and not worked at times.
+            // I replaced it with the code below (doing send/receive
+            // in place of collective communication) which also has
+            // both worked and not worked at times.  I assume something
+            // strange is going on with redhawk.)
+
+            // Get each worker's number of successes and add them
+            /*if (MPI::COMM_WORLD.Get_rank() == MANAGER_RANK) {
+                for (int i = 1; i < MPI::COMM_WORLD.Get_size(); i++) {
+                    MPI_RECV(&tvSuccesses, 1, MPI::INT, MPI_ANY_SOURCE,
+                             COMPUTE_TOTAL_ANALYSIS_COUNT);
+                    totalSuccesses+=tvSuccesses;
+                    //printf("%d\n", i);
+                }
+            } else {
+                // Workers send
+                MPI_SEND(&tvSuccesses, 1, MPI_INT, MANAGER_RANK,
+                         COMPUTE_TOTAL_ANALYSIS_COUNT);
+            }*/
+        }
+    
         // Display statistics by writing all the data to a string
         // stream and then flushing the stream.  This tries to working
         // around (it is not perfect solution) interspersed data from
@@ -599,6 +635,7 @@ MSTClusterMaker::makeClusters() {
         mst = MST::deSerialize(inputMSTFile);
     }
 
+
     if ((result != NO_ERROR) || (mst == NULL)) {
         // Some error occured.  Can't proceed further.
         return result;
@@ -611,9 +648,9 @@ MSTClusterMaker::makeClusters() {
     }
     // Do clustering if so desired.
     if (!dontCluster) {
-        // Now get the helper to build the clusters.
         MSTCluster root;
-        root.makeClusters(mst->getNodes(), percentile);
+        root.makeClusters(mst->getNodes(), percentile, totalSuccesses);
+                    
         // Redirect cluster output to outputFile as needed.
         std::ofstream outFile;
         if (!outputFileName.empty()) {
