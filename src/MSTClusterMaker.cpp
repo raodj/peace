@@ -597,11 +597,11 @@ MSTClusterMaker::makeClusters() {
             int tvSuccesses = tv->getSuccessCount();
             // Add the manager's successes first
             totalSuccesses = tvSuccesses;
-            MPI::COMM_WORLD.Reduce(&tvSuccesses, &totalSuccesses, 1,
-                                   MPI::INT, MPI::SUM, MANAGER_RANK);
+            //MPI::COMM_WORLD.Reduce(&tvSuccesses, &totalSuccesses, 1,
+            //                       MPI::INT, MPI::SUM, MANAGER_RANK);
 
             // Get each worker's number of successes and add them
-            /*if (MPI::COMM_WORLD.Get_rank() == MANAGER_RANK) {
+            if (MPI::COMM_WORLD.Get_rank() == MANAGER_RANK) {
                 for (int i = 1; i < MPI::COMM_WORLD.Get_size(); i++) {
                     MPI_RECV(&tvSuccesses, 1, MPI::INT, MPI_ANY_SOURCE,
                              COMPUTE_TOTAL_ANALYSIS_COUNT);
@@ -612,7 +612,7 @@ MSTClusterMaker::makeClusters() {
                 // Workers send
                 MPI_SEND(&tvSuccesses, 1, MPI_INT, MANAGER_RANK,
                          COMPUTE_TOTAL_ANALYSIS_COUNT);
-            }*/
+            }
         }
     
         // Display statistics by writing all the data to a string
