@@ -163,7 +163,7 @@ MSTCluster::calculateThreshold(const NodeList& nodeList,
         double ratio = ((double) analysisCount) / ((double) totalCmps);
         int threshold = (.08/ratio); // magic number, worked for current data
         // Put some hard limits on the threshold
-        if (threshold < 30) threshold = 30;
+        if (threshold < 40) threshold = 40;
         if (threshold > 130) threshold = 130;
         printf("Threshold: %d\n", threshold);
         return threshold;
