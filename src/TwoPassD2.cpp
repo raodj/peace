@@ -241,15 +241,16 @@ TwoPassD2::runD2Asymmetric(const int otherEST, int* s1MinScoreIdx,
 
     // Precompute iteration bounds for the for-loops below to
     // hopefully save on compuation.
-    const int LastWordInSq1  = (sq1End - wordSize + 1) - numWordsInWindow;
-    const int LastWordInSq2  = (sq2End - wordSize + 1) - numWordsInWindow;
-    const int FirstWordInSq2 = sq2Start + numWordsInWindow - 1;
+    const int LastWindowInSq1  = (sq1End - wordSize + 1) - numWordsInWindow;
+    const int LastWindowInSq2  = (sq2End - wordSize + 1) - numWordsInWindow;
+    const int FirstWindowInSq2 = sq2Start + numWordsInWindow - 1;
     // Variable to track the minimum d2 distance observed.
     register int minScore   = score;
-    for(int s1Win = sq1Start; (s1Win < LastWordInSq1); s1Win += frameShift*2) {
+    for(int s1Win = sq1Start; (s1Win < LastWindowInSq1);
+        s1Win += frameShift*2) {
         // Check each window in EST #2 against current window in EST
         // #1 by sliding EST #2 window to right
-        for(int s2Win = sq2Start; (s2Win < LastWordInSq2); s2Win++) {
+        for(int s2Win = sq2Start; (s2Win < LastWindowInSq2); s2Win++) {
             // The word at s2Win + numWordsInWindow is moving in while
             // the word at s2Win is moving out as we move window
             // associated with EST #2 from left-to-right.
@@ -262,11 +263,11 @@ TwoPassD2::runD2Asymmetric(const int otherEST, int* s1MinScoreIdx,
         // is moving out as we move from left-to-right in EST #1.
         // For asymmetric D2, we shift s1 more than one word at a time
         int i;
-        for (i = 0; (i < frameShift && s1Win+i < LastWordInSq1); i++) {
+        for (i = 0; (i < frameShift && s1Win+i < LastWindowInSq1); i++) {
             updateWindowAsym(s1WordTable[s1Win + i], 
                              s1WordTable[s1Win + i + numWordsInWindow],
                              score, minScore, 
-                             s1Win+i+1, LastWordInSq2,
+                             s1Win+i+1, LastWindowInSq2,
                              s1MinScoreIdx, s2MinScoreIdx);
         }
         // Break out of this loop if we have found a a potential match
@@ -276,7 +277,7 @@ TwoPassD2::runD2Asymmetric(const int otherEST, int* s1MinScoreIdx,
         
         // Check every window in EST #2 against current window in EST
         // #1 by sliding EST #2 window to left.
-        for(int s2Win = sq2End - wordSize; (s2Win > FirstWordInSq2);
+        for(int s2Win = sq2End - wordSize; (s2Win > FirstWindowInSq2);
             s2Win--) {
             // The word at s2Win - numWordsInWindow is moving in while
             // the word at s2Win is moving out as we move window
@@ -291,7 +292,8 @@ TwoPassD2::runD2Asymmetric(const int otherEST, int* s1MinScoreIdx,
         // s1Win + 1 is moving out as we move from left-to-right in
         // EST #1.
         // For asymmetric D2, we shift s1 more than one word at a time
-        for (i = frameShift; (i < frameShift*2 && s1Win+i < LastWordInSq1); i++) {
+        for (i = frameShift; (i < frameShift*2 && s1Win+i < LastWindowInSq1);
+             i++) {
             updateWindowAsym(s1WordTable[s1Win + i],
                              s1WordTable[s1Win + i + numWordsInWindow],
                              score, minScore, 
@@ -347,17 +349,17 @@ TwoPassD2::runD2Bounded(const int otherEST, int sq1Start, int sq1End,
     }
     // Precompute iteration bounds for the for-loops below to
     // hopefully save on compuation.
-    const int LastWordInSq1  = (sq1End - wordSize + 1) - numWordsInWindow;
-    const int LastWordInSq2  = (sq2End - wordSize + 1) - numWordsInWindow;
-    const int FirstWordInSq2 = sq2Start + numWordsInWindow - 1;
-    //printf("%d %d %d\n", LastWordInSq1, FirstWordInSq2, LastWordInSq2);
+    const int LastWindowInSq1  = (sq1End - wordSize + 1) - numWordsInWindow;
+    const int LastWindowInSq2  = (sq2End - wordSize + 1) - numWordsInWindow;
+    const int FirstWindowInSq2 = sq2Start + numWordsInWindow - 1;
+    //printf("%d %d %d\n", LastWindowInSq1, FirstWindowInSq2, LastWindowInSq2);
 	
     // Variable to track the minimum d2 distance observed.
     register int minScore   = score;
-    for(int s1Win = sq1Start; (s1Win < LastWordInSq1); s1Win += 2) {
+    for(int s1Win = sq1Start; (s1Win < LastWindowInSq1); s1Win += 2) {
         // Check each window in EST #2 against current window in EST
         // #1 by sliding EST #2 window to right
-        for(int s2Win = sq2Start; (s2Win < LastWordInSq2); s2Win++) {
+        for(int s2Win = sq2Start; (s2Win < LastWindowInSq2); s2Win++) {
             // The word at s2Win + numWordsInWindow is moving in while
             // the word at s2Win is moving out as we move window
             // associated with EST #2 from left-to-right.
@@ -377,13 +379,16 @@ TwoPassD2::runD2Bounded(const int otherEST, int sq1Start, int sq1End,
         
         // Check every window in EST #2 against current window in EST
         // #1 by sliding EST #2 window to left.
-        for(int s2Win = sq2End - wordSize; (s2Win > FirstWordInSq2);
+        for(int s2Win = sq2End - wordSize; (s2Win > FirstWindowInSq2);
             s2Win--) {
             // The word at s2Win - numWordsInWindow is moving in while
             // the word at s2Win is moving out as we move window
             // associated with EST #2 from right-to-left.
             updateWindow(s2WordTable[s2Win - numWordsInWindow],
                          s2WordTable[s2Win], score, minScore);
+        }
+        if ((s1Win+1) == LastWindowInSq1) {
+            break;
         }
         // Move onto the next window in EST #1.  In this window at
         // (s1Win + numWordsWin + 1) is moving in, while window at
