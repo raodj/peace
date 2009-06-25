@@ -276,19 +276,19 @@ protected:
         this EST that must be converted to hash values.
     */
     template <typename Encoder>
-    void buildWordTable(int* wordTable, const char* estSeq, Encoder encoder) {
-        // Compute the has for the first word using the encoder. The
-        // encoder may do normal or reverse-complement encoding for us.
-        register int hash = 0;
-        for(register int i = 0; ((*estSeq != 0) && (i < wordSize - 1));
-	    i++, estSeq++) {
-            hash = encoder(hash, *estSeq);
-        }
-        // Now compute the hash for each word
-        for(int entry = 0; (*estSeq != 0); entry++, estSeq++) {
-            hash = encoder(hash, *estSeq);
-            wordTable[entry] = hash;
-        }
+      void buildWordTable(int* wordTable, const char* estSeq,Encoder encoder) {
+      // Compute the has for the first word using the encoder. The
+      // encoder may do normal or reverse-complement encoding for us.
+      register int hash = 0;
+      for(register int i = 0; ((*estSeq != 0) && (i < wordSize - 1));
+	  i++, estSeq++) {
+	hash = encoder(hash, *estSeq);
+      }
+      // Now compute the hash for each word
+      for(int entry = 0; (*estSeq != 0); entry++, estSeq++) {
+	hash = encoder(hash, *estSeq);
+	wordTable[entry] = hash;
+      }
     }
 
     /** Instance variable that maps an index in the reference sequence
@@ -370,18 +370,18 @@ protected:
     */
     static int threshold;
 	
-	/** The threshold score above which two ESTs are considered
-		sufficiently dissimilar that a more accurate symmetric
-		D2 pass would still not cluster the ESTs.
+    /** The threshold score above which two ESTs are considered
+	sufficiently dissimilar that a more accurate symmetric
+	D2 pass would still not cluster the ESTs.
 		
-		This instance variable tracks the threshold value to be used
-		to call the runD2Bounded method.  If the calculated D2 score
-		from the runD2Asymmetric method is above this threshold,
-		bounded D2 will not be run.  Currently, the default value is
-		130.  This value can be overridden by the user with the
-		"--maxThreshold" command line argument.
-	*/
-	static int maxThreshold;
+	This instance variable tracks the threshold value to be used
+	to call the runD2Bounded method.  If the calculated D2 score
+	from the runD2Asymmetric method is above this threshold,
+	bounded D2 will not be run.  Currently, the default value is
+	130.  This value can be overridden by the user with the
+	"--maxThreshold" command line argument.
+    */
+    static int maxThreshold;
     
 private:
     /** The set of arguments specific to the D2 algorithm
@@ -451,80 +451,81 @@ private:
     */
     int numWordsInWindow;
 
-	/** Helper method to update the delta table as well as the
-		minimum score (if it has changed) when the window is shifted.
+    /** Helper method to update the delta table as well as the
+	minimum score (if it has changed) when the window is shifted.
 		
-		For d2 asymmetric, the updateWindow method also has to keep
-		track of the location on each sequence where the minimum
-		score was found, which is the function of the variables
-		s1MinScoreIdx and s2MinScoreIdx.  The variables s1CurWindowIdx
-		and s2CurWindowIdx mark the start of the current window on each 
-		sequence.  All of these variables are numbers, corresponding to
-		indices of the word tables.
+	For d2 asymmetric, the updateWindow method also has to keep
+	track of the location on each sequence where the minimum
+	score was found, which is the function of the variables
+	s1MinScoreIdx and s2MinScoreIdx.  The variables s1CurWindowIdx
+	and s2CurWindowIdx mark the start of the current window on each 
+	sequence.  All of these variables are numbers, corresponding to
+	indices of the word tables.
     */
     inline void updateWindowAsym(const int wordIn, const int wordOut,
-                             int& score, int& minScore,
-							const int s1CurWindowIdx, const int s2CurWindowIdx,
-							int* s1MinScoreIdx, int* s2MinScoreIdx) {
-        // Update score and delta for word moving in
-        score -= (delta[wordIn] << 1) - 1;
-        delta[wordIn]--;
-        // Update score and delta for word moving out
-        score += (delta[wordOut] << 1) + 1;
-        delta[wordOut]++;
-        // Track the minimum score.
-        if (score < minScore) {
-            minScore = score;
-			// Update the indices for the new min score
-			*s1MinScoreIdx = s1CurWindowIdx;
-			*s2MinScoreIdx = s2CurWindowIdx;
-        }
+				 int& score, int& minScore,
+				 const int s1CurWindowIdx,
+				 const int s2CurWindowIdx,
+				 int* s1MinScoreIdx, int* s2MinScoreIdx) {
+      // Update score and delta for word moving in
+      score -= (delta[wordIn] << 1) - 1;
+      delta[wordIn]--;
+      // Update score and delta for word moving out
+      score += (delta[wordOut] << 1) + 1;
+      delta[wordOut]++;
+      // Track the minimum score.
+      if (score < minScore) {
+	minScore = score;
+	// Update the indices for the new min score
+	*s1MinScoreIdx = s1CurWindowIdx;
+	*s2MinScoreIdx = s2CurWindowIdx;
+      }
     }
-
-	/** Helper method to update the delta table as well as the
-		minimum score (if it has changed) when the window is shifted.
-		This method is identical to the updateWindow method found in
-		D2.h (Peace's base D2 implementation).
+    
+    /** Helper method to update the delta table as well as the
+	minimum score (if it has changed) when the window is shifted.
+	This method is identical to the updateWindow method found in
+	D2.h (Peace's base D2 implementation).
     */
     inline void updateWindow(const int wordIn, const int wordOut,
                              int& score, int& minScore) {
-        // Update score and delta for word moving in
-        score -= (delta[wordIn] << 1) - 1;
-        delta[wordIn]--;
-        // Update score and delta for word moving out
-        score += (delta[wordOut] << 1) + 1;
-        delta[wordOut]++;
-        // Track the minimum score.
-        if (score < minScore) {
-            minScore = score;
-        }
+      // Update score and delta for word moving in
+      score -= (delta[wordIn] << 1) - 1;
+      delta[wordIn]--;
+      // Update score and delta for word moving out
+      score += (delta[wordOut] << 1) + 1;
+      delta[wordOut]++;
+      // Track the minimum score.
+      if (score < minScore) {
+	minScore = score;
+      }
     }
 
-	/** Method to run the D2 algorithm, asymmetric version.
-		This method runs D2 asymmetric on the two EST sequences
-		and finds the minimum D2 score.  Since this is D2 asymmetric,
-		the score is not guaranteed to be the true minimum.  Thus,
-		this method also finds the indices of the windows on each
-		sequence where the minimum D2 score was found.  The analyzer
-		will use these to compute appropriate bounds for the bounded
-		symmetric D2 function.
-	*/
+    /** Method to run the D2 algorithm, asymmetric version.
+	This method runs D2 asymmetric on the two EST sequences
+	and finds the minimum D2 score.  Since this is D2 asymmetric,
+	the score is not guaranteed to be the true minimum.  Thus,
+	this method also finds the indices of the windows on each
+	sequence where the minimum D2 score was found.  The analyzer
+	will use these to compute appropriate bounds for the bounded
+	symmetric D2 function.
+    */
     float runD2Asymmetric(const int otherEST, int* s1MinScoreIdx,
-						int* s2MinScoreIdx); 	
+			  int* s2MinScoreIdx); 	
 
-	/** Method to run the D2 algorithm, symmetric version.
-		This method is essentially identical to the runD2 method
-		in the D2.cpp class (Peace's base D2 implementation) with
-		the exception that this method places bounds on each sequence.
-		It will not search beyond these bounds.  This saves a great
-		deal of computation time (though the asymptotic runtime
-		is unchanged) by avoiding unnecessary computations and only
-		searching in the area where the best match might be found.
-	*/
+    /** Method to run the D2 algorithm, symmetric version.
+	This method is essentially identical to the runD2 method
+	in the D2.cpp class (Peace's base D2 implementation) with
+	the exception that this method places bounds on each sequence.
+	It will not search beyond these bounds.  This saves a great
+	deal of computation time (though the asymptotic runtime
+	is unchanged) by avoiding unnecessary computations and only
+	searching in the area where the best match might be found.
+    */
     float runD2Bounded(const int otherEST, int s1Lower, int s1Upper, 
-					int s2Lower, int s2Upper);
+		       int s2Lower, int s2Upper);
 
-        /** The hint key that is used to add hint for normal or
+    /** The hint key that is used to add hint for normal or
 	reverse-complement D2 computation.
 
 	This hint key is used to set a hint in the \c hints hash
