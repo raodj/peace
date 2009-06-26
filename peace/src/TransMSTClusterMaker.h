@@ -253,6 +253,8 @@ protected:
     */
     void pruneMetricEntries(const SMList& list, SMList& entries,
 			    const float badMetric);
+
+    void processMetricList(SMList& remoteList);
     
 private:
     /** An hash map that acts as the cache to hold known metrics.
