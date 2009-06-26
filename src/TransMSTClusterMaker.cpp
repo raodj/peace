@@ -170,7 +170,14 @@ TransMSTClusterMaker::populateCache(const int estIdx,
                 MPI_SEND(data, MsgSize, MPI_CHAR, rank, TRANSITIVITY_LIST);
             }
         }
-        // The owner process will not receive from itself
+        if ((goodEntries.size() == 1) && (goodEntries[0].estIdx == -1)) {
+            // This is just an empty list. So don't process it.
+            return;
+        }
+        processMetricList(goodEntries);
+        // Finally, prune entries from our cache for the est that was
+        // added in this method.
+        metricCache.erase(estIdx);
         return;
     }
 
@@ -194,6 +201,14 @@ TransMSTClusterMaker::populateCache(const int estIdx,
         // This is just an empty list. So don't process it.
         return;
     }
+    processMetricList(remoteList);
+    // Finally, prune entries from our cache for the est that was
+    // added in this method.
+    metricCache.erase(estIdx);
+}
+
+void
+TransMSTClusterMaker::processMetricList(SMList& remoteList) {
     // Now process the list of metrics we just received and build
     // caches for rapidly computing transitivity information. First
     // determine the set of ESTs this process owns
@@ -205,9 +220,6 @@ TransMSTClusterMaker::populateCache(const int estIdx,
         entry.estIdx           = remoteList[i].estIdx;
         entry.addEntries(remoteList[i], remoteList, startESTidx, endESTidx);
     }
-    // Finally, prune entries from our cache for the est that was
-    // added in this method.
-    metricCache.erase(estIdx);
 }
 
 #endif
