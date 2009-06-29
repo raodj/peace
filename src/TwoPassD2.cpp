@@ -182,15 +182,6 @@ TwoPassD2::analyze(const int otherEST) {
                                     s1Index+boundDist+frameSize, 
                                     s2Index-boundDist, 
                                     s2Index+boundDist+frameSize);
-        /*if (dist2 > distance) {
-          printf("%f %f\n", distance, dist2);
-          dist2 = (float) runD2Bounded(otherEST, s1Index-boundDist, 
-          s1Index+boundDist+frameSize, 
-          s2Index-boundDist, 
-          s2Index+boundDist+frameSize, true);
-          }
-          return dist2;*/
-
     }
 }
 
@@ -307,8 +298,6 @@ TwoPassD2::runD2Asymmetric(const int otherEST, int* s1MinScoreIdx,
         }
     }
     // Now we have the minimum score to report.
-    //printf("d2(%d, %d, %s) = %d\n", refESTidx, otherEST,
-    //       bestMatchIsRC ? "rc" : "norm", minScore);
     return (float) minScore;
 }
 
@@ -324,16 +313,12 @@ TwoPassD2::runD2Bounded(const int otherEST, int sq1Start, int sq1End,
     const char* sq2    = estS2->getSequence();
     const int   sq2Len = strlen(sq2);
     
-    //printf("%d %d %d %d\n", sq1Start, sq1End, sq2Start, sq2End);
-	
     // sanity checks on bounds (invalid bounds may be passed in)
     if (sq1Start < 0) sq1Start = 0;
     if (sq2Start < 0) sq2Start = 0;
     if (sq1End > sq1Len) sq1End = sq1Len;
     if (sq2End > sq2Len) sq2End = sq2Len;
 	
-    //printf("%d %d %d %d\n", sq1Start, sq1End, sq2Start, sq2End);
-
     // Initialize the delta tables.
     memset(delta, 0, sizeof(int) * (1 << (wordSize * 2)));
     register int score = 0;
@@ -353,8 +338,7 @@ TwoPassD2::runD2Bounded(const int otherEST, int sq1Start, int sq1End,
     const int LastWindowInSq1  = (sq1End - wordSize + 1) - numWordsInWindow;
     const int LastWindowInSq2  = (sq2End - wordSize + 1) - numWordsInWindow;
     const int FirstWindowInSq2 = sq2Start + numWordsInWindow - 1;
-    //printf("%d %d %d\n", LastWindowInSq1, FirstWindowInSq2, LastWindowInSq2);
-	
+
     // Variable to track the minimum d2 distance observed.
     register int minScore   = score;
     alignmentMetric = sq1Start - sq2Start;
@@ -383,8 +367,7 @@ TwoPassD2::runD2Bounded(const int otherEST, int sq1Start, int sq1End,
         
         // Check every window in EST #2 against current window in EST
         // #1 by sliding EST #2 window to left.
-        for(s2Win = sq2End - wordSize; (s2Win > FirstWindowInSq2);
-            s2Win--) {
+        for(s2Win = sq2End - wordSize; (s2Win > FirstWindowInSq2); s2Win--) {
             // The word at s2Win - numWordsInWindow is moving in while
             // the word at s2Win is moving out as we move window
             // associated with EST #2 from right-to-left.
@@ -408,7 +391,6 @@ TwoPassD2::runD2Bounded(const int otherEST, int sq1Start, int sq1End,
         }
     }
     // Now we have the minimum score to report.
-    // printf("d2(%d, %d) = %d\n", refESTidx, otherEST, minScore);
     return (float) minScore;
 }
 
