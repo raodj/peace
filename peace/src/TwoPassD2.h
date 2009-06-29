@@ -488,7 +488,8 @@ private:
 	D2.h (Peace's base D2 implementation).
     */
     inline void updateWindow(const int wordIn, const int wordOut,
-                             int& score, int& minScore) {
+                             int& score, int& minScore,
+			     const int windowDistance) {
       // Update score and delta for word moving in
       score -= (delta[wordIn] << 1) - 1;
       delta[wordIn]--;
@@ -498,6 +499,7 @@ private:
       // Track the minimum score.
       if (score < minScore) {
 	minScore = score;
+	alignmentMetric = windowDistance;
       }
     }
 
@@ -522,8 +524,8 @@ private:
 	is unchanged) by avoiding unnecessary computations and only
 	searching in the area where the best match might be found.
     */
-    float runD2Bounded(const int otherEST, int s1Lower, int s1Upper, 
-		       int s2Lower, int s2Upper);
+    float runD2Bounded(const int otherEST, int sq1Start, int sq1End, 
+		       int sq2Start, int sq2End);
 
     /** The hint key that is used to add hint for normal or
 	reverse-complement D2 computation.

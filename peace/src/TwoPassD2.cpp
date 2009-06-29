@@ -167,9 +167,10 @@ TwoPassD2::analyze(const int otherEST) {
         return 4.0f * frameSize;
     }
 
-    // OK. Run the asymmetric D2 algorithm
     int s1Index = 0;
     int s2Index = 0;
+    
+    // OK. Run the asymmetric D2 algorithm
     float distance = (float) runD2Asymmetric(otherEST, &s1Index, &s2Index);
     if (distance > maxThreshold) {
         return distance;
@@ -189,18 +190,19 @@ TwoPassD2::analyze(const int otherEST) {
           s2Index+boundDist+frameSize, true);
           }
           return dist2;*/
+
     }
 }
 
 float
 TwoPassD2::runD2Asymmetric(const int otherEST, int* s1MinScoreIdx, 
-                           int* s2MinScoreIdx) {
+                           int* s2MinScoreIdx) {    
     // Get basic information about the reference EST
-    const EST *estS1   = EST::getEST(refESTidx);
+    const EST * estS1  = EST::getEST(refESTidx);
     const char* sq1    = estS1->getSequence();
     const int   sq1Len = strlen(sq1);
     // Get basic information about the otherEST EST
-    const EST *estS2   = EST::getEST(otherEST);
+    const EST * estS2  = EST::getEST(otherEST);
     const char* sq2    = estS2->getSequence();
     const int   sq2Len = strlen(sq2);
     
@@ -246,11 +248,11 @@ TwoPassD2::runD2Asymmetric(const int otherEST, int* s1MinScoreIdx,
     const int FirstWindowInSq2 = sq2Start + numWordsInWindow - 1;
     // Variable to track the minimum d2 distance observed.
     register int minScore   = score;
-    for(int s1Win = sq1Start; (s1Win < LastWindowInSq1);
-        s1Win += frameShift*2) {
+    int s1Win, s2Win, i;
+    for(s1Win = sq1Start; (s1Win < LastWindowInSq1); s1Win += frameShift*2) {
         // Check each window in EST #2 against current window in EST
         // #1 by sliding EST #2 window to right
-        for(int s2Win = sq2Start; (s2Win < LastWindowInSq2); s2Win++) {
+        for(s2Win = sq2Start; (s2Win < LastWindowInSq2); s2Win++) {
             // The word at s2Win + numWordsInWindow is moving in while
             // the word at s2Win is moving out as we move window
             // associated with EST #2 from left-to-right.
@@ -262,7 +264,6 @@ TwoPassD2::runD2Asymmetric(const int otherEST, int* s1MinScoreIdx,
         // (s1Win + numWordsWin) is moving in, while window at s1Win
         // is moving out as we move from left-to-right in EST #1.
         // For asymmetric D2, we shift s1 more than one word at a time
-        int i;
         for (i = 0; (i < frameShift && s1Win+i < LastWindowInSq1); i++) {
             updateWindowAsym(s1WordTable[s1Win + i], 
                              s1WordTable[s1Win + i + numWordsInWindow],
@@ -270,14 +271,14 @@ TwoPassD2::runD2Asymmetric(const int otherEST, int* s1MinScoreIdx,
                              s1Win+i+1, LastWindowInSq2,
                              s1MinScoreIdx, s2MinScoreIdx);
         }
-        // Break out of this loop if we have found a a potential match
+        // Break out of this loop if we have found a potential match
         if (minScore <= threshold) {
             break;
 	}
         
         // Check every window in EST #2 against current window in EST
         // #1 by sliding EST #2 window to left.
-        for(int s2Win = sq2End - wordSize; (s2Win > FirstWindowInSq2);
+        for(s2Win = sq2End - wordSize; (s2Win > FirstWindowInSq2);
             s2Win--) {
             // The word at s2Win - numWordsInWindow is moving in while
             // the word at s2Win is moving out as we move window
@@ -300,7 +301,7 @@ TwoPassD2::runD2Asymmetric(const int otherEST, int* s1MinScoreIdx,
                              s1Win+i+1, 0, 
                              s1MinScoreIdx, s2MinScoreIdx);
         }
-        // Break out of this loop if we have found a a potential match
+        // Break out of this loop if we have found a potential match
         if (minScore <= threshold) {
             break;
         }
@@ -315,23 +316,23 @@ float
 TwoPassD2::runD2Bounded(const int otherEST, int sq1Start, int sq1End, 
                         int sq2Start, int sq2End) {
     // Get basic information about the reference EST
-    const EST *estS1   = EST::getEST(refESTidx);
+    const EST * estS1  = EST::getEST(refESTidx);
     const char* sq1    = estS1->getSequence();
     const int   sq1Len = strlen(sq1);
     // Get basic information about the otherEST EST
-    const EST *estS2   = EST::getEST(otherEST);
+    const EST * estS2  = EST::getEST(otherEST);
     const char* sq2    = estS2->getSequence();
     const int   sq2Len = strlen(sq2);
+    
     //printf("%d %d %d %d\n", sq1Start, sq1End, sq2Start, sq2End);
 	
-    // sanity checks, since it is possible to pass in bounds beyond the sequence
+    // sanity checks on bounds (invalid bounds may be passed in)
     if (sq1Start < 0) sq1Start = 0;
     if (sq2Start < 0) sq2Start = 0;
     if (sq1End > sq1Len) sq1End = sq1Len;
     if (sq2End > sq2Len) sq2End = sq2Len;
 	
     //printf("%d %d %d %d\n", sq1Start, sq1End, sq2Start, sq2End);
-    // word table was already built
 
     // Initialize the delta tables.
     memset(delta, 0, sizeof(int) * (1 << (wordSize * 2)));
@@ -356,36 +357,40 @@ TwoPassD2::runD2Bounded(const int otherEST, int sq1Start, int sq1End,
 	
     // Variable to track the minimum d2 distance observed.
     register int minScore   = score;
-    for(int s1Win = sq1Start; (s1Win < LastWindowInSq1); s1Win += 2) {
+    alignmentMetric = sq1Start - sq2Start;
+    int s1Win, s2Win;
+    for(s1Win = sq1Start; (s1Win < LastWindowInSq1); s1Win += 2) {
         // Check each window in EST #2 against current window in EST
         // #1 by sliding EST #2 window to right
-        for(int s2Win = sq2Start; (s2Win < LastWindowInSq2); s2Win++) {
+        for(s2Win = sq2Start; (s2Win < LastWindowInSq2); s2Win++) {
             // The word at s2Win + numWordsInWindow is moving in while
             // the word at s2Win is moving out as we move window
             // associated with EST #2 from left-to-right.
             updateWindow(s2WordTable[s2Win + numWordsInWindow],
-                         s2WordTable[s2Win], score, minScore);
+                         s2WordTable[s2Win], score, minScore,
+                         s1Win-s2Win-1);
         }
         // Move onto the next window in EST #1.  In this window at
         // (s1Win + numWordsWin) is moving in, while window at s1Win
         // is moving out as we move from left-to-right in EST #1.
         updateWindow(s1WordTable[s1Win], 
                      s1WordTable[s1Win + numWordsInWindow],
-                     score, minScore);
-        // Break out of this loop if we have found a a potential match
+                     score, minScore, s1Win-s2Win+1);
+        // Break out of this loop if we have found a potential match
         if (minScore <= threshold) {
             break;
         }
         
         // Check every window in EST #2 against current window in EST
         // #1 by sliding EST #2 window to left.
-        for(int s2Win = sq2End - wordSize; (s2Win > FirstWindowInSq2);
+        for(s2Win = sq2End - wordSize; (s2Win > FirstWindowInSq2);
             s2Win--) {
             // The word at s2Win - numWordsInWindow is moving in while
             // the word at s2Win is moving out as we move window
             // associated with EST #2 from right-to-left.
             updateWindow(s2WordTable[s2Win - numWordsInWindow],
-                         s2WordTable[s2Win], score, minScore);
+                         s2WordTable[s2Win], score, minScore,
+                         s1Win-s2Win+numWordsInWindow);
         }
         if ((s1Win+1) == LastWindowInSq1) {
             break;
@@ -396,8 +401,8 @@ TwoPassD2::runD2Bounded(const int otherEST, int sq1Start, int sq1End,
         // EST #1.
         updateWindow(s1WordTable[s1Win + 1],
                      s1WordTable[s1Win + 1 + numWordsInWindow],
-                     score, minScore);
-        // Break out of this loop if we have found a a potential match
+                     score, minScore, s1Win-sq2Start+1);
+        // Break out of this loop if we have found a potential match
         if (minScore <= threshold) {
             break;
         }
