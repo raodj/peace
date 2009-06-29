@@ -375,7 +375,7 @@ TwoPassD2::runD2Bounded(const int otherEST, int sq1Start, int sq1End,
         // is moving out as we move from left-to-right in EST #1.
         updateWindow(s1WordTable[s1Win], 
                      s1WordTable[s1Win + numWordsInWindow],
-                     score, minScore, s1Win-s2Win+1);
+                     score, minScore, s1Win+1-s2Win);
         // Break out of this loop if we have found a potential match
         if (minScore <= threshold) {
             break;
@@ -390,7 +390,7 @@ TwoPassD2::runD2Bounded(const int otherEST, int sq1Start, int sq1End,
             // associated with EST #2 from right-to-left.
             updateWindow(s2WordTable[s2Win - numWordsInWindow],
                          s2WordTable[s2Win], score, minScore,
-                         s1Win-s2Win+numWordsInWindow);
+                         s1Win+1-s2Win+numWordsInWindow);
         }
         if ((s1Win+1) == LastWindowInSq1) {
             break;
@@ -401,7 +401,7 @@ TwoPassD2::runD2Bounded(const int otherEST, int sq1Start, int sq1End,
         // EST #1.
         updateWindow(s1WordTable[s1Win + 1],
                      s1WordTable[s1Win + 1 + numWordsInWindow],
-                     score, minScore, s1Win-sq2Start+1);
+                     score, minScore, s1Win+2-sq2Start);
         // Break out of this loop if we have found a potential match
         if (minScore <= threshold) {
             break;
