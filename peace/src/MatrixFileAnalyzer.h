@@ -148,21 +148,6 @@ public:
         Otherwise this method returns 1 as the error code.
     */
     virtual int setReferenceEST(const int estIdx);
-
-    /** Analyze and obtain a distance (or similarity) metric.
-        
-        This method can be used to compare a given EST with the
-        reference EST (set via the call to the setReferenceEST())
-        method.
-
-        \param[in] otherEST The index (zero based) of the EST with
-        which the reference EST is to be compared.
-
-        \return This method returns the distance (or similarity as the
-        case may be) value loaded by the data file (loading is
-        performed by the initialize() method). 
-    */
-    virtual float analyze(const int otherEST);
     
     /** Method to pefrom a batch of EST analysis.
         
@@ -200,6 +185,21 @@ public:
     virtual int analyze();
     
 protected:
+    /** Analyze and obtain a distance (or similarity) metric.
+        
+        This method can be used to compare a given EST with the
+        reference EST (set via the call to the setReferenceEST())
+        method.
+
+        \param[in] otherEST The index (zero based) of the EST with
+        which the reference EST is to be compared.
+
+        \return This method returns the distance (or similarity as the
+        case may be) value loaded by the data file (loading is
+        performed by the initialize() method). 
+    */
+    virtual float getMetric(const int otherEST);
+
     /** The data file from where the distance (or similarity)
         metrics must be loaded.
 

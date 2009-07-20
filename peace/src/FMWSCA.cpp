@@ -60,8 +60,8 @@ FMWSCA::parseArguments(int& argc, char **argv) {
 }
 
 float
-FMWSCA::analyze(const std::string& refFrame,
-                const std::string& otherFrame, const int wordSize) {
+FMWSCA::getMetric(const std::string& refFrame,
+                 const std::string& otherFrame, const int wordSize) {
     const int LastWordPos = (int) refFrame.length() - wordSize;
     int matchCount        = 0;
     for(int wordPos = 0; (wordPos < LastWordPos); wordPos++) {

@@ -244,7 +244,7 @@ SimulationD2::reverseComplement(std::string sequence) {
 }
 
 float
-SimulationD2::analyze(const int otherEST) {
+SimulationD2::getMetric(const int otherEST) {
     if (otherEST == refESTidx) {
         return 0; // distance to self will be 0
     } else if ((otherEST >= 0) && (otherEST < EST::getESTCount())) {
@@ -364,7 +364,7 @@ SimulationD2::analyze() {
             if (strcmp(gene1, gene2)) break;
         }
         setReferenceEST(firstEST);
-        int d2score = (int) analyze(secondEST);
+        int d2score = (int) getMetric(secondEST);
 	printf("%d\n", d2score);
     }
 

@@ -139,6 +139,8 @@ public:
         analyzer.
     */    
     virtual std::string getName() const { return "CLU"; }
+
+    virtual float getValidMetric() const { return 1000; }
     
     /** Set the reference EST id for analysis.
 
@@ -157,7 +159,8 @@ public:
         array with the necessary information and returns 0.
     */
     virtual int setReferenceEST(const int estIdx);
-
+    
+protected:    
     /** Analyze and obtain a similarity metric.
         
         This method can be used to compare a given EST with the
@@ -175,10 +178,9 @@ public:
         \return This method must returns a similarity metric by
         comparing the ESTs by calling the analyze() method.
     */
-    using FWAnalyzer::analyze;
-    virtual float analyze(const int otherEST);
+    using FWAnalyzer::getMetric;
+    virtual float getMetric(const int otherEST);
     
-protected:    
     /** Dumps a given EST in 3-column format using a ResultLog.
 
         This method is a helper method that dumps a given EST out to

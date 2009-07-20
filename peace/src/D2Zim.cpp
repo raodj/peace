@@ -178,18 +178,13 @@ D2Zim::buildFdHashMaps(int* sed) {
 }
 
 float
-D2Zim::analyze(const int otherEST) {
+D2Zim::getMetric(const int otherEST) {
     if (otherEST == refESTidx) {
         return 0; // distance to self will be 0
     }
     if ((otherEST < 0) || (otherEST >= EST::getESTCount())) {
         // Invalid EST index!
         return -1;
-    }
-    // Check with the heuristic chain
-    if ((chain != NULL) && (!chain->shouldAnalyze(otherEST))) {
-        // Heuristics indicate we should not do D2. So skip it.
-        return (4.0f * frameSize);
     }
     
     // Perform operations for D2

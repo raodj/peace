@@ -53,10 +53,7 @@ MSTHeapCache::pruneCaches(const int estIdxAdded,
     // Clear out entries that correspond to the estIdxAdded from the
     // heap.
     while (!cache.empty() && (isESTinMST(cache.top().estIdx))) {
-        // Remove entry from top of the cache.
-        cache.pop();
-        // Track number of entries pruned
-        prunedEntries++;
+        popCache();
     }
 }
 
@@ -96,6 +93,14 @@ MSTHeapCache::displayStats(std::ostream &os, const int MyRank) const {
        << "    Total remaining entries  : " << cache.size() << "\n"
        << "    #Pruned entries          : " << prunedEntries
        << std::endl;
+}
+
+void
+MSTHeapCache::popCache() {
+    // Remove entry from top of the cache.
+    cache.pop();
+    // Track number of entries pruned
+    prunedEntries++;
 }
 
 #endif

@@ -175,7 +175,7 @@ FWAnalyzer::setReferenceEST(const int estIdx) {
 }
 
 float
-FWAnalyzer::analyze(const int estIdx) {
+FWAnalyzer::getMetric(const int estIdx) {
     if (estIdx == refESTidx) {
         // Comparing reference to itself simply results in 0 all the
         // time, in all FWAnalyzers
@@ -207,7 +207,7 @@ FWAnalyzer::analyze() {
     double total = 0;
     for(int id = 0; (id < (int) estList.size()); id++) {
         // Analyze and update similarity value.
-        const float similarity = analyze(id);
+        const float similarity = ESTAnalyzer::analyze(id);
         estList[id]->setSimilarity(similarity);
         total += similarity;
     }

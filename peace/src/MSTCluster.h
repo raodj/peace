@@ -55,11 +55,15 @@ public:
 
     void printClusterTree(std::ostream& os = std::cout,
                           const std::string& prefix = "") const;
+
+    void makeMergedClusters(const int size, int* parent, bool* root);
                
-protected:
-    double calculateThreshold(const NodeList& nodeList,
+    //protected:
+    double calculateThreshold(const int nodeCount,
                               const double percentile,
 			      const int analysisCount) const;
+
+protected:
     
 private:
     ClusterList clusterList;

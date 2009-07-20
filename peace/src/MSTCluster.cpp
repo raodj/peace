@@ -54,7 +54,7 @@ double
 MSTCluster::makeClusters(NodeList& nodeList, const double percentile,
                          const int analysisCount) {
     // Compute the threshold based on the percentile value provided.
-    const double threshold = calculateThreshold(nodeList, percentile,
+    const double threshold = calculateThreshold(nodeList.size(), percentile,
                                                 analysisCount);
     // Now create a hash map to track cluster for a given node
     ClusterMap clusterMap;
@@ -125,7 +125,7 @@ MSTCluster::makeClusters(NodeList& nodeList, const double percentile,
 }
 
 double
-MSTCluster::calculateThreshold(const NodeList& nodeList,
+MSTCluster::calculateThreshold(const int nodeCount,
                                const double percentile,
                                const int analysisCount) const {
     /*double totalSim    = 0;
@@ -159,7 +159,7 @@ MSTCluster::calculateThreshold(const NodeList& nodeList,
         // the ratio is relatively low, we want the threshold to be higher
         // (to cut down on singletons and give us clusters of meaningful size).
 
-        int totalCmps = nodeList.size() * (nodeList.size() - 1) * 0.5;
+        int totalCmps = nodeCount * (nodeCount - 1) * 0.5;
         double ratio = ((double) analysisCount) / ((double) totalCmps);
         int threshold = (.08/ratio); // magic number, worked for current data
         // Put some hard limits on the threshold
@@ -167,6 +167,35 @@ MSTCluster::calculateThreshold(const NodeList& nodeList,
         if (threshold > 130) threshold = 130;
         printf("Threshold: %d\n", threshold);
         return threshold;
+    }
+}
+
+void
+MSTCluster::makeMergedClusters(const int size, int* parent, bool* root) {
+    MSTCluster *subCluster;
+    ClusterMap clusterMap;
+    for (int estIdx = 0; estIdx < size; estIdx++) {
+        int rootIdx = estIdx;
+        // replace this with actual find operation (w/ compression)
+        // or move this method or something
+        while (!root[rootIdx]) {
+            rootIdx = parent[rootIdx];
+        }
+        ASSERT(root[rootIdx]);
+        // This node has its own cluster
+        if (clusterMap[rootIdx] == NULL) {
+            // Create new cluster
+            subCluster = new MSTCluster(this);
+            clusterList.push_back(subCluster);
+            clusterMap[rootIdx] = subCluster;
+            // Add node to the cluster
+            subCluster->add(MSTNode(-1, rootIdx, 0, 0));
+        }
+        if (rootIdx != estIdx) {
+            // Need to add this EST to root's cluster as well
+            subCluster = clusterMap[rootIdx];
+            subCluster->add(MSTNode(-1, estIdx, 0, 0));
+        }
     }
 }
 
