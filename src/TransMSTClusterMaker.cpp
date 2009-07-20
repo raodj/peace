@@ -31,8 +31,6 @@ TransMSTClusterMaker::TransMSTClusterMaker(ESTAnalyzer *analyzer,
                                            const int refESTidx,
                                            const std::string& outputFile) :
     MSTClusterMaker(analyzer, refESTidx, outputFile) {
-    // Initialize tvHeuristic pointer that will be set later on.
-    tvHeuristic   = NULL;
     // We don't have a reference est yet.
     currRefESTidx = 0;
     // Initialize counters to zero
@@ -41,19 +39,11 @@ TransMSTClusterMaker::TransMSTClusterMaker(ESTAnalyzer *analyzer,
 }
 
 TransMSTClusterMaker::~TransMSTClusterMaker() {
-    if (tvHeuristic != NULL) {
-        // We have a valid tvHeuristic object. This object could have
-        // been from the heuristicChain in which case, it must not be
-        // deleted here by this class.
-        if ((analyzer->getHeuristicChain() == NULL) ||
-            (analyzer->getHeuristicChain()->getHeuristic("tv")!= tvHeuristic)) {
-            // The tvHeuristic object was custom created and is not
-            // from the heuristic chain.
-            delete tvHeuristic;
+    for (size_t i = 0; (i < metricCache.size()); i++) {
+        if (metricCache[i] != NULL) {
+            delete metricCache[i];
         }
-        // Reset pointer to detect any lurking memory errors
-        tvHeuristic = NULL;
-    }    
+    }
 }
 
 void
@@ -65,54 +55,44 @@ TransMSTClusterMaker::displayStats(std::ostream& os) {
        << "    Successful transitivity  : " << successCount << "\n";
 }
 
-void
-TransMSTClusterMaker::setTVHeuristic() {
-    if (tvHeuristic != NULL) {
-        // The pointer has already been set. Nothing further to do.
-        return;
+int
+TransMSTClusterMaker::initialize() {
+    if (analyzer->getHeuristicChain() == NULL) {
+        std::cerr << "TransMSTClusterMaker: No suitable heuristic found!"
+                  << "\n";
+        return ERROR_NO_HEURISTIC;
     }
-    // First see if the analyzer's heuristic chain already has a tv
-    // heuristic class. If so use it.
-    if (analyzer->getHeuristicChain() != NULL) {
-        tvHeuristic = analyzer->getHeuristicChain()->getHeuristic("tv");
-        // Insanity check to ensure returned pointer is a tv heuristic
-        // or a subclass of it.
-        ASSERT ( dynamic_cast<TVHeuristic*>(tvHeuristic) != NULL );
-    }
-    // If the analyzer chain did not have a tv heuristic object, then
-    // create one for our own use.
-    if (tvHeuristic == NULL) {
-        tvHeuristic = HeuristicFactory::create("tv", 0, "");
-        ASSERT ( tvHeuristic != NULL );
-    }
+    
+    // Reserve space for TransCacheEntrys
+    metricCache.reserve(EST::getESTList().size());
+    metricCache.insert(metricCache.begin(), EST::getESTList().size(), NULL);
+    return NO_ERROR;
 }
 
 float
 TransMSTClusterMaker::analyze(const int otherEST) {
     // Track number of calls to this method
     analyzeCount++;
-    
-    // First, let's see if our metricCache has an entry for other EST.
-    ASSERT ( currRefESTidx >= 0 );
-    // See if we have a main entry for otherEST
-    MetricCacheMap::iterator mainEntry = metricCache.find(otherEST);
-    if (mainEntry != metricCache.end()) {
+    // Run analysis without using the heavy weight metric
+    if (analyzer->compareMetrics(analyzer->analyze(otherEST, true, false),
+        analyzer->getInvalidMetric())) {    
+        ASSERT ( currRefESTidx >= 0 );
+        // See if we have a main entry and a metric for otherEST
+        TransCacheEntry* mainEntry = metricCache[otherEST];
         float transMetric;
-        // See if the TransCacheEntry has a metric for otherEST
-        if (mainEntry->second.getMetric(currRefESTidx, transMetric)) {
-            // Yes! It does. OK. Do these two pass t/v heuristic?
-            ASSERT ( tvHeuristic != NULL );
-            if (tvHeuristic->shouldAnalyze(otherEST)) {
-                // Yes! use metric from applying transitivity. Track
-                // number of successes.
-                successCount++;
-                return transMetric;
-            }
+        if (mainEntry != NULL && mainEntry->estIdx != -1 &&
+            mainEntry->getMetric(currRefESTidx, transMetric)) {
+            // Yes! use metric from applying transitivity. Track
+            // number of successes.
+            successCount++;
+            return transMetric;                
         }
+        // When control drops here that means we have to use the heavy
+        // weight analyzer for our operation.
+        return analyzer->analyze(otherEST, false);
     }
-    // When control drops here that means we have to use the heavy
-    // weight analyzer for our operation.
-    return analyzer->analyze(otherEST);
+    // When control drops here it indicates that heuristics failed.
+    return analyzer->getInvalidMetric();
 }
 
 void
@@ -140,11 +120,7 @@ TransMSTClusterMaker::pruneMetricEntries(const SMList& list,
 void
 TransMSTClusterMaker::populateCache(const int estIdx,
                                     SMList* UNREFERENCED_PARAMETER(list)) {
-    // First setup our current reference EST with the heuristic for
-    // its use and setup.
-    setTVHeuristic();
-    ASSERT ( tvHeuristic != NULL );
-    tvHeuristic->setReferenceEST((currRefESTidx = estIdx));
+    currRefESTidx = estIdx;
     // Now let the base class do its thing and populate the cache
     // entries for estIdx.
     SMList smList;
@@ -161,6 +137,8 @@ TransMSTClusterMaker::populateCache(const int estIdx,
         pruneMetricEntries(smList, goodEntries, analyzer->getInvalidMetric());
         const int MsgSize      = goodEntries.size() * sizeof(CachedESTInfo);
         const int ProcessCount = MPI::COMM_WORLD.Get_size();
+
+
         const char *data       = reinterpret_cast<char*>(&goodEntries[0]);
         // An if check is necessary here when running on MPI
         // implementations that do not permit processes to
@@ -198,11 +176,13 @@ TransMSTClusterMaker::populateCache(const int estIdx,
     
     // Finally, prune entries from our cache for the est that was
     // added in this method.
-    metricCache.erase(estIdx);
+    delete metricCache[estIdx];
+    metricCache[estIdx] = NULL;
+    //metricCache.erase(estIdx);
 }
 
 void
-TransMSTClusterMaker::processMetricList(SMList& remoteList) {
+TransMSTClusterMaker::processMetricList(SMList& metricList) {
     // Now process the list of metrics we just received and build
     // caches for rapidly computing transitivity information. First
     // determine the set of ESTs this process owns
@@ -210,11 +190,15 @@ TransMSTClusterMaker::processMetricList(SMList& remoteList) {
     getOwnedESTidx(startESTidx, endESTidx);
     // Now process the list of metrics we just received and build
     // caches for rapidly computing transitivity information.
-    for(size_t i = 0; (i < remoteList.size()); i++) {
+    for(size_t i = 0; (i < metricList.size()); i++) {
         // Add entries to our main metric cache
-        TransCacheEntry &entry = metricCache[remoteList[i].estIdx];
-        entry.estIdx           = remoteList[i].estIdx;
-        entry.addEntries(remoteList[i], remoteList, startESTidx, endESTidx);
+        TransCacheEntry* entry = metricCache[metricList[i].estIdx];
+        if (entry == NULL) {
+            entry = new TransCacheEntry;
+        }
+        entry->estIdx          = metricList[i].estIdx;
+        entry->addEntries(metricList[i], metricList, startESTidx, endESTidx);
+        metricCache[metricList[i].estIdx] = entry;
     }
 }
 

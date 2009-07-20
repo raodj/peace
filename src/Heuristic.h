@@ -172,10 +172,16 @@ public:
     */
     virtual void printStats(std::ostream& os) const;
 
+    /** Method to obtain the count of times this heuristic was run.
+    */
     inline int getRunCount() {
       return runCount;
     }
 
+    /** Method to obtain the count of times this heuristic was
+	successful (i.e. result indicated that heavy weight analysis
+	should be undertaken).
+    */
     inline int getSuccessCount() {
       return successCount;
     }

@@ -151,7 +151,7 @@ TwoPassD2::setReferenceEST(const int estIdx) {
 }
 
 float
-TwoPassD2::analyze(const int otherEST) {
+TwoPassD2::getMetric(const int otherEST) {
     VALIDATE({
             if (otherEST == refESTidx) {
                 return 0; // distance to self will be 0
@@ -161,11 +161,6 @@ TwoPassD2::analyze(const int otherEST) {
                 return -1;
             }
         });
-    // Check with the heuristic chain
-    if ((chain != NULL) && (!chain->shouldAnalyze(otherEST))) {
-        // Heuristics indicate we should not do D2. So skip it.
-        return 4.0f * frameSize;
-    }
 
     int s1Index = 0;
     int s2Index = 0;

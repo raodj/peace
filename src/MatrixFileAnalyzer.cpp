@@ -170,7 +170,7 @@ MatrixFileAnalyzer::setReferenceEST(const int estIdx) {
 }
 
 float
-MatrixFileAnalyzer::analyze(const int otherEST) {
+MatrixFileAnalyzer::getMetric(const int otherEST) {
     if ((otherEST >= 0) && (otherEST < estCount)) {
         return distanceValues[refESTidx][otherEST];
     }

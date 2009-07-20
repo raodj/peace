@@ -103,6 +103,10 @@ CachedESTInfoHelper.h\
 TransCacheEntry.h\
 TransCacheEntry.cpp\
 TransMSTClusterMaker.cpp\
-TransMSTClusterMaker.h
+TransMSTClusterMaker.h\
+PMSTClusterMaker.cpp\
+PMSTClusterMaker.h\
+PMSTHeapCache.cpp\
+PMSTHeapCache.h
 
 # end of Makefile.am

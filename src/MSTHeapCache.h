@@ -183,8 +183,11 @@ public:
     virtual void displayStats(std::ostream &os, const int MyRank) const;
     
 protected:
-    // Currently this class does not have any protected instance
-    // variables or methods for use.
+    /** A simple wrapper method to handle popping the cache (removing
+	the top element from the cache) and incrementing the number
+	of pruned entries.
+    */	
+    virtual void popCache();
     
 private:
     /** Number of entries that were pruned from the cache.

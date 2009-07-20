@@ -1,5 +1,5 @@
-#ifndef MST_CLUSTER_MAKER_H
-#define MST_CLUSTER_MAKER_H
+#ifndef PMST_CLUSTER_MAKER_H
+#define PMST_CLUSTER_MAKER_H
 
 //---------------------------------------------------------------------------
 //
@@ -19,12 +19,15 @@
 // U.S., and the terms of this license.
 //
 // Authors: Dhananjai M. Rao       raodm@muohio.edu
+// 	    James C. Moler         molerjc@muohio.edu
 //
 //---------------------------------------------------------------------------
 
 #include "ClusterMaker.h"
-#include "MSTCache.h"
+#include "MSTHeapCache.h"
 #include "MST.h"
+#include "MSTCluster.h"
+#include "PartitionData.h"
 
 /** A Minimum Spanning Tree (MST) based parallel cluster maker.
 
@@ -39,7 +42,7 @@
     documentation on the various method for detailed description on
     their functionality and usage.
 */
-class MSTClusterMaker : public ClusterMaker {
+class PMSTClusterMaker : public ClusterMaker {
     friend class ClusterMakerFactory;
 public:
     /** The set of tags exchanged between various processes.
@@ -59,7 +62,7 @@ public:
         The destructor frees up all any dynamic memory allocated by
         this object for its operations.
     */
-    virtual ~MSTClusterMaker();
+    virtual ~PMSTClusterMaker();
 
     /** Display valid command line arguments for this cluster maker.
 
@@ -302,16 +305,6 @@ protected:
     */
     virtual int worker();
 
-    /** A method to handle initialization tasks for the MSTClusterMaker.
-	This method is called after the ESTs have been loaded into the
-	ESTAnalyzer, in the makeClusters method.
-	
-	This method does nothing as the MSTClusterMaker does not need
-	to do any initialization.  It is provided as a convenience
-	method for inheriting subclasses to use for initialization.
-    */
-    virtual int initialize();
-
     /** Helper method to call the actual heavy-weight analysis
         method(s).
 
@@ -372,6 +365,8 @@ protected:
         list of metrics computed.
     */
     virtual void populateCache(const int estIdx, SMList* metricList = NULL);
+
+    void getOwnedESTidx(const int estIdx, int& startIndex, int& endIndex);
 
     /** Helper method in Manager process to update distributed caches.
 
@@ -481,16 +476,8 @@ protected:
         \note This method must be invoked only after MPI::Intialize()
         has beeen called and the ESTs to be processed have be loaded
         (so that EST::getESTList() returns a valid list of ESTs).
-
-        \param[out] startIndex The starting (zero-based) index value
-        of the contiguous range of ESTs that this process owns.
-
-        \param[out] endIndex The ending (zero-based) index value of
-        the contiguous range ESTs that this process owns.  The value
-        returned in this parameter is \b not included in the range of
-        values.
     */
-    void getOwnedESTidx(int& startIndex, int& endIndex);
+    void getOwnedPartition();
 
     /** Helper method for a worker process.
 
@@ -622,6 +609,11 @@ protected:
     void addMoreChildESTs(const int parentESTidx, int& estToAdd,
                           float &metric, int& alignmentData,
                           int& pendingESTs);
+
+    // New methods
+    int mergeManager(MSTCluster& rootCluster, const int threshold);
+
+    int mergeWorker();
     
     /** The default constructor.
 
@@ -646,8 +638,8 @@ protected:
 	standard output.  This value is simply passed onto the base
 	class.
     */
-    MSTClusterMaker(ESTAnalyzer *analyzer, const int refESTidx,
-                    const std::string& outputFile);
+    PMSTClusterMaker(ESTAnalyzer *analyzer, const int refESTidx,
+		     const std::string& outputFile);
 
     /** The set of common arguments for the MST cluster maker.
 
@@ -672,7 +664,9 @@ protected:
         process (to minimize memory footprint).
     */
     MSTCache *cache;
-    
+
+    PartitionData *pData;
+      
 private:    
     /** The Minimum Spanning Tree (MST) built by this class.
 

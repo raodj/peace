@@ -334,7 +334,7 @@ CLU::getSimilarity(const int* const hashMap,
 }
 
 float
-CLU::analyze(const int estIdx) {
+CLU::getMetric(const int estIdx) {
     if (estIdx == refESTidx) {
         // Comparing reference to itself makes no sense in CLU.
         // Simply return 0 (zero) in this case.

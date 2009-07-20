@@ -25,18 +25,20 @@
 #include "MSTClusterMaker.h"
 #include "TransCacheEntry.h"
 
-/** \def HashMap<int, TransCacheEntry> MetricCacheMap
+#define NO_ERROR           0
+#define ERROR_NO_HEURISTIC 1
 
-    \brief A shortcut to refer to a hash map of TransCacheEntry
-    objects.
+/** \def std::vector<int, TransCacheEntry> MetricCacheMap
 
-    This typedef provides a convenient shortcut to refer to a hash map
+    \brief A shortcut to refer to a vector of TransCacheEntry objects.
+
+    This typedef provides a convenient shortcut to refer to a vector
     containing the information to compute metrics using
-    conditional-transitivity.  The key into this hash map is the index
+    conditional-transitivity.  The index for this vector is the index
     of the EST to which a CachedESTInfo corresponds to.  This index is
     the value in CachedESTInfo::estIdx.
 */
-typedef HashMap<int, TransCacheEntry> MetricCacheMap;
+typedef std::vector<TransCacheEntry*> MetricCacheMap;
 
 /** A Minimum Spanning Tree (MST) based parallel cluster maker that
     uses conditional-transitivity relations to accelerate clustering.
@@ -116,6 +118,17 @@ public:
     virtual ~TransMSTClusterMaker();
 
 protected:
+    /** A method to handle initialization tasks for the TransMSTClusterMaker.
+
+        This method is called after the ESTs have been loaded into the
+	ESTAnalyzer and is used to initialize the vector of TransCacheEntrys,
+	as well as to check for the existence of a heuristic chain
+	on the analyzer.  Without a suitable heuristic, the
+	TransMSTClusterMaker cannot function properly and will exit
+	with an error code.
+    */
+    virtual int initialize();
+    
     /** Helper method to call the actual heavy-weight analysis
         method(s).
 
@@ -207,31 +220,6 @@ protected:
     TransMSTClusterMaker(ESTAnalyzer *analyzer, const int refESTidx,
                          const std::string& outputFile);
 
-    /** Helper method to set the tvHeuristic pointer.
-
-        This method is invoked from the populateCache() method to set
-        a pointer to the tvHeuristic object in this class.  If the
-        tvHeuristic pointer is not NULL, then this method returns
-        immediately. In other words, the tvHeuristic pointer is set
-        only once in this class, the first time this method is
-        invoked.  If the tvHeuristic pointer is NULL, then this method
-        operates as follows:
-
-        <ol>
-
-        <li>First, it searches the heuristicChain associated with the
-        analyzer to determine if a "tv" heuristic class is present in
-        the chain.  If so, the tvHeuristic pointer is made to point to
-        that object.</li>
-
-        <li>If the heuristicChain does not have a tv heuristic class,
-        then this method creates a new object for further use. This
-        object will eventually be deleted by the destructor.</li>
-
-        </ol>
-    */
-    void setTVHeuristic();
-
     /** Helper method to remove invalid metrics from a given list of
 	values.
 
@@ -254,7 +242,15 @@ protected:
     void pruneMetricEntries(const SMList& list, SMList& entries,
 			    const float badMetric);
 
-    void processMetricList(SMList& remoteList);
+    /** Helper method to process a list of similarity metrics for caching.
+	This method is called in the populateCache method and will take
+	care of a list of similarity metrics, either computed locally or
+	received via remote communication.  This method goes through the list
+	of similarity metrics and updates TransCacheEntrys as appropriate.
+
+	\param[in] metricList The list of metrics received or computed.
+    */
+    void processMetricList(SMList& metricList);
     
 private:
     /** An hash map that acts as the cache to hold known metrics.
@@ -298,20 +294,6 @@ private:
         displayStats() method.
     */
     int successCount;
-
-    /** A pointer to the <i>t/v</i> heuristic object.
-
-        This pointer holds a reference to a <i>t/v</i> heuristic
-        object that used to establish conditional-transitivity between
-        two given pairs of ESTs.  This object is initialized to NULL
-        in the constructor and set to point to a valid tvHeuristic
-        class in the setTVHeuristic() method (that is invoked from the
-        populateCahce() method).  This pointer either points to a
-        valid object in the heuristic chain associated with the
-        analyzer or a custom heuristic object is created for use by
-        this class.
-    */
-    Heuristic *tvHeuristic;
 
     /** The current reference EST for which analysis is underway.
 

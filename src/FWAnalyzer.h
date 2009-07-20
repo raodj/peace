@@ -149,20 +149,6 @@ public:
         returns an error code.
     */
     virtual int setReferenceEST(const int estIdx);
-
-    /** Analyze and obtain a similarity metric.
-        
-        This method can be used to compare a given EST with the
-        reference EST (set via the call to the setReferenceEST())
-        method.
-
-        \param[in] otherEST The index (zero based) of the EST with
-        which the reference EST is to be compared.
-
-        \return This method must returns a similarity metric by
-        comparing the ESTs by calling the analyze() method.
-    */
-    virtual float analyze(const int otherEST);
     
     /** Method to begin EST analysis.
         
@@ -207,7 +193,21 @@ public:
     */
     virtual int analyze();
     
-protected:
+protected:    
+    /** Analyze and obtain a similarity metric.
+        
+        This method can be used to compare a given EST with the
+        reference EST (set via the call to the setReferenceEST())
+        method.
+
+        \param[in] otherEST The index (zero based) of the EST with
+        which the reference EST is to be compared.
+
+        \return This method must returns a similarity metric by
+        comparing the ESTs by calling the analyze() method.
+    */
+    virtual float getMetric(const int otherEST);
+    
     /** Method to compare two frames and compute similarity.
 
         This method must be overridden by derived Frame-Word analyzers

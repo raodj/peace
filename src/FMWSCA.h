@@ -140,10 +140,10 @@ protected:
         \return This method is return a similarity metric in the range
         0 to 100 between the given frame and the refFrame.
     */
-    using FWAnalyzer::analyze;
-    virtual float analyze(const std::string& refFrame,
-			  const std::string& otherFrame,
-			  const int wordSize);
+    using FWAnalyzer::getMetric;
+    virtual float getMetric(const std::string& refFrame,
+		 	    const std::string& otherFrame,
+			    const int wordSize);
     
 private:
     /** The default constructor.
