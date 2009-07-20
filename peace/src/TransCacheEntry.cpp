@@ -34,39 +34,31 @@ TransCacheEntry::addEntries(const CachedESTInfo& reference,
                             const SMList& metrics,
                             const int UNREFERENCED_PARAMETER(startIndex), 
                             const int UNREFERENCED_PARAMETER(endIndex)) {
-    // First ensure that the pre-conditions are met.
-    ASSERT (reference.estIdx == estIdx);
-    ASSERT (parentInfo.find(reference.refESTidx) == parentInfo.end());
-    // Add the reference information to the parent map first.
-    parentInfo[reference.refESTidx] = reference;
-    // Now add the related metric information to the peerInfo map
+    // Add the related metric information to the peerInfo map
     for(size_t index = 0; (index < metrics.size()); index++) {
         const CachedESTInfo& entry = metrics[index];
-        ASSERT( entry.refESTidx == reference.refESTidx );
         // Don't add entries referring to ourselves.
         if (entry.estIdx != estIdx) {
             peerInfo[entry.estIdx] = entry;
+            // Metric is minimum of peer metric and parent metric,
+            // as according to conditional transitivity.
+            peerInfo[entry.estIdx].metric =
+                std::min(reference.metric, peerInfo[entry.estIdx].metric);
         }
     }
 }
 
 bool
 TransCacheEntry::getMetric(const int otherESTidx, float& metric) const {
-    // First see if our peerInfo hash map has an entry for
-    // otherESTidx.
+    // First see if our peerInfo hash map has an entry for otherESTidx.
     TransCacheMap::const_iterator peerEntry = peerInfo.find(otherESTidx);
     if (peerEntry == peerInfo.end()) {
         // No, we don't have an entry. Can't determine metric using
         // transitivity in this case.
         return false;
     }
-    // OK, found a peer entry. Obtain the parent entry for this entry
-    // from the parentInfo hash map.
-    TransCacheMap::const_iterator parentEntry =
-        parentInfo.find(peerEntry->second.refESTidx);
-    ASSERT ( parentEntry != parentInfo.end() );
-    // Now use potential transitivity to compute the metric.
-    metric = std::min(parentEntry->second.metric, peerEntry->second.metric);
+    // OK, found a peer entry.
+    metric = peerEntry->second.metric;
     // Return true to indicate we did find an entry.
     return true;
 }

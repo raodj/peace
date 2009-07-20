@@ -165,7 +165,7 @@ private:
         peerInfo hash map. Entries in this cache are added by the
         addEntries() method in this class.
    */
-    TransCacheMap parentInfo;
+    //TransCacheMap parentInfo;
     
     /** The actual cache of metrics related to estIdx EST.
 
