@@ -27,6 +27,8 @@
 #include "TVHeuristic.h"
 #include "MPIStats.h"
 
+float TransMSTClusterMaker::badMetric = 0;
+
 TransMSTClusterMaker::TransMSTClusterMaker(ESTAnalyzer *analyzer,
                                            const int refESTidx,
                                            const std::string& outputFile) :
@@ -36,10 +38,14 @@ TransMSTClusterMaker::TransMSTClusterMaker(ESTAnalyzer *analyzer,
     // Initialize counters to zero
     analyzeCount  = 0;
     successCount  = 0;
+    // Initialize badMetric based on analyzer
+    badMetric = analyzer->getInvalidMetric();
 }
 
 TransMSTClusterMaker::~TransMSTClusterMaker() {
-    for (size_t i = 0; (i < metricCache.size()); i++) {
+    int startESTidx, endESTidx;
+    getOwnedESTidx(startESTidx, endESTidx);
+    for (size_t i = startESTidx; (i < endESTidx); i++) {
         if (metricCache[i] != NULL) {
             delete metricCache[i];
         }
@@ -75,12 +81,12 @@ TransMSTClusterMaker::analyze(const int otherEST) {
     analyzeCount++;
     // Run analysis without using the heavy weight metric
     if (analyzer->compareMetrics(analyzer->analyze(otherEST, true, false),
-        analyzer->getInvalidMetric())) {    
+                                 badMetric)) {
         ASSERT ( currRefESTidx >= 0 );
         // See if we have a main entry and a metric for otherEST
         TransCacheEntry* mainEntry = metricCache[otherEST];
         float transMetric;
-        if (mainEntry != NULL && mainEntry->estIdx != -1 &&
+        if (mainEntry != NULL &&
             mainEntry->getMetric(currRefESTidx, transMetric)) {
             // Yes! use metric from applying transitivity. Track
             // number of successes.
@@ -92,13 +98,12 @@ TransMSTClusterMaker::analyze(const int otherEST) {
         return analyzer->analyze(otherEST, false);
     }
     // When control drops here it indicates that heuristics failed.
-    return analyzer->getInvalidMetric();
+    return badMetric;
 }
 
 void
 TransMSTClusterMaker::pruneMetricEntries(const SMList& list,
-                                         SMList& goodEntries,
-                                         const float badMetric) {
+                                         SMList& goodEntries) {
     // Copy all the necessary entries to a temporary list as this make
     // the process faster.
     goodEntries.reserve(list.size());    
@@ -134,10 +139,9 @@ TransMSTClusterMaker::populateCache(const int estIdx,
         // the processes.  First remove unwanted entries and get just
         // good entries.
         SMList goodEntries;
-        pruneMetricEntries(smList, goodEntries, analyzer->getInvalidMetric());
+        pruneMetricEntries(smList, goodEntries);
         const int MsgSize      = goodEntries.size() * sizeof(CachedESTInfo);
         const int ProcessCount = MPI::COMM_WORLD.Get_size();
-
 
         const char *data       = reinterpret_cast<char*>(&goodEntries[0]);
         // An if check is necessary here when running on MPI
@@ -153,6 +157,10 @@ TransMSTClusterMaker::populateCache(const int estIdx,
             return;
         }
         processMetricList(goodEntries);
+        // Finally, prune entries from our cache for the est that was
+        // added in this method.
+        delete metricCache[estIdx];
+        metricCache[estIdx] = NULL;
     } else {
         // When control drops here, all the processes new receive the
         // SMList from the latest round of analysis. First probe to find
@@ -173,12 +181,6 @@ TransMSTClusterMaker::populateCache(const int estIdx,
         }
         processMetricList(remoteList);
     }
-    
-    // Finally, prune entries from our cache for the est that was
-    // added in this method.
-    delete metricCache[estIdx];
-    metricCache[estIdx] = NULL;
-    //metricCache.erase(estIdx);
 }
 
 void
@@ -192,13 +194,16 @@ TransMSTClusterMaker::processMetricList(SMList& metricList) {
     // caches for rapidly computing transitivity information.
     for(size_t i = 0; (i < metricList.size()); i++) {
         // Add entries to our main metric cache
-        TransCacheEntry* entry = metricCache[metricList[i].estIdx];
-        if (entry == NULL) {
-            entry = new TransCacheEntry;
+        if (metricList[i].estIdx >= startESTidx &&
+            metricList[i].estIdx < endESTidx) {
+            TransCacheEntry* entry = metricCache[metricList[i].estIdx];
+            if (entry == NULL) {
+                entry = new TransCacheEntry(metricList[i].estIdx);
+            }
+            entry->addEntries(metricList[i], metricList,
+                              startESTidx, endESTidx);
+            metricCache[metricList[i].estIdx] = entry;
         }
-        entry->estIdx          = metricList[i].estIdx;
-        entry->addEntries(metricList[i], metricList, startESTidx, endESTidx);
-        metricCache[metricList[i].estIdx] = entry;
     }
 }
 

@@ -26,7 +26,12 @@
 #include "Utilities.h"
 
 TransCacheEntry::TransCacheEntry(const int refEstIdx) : estIdx(refEstIdx) {
+    peerInfo = new TransCacheMap;
     // Currently we have nothing else to be done here.
+}
+
+TransCacheEntry::~TransCacheEntry() {
+    delete peerInfo;
 }
 
 void
@@ -39,11 +44,18 @@ TransCacheEntry::addEntries(const CachedESTInfo& reference,
         const CachedESTInfo& entry = metrics[index];
         // Don't add entries referring to ourselves.
         if (entry.estIdx != estIdx) {
-            peerInfo[entry.estIdx] = entry;
             // Metric is minimum of peer metric and parent metric,
             // as according to conditional transitivity.
-            peerInfo[entry.estIdx].metric =
-                std::min(reference.metric, peerInfo[entry.estIdx].metric);
+            float tmp = std::min(reference.metric, entry.metric);
+            //TransCacheMap::const_iterator peerEntry =
+            //    peerInfo->find(entry.estIdx);
+            //if (peerEntry == peerInfo->end() ||
+            //    peerEntry->second.metric > tmp) {
+                (*peerInfo)[entry.estIdx] =
+                    CachedESTInfo(estIdx, entry.estIdx,
+                                  tmp,
+                                  entry.alignmentData);
+                //}                
         }
     }
 }
@@ -51,8 +63,8 @@ TransCacheEntry::addEntries(const CachedESTInfo& reference,
 bool
 TransCacheEntry::getMetric(const int otherESTidx, float& metric) const {
     // First see if our peerInfo hash map has an entry for otherESTidx.
-    TransCacheMap::const_iterator peerEntry = peerInfo.find(otherESTidx);
-    if (peerEntry == peerInfo.end()) {
+    TransCacheMap::const_iterator peerEntry = peerInfo->find(otherESTidx);
+    if (peerEntry == peerInfo->end()) {
         // No, we don't have an entry. Can't determine metric using
         // transitivity in this case.
         return false;

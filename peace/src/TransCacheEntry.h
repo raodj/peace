@@ -95,7 +95,7 @@ public:
         objects. Consequently, the destructor does not have any
         specific tasks to perform.
     */
-    virtual ~TransCacheEntry() {}
+    virtual ~TransCacheEntry();// {}
 
     /** Extract and add metric entries in this cache entry.
 
@@ -173,7 +173,7 @@ private:
         compute metrics using conditional-transitivity.  Entries in
         this cache are added by the addEntries() method in this class.
     */
-    TransCacheMap peerInfo;
+    TransCacheMap* peerInfo;
 };
 
 #endif

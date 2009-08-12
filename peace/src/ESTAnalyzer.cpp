@@ -66,8 +66,7 @@ float
 ESTAnalyzer::analyze(const int otherEST, const bool useHeuristics,
                      const bool useHeavyWeight) {
     // Check with the heuristic chain
-    if ((chain != NULL) && useHeuristics &&
-        (!chain->shouldAnalyze(otherEST))) {
+    if (useHeuristics && chain != NULL && !chain->shouldAnalyze(otherEST)) {
         // Heuristics indicate we should not do D2. So skip it.
         return getInvalidMetric();
     }
