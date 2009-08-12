@@ -239,8 +239,7 @@ protected:
 	all entries that have an equal or worse value than badMetric
 	are removed from the list.
     */
-    void pruneMetricEntries(const SMList& list, SMList& entries,
-			    const float badMetric);
+    void pruneMetricEntries(const SMList& list, SMList& entries);
 
     /** Helper method to process a list of similarity metrics for caching.
 	This method is called in the populateCache method and will take
@@ -306,6 +305,8 @@ private:
         implementation).
     */
     int currRefESTidx;
+
+    static float badMetric;
 };
 
 #endif

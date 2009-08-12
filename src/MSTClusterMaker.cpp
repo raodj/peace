@@ -408,11 +408,11 @@ MSTClusterMaker::populateCache(const int estIdx, SMList* metricList) {
     // Now compute similarity metric and store information in a SMList
     // data structure.
     SMList smList;
-    const  float InvalidMetric = analyzer->getInvalidMetric();
+    const float InvalidMetric = analyzer->getInvalidMetric();
     // Flag to ensure only one invalid metric gets added
     bool needInvalidMetric = true;
     for(int otherIdx = startESTidx; (otherIdx < endESTidx); otherIdx++) {
-        if ((otherIdx == estIdx) || (cache->isESTinMST(otherIdx))) {
+        if (cache->isESTinMST(otherIdx) || (otherIdx == estIdx)) {
             // This EST entry can be ignored as this similarity metric
             // is not needed for MST construction.
             continue;
