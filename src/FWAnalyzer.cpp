@@ -139,7 +139,7 @@ FWAnalyzer::dumpESTList(const std::vector<EST*>& estList,
 
 int
 FWAnalyzer::initialize() {
-    if (!loadFASTAFile(estFileName)) {
+    if ((estFileName != NULL) && (!loadFASTAFile(estFileName))) {
         // Loading EST's was not successful.  Can't do much further.
         return 1;
     }

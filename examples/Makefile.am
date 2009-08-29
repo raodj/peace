@@ -21,15 +21,17 @@
 #
 #---------------------------------------------------------------------------
 
-include $(top_srcdir)/Makefile.common.am
+include $(top_builddir)/Makefile.common.am
 
-AM_CPPFLAGS=$(GLOBALCPPFLAGS) 
+AM_CPPFLAGS=$(GLOBALCPPFLAGS)
 AM_CXXFLAGS=$(GLOBALCXXFLAGS)
 
-SUBDIRS = src tools examples
+bin_PROGRAMS = UsingPeace
 
-EXTRA_DIST = 
-	Makefile.am\
-	Makefile.common.am
+UsingPeace_LDFLAGS = -L../src
+UsingPeace_LDADD = $(STDCPP) -lreadline -lcurses -lpeace
+
+UsingPeace_SOURCES = \
+UsingPeace.cpp
 
 # end of Makefile.am

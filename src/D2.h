@@ -24,6 +24,8 @@
 //---------------------------------------------------------------------------
 
 #include "FWAnalyzer.h"
+#include "EST.h"
+
 #include <string>
 #include <vector>
 
@@ -271,6 +273,9 @@ protected:
     */
     template <typename Encoder>
     void buildWordTable(int* wordTable, const char* estSeq, Encoder encoder) {
+        // First clear out old data in word table.
+        const int wordTableSize = EST::getMaxESTLen() + frameSize;
+        memset(wordTable, 0, sizeof(int) * wordTableSize);
         // Compute the has for the first word using the encoder. The
         // encoder may do normal or reverse-complement encoding for us.
         register int hash = 0;
