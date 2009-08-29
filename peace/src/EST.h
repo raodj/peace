@@ -149,7 +149,19 @@ public:
     */
     static int getESTCount() { return estList.size(); }
 
-    static size_t getMaxESTLen() { return maxESTlen; }
+    /** Helper method to determine the longest EST.
+
+	This method can be used to determine the length of the longest
+	EST loaded thus far.  This information is typically used to
+	allocate buffers and other data structures for analysis.
+
+	\note This method computes the length of the longest EST the
+	first time it is invoked. Consequently, it should be called
+	only after all the ESTs have been loaded.
+
+	\return The length of the longest EST to be processed.
+    */
+    static size_t getMaxESTLen();
     
     /** Obtain a given EST from the EST list.
 

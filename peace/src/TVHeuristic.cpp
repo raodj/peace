@@ -90,7 +90,7 @@ TVHeuristic::initialize() {
     size_t maxESTlen = EST::getMaxESTLen();
     
     // Add extra 100 characters to ease processing.
-    matchTable = new char[maxESTlen + windowLen];
+    matchTable = new char[maxESTlen + windowLen + v];
     // Everything went well
     return 0;
 }

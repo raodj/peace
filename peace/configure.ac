@@ -131,8 +131,7 @@ AC_MSG_RESULT([$CXX])
 AC_PROG_CXX
 AC_LINK_STDCPP
 AC_PROG_ICC
-
-#AC_PROG_RANLIB
+AC_PROG_RANLIB
 
 # Checks for libraries.
 #AC_CHECK_LIB([pthread], [pthread_create])
@@ -169,7 +168,8 @@ AC_CHECK_FUNCS([bzero floor gettimeofday memset mkdir modf pow rint sqrt strcase
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile
-		 tools/Makefile])
+		 tools/Makefile
+		 examples/Makefile])
 
 AC_OUTPUT
 

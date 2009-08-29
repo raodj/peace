@@ -24,7 +24,6 @@
 //---------------------------------------------------------------------------
 
 #include "D2.h"
-#include "EST.h"
 #include "ESTCodec.h"
 #include <algorithm>
 

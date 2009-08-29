@@ -26,12 +26,13 @@ include $(top_builddir)/Makefile.common.am
 AM_CPPFLAGS=$(GLOBALCPPFLAGS)
 AM_CXXFLAGS=$(GLOBALCXXFLAGS)
 
+noinst_LIBRARIES = libpeace.a
 bin_PROGRAMS = peace
 
-peace_LDFLAGS = -lreadline -lcurses
-peace_LDADD = $(STDCPP)
+peace_LDFLAGS = -L.
+peace_LDADD = $(STDCPP) -lreadline -lcurses -lpeace
 
-peace_SOURCES = \
+libpeace_a_SOURCES = \
 arg_parser.cpp\
 arg_parser.h\
 ESTAnalyzer.cpp\
@@ -49,7 +50,6 @@ FWAnalyzer.h\
 MatrixFileAnalyzer.h \
 MatrixFileAnalyzer.cpp \
 HTMLHeader.h\
-main.cpp\
 ResultLog.cpp\
 ResultLog.h\
 Utilities.cpp\
@@ -85,8 +85,6 @@ UVSampleHeuristic.h\
 UVSampleHeuristic.cpp\
 NewUVHeuristic.h\
 NewUVHeuristic.cpp\
-InteractiveConsole.h\
-InteractiveConsole.cpp\
 ESTCodec.cpp\
 ESTCodec.h\
 TVHeuristic.h\
@@ -108,5 +106,10 @@ PMSTClusterMaker.cpp\
 PMSTClusterMaker.h\
 PMSTHeapCache.cpp\
 PMSTHeapCache.h
+
+peace_SOURCES = \
+main.cpp\
+InteractiveConsole.h\
+InteractiveConsole.cpp
 
 # end of Makefile.am

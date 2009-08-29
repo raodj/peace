@@ -220,4 +220,18 @@ EST::operator=(const EST&) {
     return *this;
 }
 
+size_t
+EST::getMaxESTLen() {
+    if (maxESTlen == 0) {
+        // First time we have to compute the max length as it is not
+        // yet known.
+        const int ESTCount = (int) estList.size();
+        for(int id = 0; (id < ESTCount); id++) {
+            maxESTlen = std::max(maxESTlen, strlen(estList[id]->getSequence()));
+        }
+    }
+    // We have the maximum length EST
+    return maxESTlen;
+}
+
 #endif
