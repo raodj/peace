@@ -52,7 +52,7 @@ MSTCluster::add(const MSTNode& node) {
 
 double
 MSTCluster::makeClusters(NodeList& nodeList, const double percentile,
-                         const int analysisCount) {
+                         const int analysisCount, const ESTAnalyzer* analyzer) {
     // Compute the threshold based on the percentile value provided.
     const double threshold = calculateThreshold(nodeList.size(), percentile,
                                                 analysisCount);
@@ -62,7 +62,7 @@ MSTCluster::makeClusters(NodeList& nodeList, const double percentile,
     // sub clusters.
     for(NodeList::const_iterator node = nodeList.begin();
         (node != nodeList.end()); node++) {
-        if ((*node).getMetric() >= threshold) {
+        if (analyzer->compareMetrics(threshold, (*node).getMetric())) {
             // Possibly this goes in a different cluster?
             continue;
         }

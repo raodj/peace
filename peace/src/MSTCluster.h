@@ -23,6 +23,7 @@
 //---------------------------------------------------------------------------
 
 #include "MST.h"
+#include "ESTAnalyzer.h"
 
 class MSTCluster;
 
@@ -50,7 +51,7 @@ public:
     ~MSTCluster();
 
     double makeClusters(NodeList& nodeList, const double percentile,
-			const int analysisCount);
+			const int analysisCount, const ESTAnalyzer* analyzer);
     void add(const MSTNode& node);
 
     void printClusterTree(std::ostream& os = std::cout,

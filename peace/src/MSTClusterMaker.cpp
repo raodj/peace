@@ -650,7 +650,8 @@ MSTClusterMaker::makeClusters() {
     // Do clustering if so desired.
     if (!dontCluster) {
         MSTCluster root;
-        root.makeClusters(mst->getNodes(), percentile, totalSuccesses);
+        root.makeClusters(mst->getNodes(), percentile, totalSuccesses,
+                          analyzer);
                     
         // Redirect cluster output to outputFile as needed.
         std::ofstream outFile;
