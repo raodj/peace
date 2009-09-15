@@ -276,19 +276,19 @@ protected:
         this EST that must be converted to hash values.
     */
     template <typename Encoder>
-      void buildWordTable(int* wordTable, const char* estSeq,Encoder encoder) {
-      // Compute the has for the first word using the encoder. The
-      // encoder may do normal or reverse-complement encoding for us.
-      register int hash = 0;
-      for(register int i = 0; ((*estSeq != 0) && (i < wordSize - 1));
-	  i++, estSeq++) {
-	hash = encoder(hash, *estSeq);
-      }
-      // Now compute the hash for each word
-      for(int entry = 0; (*estSeq != 0); entry++, estSeq++) {
-	hash = encoder(hash, *estSeq);
-	wordTable[entry] = hash;
-      }
+    void buildWordTable(int* wordTable, const char* estSeq,Encoder encoder) {
+        // Compute the has for the first word using the encoder. The
+        // encoder may do normal or reverse-complement encoding for us.
+        register int hash = 0;
+        for(register int i = 0; ((*estSeq != 0) && (i < wordSize - 1));
+            i++, estSeq++) {
+            hash = encoder(hash, *estSeq);
+        }
+        // Now compute the hash for each word
+        for(int entry = 0; (*estSeq != 0); entry++, estSeq++) {
+            hash = encoder(hash, *estSeq);
+            wordTable[entry] = hash;
+        }
     }
 
     /** Instance variable that maps an index in the reference sequence
