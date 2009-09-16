@@ -30,7 +30,7 @@ AC_CONFIG_HEADER([src/config.h])
 AC_REQUIRE_CPP
 
 # The macros above automatically fill in some CXXFLAGS so we'll undo it.
-CXX=mpicxx
+CXX=g++
 CFLAGS=""
 CXXFLAGS=""
 CPPFLAGS=""
@@ -59,15 +59,17 @@ AC_DEFUN([AC_PROG_MPI],
      fi
 
      if test $MPI = no; then
-        AC_MSG_ERROR([MPI could no be found on your system.
+        AC_MSG_WARN([MPI could no be found on your system.
 		      You can download MPI for free from
 		      http://www.open-mpi.org
                       Please check that MPI is installed on your system
 		      and your path includes the top-level install directory
 		      (example: /usr/include/openmpi), or specify
 		      --with-mpi=PATH option when running configure.])
+     else
+         CXX=mpicxx
+         AC_SUBST(MPI)
      fi
-     AC_SUBST(MPI)
 ])
 
 # Check if mpicxx requires -lstdc++ option (needed on redhawk)
@@ -126,7 +128,7 @@ AC_DEFUN([AC_PROG_ICC],
 
 # Checks for programs.
 AC_PROG_MPI
-AC_MSG_CHECKING([properties of MPI compiler])
+AC_MSG_CHECKING([properties of (MPI) compiler])
 AC_MSG_RESULT([$CXX])
 AC_PROG_CXX
 AC_LINK_STDCPP
