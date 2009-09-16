@@ -127,18 +127,20 @@ MSTClusterMaker::estAdded(const int estIdx, std::vector<int>& repopulateList) {
     cache->pruneCaches(estIdx, repopulateList, false);
     // Obtain and process requests to repopulate the cache from every
     // worker.
-    const int WorkerCount = MPI::COMM_WORLD.Get_size();
+    const int WorkerCount = MPI_GET_SIZE();
     for(int workerID = 1; (workerID < WorkerCount); workerID++) {
         // Wait for a message to be received from a worker and obtain
         // some status information regarding the message.
-        const int sourceRank = (strictOrder ? workerID : MPI_ANY_SOURCE);
-        MPI::Status msgInfo;
-        MPI_PROBE(sourceRank, REPOPULATE_REQUEST, msgInfo);
+        MPI_STATUS msgInfo;
+        MPI_CODE({
+                const int sourceRank=(strictOrder ? workerID : MPI_ANY_SOURCE);
+                MPI_PROBE(sourceRank, REPOPULATE_REQUEST, msgInfo);
+            });
         // OK, we have a valid repopulation request pending from some
         // worker. So read and process it.
-        const int dataSize = msgInfo.Get_count(MPI::INT);
+        const int dataSize = msgInfo.Get_count(MPI_INT);
         int *requestData = new int[dataSize];
-        MPI_RECV(requestData, dataSize, MPI::INT,
+        MPI_RECV(requestData, dataSize, MPI_INT,
                  msgInfo.Get_source(), REPOPULATE_REQUEST);
         // Add the poulation request to our repopulate vector.
         if (requestData[0] > 0) {
@@ -176,13 +178,15 @@ MSTClusterMaker::managerUpdateCaches(int estIdx, const bool refreshEST) {
         // assuming the owner of this est is not the MANAGER itself.
         const int ownerRank = getOwnerProcess(*curr);
         if (ownerRank != MANAGER_RANK) {
-            int dummy;
-            TRACK_IDLE_TIME(MPI_RECV(&dummy, 1, MPI_INT, ownerRank,
-                                     SIMILARITY_COMPUTATION_DONE));
+            MPI_CODE({
+                    int dummy;
+                    TRACK_IDLE_TIME(MPI_RECV(&dummy, 1, MPI_INT, ownerRank,
+                                             SIMILARITY_COMPUTATION_DONE));
+                });
         }
     }
     // Everything went on fine.
-    return MPI::SUCCESS;
+    return 0;
 }
 
 void
@@ -194,14 +198,16 @@ MSTClusterMaker::computeNextESTidx(int& parentESTidx, int& estToAdd,
     // Now compute local best similarity
     cache->getBestEntry(parentESTidx, estToAdd, similarity, alignmentData);
     // Receive similarity entry from 
-    const int ProcessCount = MPI::COMM_WORLD.Get_size();
+    const int ProcessCount = MPI_GET_SIZE();
     for(int rank = 1; (rank < ProcessCount); rank++) {
-        // Choose worker rank depending on strict ordering scheme..
-        const int workerRank = (strictOrder ? rank : MPI_ANY_SOURCE);
         // Get the local simlarity information from another worker.
         int remoteData[4];
-        TRACK_IDLE_TIME(MPI_RECV(remoteData, 4, MPI::INT,
-                                 workerRank, MAX_SIMILARITY_RESPONSE));
+        MPI_CODE({
+                // Choose worker rank depending on strict ordering scheme..
+                const int workerRank = (strictOrder ? rank : MPI_ANY_SOURCE);
+                TRACK_IDLE_TIME(MPI_RECV(remoteData, 4, MPI_INT,
+                                         workerRank, MAX_SIMILARITY_RESPONSE));
+            });
         // Undo the fudge on similarity done at the sender end.
         const float remoteSim = *((float *) (remoteData + 2));
         // Use a better or first valid entry
@@ -313,7 +319,7 @@ MSTClusterMaker::worker() {
     int estAdded = -1;
     // Wait for the Manager to send requests to this worker to perform
     // different tasks.
-    MPI::Status msgInfo;
+    MPI_STATUS msgInfo;
     do {
         // Wait for manager to send us a work request.  Since we are
         // waiting it should be tracked under idle time.
@@ -323,7 +329,7 @@ MSTClusterMaker::worker() {
             // idle time as we are doing this Recv because the message
             // has already arrived.
             int estIdx = -1;
-            MPI_RECV(&estIdx, 1, MPI::INT, MANAGER_RANK,
+            MPI_RECV(&estIdx, 1, MPI_INT, MANAGER_RANK,
                      COMPUTE_SIMILARITY_REQUEST);
             // Perform the necessary operations.
             populateCache(estIdx);
@@ -331,9 +337,11 @@ MSTClusterMaker::worker() {
             // Read the actual message first. Dont' account it under
             // idle time as we are doing this Recv because the message
             // has already arrived.
-            int dummy = 0;
-            MPI_RECV(&dummy, 1, MPI::INT, MANAGER_RANK,
-                     COMPUTE_MAX_SIMILARITY_REQUEST);
+            MPI_CODE({
+                    int dummy = 0;
+                    MPI_RECV(&dummy, 1, MPI_INT, MANAGER_RANK,
+                             COMPUTE_MAX_SIMILARITY_REQUEST);
+                });
             int   bestEntry[4];
             float similarity = 0;
             // Get the best possible local similarity match.
@@ -344,11 +352,11 @@ MSTClusterMaker::worker() {
             // Maybe there is a cleaner way to do it too...
             int *temp    = reinterpret_cast<int*>(&similarity);
             bestEntry[2] = *temp;
-            MPI_SEND(bestEntry, 4, MPI::INT, MANAGER_RANK,
+            MPI_SEND(bestEntry, 4, MPI_INT, MANAGER_RANK,
                      MAX_SIMILARITY_RESPONSE);
         } else if (msgInfo.Get_tag() == ADD_EST) {
             // The manager has broad casted the next est to be added.
-            MPI_RECV(&estAdded, 1, MPI::INT, MANAGER_RANK, ADD_EST);
+            MPI_RECV(&estAdded, 1, MPI_INT, MANAGER_RANK, ADD_EST);
             if (estAdded == -1) {
                 // No more ESTs to add.  Clustering is done.  So it is time
                 // for this worker to stop too.
@@ -370,9 +378,9 @@ MSTClusterMaker::worker() {
 int
 MSTClusterMaker::getOwnerProcess(const int estIdx) const {
     const int ESTsPerProcess = EST::getESTList().size() /
-        MPI::COMM_WORLD.Get_size();
+        MPI_GET_SIZE();
     const int ExtraESTs      = EST::getESTList().size() %
-        MPI::COMM_WORLD.Get_size();
+        MPI_GET_SIZE();
     const int ExtraESTsCutOff= (ExtraESTs * ESTsPerProcess) + ExtraESTs;
     
     // If the estIdx is less that the ExtraESTsCutOff then account for
@@ -441,7 +449,7 @@ MSTClusterMaker::populateCache(const int estIdx, SMList* metricList) {
     cache->preprocess(smList);
     // Now further process smList...
     const int ownerRank = getOwnerProcess(estIdx);
-    if (ownerRank != MPI::COMM_WORLD.Get_rank()) {
+    if (ownerRank != MPI_GET_RANK()) {
         // This process is not the owner.  In this case, just send the
         // smList to the remote owner process.  There is some fudging
         // of data types going on here using the assumption that
@@ -470,26 +478,29 @@ MSTClusterMaker::populateCache(const int estIdx, SMList* metricList) {
     // Add data to the parameter
     // Obtain similarity lists from all other processes (other than
     // ourselves).
-    const int MyRank = MPI::COMM_WORLD.Get_rank();
-    for(int pid = 0; (pid < MPI::COMM_WORLD.Get_size()); pid++) {
+    const int MyRank = MPI_GET_RANK();
+    for(int pid = 0; (pid < MPI_GET_SIZE()); pid++) {
         if (pid == MyRank) {
             // Can't get a message from ourselves...
             continue;
         }
-        // Choose actual rank depending on strict ordering scheme..
-        const int rank = (strictOrder ? pid : MPI_ANY_SOURCE);
-        MPI::Status msgInfo;
-        // Wait to receive similarity list.  Since we are waiting it
-        // should be logged as idle time for this process.
-        MPI_PROBE(rank, SIMILARITY_LIST, msgInfo);
+        // The status structure for probing incoming messages.
+        MPI_STATUS msgInfo;
+        MPI_CODE({
+                // Choose actual rank depending on strict ordering scheme..
+                const int rank = (strictOrder ? pid : MPI_ANY_SOURCE);
+                // Wait to receive similarity list.  Since we are waiting it
+                // should be logged as idle time for this process.
+                MPI_PROBE(rank, SIMILARITY_LIST, msgInfo);
+            });
         // OK, we have a valid similarity list pending from some other
         // process. So read and process it.
-        const int dataSize = msgInfo.Get_count(MPI::CHAR);
+        const int dataSize = msgInfo.Get_count(MPI_CHAR);
         SMList remoteList(dataSize / sizeof(CachedESTInfo));
         // The following call is a kludge with MPI/STL data types
         // based on several language assumptions.  This part could be
         // cleaned up to be more portable later on.
-        MPI_RECV(&remoteList[0], dataSize, MPI::CHAR,
+        MPI_RECV(&remoteList[0], dataSize, MPI_CHAR,
                  msgInfo.Get_source(), SIMILARITY_LIST);
         // Merge the list we got from the remote process with our
         // local cache information if the list has a valid entry.
@@ -505,19 +516,20 @@ MSTClusterMaker::populateCache(const int estIdx, SMList* metricList) {
     // Now finally let the manager know that the round of similarity
     // computation is all completed (assuming this process itself is
     // not the manager).
-    if (MPI::COMM_WORLD.Get_rank() != MANAGER_RANK) {
-        const int dummy = -1;
-        MPI_SEND(&dummy, 1, MPI_INT, MANAGER_RANK, SIMILARITY_COMPUTATION_DONE);
+    if (MPI_GET_RANK() != MANAGER_RANK) {
+        MPI_CODE({
+                const int dummy = -1;
+                MPI_SEND(&dummy, 1, MPI_INT, MANAGER_RANK,
+                         SIMILARITY_COMPUTATION_DONE);
+            });
     }
 }
 
 void
 MSTClusterMaker::getOwnedESTidx(int& startIndex, int& endIndex) {
-    const int ESTsPerProcess = EST::getESTList().size() /
-        MPI::COMM_WORLD.Get_size();
-    const int ExtraESTs      = EST::getESTList().size() %
-        MPI::COMM_WORLD.Get_size();
-    const int MyRank         = MPI::COMM_WORLD.Get_rank();
+    const int ESTsPerProcess = EST::getESTList().size() / MPI_GET_SIZE();
+    const int ExtraESTs      = EST::getESTList().size() % MPI_GET_SIZE();
+    const int MyRank         = MPI_GET_RANK();
     
     // First figure out the starting and ending EST this processs is
     // responsible for further use.
@@ -544,7 +556,7 @@ MSTClusterMaker::getOwnedESTidx(int& startIndex, int& endIndex) {
 void
 MSTClusterMaker::displayStats(std::ostream& os) {
     // Dump cache usage statistics for this process.
-    cache->displayStats(os, MPI::COMM_WORLD.Get_rank());
+    cache->displayStats(os, MPI_GET_RANK());
     // Display MPI usage statistics.
     MPIStats::displayStats(os);
 }
@@ -586,7 +598,7 @@ MSTClusterMaker::makeClusters() {
         }
         
         // Act as manager or worker depending on MPI rank.
-        if (MPI::COMM_WORLD.Get_rank() == MANAGER_RANK) {
+        if (MPI_GET_RANK() == MANAGER_RANK) {
             // Get this MPI process to act as the manager.
             result = manager();
         } else {
@@ -607,9 +619,9 @@ MSTClusterMaker::makeClusters() {
             //                       MPI::INT, MPI::SUM, MANAGER_RANK);
 
             // Get each worker's number of successes and add them
-            if (MPI::COMM_WORLD.Get_rank() == MANAGER_RANK) {
-                for (int i = 1; i < MPI::COMM_WORLD.Get_size(); i++) {
-                    MPI_RECV(&tvSuccesses, 1, MPI::INT, MPI_ANY_SOURCE,
+            if (MPI_GET_RANK() == MANAGER_RANK) {
+                for (int i = 1; i < MPI_GET_SIZE(); i++) {
+                    MPI_RECV(&tvSuccesses, 1, MPI_INT, MPI_ANY_SOURCE,
                              COMPUTE_TOTAL_ANALYSIS_COUNT);
                     totalSuccesses+=tvSuccesses;
                     //printf("%d\n", i);
@@ -678,7 +690,7 @@ MSTClusterMaker::makeClusters() {
 
 void
 MSTClusterMaker::sendToWorkers(int data, const int tag) const {
-    const int ProcessCount = MPI::COMM_WORLD.Get_size();
+    const int ProcessCount = MPI_GET_SIZE();
     for(int rank = 1; (rank < ProcessCount); rank++) {
         MPI_SEND(&data, 1, MPI_INT, rank, tag);
     }

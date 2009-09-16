@@ -26,13 +26,13 @@
 #include "Utilities.h"
 #include "ESTAnalyzer.h"
 #include "EST.h"
+#include "MPI.h"
 
 #include <algorithm>
 #include <stdio.h>
 #include <readline/readline.h>
 #include <readline/history.h>
 
-#include <mpi.h>
 #include <cmath>
 #include <iomanip>
 
@@ -71,10 +71,10 @@ InteractiveConsole::initialize() {
     // Initialize the analyzer and load the ESTs from a FASTA file.
     // Collate and print time taken for initializaton.
     std::cout << "Loading ESTs..." << std::flush;
-    const double startTime = MPI::Wtime();
+    const double startTime = MPI_WTIME();
     bool retVal = analyzer->initialize() == 0;
     // Track initialization time in milliseconds
-    const double elapsedTime = (MPI::Wtime() - startTime) * 1000.0;
+    const double elapsedTime = (MPI_WTIME() - startTime) * 1000.0;
     if (!retVal) {
         // Error occured during initialization. Bail out.
         std::cerr << "Error initializing EST analyzer.\nExiting.\n";
@@ -163,7 +163,7 @@ InteractiveConsole::tokenize(const std::string& str,
 void
 InteractiveConsole::printStats(const std::vector<std::string>& UNREFERENCED_PARAMETER(cmdWords)) {
     // Collate and print statistics about the ESTs
-    const double startTime = MPI::Wtime();
+    const double startTime = MPI_WTIME();
     // Obtain the list of ESTs to process
     const std::vector<EST*>& estList = EST::getESTList();
     // Count min, max, and mean length of ESTs
@@ -192,7 +192,7 @@ InteractiveConsole::printStats(const std::vector<std::string>& UNREFERENCED_PARA
     // Now compute and display time elapsed for this operation in
     // milliseconds
     std::cout << "* Elapsed time: "
-              << ((MPI::Wtime() - startTime) * 1000.0) << " msecs\n";
+              << ((MPI_WTIME() - startTime) * 1000.0) << " msecs\n";
 }
 
 void
@@ -238,13 +238,13 @@ InteractiveConsole::analyze(const std::vector<std::string>& cmdWords) {
               << "          EST "    << est2->getInfo() << " (index: " << index2
               << ")...\n";
     // Do the analysis part while tracking time taken.
-    const double startTime = MPI::Wtime();
+    const double startTime = MPI_WTIME();
     // Setup the reference est for analysis.
     analyzer->setReferenceEST(index1);
     // Get the distance/similarity metric.
     float metric = analyzer->analyze(index2);
     // Compute time elapsed in milliseconds
-    const double elapsedTime = (MPI::Wtime() - startTime) * 1000.0;
+    const double elapsedTime = (MPI_WTIME() - startTime) * 1000.0;
     // Display analysis results
     std::cout << "\033[1;38m" << analyzer->getName()
               << (analyzer->isDistanceMetric() ? " distance" : " similarity")

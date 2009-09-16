@@ -30,8 +30,8 @@
 #include "HeuristicFactory.h"
 #include "HeuristicChain.h"
 #include "InteractiveConsole.h"
+#include "MPI.h"
 
-#include <mpi.h>
 #include <string>
 #include <sstream>
 
@@ -131,7 +131,7 @@ main(int argc, char* argv[]) {
     };
    
     // Perform any mpi initialization as needed
-    MPI::Init(argc, argv);
+    MPI_INIT(argc, argv);
     // Get the argument parser to parse and consume the global
     // options.  Based on the options supplied, various variables will
     // be set to appropriate values.
@@ -218,7 +218,7 @@ main(int argc, char* argv[]) {
         // around (it is not perfect solution) interspersed data from
         // multiple MPI processes
         std::ostringstream buffer;
-        heuristicChain->printStats(buffer, MPI::COMM_WORLD.Get_rank());
+        heuristicChain->printStats(buffer, MPI_GET_RANK());
         std::cout << buffer.str() << std::endl;
     }
     
@@ -229,7 +229,7 @@ main(int argc, char* argv[]) {
     delete heuristicChain;
 
     // Shutdown MPI.
-    MPI::Finalize();
+    MPI_FINALIZE();
     
     // Return result of analysis (usually 0 to indicate no errors).
     return result;

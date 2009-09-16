@@ -398,8 +398,8 @@ protected:
 	value), then the neighbors for the newly added EST (specified
 	by estIdx) are computed and the caches are updated.
 	
-        \return This method returns MPI::SUCCESS on success or an
-        suitable error code on failure.
+        \return This method returns 0 on success or an suitable error
+        code on failure.
     */
     int managerUpdateCaches(int estIdx, const bool refreshEST = true);
 

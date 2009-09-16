@@ -110,7 +110,9 @@ Baton.h\
 BatonESTData.cpp\
 BatonESTData.h\
 BatonAnalyzer.cpp\
-BatonAnalyzer.h
+BatonAnalyzer.h \
+MPI.h \
+MPI.cpp
 
 peace_SOURCES = \
 main.cpp\
