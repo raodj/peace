@@ -39,8 +39,8 @@ public:
         \param[in] widthValue
     */
     Baton(const int beginValue, const int widthValue) :
-      begin(beginValue), width(widthValue), isCounted(false),
-      sectionCount(-1) {}
+        width(widthValue), begin(beginValue), sectionCount(-1),
+        isCounted(false) {}
 
     // Default constructor.
     Baton() :

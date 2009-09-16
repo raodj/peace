@@ -134,14 +134,14 @@ TransMSTClusterMaker::populateCache(const int estIdx,
     // owner of this EST.  The owner process should send the list to
     // all the processes.
     const int ownerRank = getOwnerProcess(estIdx);
-    if (ownerRank == MPI::COMM_WORLD.Get_rank()) {
+    if (ownerRank == MPI_GET_RANK()) {
         // This is the owner process. Send the cache entries to all
         // the processes.  First remove unwanted entries and get just
         // good entries.
         SMList goodEntries;
         pruneMetricEntries(smList, goodEntries);
         const int MsgSize      = goodEntries.size() * sizeof(CachedESTInfo);
-        const int ProcessCount = MPI::COMM_WORLD.Get_size();
+        const int ProcessCount = MPI_GET_SIZE();
 
         const char *data       = reinterpret_cast<char*>(&goodEntries[0]);
         // An if check is necessary here when running on MPI
@@ -149,7 +149,7 @@ TransMSTClusterMaker::populateCache(const int estIdx,
         // send/receive messages to themselves.
         for(int rank = 0; (rank < ProcessCount); rank++) {
             if (rank != ownerRank) {
-                MPI_SEND(data, MsgSize, MPI::CHAR, rank, TRANSITIVITY_LIST);
+                MPI_SEND(data, MsgSize, MPI_CHAR, rank, TRANSITIVITY_LIST);
             }
         }
         if ((goodEntries.size() == 1) && (goodEntries[0].estIdx == -1)) {
@@ -165,12 +165,12 @@ TransMSTClusterMaker::populateCache(const int estIdx,
         // When control drops here, all the processes new receive the
         // SMList from the latest round of analysis. First probe to find
         // out size of the SMList.
-        MPI::Status msgInfo;
+        MPI_STATUS msgInfo;
         MPI_PROBE(ownerRank, TRANSITIVITY_LIST, msgInfo);
         // Now allocate the necessary space and obtain the SMList
-        const int dataSize = msgInfo.Get_count(MPI::CHAR);
+        const int dataSize = msgInfo.Get_count(MPI_CHAR);
         SMList remoteList(dataSize / sizeof(CachedESTInfo));
-        TRACK_IDLE_TIME(MPI_RECV(&remoteList[0], dataSize, MPI::CHAR,
+        TRACK_IDLE_TIME(MPI_RECV(&remoteList[0], dataSize, MPI_CHAR,
                                  ownerRank, TRANSITIVITY_LIST));
         // Check to ensure that this not just a dummy list with one
         // invalid entry. Such dummy lists are required to work around MPI

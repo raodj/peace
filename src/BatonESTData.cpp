@@ -24,6 +24,7 @@
 //---------------------------------------------------------------------------
 
 #include "BatonESTData.h"
+#include <cstring>
 
 BatonESTData::BatonESTData(const char* estSequence, const int sectionWidth,
                            const int nMer, const int maxMer) {

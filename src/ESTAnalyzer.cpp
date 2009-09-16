@@ -24,7 +24,7 @@
 
 #include "ESTAnalyzer.h"
 #include "EST.h"
-#include <mpi.h>
+#include "MPI.h"
 
 // Get rid of magic numbers
 #define NO_ERROR 0
@@ -113,7 +113,7 @@ ESTAnalyzer::loadFASTAFile(const char *fileName, const bool unpopulate) {
 #endif
     if ((fastaFile == NULL) || (ferror(fastaFile))) {
         std::cerr << analyzerName << "(Rank: ";
-        std::cerr << MPI::COMM_WORLD.Get_rank()
+        std::cerr << MPI_GET_RANK()
                   << "): Error opening FASTA file "
                   << fileName << " for reading." << std::endl;
         return false;

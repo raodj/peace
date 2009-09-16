@@ -24,7 +24,9 @@
 
 #include <iostream>
 #include <string>
-#include <mpi.h>
+
+// Include our non-native MPI header to enable/diable MPI usage.
+#include "MPI.h"
 
 /** A non-instantiable wrapper class to track MPI-related statistics.
 
@@ -174,7 +176,7 @@ private:
 /** \def TRACK_IDLE_TIME
 
     \brief Convenience macro to track time spent in calling a MPI
-    method.
+    method (only if MPI is available).
 
     This macro provides a convenient wrapper around a given MPI method
     call to track the time spent in calling a MPI method.  This macro
@@ -200,16 +202,23 @@ private:
     MPI_PROBE macro directly as it automatically tracks the idle time
     too.
 */
+#ifdef HAVE_LIBMPI
 #define TRACK_IDLE_TIME(MPIMethodCall) {                        \
         const double startTime = MPI::Wtime();                  \
         MPIMethodCall;                                          \
         MPIStats::idleTime += (MPI::Wtime() - startTime);       \
     }
+#else
+// If we don't have MPI this TRACK_IDLE_TIME reduces to nothing.
+#define TRACK_IDLE_TIME(MPIMethodCall)
+#endif
 
 /** \def MPI_PROBE
 
     \brief Convenience macro to track time spent in calling a
-    MPI::COMM_WORLD.Probe() method.
+    MPI::COMM_WORLD.Probe() method only if MPI is enabled. If MPI is
+    not enabled, then this macro does nothing and call to MPI_Probe is
+    never made.
 
     This macro provides a convenient wrapper around MPI's Probe method
     call to update MPIStats::probeCount variable and update the
@@ -237,6 +246,7 @@ private:
     ensure that the MPI call completed successfully.  If errors are
     found, then this method throws an exception.
 */
+#ifdef HAVE_LIBMPI
 #define MPI_PROBE(rank, tag, statusInfo)  {                \
         const double startTime = MPI::Wtime();             \
         MPI::COMM_WORLD.Probe(rank, tag, statusInfo);      \
@@ -247,6 +257,10 @@ private:
         MPIStats::idleTime += (MPI::Wtime() - startTime);  \
         MPIStats::probeCount++;                            \
     }
+#else
+// If we don't have MPI this MPI_PROBE reduces to nothing.
+#define MPI_PROBE(rank, tag, statusInfo)
+#endif
 
 /** \def MPI_SEND
 
@@ -268,11 +282,20 @@ private:
     }
 
     \endcode
+
+    \note This macro calls MPI::COMM_WORD.Send only if MPI is
+    enabled. If MPI is not enabled (or is unavailable) then this macro
+    reduces to nothing and the actual send call is never made.
 */
+#ifdef HAVE_LIBMPI
 #define MPI_SEND(data, count, dataType, rank, tag)  {           \
         MPI::COMM_WORLD.Send(data, count, dataType, rank, tag); \
         MPIStats::sendCount++;                                  \
     }
+#else
+// If we don't have MPI then MPI_SEND reduces to nothing.
+#define MPI_SEND(data, count, dataType, rank, tag)
+#endif
 
 /** \def MPI_RECV
 
@@ -294,11 +317,19 @@ private:
     }
 
     \endcode
+
+    \note This macro calls MPI::COMM_WORD.Send only if MPI is
+    enabled. If MPI is not enabled (or is unavailable) then this macro
+    reduces to nothing and the actual receive call is never made.
 */
+#ifdef HAVE_LIBMPI
 #define MPI_RECV(data, count, dataType, rank, tag)  {           \
         MPI::COMM_WORLD.Recv(data, count, dataType, rank, tag); \
         MPIStats::recvCount++;                                  \
     }
+#else
+#define MPI_RECV(data, count, dataType, rank, tag)
+#endif
 
 /** \def MPI_BCAST
 
@@ -320,10 +351,19 @@ private:
     }
 
     \endcode
+
+    \note This macro calls MPI::COMM_WORD.Bcast only if MPI is
+    enabled. If MPI is not enabled (or is unavailable) then this macro
+    reduces to nothing and the actual broadcast call is never made.
 */
+#ifdef HAVE_LIBMPI
 #define MPI_BCAST(data, count, dataType, senderRank)  {                 \
         MPI::COMM_WORLD.Bcast(data, count, dataType, senderRank);       \
         MPIStats::bcastCount++;                                         \
     }
+#else
+// If we don't have MPI then MPI_BCAST reduces to nothing.
+#define MPI_BCAST(data, count, dataType, senderRank)
+#endif
 
 #endif
