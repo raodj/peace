@@ -62,7 +62,8 @@ public:
     //protected:
     double calculateThreshold(const int nodeCount,
                               const double percentile,
-			      const int analysisCount) const;
+			      const int analysisCount,
+			      const ESTAnalyzer* analyzer) const;
 
 protected:
     

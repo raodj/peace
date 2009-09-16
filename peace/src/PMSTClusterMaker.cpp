@@ -964,7 +964,7 @@ PMSTClusterMaker::makeClusters() {
                 }
                 // Calculate threshold
                 threshold = root.calculateThreshold(EST::getESTList().size(),
-                                        percentile, totalSuccesses);
+                                        percentile, totalSuccesses, analyzer);
             } else {
                 // Workers send
                 MPI_SEND(&tvSuccesses, 1, MPI_INT, MANAGER_RANK,
