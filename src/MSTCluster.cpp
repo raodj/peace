@@ -55,7 +55,7 @@ MSTCluster::makeClusters(NodeList& nodeList, const double percentile,
                          const int analysisCount, const ESTAnalyzer* analyzer) {
     // Compute the threshold based on the percentile value provided.
     const double threshold = calculateThreshold(nodeList.size(), percentile,
-                                                analysisCount);
+                                                analysisCount, analyzer);
     // Now create a hash map to track cluster for a given node
     ClusterMap clusterMap;
     // Now extract nodes from the nodeList and add it to appropriate
@@ -127,7 +127,8 @@ MSTCluster::makeClusters(NodeList& nodeList, const double percentile,
 double
 MSTCluster::calculateThreshold(const int nodeCount,
                                const double percentile,
-                               const int analysisCount) const {
+                               const int analysisCount,
+                               const ESTAnalyzer* analyzer) const {
     /*double totalSim    = 0;
     double totalSimSqr = 0;
     // Iterate over the set of nodes and compute total values to
@@ -145,10 +146,13 @@ MSTCluster::calculateThreshold(const int nodeCount,
     return mean + (stDev * percentile);*/
 
     if (!analysisCount) {
-        // Either we aren't using tv, or we did no D2 analyses,
-        // which would make this threshold essentially meaningless
-        // (all distances would be 400)
-        return 40;
+        // We are not using the TV heuristic
+        // Return a threshold based on the analyzer in use
+        if (!analyzer->getName().compare("baton")) {
+            return 15;
+        } else {
+            return 40;
+        }
     } else {
         // Threshold is based on ratio of full analysis (i.e. D2 runs)
         // to total number of comparisons made (EST count choose 2).
