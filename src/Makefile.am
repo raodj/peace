@@ -105,7 +105,12 @@ TransMSTClusterMaker.h\
 PMSTClusterMaker.cpp\
 PMSTClusterMaker.h\
 PMSTHeapCache.cpp\
-PMSTHeapCache.h
+PMSTHeapCache.h\
+Baton.h\
+BatonESTData.cpp\
+BatonESTData.h\
+BatonAnalyzer.cpp\
+BatonAnalyzer.h
 
 peace_SOURCES = \
 main.cpp\
