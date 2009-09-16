@@ -268,7 +268,7 @@ MSTClusterMaker::manager() {
     // of the MST with a similarity metric of 0.
     int parentESTidx    = -1;
     int estToAdd        = refESTidx;
-    float metric        = 0;
+    float metric        = analyzer->getValidMetric();
     int   alignmentInfo = 0;
     do {
         // Add the EST to the MST vector, if needed.
