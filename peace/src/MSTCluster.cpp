@@ -54,7 +54,7 @@ double
 MSTCluster::makeClusters(NodeList& nodeList, const double percentile,
                          const int analysisCount, const ESTAnalyzer* analyzer) {
     // Compute the threshold based on the percentile value provided.
-    const double threshold = calculateThreshold(nodeList.size(), percentile,
+    const float threshold = (float) calculateThreshold(nodeList.size(), percentile,
                                                 analysisCount, analyzer);
     // Now create a hash map to track cluster for a given node
     ClusterMap clusterMap;
@@ -126,7 +126,7 @@ MSTCluster::makeClusters(NodeList& nodeList, const double percentile,
 
 double
 MSTCluster::calculateThreshold(const int nodeCount,
-                               const double percentile,
+                               const double UNREFERENCED_PARAMETER(percentile),
                                const int analysisCount,
                                const ESTAnalyzer* analyzer) const {
     /*double totalSim    = 0;
@@ -163,9 +163,9 @@ MSTCluster::calculateThreshold(const int nodeCount,
         // the ratio is relatively low, we want the threshold to be higher
         // (to cut down on singletons and give us clusters of meaningful size).
 
-        int totalCmps = nodeCount * (nodeCount - 1) * 0.5;
+        int totalCmps = nodeCount * (nodeCount - 1) / 2;
         double ratio = ((double) analysisCount) / ((double) totalCmps);
-        int threshold = (.08/ratio); // magic number, worked for current data
+        int threshold = (int) (.08 / ratio); // magic number, worked for current data
         // Put some hard limits on the threshold
         if (threshold < 40) threshold = 40;
         if (threshold > 130) threshold = 130;
@@ -225,11 +225,15 @@ MSTCluster::printClusterTree(std::ostream& os,
     const int IterSize = clusterList.size() - 1;
     for(int i = 0; (i < IterSize); i++) {
         os << prefix << "  +---";
-        clusterList[i]->printClusterTree(os, prefix + "  |   ");
+	std::string newPrefix = prefix;
+	newPrefix += "  |   ";
+        clusterList[i]->printClusterTree(os, newPrefix);
     }
     if (IterSize >= 0) {
         os << prefix << "  +---";
-        clusterList[IterSize]->printClusterTree(os, prefix + "      ");
+	std::string newPrefix = prefix;
+	newPrefix += "      ";
+        clusterList[IterSize]->printClusterTree(os, newPrefix);
     }
 }
 

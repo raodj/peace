@@ -25,6 +25,8 @@
 #include "MatrixFileAnalyzer.h"
 #include "EST.h"
 
+#include <sstream>
+
 // The static instance variables for command line arguments.
 char* MatrixFileAnalyzer::dataFileName  = NULL;
 
@@ -182,19 +184,12 @@ int
 MatrixFileAnalyzer::parseMetrics(const char* line, float *values,
                                  const int startPos, const int maxValues) {
     int index = 0;
-    // Create a mutable copy of the line for tokenization.  Memory is
-    // automatically freed.
-    char *dup     = strdupa(line);
-    char *prevPtr = NULL;
-    // Obtain the first token.
-    char *token   = strtok_r(dup, " ", &prevPtr);
-    while (token != NULL) {
-        char *endPtr = NULL;
-        float metric = strtof(token, &endPtr);
-        if ((endPtr == NULL) || (*endPtr != '\0')) {
-            std::cerr << "Invalid metric (" << token << ") read.\n";
-            return -1;
-        }
+    // Create a istringstream to easily read a bunch of float values out
+    std::string tempLine = line;
+    std::istringstream inStream(line);
+    while (!inStream.eof()) {
+        float metric;
+	inStream >> metric;
         // Store the metric into the array.
         values[startPos + index] = metric;
         index++;
@@ -202,8 +197,6 @@ MatrixFileAnalyzer::parseMetrics(const char* line, float *values,
             // We have read the maximum number.
             return index;
         }
-        // On to the next token
-        token = strtok_r(NULL, " ", &prevPtr);
     }
     // Return the number of values read.
     return index;

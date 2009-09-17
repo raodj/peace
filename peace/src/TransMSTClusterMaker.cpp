@@ -45,7 +45,7 @@ TransMSTClusterMaker::TransMSTClusterMaker(ESTAnalyzer *analyzer,
 TransMSTClusterMaker::~TransMSTClusterMaker() {
     int startESTidx, endESTidx;
     getOwnedESTidx(startESTidx, endESTidx);
-    for (size_t i = startESTidx; (i < endESTidx); i++) {
+    for (int i = startESTidx; (i < endESTidx); i++) {
         if (metricCache[i] != NULL) {
             delete metricCache[i];
         }

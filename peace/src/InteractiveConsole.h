@@ -183,6 +183,23 @@ protected:
     */
     void print(const std::vector<std::string>& cmdWords);
 
+#ifdef _WINDOWS
+    /** A helper method used only under Windows.
+
+	This is a replacement for the wonderful and interactive
+	readline functionality that is available under Linux. This
+	method displays the prompt and reads a line from the standard
+	input from the user.
+
+	\param[in] prompt The prompt string to be displayed to the user.
+
+	\return A std::string containing the line of input entered
+	by the user. Note that the returned pointer must be free'd
+	by the caller.
+    */
+    static char* readline(const char *prompt);
+#endif
+
 private:    
     /** Helper method to convert index or FASTA identifier to index.
 
@@ -231,7 +248,7 @@ private:
     */
     typedef struct Entry {
         /// The command with which this handler is associated.
-        const std::string cmd;
+        const char* cmd;
         /// The method to be invoked for processing a command.
         void (InteractiveConsole::*handler)(const std::vector<std::string>&);
     } CmdEntry;
@@ -245,6 +262,19 @@ private:
         method.
     */
     static CmdEntry cmdHandlerList[];
+
+    /** A dummy operator=
+        
+        The operator=() is supressed for this class as it has constant
+        members whose value is set when the object is created.  These
+        values cannot be changed during the lifetime of this object.
+        
+        \param[in] src The source object from where data is to be
+        copied.  Currently this value is ignored.
+        
+        \return Reference to this.
+    */
+    InteractiveConsole& operator=(const InteractiveConsole& src);
 };
 
 

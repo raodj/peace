@@ -167,7 +167,7 @@ CLU::buildHashMaps(EST *est) {
 void
 CLU::createCLUHashMap(int* &hashMap, const char *sequence) {
     // Create a reference hash map if needed.
-    const int MapSize = (int) pow(4, wordSize);
+    const int MapSize = (int) pow(4.0, wordSize);
     if (hashMap == NULL) {
         hashMap = new int[MapSize];
     }
@@ -214,7 +214,7 @@ CLU::filterHashMap(int *hashMap, const int sequenceLength) {
     
     // Note that the first set of AA..A is ignored as its hash is
     // always 0 (zero) as value of each 'A' is 0!
-    char LowCompSeq[wordSize * 3];
+    char *LowCompSeq = reinterpret_cast<char*>(alloca(wordSize * 3));
     memset(LowCompSeq + wordSize * 0, 1, wordSize);
     memset(LowCompSeq + wordSize * 1, 2, wordSize);
     memset(LowCompSeq + wordSize * 2, 3, wordSize);
@@ -236,7 +236,7 @@ CLU::filterHashMap(int *hashMap, const int sequenceLength) {
         hashMap[hash] = 0;
     }
     // Zero-out abundant sequences as they are not very informative.
-    const int MapSize         = (int) pow(4, wordSize);
+    const int MapSize         = (int) pow(4.0, wordSize);
     const int AbundanceFactor = sequenceLength / abundanceFraction;
     for(int i = 0; (i < MapSize); i++) {
         if (!hashMap[i]) {
@@ -255,7 +255,7 @@ int
 CLU::getSimilarity(const int* const hashMap,
                    const char* const sequence) const {
     // Create a categorized distribution for computing similarity.
-    int cd[frameSize];
+    int *cd = reinterpret_cast<int*>(alloca(sizeof(int) * frameSize));
     // Initialize entries in categorized distribution (cd) to 0.
     memset(cd, 0, sizeof(int) * frameSize);
     // Compute bit mask that will retain only the bits corresponding

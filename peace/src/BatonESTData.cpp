@@ -73,7 +73,7 @@ BatonESTData::getSectionBatons(int nSec) {
     for (int k = 0; k < maxMerValue; k++) {
         if (!batons[k].empty()) {
             sectionBatons[k] = std::vector<Baton>();
-            for (int i = 0; i < batons[k].size(); i++) {
+            for (size_t i = 0; i < batons[k].size(); i++) {
                 int bBeg = batons[k][i].getBegin();
                 if (bBeg >= beg && bBeg < end) {
                     sectionBatons[k].push_back(batons[k][i]);
@@ -88,7 +88,7 @@ void
 BatonESTData::resetBatons() {
     for (int i = 0; i < maxMerValue; i++) {
         if (!batons[i].empty()) {
-            for (int j = 0; j < batons[i].size(); j++) {
+            for (size_t j = 0; j < batons[i].size(); j++) {
                 batons[i][j].sectionCount = -1;
             }
         }

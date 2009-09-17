@@ -23,6 +23,7 @@
 //---------------------------------------------------------------------------
 
 #include "Heuristic.h"
+#include "Utilities.h"
 
 Heuristic::Heuristic(const std::string& name)
     : refESTidx(-1), heuristicName(name), runCount(0), successCount(0) {
@@ -36,7 +37,7 @@ Heuristic::~Heuristic() {
 bool
 Heuristic::shouldAnalyze(const int otherEST) {
     bool value;
-    if ((value = runHeuristic(otherEST))) {
+    if ((value = runHeuristic(otherEST)) == true) {
         // This pair should be analyzed further. 
         successCount++;
     }

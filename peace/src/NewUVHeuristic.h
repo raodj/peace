@@ -26,9 +26,10 @@
 #include "Heuristic.h"
 #include "HeuristicFactory.h"
 #include "Utilities.h"
+#include "HashMap.h"
+
 #include <string>
 #include <vector>
-#include <HashMap.h>
 
 /** \typedef HashMap<int, std::vector<short> > UVHashTable;
 

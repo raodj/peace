@@ -25,6 +25,7 @@
 #include "Utilities.h"
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <ctime>
 
 char*
 getTimeStamp(const char *fileName, char *buffer) {
@@ -33,11 +34,12 @@ getTimeStamp(const char *fileName, char *buffer) {
         return buffer;
     }
     // The follwing structure will contain the file information.
-    struct stat fileInfo;
     int returnValue = 0;
 #ifdef _WINDOWS
+    struct _stat fileInfo;
     returnValue = _stat(fileName, &fileInfo);
 #else
+    struct stat fileInfo;
     // The only difference between windows and Linux is the extra "_"
     // at the beginning of stat() method.
     returnValue = stat(fileName, &fileInfo);

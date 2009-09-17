@@ -29,8 +29,15 @@
 #include <algorithm>
 #include <stdlib.h>
 #include <time.h>
-#include <unistd.h>
 #include <string.h>
+
+#ifndef _WINDOWS
+#include <unistd.h>
+#else
+#define getpid() 0
+#define srandom(x)
+#define random() 0
+#endif
 
 #define MAX_SEQ_LEN 7500
 
@@ -116,7 +123,7 @@ SimulationD2::initialize() {
         return result;
     }
     // Compute the size of the frequency differential hashmap
-    MapSize = (int) pow(4, wordSize);
+    MapSize = (int) pow(4.0, wordSize);
 
     // Compute bit mask that will retain only the bits corresponding
     // to a given word size.  Each entry in a word takes up 2 bits and
@@ -334,7 +341,7 @@ SimulationD2::analyze() {
     }
     
     // init RNG
-    int seed = time (NULL) + getpid();
+    int seed = (int) (time (NULL) + getpid());
     srandom(seed);
     printf("#Seed: %d\n", seed);
     int estCount = EST::getESTCount();

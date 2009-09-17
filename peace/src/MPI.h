@@ -32,8 +32,11 @@
     a way to enable the use of MPI without hurting the readability and
     development of PEACE.
 */
-
+#ifndef _WINDOWS
 #include "config.h"
+#endif
+
+#include "Utilities.h"
 
 #ifdef HAVE_LIBMPI
 
@@ -154,7 +157,7 @@
 class MPI_STATUS {
 public:
     inline int Get_source() const { return 0; }
-    inline int Get_count(const int type = 0) const { return 0; }
+    inline int Get_count(const int UNREFERENCED_PARAMETER(type) = 0) const { return 0; }
     inline int Get_tag() const { return 0; }
 };
 #endif
