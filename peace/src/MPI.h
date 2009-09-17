@@ -162,15 +162,15 @@ public:
 };
 #endif
 
-/** \def MPI_INT
+/** \def MPI_TYPE_INT
 
-    \brief Macro to map MPI_INT to MPI::INT (if MPI is enabled) or 0
-    if MPI is unavailable.
+    \brief Macro to map MPI_TYPE_INT to MPI::INT (if MPI is enabled)
+    or 0 if MPI is unavailable.
 
     <p>This macro provides a convenient, conditionally defined macro
     to refer to MPI::INT enumerated constant. If MPI is available,
-    then MPI_INT defaults to MPI::INT.  On the other hand, if MPI is
-    disabled then this macro simply reduces to 0.</p>
+    then MPI_TYPE_INT defaults to MPI::INT.  On the other hand, if MPI
+    is disabled then this macro simply reduces to 0.</p>
 
     This macro can be used as shown below:
 
@@ -182,27 +182,27 @@ public:
         // ... some code goes here ..
 	MPI_STATUS msgInfo;
         MPI_PROBE(sourceRank, REPOPULATE_REQUEST, msgInfo);
-        const int dataSize = msgInfo.Get_count(MPI_INT);
+        const int dataSize = msgInfo.Get_count(MPI_TYPE_INT);
         // ... more code goes here ..
     }
     \endcode
 */
 #ifdef HAVE_LIBMPI
-#define MPI_INT MPI::INT
+#define MPI_TYPE_INT MPI::INT
 #else
 // MPI is not available
-#define MPI_INT 0
+#define MPI_TYPE_INT 0
 #endif
 
-/** \def MPI_CHAR
+/** \def MPI_TYPE_CHAR
 
-    \brief Macro to map MPI_CHAR to MPI::CHAR (if MPI is enabled) or 0
-    if MPI is unavailable.
+    \brief Macro to map MPI_TYPE_CHAR to MPI::CHAR (if MPI is enabled)
+    or 0 if MPI is unavailable.
 
     <p>This macro provides a convenient, conditionally defined macro
     to refer to MPI::CHAR enumerated constant. If MPI is available,
-    then MPI_CHAR defaults to MPI::CHAR.  On the other hand, if MPI is
-    disabled then this macro simply reduces to 0.</p>
+    then MPI_TYPE_CHAR defaults to MPI::CHAR.  On the other hand, if
+    MPI is disabled then this macro simply reduces to 0.</p>
 
     This macro can be used as shown below:
 
@@ -214,16 +214,16 @@ public:
         // ... some code goes here ..
 	MPI_STATUS msgInfo;
         MPI_PROBE(sourceRank, REPOPULATE_REQUEST, msgInfo);
-        const int dataSize = msgInfo.Get_count(MPI_CHAR);
+        const int dataSize = msgInfo.Get_count(MPI_TYPE_CHAR);
         // ... more code goes here ..
     }
     \endcode
 */
 #ifdef HAVE_LIBMPI
-#define MPI_CHAR MPI::CHAR
+#define MPI_TYPE_CHAR MPI::CHAR
 #else
 // MPI is not available
-#define MPI_CHAR 0
+#define MPI_TYPE_CHAR 0
 #endif
 
 /** \def MPI_INIT
