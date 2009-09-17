@@ -35,7 +35,7 @@
 #include <fstream>
 #include <sstream>
 #include <list>
-#include <math.h>
+#include <cmath>
 
 // A define to remove magic 0 (zero) in code
 #define MANAGER_RANK 0
@@ -206,7 +206,7 @@ PMSTClusterMaker::computeNextESTidx(int& parentESTidx, int& estToAdd,
         // Choose worker rank depending on strict ordering scheme..
         const int workerRank = (strictOrder ? rank : MPI_ANY_SOURCE);
         // Get the local simlarity information from another worker.
-        int remoteData[4];
+	int remoteData[4] = {0, 0, 0, 0};
         TRACK_IDLE_TIME(MPI_RECV(remoteData, 4, MPI_INT,
                                  workerRank, MAX_SIMILARITY_RESPONSE));
         // Undo the fudge on similarity done at the sender end.
@@ -590,7 +590,7 @@ PMSTClusterMaker::getOwnedPartition() {
     // in MST construction on the bipartite graphs is greater, we would like
     // to assign 2 processes to work on each bipartite graph if possible.
     // Thus the formula: (this formula will be optimized after testing)
-    const int NumPartitions    = sqrt(CommSize); // rounds down
+    const int NumPartitions    = (int) sqrt((float) CommSize); // rounds down
     const int MyRank           = MPI_GET_RANK();    
     const int ESTsPerPartition = EST::getESTList().size() / NumPartitions;
     const int ExtraESTs        = EST::getESTList().size() % NumPartitions;
@@ -735,7 +735,7 @@ PMSTClusterMaker::mergeManager(MSTCluster& rootCluster, const int threshold) {
 
     // Receive all SMLists from workers and merge them with cache.
     // Need to calculate number of subgraphs first.
-    int numPartitions = sqrt(MPI_GET_SIZE());
+    int numPartitions = (int) sqrt((float) MPI_GET_SIZE());
     int numGraphs = numPartitions + ((numPartitions * (numPartitions-1)) / 2);
     for (int count = 1; count < numGraphs; count++) {
         MPI_STATUS msgInfo;
@@ -963,7 +963,7 @@ PMSTClusterMaker::makeClusters() {
                     totalSuccesses+=tvSuccesses;
                 }
                 // Calculate threshold
-                threshold = root.calculateThreshold(EST::getESTList().size(),
+                threshold = (int) root.calculateThreshold(EST::getESTList().size(),
                                         percentile, totalSuccesses, analyzer);
             } else {
                 // Workers send

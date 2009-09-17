@@ -144,7 +144,7 @@ arg_parser::check_args(int &argc, char *argv[], bool caxoe) {
 	if (i < argc && strcmp(argv[i], array_of_arg_records[j].arg_text) == 0) {
 	  matched_one = true;
 	  remove_arg( i, argc, argv );
-	  *(long long*)(array_of_arg_records[j].data) = atoll(argv[i]);
+	  *(long long*)(array_of_arg_records[j].data) = strtol(argv[i], NULL, 10);
 	  remove_arg( i, argc, argv );
 	}
 	break;

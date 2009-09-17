@@ -29,8 +29,8 @@
 #include "ESTAnalyzer.h"
 #include "HeuristicFactory.h"
 #include "HeuristicChain.h"
-#include "InteractiveConsole.h"
 #include "MPI.h"
+#include "InteractiveConsole.h"
 
 #include <string>
 #include <sstream>

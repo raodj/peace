@@ -107,7 +107,7 @@ BatonAnalyzer::initialize() {
     }
 
     // Initialize important variables/structures
-    maxMerValue = (int) pow(4, nMer);
+    maxMerValue = (int) pow(4.0, nMer);
     lastPos = new int[maxMerValue];
     batonArr = new std::vector<Baton>[maxMerValue];
 
@@ -141,7 +141,8 @@ BatonAnalyzer::setReferenceEST(const int estIdx) {
 }
 
 void
-BatonAnalyzer::buildESTData(BatonESTData** data, const int estIdx) {
+BatonAnalyzer::buildESTData(BatonESTData** data, const int
+			    UNREFERENCED_PARAMETER(estIdx)) {
     // extract the batons
     resetBatonCollector();
 
@@ -257,7 +258,7 @@ BatonAnalyzer::getMetric(const int estIdx) {
         
         // Finished
     
-        return maxAlignment[0];
+        return (float) maxAlignment[0];
     }
 }
 
@@ -273,14 +274,14 @@ BatonAnalyzer::alignBetweenSections(int sect1, int sect2,
             continue;
         }
         Baton* b2s = new Baton[otherBatons[k].size()];
-        for (int j = 0; j < otherBatons[k].size(); j++) {
+        for (size_t j = 0; j < otherBatons[k].size(); j++) {
             b2s[j] = otherBatons[k][j];
         }
-        for (int i = 0; i < refBatons[k].size(); i++) {
+        for (size_t i = 0; i < refBatons[k].size(); i++) {
             Baton b1 = refBatons[k][i];
             int w1 = b1.getWidth();
             int beg1 = b1.getBegin();
-            for (int j = 0; j < otherBatons[k].size(); j++) {
+            for (size_t j = 0; j < otherBatons[k].size(); j++) {
                 if (w1 == b2s[j].getWidth()) {
                     int beg2 = b2s[j].getBegin();
                     int newAlignmentNumber;
@@ -418,12 +419,12 @@ BatonAnalyzer::commonBatons(int** identicalBatonNumber, int n1, int n2) {
     for (int m=0; m < maxMerValue; m++){
         if (refESTdata->batons[m].empty() || otherESTdata->batons[m].empty())
             continue;
-        for (int i=0; i < refESTdata->batons[m].size(); i++){
+        for (size_t i = 0; (i < refESTdata->batons[m].size()); i++){
             l1 = refESTdata->batons[m][i].getWidth();
             beg1 = refESTdata->batons[m][i].getBegin();
             int k1 = beg1/s1; // Section number.
 
-            for (int j=0; j < otherESTdata->batons[m].size(); j++){
+            for (size_t j = 0; j < (otherESTdata->batons[m].size()); j++){
                 if (l1 == otherESTdata->batons[m][j].getWidth()){
                     // if the baton widths are the same
                     // then count them in the frequencies.

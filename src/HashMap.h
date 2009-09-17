@@ -24,6 +24,9 @@
 
 #include <cstring>
 #include <memory>
+
+#ifndef _WINDOWS
+
 #include "config.h"
 
 #ifdef HAVE_TR1_UNORDERED_MAP
@@ -36,7 +39,7 @@
 #define HashMap std::tr1::unordered_map
 #define Hash    std::tr1::hash
 
-#else // Not gcc 4.2+
+#else // Not gcc 4.2+ (but linux)
 
 // Use standard hash map from the extended name space.  With GCC 3.2
 // and above the hash map data structure has been moded to a extended
@@ -51,6 +54,29 @@
 
 #endif
 
+#else // Windows code path begins 
+
+#include <hash_map>
+
+// In windows the following mappings are used.
+#define HashMap stdext::hash_map
+
+/** String comparison structure for const char *.
+
+    The following structure essentially provides the comparison
+    operator needed by the hash_map for comparing hash_key values.
+    This structure specifically provides comparison for hash_map's
+    whose key values are C strings.
+*/
+struct LessString {
+    inline bool operator()(const std::string& s1, const std::string& s2) const {
+        return s1.compare(s2) < 0;
+    }
+};
+
+typedef HashMap<std::string, int, stdext::hash_compare<std::string, LessString> > StringIntMap;
+
+#endif
 
 /** String comparison structure for HashMap.
     
@@ -96,6 +122,6 @@ namespace __gnu_cxx {
     The following typedef provides a short cut for using a hash map
     whose key is a std::string and contains integers.
 */
-typedef HashMap<std::string, int> StringIntMap;
+// typedef HashMap<std::string, int, Hash> StringIntMap;
 
 #endif

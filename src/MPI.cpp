@@ -23,17 +23,35 @@
 //---------------------------------------------------------------------------
 
 #include "MPI.h"
-#include <sys/time.h>
 #include <cstring>
 
 #ifndef HAVE_LIBMPI
 
-// A simple implementation for MPI_WTIME
+
+#ifndef _WINDOWS
+// A simple implementation for MPI_WTIME on linux
+#include <sys/time.h>
 double MPI_WTIME() {
     struct timeval tv;
     gettimeofday(&tv, NULL);
     return tv.tv_sec + (tv.tv_usec / 1e6);
 }
+
+#else
+// A simple implementation for MPI_WTIME on Windows
+#include <windows.h>
+
+double MPI_WTIME() {
+    FILETIME st;
+    GetSystemTimeAsFileTime(&st);
+    long long time = st.dwHighDateTime;
+    time <<= 32;
+    time |= st.dwLowDateTime;
+    return (double) time;
+}
+
+
+#endif
 
 #endif
 

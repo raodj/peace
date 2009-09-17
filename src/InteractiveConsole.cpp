@@ -30,8 +30,13 @@
 
 #include <algorithm>
 #include <stdio.h>
+
+#ifndef _WINDOWS
 #include <readline/readline.h>
 #include <readline/history.h>
+#else
+#define add_history(x)
+#endif
 
 #include <cmath>
 #include <iomanip>
@@ -121,7 +126,7 @@ InteractiveConsole::processCommands() {
                        cmdWords[0].begin(), tolower);
         // Search for command in the list of commands we know.
         int cmdIndex = 0;
-        while ((cmdHandlerList[cmdIndex].cmd != cmdWords[0]) &&
+        while ((cmdWords[0] != cmdHandlerList[cmdIndex].cmd) &&
                (cmdHandlerList[cmdIndex].handler != NULL)) {
             // On to the next command in teh cmd index.
             cmdIndex++;
@@ -267,7 +272,7 @@ InteractiveConsole::getESTIndex(const std::string& id) const {
     
     // Try and process id as a number.
     char *endptr = NULL;
-    int index = strtoll(id.c_str(), &endptr, 10);
+    int index = strtol(id.c_str(), &endptr, 10);
     
     // Check if the index value was valid.
     if ((endptr == NULL) || (*endptr != '\0')) {
@@ -325,4 +330,23 @@ InteractiveConsole::help(const std::vector<std::string>& UNREFERENCED_PARAMETER(
               << "exit      Quit out of PEACE interactive console.\n";
 }
 
+#ifdef _WINDOWS
+char* 
+InteractiveConsole::readline(const char *prompt) {
+    std::cout << prompt;
+    char line[1024];
+    std::cin.getline(line, 1024);
+    if (std::cin.gcount() == 0) {
+	// NO characters were read.
+	return NULL;
+    }
+    // Make a copy of the line for returning
+    const int len = (int) strlen(line) + 1;
+    char *retVal = (char *) malloc(len);
+    strcpy_s(retVal, len, line);
+    return retVal;
+}
 #endif
+
+#endif
+

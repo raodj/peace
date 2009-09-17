@@ -201,7 +201,7 @@ MSTClusterMaker::computeNextESTidx(int& parentESTidx, int& estToAdd,
     const int ProcessCount = MPI_GET_SIZE();
     for(int rank = 1; (rank < ProcessCount); rank++) {
         // Get the local simlarity information from another worker.
-        int remoteData[4];
+	int remoteData[4] = {0, 0, 0, 0};
         MPI_CODE({
                 // Choose worker rank depending on strict ordering scheme..
                 const int workerRank = (strictOrder ? rank : MPI_ANY_SOURCE);

@@ -39,6 +39,32 @@ operator!=(const std::string& s1, const std::string& s2) {
 	return (s1.compare(s2) != 0);
 }
 
+/** A global less-than function (not an member function).
+
+    This function provides a plug-in replacement for the corresponding
+    string comparison function present in Linux version of STL 
+    implementation but is missing in Windows version. Note that this
+    method is defined only under Windows. On Linux the default 
+    operator<() provided by basic_string is used instead.
+*/
+inline bool
+operator<(const std::string& s1, const std::string& s2) {
+	return (s1.compare(s2) < 0);
+}
+
+/** A global equal-to function (not an member function).
+
+    This function provides a plug-in replacement for the corresponding
+    string comparison function present in Linux version of STL 
+    implementation but is missing in Windows version. Note that this
+    method is defined only under Windows. On Linux the default 
+    operator==() provided by basic_string is used instead.
+*/
+inline bool
+operator==(const std::string& s1, const std::string& s2) {
+	return (s1.compare(s2) == 0);
+}
+
 /** A global insertion operator for string (not an member function).
 
     This function provides a plug-in replacement for the corresponding
