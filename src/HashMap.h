@@ -54,6 +54,16 @@
 
 #endif
 
+/** \typedef A hash_map<std::string, int>
+
+    A typedef for a hash map whose key is std::string and contains
+    integers.
+    
+    The following typedef provides a short cut for using a hash map
+    whose key is a std::string and contains integers.
+*/
+typedef HashMap<std::string, int> StringIntMap;
+
 #else // Windows code path begins 
 
 #include <hash_map>
@@ -74,6 +84,14 @@ struct LessString {
     }
 };
 
+/** \typedef A hash_map<std::string, int>
+
+    A typedef for a hash map whose key is std::string and contains
+    integers.
+    
+    The following typedef provides a short cut for using a hash map
+    whose key is a std::string and contains integers.
+*/
 typedef HashMap<std::string, int, stdext::hash_compare<std::string, LessString> > StringIntMap;
 
 #endif
@@ -113,15 +131,5 @@ namespace __gnu_cxx {
     };
 }
 #endif
-
-/** \typedef A hash_map<std::string, int>
-
-    A typedef for a hash map whose key is std::string and contains
-    integers.
-    
-    The following typedef provides a short cut for using a hash map
-    whose key is a std::string and contains integers.
-*/
-// typedef HashMap<std::string, int, Hash> StringIntMap;
 
 #endif

@@ -83,7 +83,7 @@ public:
         #include "MPI.h"
 
         void someMethod() {
-            TRACK_IDLE_TIME(MPI_SEND(b, 1, MPI_INT, rank, tag));
+            TRACK_IDLE_TIME(MPI_SEND(b, 1, MPI_TYPE_INT, rank, tag));
         }
         \endcode
 

@@ -141,9 +141,9 @@ PMSTClusterMaker::estAdded(const int estIdx, std::vector<int>& repopulateList) {
         MPI_PROBE(sourceRank, REPOPULATE_REQUEST, msgInfo);
         // OK, we have a valid repopulation request pending from some
         // worker. So read and process it.
-        const int dataSize = msgInfo.Get_count(MPI_INT);
+        const int dataSize = msgInfo.Get_count(MPI_TYPE_INT);
         int *requestData = new int[dataSize];
-        MPI_RECV(requestData, dataSize, MPI_INT,
+        MPI_RECV(requestData, dataSize, MPI_TYPE_INT,
                  msgInfo.Get_source(), REPOPULATE_REQUEST);
         // Add the population request to our repopulate vector.
         if (requestData[0] > 0) {
@@ -182,7 +182,7 @@ PMSTClusterMaker::managerUpdateCaches(int estIdx, const bool refreshEST) {
         const int ownerRank = getOwnerProcess(*curr);
         if (ownerRank != MPI_GET_RANK()) {
             int dummy;
-            TRACK_IDLE_TIME(MPI_RECV(&dummy, 1, MPI_INT, ownerRank,
+            TRACK_IDLE_TIME(MPI_RECV(&dummy, 1, MPI_TYPE_INT, ownerRank,
                                      SIMILARITY_COMPUTATION_DONE));
         }
     }
@@ -207,7 +207,7 @@ PMSTClusterMaker::computeNextESTidx(int& parentESTidx, int& estToAdd,
         const int workerRank = (strictOrder ? rank : MPI_ANY_SOURCE);
         // Get the local simlarity information from another worker.
 	int remoteData[4] = {0, 0, 0, 0};
-        TRACK_IDLE_TIME(MPI_RECV(remoteData, 4, MPI_INT,
+        TRACK_IDLE_TIME(MPI_RECV(remoteData, 4, MPI_TYPE_INT,
                                  workerRank, MAX_SIMILARITY_RESPONSE));
         // Undo the fudge on similarity done at the sender end.
         const float remoteSim = *((float *) (remoteData + 2));
@@ -331,7 +331,7 @@ PMSTClusterMaker::worker() {
             // idle time as we are doing this Recv because the message
             // has already arrived.
             int estIdx = -1;
-            MPI_RECV(&estIdx, 1, MPI_INT, LocalManagerRank,
+            MPI_RECV(&estIdx, 1, MPI_TYPE_INT, LocalManagerRank,
                      COMPUTE_SIMILARITY_REQUEST);
             // Perform the necessary operations.
             populateCache(estIdx);
@@ -340,7 +340,7 @@ PMSTClusterMaker::worker() {
             // idle time as we are doing this Recv because the message
             // has already arrived.
             int dummy = 0;
-            MPI_RECV(&dummy, 1, MPI_INT, LocalManagerRank,
+            MPI_RECV(&dummy, 1, MPI_TYPE_INT, LocalManagerRank,
                      COMPUTE_MAX_SIMILARITY_REQUEST);
             int   bestEntry[4];
             float similarity = 0;
@@ -352,11 +352,11 @@ PMSTClusterMaker::worker() {
             // Maybe there is a cleaner way to do it too...
             int *temp    = reinterpret_cast<int*>(&similarity);
             bestEntry[2] = *temp;
-            MPI_SEND(bestEntry, 4, MPI_INT, LocalManagerRank,
+            MPI_SEND(bestEntry, 4, MPI_TYPE_INT, LocalManagerRank,
                      MAX_SIMILARITY_RESPONSE);
         } else if (msgInfo.Get_tag() == ADD_EST) {
             // The manager has broad casted the next est to be added.
-            MPI_RECV(&estAdded, 1, MPI_INT, LocalManagerRank, ADD_EST);
+            MPI_RECV(&estAdded, 1, MPI_TYPE_INT, LocalManagerRank, ADD_EST);
             if (estAdded == -1) {
                 // No more ESTs to add.  Clustering is done.  So it is time
                 // for this worker to stop too.
@@ -368,7 +368,7 @@ PMSTClusterMaker::worker() {
             cache->pruneCaches(estAdded, repopulateList);
             // Send the repopulate list to the manager.
             MPI_SEND(&repopulateList[0], repopulateList.size(),
-                     MPI_INT, LocalManagerRank, REPOPULATE_REQUEST);
+                     MPI_TYPE_INT, LocalManagerRank, REPOPULATE_REQUEST);
         }
     } while (estAdded != -1);
     // Everything went on without a hitch.
@@ -513,7 +513,7 @@ PMSTClusterMaker::populateCache(const int estIdx, SMList* metricList) {
             smList.push_back(CachedESTInfo(-1, -1, -1.0f, -1));
         }
         MPI_SEND(&smList[0], smList.size() * sizeof(CachedESTInfo),
-                 MPI_CHAR, ownerRank, SIMILARITY_LIST);
+                 MPI_TYPE_CHAR, ownerRank, SIMILARITY_LIST);
         // Nothing futher to do if the process is not the owner for
         // this EST.
         return;
@@ -551,12 +551,12 @@ PMSTClusterMaker::populateCache(const int estIdx, SMList* metricList) {
         MPI_PROBE(rank, SIMILARITY_LIST, msgInfo);
         // OK, we have a valid similarity list pending from some other
         // process. So read and process it.
-        const int dataSize = msgInfo.Get_count(MPI_CHAR);
+        const int dataSize = msgInfo.Get_count(MPI_TYPE_CHAR);
         SMList remoteList(dataSize / sizeof(CachedESTInfo));
         // The following call is a kludge with MPI/STL data types
         // based on several language assumptions.  This part could be
         // cleaned up to be more portable later on.
-        MPI_RECV(&remoteList[0], dataSize, MPI_CHAR,
+        MPI_RECV(&remoteList[0], dataSize, MPI_TYPE_CHAR,
                  msgInfo.Get_source(), SIMILARITY_LIST);
         // Merge the list we got from the remote process with our
         // local cache information if the list has a valid entry.
@@ -574,7 +574,7 @@ PMSTClusterMaker::populateCache(const int estIdx, SMList* metricList) {
     // not the manager).
     if (MPI_GET_RANK() != LocalManagerRank) {
         const int dummy = -1;
-        MPI_SEND(&dummy, 1, MPI_INT, LocalManagerRank,
+        MPI_SEND(&dummy, 1, MPI_TYPE_INT, LocalManagerRank,
                  SIMILARITY_COMPUTATION_DONE);
     }
 }
@@ -744,12 +744,12 @@ PMSTClusterMaker::mergeManager(MSTCluster& rootCluster, const int threshold) {
         MPI_PROBE(MPI_ANY_SOURCE, SIMILARITY_LIST, msgInfo);
         // OK, we have a valid similarity list pending from some other
         // process. So read and process it.
-        const int dataSize = msgInfo.Get_count(MPI_CHAR);
+        const int dataSize = msgInfo.Get_count(MPI_TYPE_CHAR);
         SMList remoteList(dataSize / sizeof(CachedESTInfo));
         // The following call is a kludge with MPI/STL data types
         // based on several language assumptions.  This part could be
         // cleaned up to be more portable later on.
-        MPI_RECV(&remoteList[0], dataSize, MPI_CHAR,
+        MPI_RECV(&remoteList[0], dataSize, MPI_TYPE_CHAR,
                  msgInfo.Get_source(), SIMILARITY_LIST);
         // Merge the list we got from the remote process with our
         // local cache information.
@@ -882,7 +882,7 @@ PMSTClusterMaker::mergeWorker() {
 
     // Send the new SMList to the manager.
     MPI_SEND(&smList[0], smList.size() * sizeof(CachedESTInfo),
-             MPI_CHAR, MANAGER_RANK, SIMILARITY_LIST);
+             MPI_TYPE_CHAR, MANAGER_RANK, SIMILARITY_LIST);
 
     // Delete the MST.
     delete mst;
@@ -957,7 +957,7 @@ PMSTClusterMaker::makeClusters() {
             // Get each worker's number of successes and add them
             if (MPI_GET_RANK() == MANAGER_RANK) {
                 for (int i = 1; i < MPI_GET_SIZE(); i++) {
-                    TRACK_IDLE_TIME(MPI_RECV(&tvSuccesses, 1, MPI_INT,
+                    TRACK_IDLE_TIME(MPI_RECV(&tvSuccesses, 1, MPI_TYPE_INT,
                                              MPI_ANY_SOURCE,
                                              COMPUTE_TOTAL_ANALYSIS_COUNT));
                     totalSuccesses+=tvSuccesses;
@@ -967,7 +967,7 @@ PMSTClusterMaker::makeClusters() {
                                         percentile, totalSuccesses, analyzer);
             } else {
                 // Workers send
-                MPI_SEND(&tvSuccesses, 1, MPI_INT, MANAGER_RANK,
+                MPI_SEND(&tvSuccesses, 1, MPI_TYPE_INT, MANAGER_RANK,
                          COMPUTE_TOTAL_ANALYSIS_COUNT);
             }
         }
@@ -1045,7 +1045,7 @@ PMSTClusterMaker::sendToWorkers(int data, const int tag) const {
     if (pData->getPartitionManager() == MPI_GET_RANK()) {
         const int MyRank = MPI_GET_RANK();
         for (int i = MyRank+1; i <= MyRank+pData->getWorkerCount(); i++) {
-            MPI_SEND(&data, 1, MPI_INT, i, tag);
+            MPI_SEND(&data, 1, MPI_TYPE_INT, i, tag);
         }
     }
 }
