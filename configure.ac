@@ -162,7 +162,7 @@ AC_CHECK_HEADERS([tr1/unordered_map])
 AC_LANG_POP([C++])
 
 # Checks for library functions.
-AC_FUNC_MALLOC
+# AC_FUNC_MALLOC
 AC_FUNC_MEMCMP
 AC_TYPE_SIGNAL
 AC_FUNC_STRTOD
