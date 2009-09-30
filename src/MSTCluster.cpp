@@ -149,7 +149,7 @@ MSTCluster::calculateThreshold(const int nodeCount,
         // We are not using the TV heuristic
         // Return a threshold based on the analyzer in use
         if (!analyzer->getName().compare("baton")) {
-            return 15;
+            return 30;
         } else {
             return 40;
         }

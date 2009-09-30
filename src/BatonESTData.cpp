@@ -31,10 +31,13 @@ BatonESTData::BatonESTData(const char* estSequence, const int sectionWidth,
     maxMerValue = maxMer;
     section = sectionWidth;
     size = strlen(estSequence) - (nMer - 1);
-    nSections = (size + (nMer - 1)) / section;
-    int hangover = size - (nSections * section);
-    section += hangover/nSections;
-    nSections = 2*nSections - 1;
+    nSections = size / section;
+    int hangover = size%section;
+    if (hangover > section/2)
+        section = size/(++nSections);
+    else
+        section += hangover/nSections;
+    nSections = 2*nSections;
     intEST = new int[size];
     int v = 0, exp = 1, cv = 0;
     for (int i = 0; i < size; i++) {

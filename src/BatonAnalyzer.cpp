@@ -244,8 +244,10 @@ BatonAnalyzer::getMetric(const int estIdx) {
             }
         }
 
-        //printf("%d %d %d\n", refESTidx, estIdx, maxAlignment[0]);
-
+        //if (maxAlignment[0] != 0) {
+        //    printf("%d %d %d\n", refESTidx, estIdx, maxAlignment[0]);
+        //}
+        
         // Clean up.  I suspect this will be a major issue in the future;
         // right now it is just a hack and we're not saving information.
 
@@ -504,7 +506,7 @@ BatonAnalyzer::analyze() {
     for (int id1 = 0; (id1 < (int) estList.size()); id1++) {
         // Set the reference EST.
         setReferenceEST(id1);
-        for (int id2 = id1; (id2 < (int) estList.size()); id2++) {
+        for (int id2 = id1+1; (id2 < (int) estList.size()); id2++) {
             // Analyze and update similarity value.
             getMetric(id2);
         }
