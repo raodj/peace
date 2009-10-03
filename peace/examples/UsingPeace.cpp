@@ -67,9 +67,14 @@ main(int argc, char* argv[]) {
     // about freeing the pointers later on -- basically gives an
     // automatic-smart garbage collection feature.
     std::auto_ptr<ESTAnalyzer> d2(ESTAnalyzerFactory::create("d2", 0, ""));
-    // Set some parameters
-    char *params[] = {"--frame", "100", "--word", "6", // Set Window & Word size
-		      "--estFile", "<none>"};  // Last parameter is mandatory
+    // Set some parameters. We need a temporary location to hold
+    // constant strings (even though we don't mutate it as the API
+    // requires mutable strings)
+    char param1[]  = "--frame",   value1[] = "100";
+    char param2[]  = "--word",    value2[] = "6";
+    char param3[]  = "--estFile", value3[] = "<none>";
+    char* params[] = {param1, value1, param2, value2, // Set Window & Word size
+		      param3, value3};  // Last parameter is mandatory
     int paramCount = sizeof(params) / sizeof(char*);
     d2->parseArguments(paramCount, params);
 
@@ -98,7 +103,9 @@ main(int argc, char* argv[]) {
     const float metric = d2->analyze(1);
     std::cout << "d2 score between EST #0 and EST #1 is: "
               << (int) metric << std::endl;
-    
+
+    // Free up our chain.
+    delete chain;
     // Everything went well.
     return 0;
 }
