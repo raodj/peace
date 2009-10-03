@@ -55,17 +55,24 @@ AC_DEFUN([AC_PROG_MPI],
      ])
      
      if test -z "$MPI"; then
-         AC_PATH_PROG([MPI], [mpicxx], [no])
+         AC_PATH_PROG([MPI], [mpicxx], [notFound])
      fi
 
-     if test $MPI = no; then
+     if test $MPI = notFound; then
         AC_MSG_WARN([MPI could no be found on your system.
 		      You can download MPI for free from
 		      http://www.open-mpi.org
                       Please check that MPI is installed on your system
 		      and your path includes the top-level install directory
-		      (example: /usr/include/openmpi), or specify
+		      (example: /usr/include/openmpi), or use
 		      --with-mpi=PATH option when running configure.])
+     elif test $MPI = no; then
+  	AC_MSG_WARN([You have chosen to compile PEACE without MPI.
+		     This is OK and PEACE will run in single-process mode
+		     (MPI is needed to run in parallel using multiple
+		     processes to fully utilize computational power of
+		     supercomputing clusters). You can download MPI for
+		     free from http://www.open-mpi.org])
      else
          CXX=mpicxx
          AC_SUBST(MPI)
