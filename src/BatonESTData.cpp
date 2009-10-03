@@ -30,7 +30,7 @@ BatonESTData::BatonESTData(const char* estSequence, const int sectionWidth,
                            const int nMer, const int maxMer) {
     maxMerValue = maxMer;
     section = sectionWidth;
-    size = strlen(estSequence) - (nMer - 1);
+    size = (int) strlen(estSequence) - (nMer - 1);
     nSections = size / section;
     int hangover = size%section;
     if (hangover > section/2)

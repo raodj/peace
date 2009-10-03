@@ -147,7 +147,7 @@ public:
 
 	\return The number of ESTs currently defined.
     */
-    static int getESTCount() { return estList.size(); }
+    static int getESTCount() { return (int) estList.size(); }
 
     /** Helper method to determine the longest EST.
 

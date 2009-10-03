@@ -149,7 +149,7 @@ UVSampleHeuristic::setReferenceEST(const int estIdx) {
     // Fill in the word map. But first setup the table to quickly
     // generate reverse complement values.
     codec.setRevCompTable(v);
-    const int End = strlen(s1) - v;
+    const int End = (int) strlen(s1) - v;
     for (int i = v - 1; (i <= End); i++) {
         hash = encoder(hash, s1[i]);
         // Setup the word map for the regular word
@@ -168,7 +168,7 @@ UVSampleHeuristic::computeHash(const int estIdx) {
     ASSERT ( estS2  != NULL );
     const char *sq2  = estS2->getSequence();
     ASSERT ( sq2 != NULL );
-    const int End    = strlen(sq2) - v;
+    const int End    = (int) strlen(sq2) - v;
     ASSERT ( End > 0 );
     
     // Get the codec for encoding/decoding operations
@@ -217,7 +217,7 @@ UVSampleHeuristic::runHeuristic(const int otherEST) {
     }
     // Obtain a reference to the hash list from the cache.
     const std::vector<unsigned short>& otherHash = cacheEntry->second;
-    const int hashSize = otherHash.size();
+    const int hashSize = (int) otherHash.size();
     ASSERT ( hashSize > 0 );
     // go through the otherHash and track number of matching words
     // Initialize local variables.
