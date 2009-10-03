@@ -187,7 +187,7 @@ CLU::createCLUHashMap(int* &hashMap, const char *sequence) {
     // hash for subsequent words can be easily derived from it using
     // bit-wise operations as the word simply slides acorss the
     // sequence.
-    const int SeqLen  = strlen(sequence) - wordSize;
+    const int SeqLen  = (int) strlen(sequence) - wordSize;
     // Compute bit mask that will retain only the bits corresponding
     // to a given word size.  Each entry in a word takes up 2 bits and
     // that is why the following formula involves a 2.
@@ -289,7 +289,7 @@ CLU::getSimilarity(const int* const hashMap,
     ASSERT ( (int) prevHashValues.size() == frameSize );
     // Now using the hash and cdIndex values for first frame compute
     // the values for other frames by suitably adjusting the values.
-    const int SeqLen = strlen(sequence) - frameSize;
+    const int SeqLen = (int) strlen(sequence) - frameSize;
     for(int i = frameSize; (i < SeqLen); i++) {
         // Ensure cdIndex never exceeds the number of cateogries.
         cdIndex = (cdIndex >= (unsigned) frameSize) ? (frameSize - 1) : cdIndex;

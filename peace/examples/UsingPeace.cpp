@@ -67,6 +67,11 @@ main(int argc, char* argv[]) {
     // about freeing the pointers later on -- basically gives an
     // automatic-smart garbage collection feature.
     std::auto_ptr<ESTAnalyzer> d2(ESTAnalyzerFactory::create("d2", 0, ""));
+    // Set some parameters
+    char *params[] = {"--frame", "100", "--word", "6", // Set Window & Word size
+		      "--estFile", "<none>"};  // Last parameter is mandatory
+    int paramCount = sizeof(params) / sizeof(char*);
+    d2->parseArguments(paramCount, params);
 
     // Now let's first use the UV heuristic to see if the pairs of
     // ESTs pass UV heuristic.

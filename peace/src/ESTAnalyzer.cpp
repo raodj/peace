@@ -105,6 +105,12 @@ ESTAnalyzer::parseArguments(int& argc, char **argv) {
 
 bool
 ESTAnalyzer::loadFASTAFile(const char *fileName, const bool unpopulate) {
+    static const std::string IgnoreFileName = "<none>";
+    if (IgnoreFileName == fileName) {
+	// The user does not want to use a file name. This possibly
+	// happens when using peace libary from custom applications.
+	return true;
+    }
     FILE *fastaFile = NULL;
 #ifndef _WINDOWS
     fastaFile = fopen(fileName, "rt");

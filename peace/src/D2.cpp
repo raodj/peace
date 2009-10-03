@@ -111,7 +111,7 @@ D2::initialize() {
     // Compute the number of bits to shift when building hashes
     bitShift = 2 * (wordSize - 1);
     // Compute word table size and initialize word tables
-    const int wordTableSize = EST::getMaxESTLen() + frameSize;
+    size_t wordTableSize = EST::getMaxESTLen() + frameSize;
     s1WordTable = new int[wordTableSize];
     s2WordTable = new int[wordTableSize];
     
@@ -163,11 +163,11 @@ D2::runD2(const int otherEST) {
     // Get basic information about the reference EST
     const EST *estS1   = EST::getEST(refESTidx);
     const char* sq1    = estS1->getSequence();
-    const int   sq1Len = strlen(sq1);
+    const int   sq1Len = (int) strlen(sq1);
     // Get basic information about the otherEST EST
     const EST *estS2   = EST::getEST(otherEST);
     const char* sq2    = estS2->getSequence();
-    const int   sq2Len = strlen(sq2);
+    const int   sq2Len = (int) strlen(sq2);
     
     // Build the word table for otherEST depending on normal or
     // reverse complement suggestion using hint UVSampleHeuristic.
