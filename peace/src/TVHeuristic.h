@@ -131,6 +131,20 @@ public:
     */
     virtual ~TVHeuristic();
 
+    /** Obtain the window length used for <i>t/v</i> heuristic.
+
+        The window length defines the length of the window within
+        which common words are tracked and reported by this heuristic.
+        Typically, this window length must match the window length
+        used for D2 analysis for the heuristic to be meanigful. The
+        default value is 100.  This value can be overridden by the
+        user via suitable command line arguments.
+
+        \return The current window (or frame) size set for <i>t/v</i>
+        heuristic.
+    */
+    static int getWindowLen() { return windowLen; }
+    
 protected:
     /** The default constructor.
         

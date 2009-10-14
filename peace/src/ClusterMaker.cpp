@@ -60,10 +60,7 @@ bool
 ClusterMaker::parseArguments(int& argc, char **argv) {
     arg_parser ap(ClusterMaker::commonArgsList);
     // Process the arguments
-    if (!ap.check_args(argc, argv, false)) {
-        // If there are some invalid arguments do nothing further.
-        return false;
-    }
+    ap.check_args(argc, argv, false);
     // Everything went well.
     return true;
 }

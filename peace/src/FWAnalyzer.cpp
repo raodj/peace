@@ -25,6 +25,7 @@
 #include "FWAnalyzer.h"
 #include "ResultLog.h"
 #include "EST.h"
+#include "TVHeuristic.h"
 
 #include <algorithm>
 #include <time.h>
@@ -35,7 +36,7 @@ int FWAnalyzer::wordSize  = 6;   // 6   is default from CLU implementation.
 
 // The common set of arguments for all FW EST analyzers
 arg_parser::arg_record FWAnalyzer::commonArgsList[] = {
-    {"--frame", "Frame size (in base pairs, default=20)",
+    {"--frame", "Frame size (in base pairs, default=100)",
      &FWAnalyzer::frameSize, arg_parser::INTEGER},
     {"--word", "Word size (in base pairs, default=6)",
      &FWAnalyzer::wordSize, arg_parser::INTEGER},    
@@ -148,6 +149,22 @@ FWAnalyzer::initialize() {
     if ((chain != NULL) && (chain->initialize())) {
         // Error occured during initialization. Bail out.
         return 2;
+    }
+    if (chain != NULL) {
+        // Ensure that the frame sizes for FWAnalyzer and that in t/v
+        // heuristic are consistently set. This feels a bit hoaky, but
+        // should be OK for now.
+        Heuristic* tv = chain->getHeuristic("tv");
+        if ((tv != NULL) && (TVHeuristic::getWindowLen() != frameSize)) {
+            std::cerr << "Warning: The frame/window size for "
+                      << getName() << " analyzer (which is set to "
+                      << frameSize << ") is different from that for "
+                      << "the t/v heuristic (which is set to "
+                      << TVHeuristic::getWindowLen() << ").\n"
+                      << "       : This will most likely cause problems. "
+                      << "To avoid it use both --frame and --tv_win options."
+                      << std::endl;
+        }
     }
     // Initializawtion successful.
     return 0;
