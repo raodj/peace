@@ -132,6 +132,8 @@ main(int argc, char* argv[]) {
    
     // Perform any mpi initialization as needed
     MPI_INIT(argc, argv);
+    // Save global arguments for future reference to generate logs
+    arg_parser::set_global_args(argc, argv);
     // Get the argument parser to parse and consume the global
     // options.  Based on the options supplied, various variables will
     // be set to appropriate values.

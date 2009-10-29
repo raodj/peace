@@ -22,8 +22,9 @@
 //
 //---------------------------------------------------------------------------
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
+#include <string>
 #include <iostream>
 
 class arg_parser {
@@ -92,6 +93,9 @@ public:
   // The int is the number of args (argc), the char ** is argv, and
   // the bool is whether to complain and exit on error or not...
   bool check_args(int &, char **, bool = true );
+
+  static void set_global_args(int argc, const char* const argv[]);
+  static std::string get_global_args() { return global_args; }
   
 private:
   arg_record *array_of_arg_records;
@@ -106,6 +110,13 @@ private:
   // "complain_and_exit_on_error" is set to true.
   bool check_remaining( int argc, char **argv,
 			bool complain_and_exit_on_error);
+
+  // The global set of arguments. This must be set from the main()
+  // method via the set_global_args() method. The global arguments
+  // serve as a place holder to preserve global arguments in the form
+  // of a single string. This information is typically used in logs
+  // etc.
+  static std::string global_args;
 };
 
 inline 

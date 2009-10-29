@@ -24,6 +24,19 @@
 
 #include "arg_parser.h"
 
+// the static global arguments string
+std::string arg_parser::global_args;
+
+void
+arg_parser::set_global_args(int argc, const char* const argv[]) {
+    for(int i = 0; (i < argc); i++) {
+        global_args += " ";
+        global_args += argv[i];
+    }
+    // remove leading blank.
+    global_args = global_args.substr(1);
+}
+
 void 
 arg_parser::get_arg_array(arg_record ptr[]) {
 
