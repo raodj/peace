@@ -53,7 +53,7 @@ MST::serialize(const char *fileName, const char *srcFile) const {
     char  now[128], srcTimeStr[128];
     outFile << "# MST Data\n"
             << "# Node count: " << nodeList.size() << "\n"
-            << "# Generated on "    << getTime(now)
+            << "# Generated on: "    << getTime(now)
             << "# Generated from source file: " << srcFile << "\n"
             << "# Source file timestamp: " << getTimeStamp(srcFile, srcTimeStr)
             << "# Data format: <parentESTidx>,<estIdx>,<similarityMetric>\n"

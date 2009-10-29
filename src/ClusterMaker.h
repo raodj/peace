@@ -115,19 +115,19 @@ protected:
         given ESTs.
 
         \param[in] refESTidx The reference EST's index in a given
-	multi-FASTA file.  Index values start with 0 (zero).  The
-	refESTidx is supplied as a global argument that is processed
-	in the main() method.  This value is simply copied to the
-	refESTidx member in this class.
+        multi-FASTA file.  Index values start with 0 (zero).  The
+        refESTidx is supplied as a global argument that is processed
+        in the main() method.  This value is simply copied to the
+        refESTidx member in this class.
         
-	\param[in] outputFileName The file name to which output must
-	be written.  If a valid output file is not specified, then
-	results are written to standard output.  The outputFileName is
-	simply copied to the outputFileName member object.
+        \param[in] outputFileName The file name to which output must
+        be written.  If a valid output file is not specified, then
+        results are written to standard output.  The outputFileName is
+        simply copied to the outputFileName member object.
     */
     ClusterMaker(const std::string& name, ESTAnalyzer *analyzer,
                  const int refESTidx, const std::string& outputFileName);
-    
+
     /** The name of this cluster maker.
 
         This instance variable contains the human recognizable name
@@ -161,11 +161,11 @@ protected:
 
     /** The analyzer to be used for generating EST similarity metrics.
 
-	This pointer is used to hold a pointer to the EST analyzer
-	that must be used for generating similarity metrics between
-	two given pairs of ESTs.  This pointer is initialized when the
-	object is instantiated and is never changed during the
-	lifetime of this object.
+        This pointer is used to hold a pointer to the EST analyzer
+        that must be used for generating similarity metrics between
+        two given pairs of ESTs.  This pointer is initialized when the
+        object is instantiated and is never changed during the
+        lifetime of this object.
     */
     ESTAnalyzer* const analyzer;
     
@@ -177,7 +177,7 @@ private:
         list is statically defined and shared by all cluster maker
         instances.
 
-	\note This makes cluster maker class hierarchy not MT-safe.
+        \note This makes cluster maker class hierarchy not MT-safe.
     */
     static arg_parser::arg_record commonArgsList[];
 

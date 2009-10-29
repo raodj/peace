@@ -57,6 +57,9 @@ public:
     void printClusterTree(std::ostream& os = std::cout,
                           const std::string& prefix = "") const;
 
+    void guiPrintClusterTree(std::ostream& os = std::cout,
+							 const char *srcFile = NULL) const;
+
     void makeMergedClusters(const int size, int* parent, bool* root);
                
     //protected:
@@ -65,12 +68,26 @@ public:
 			      const int analysisCount,
 			      const ESTAnalyzer* analyzer) const;
 
-protected:
+    inline int getClusterID() const { return clusterID; }
     
+protected:
+	void guiPrintTree(std::ostream& os) const;
+	
 private:
     ClusterList clusterList;
     const MSTCluster* parent;
     NodeList members;
+    const int clusterID;
+    
+	/** Instance variable to track the next available cluster ID.
+
+		This instance variable is used to generate unique cluster ID
+		values for each newly created cluster.  It is intialized to
+		zero. Each time a cluster is instantiated, the constructor
+		uses this value to set the clusterID and then increments this
+		value.
+	*/
+	static int clusterIDSequence;
 };
 
 /** \func operator<<

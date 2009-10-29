@@ -206,7 +206,19 @@ protected:
         override the default.
     */
     static bool prettyPrint;
-    
+
+    /** Command line option to print the cluster tree for PEACE GUI.
+
+        If this member variable is \c true, then this class prints the
+		ClusterTree in a format that is processible by the GUI. By
+		default this variable is initialized to \c false.  However,
+		the value can be changed by the user through command line
+		argument (--gui-print).  The change of value occurs in the
+		parseArguments() method if the user has specified an option to
+		override the default.
+    */
+    static bool guiPrint;
+	
     /** Variable to indicate if MST information must be simply read
         from a given file.
 
@@ -239,12 +251,12 @@ protected:
         the parseArguments() method if the user has specified an
         option to override the default.</p>
 
-	<p> If this parameter is not specified then the MSTCache will
-	request lists to be repopulated when needed.  Repopulating
-	lists guarantees that ultimately a MST will be developed.  If
-	repopulation is suppressed via this parameter then the
-	resulting spanning tree may not be a MST; however computation
-	time decreases. </p>
+		<p> If this parameter is not specified then the MSTCache will
+		request lists to be repopulated when needed.  Repopulating
+		lists guarantees that ultimately a MST will be developed.  If
+		repopulation is suppressed via this parameter then the
+		resulting spanning tree may not be a MST; however computation
+		time decreases. </p>
     */
     static bool noCacheRepop;
 
@@ -303,15 +315,78 @@ protected:
     virtual int worker();
 
     /** A method to handle initialization tasks for the MSTClusterMaker.
-	This method is called after the ESTs have been loaded into the
-	ESTAnalyzer, in the makeClusters method.
-	
-	This method does nothing as the MSTClusterMaker does not need
-	to do any initialization.  It is provided as a convenience
-	method for inheriting subclasses to use for initialization.
+		This method is called after the ESTs have been loaded into the
+		ESTAnalyzer, in the makeClusters method.
+		
+		This method does nothing as the MSTClusterMaker does not need
+		to do any initialization.  It is provided as a convenience
+		method for inheriting subclasses to use for initialization.
     */
     virtual int initialize();
 
+    /** Helper method to generate (or compute) or load MST data from file.
+
+        This is a helper method that is invoked from the
+        makeClusters() method. This method performs one of the
+        following tasks:
+
+        <ul>
+
+        <li>If an #inputMSTFile has not been specified, then this
+        method builds an MST (either on one process or many MPI
+        processes).  This method first creates a local cache local
+        cache that contains information to build the MST. It then
+        builds the MST calling the manager() or worker() method
+        depending on the MPI-rank of this process.</li>
+
+        <li>If an #inputMSTFile has indeed been specified as a command
+        line parameter, then this method loads the MST from the
+        specified MST file.</li>
+        
+        </ul>
+
+        \return This method returns zero on success indicating that a
+        valid MST is available for further processing. Otherwise this
+        method returns a non-zero code signalling error.
+    */
+    virtual int populateMST();
+
+    /** Obtain total (from all processes) successes for a given
+        heuristic.
+
+        This method is a refactored utility method used to determine
+        the total number of times a given heuristic reported
+        success. A heuristic reporting success implies that the
+        heuristic reported that two ESTs are related to each other.
+
+        \param[in] heuristicName The name of the heuristic (such as:
+        "tv" or "uv") whose total success count is desired.
+
+        \return This metod returns the total (sum of successes from
+        all processes) number of success reported by the given
+        heuristic. It returns -1, to indicate an error.
+    */
+    virtual int getTotalSuccesses(const std::string& heuristicName);
+
+    /** Utility method to do the final clustering step.
+
+        This is a refactored (primarily to keep the code clutter to a
+        minimum) utility method that is used to perform the final step
+        in clustering.  This method essentially calls the
+        #MSTCluster::makeClusters method that builds the clusters
+        using the MST. Once the clusters are built, this method dumps
+        the cluster information to the user-specified (via command
+        line arguments) output stream.
+
+        \param[in] totalSuccesses The global (from all processes)
+        total number of u/v heuristic success count to be used for
+        fine tuning clustering threshold value.
+        
+        \return This method returns zero on success. If errors occur,
+        this method returns a non-zero error code.
+    */
+    virtual int buildAndShowClusters(int totalSuccesses);
+    
     /** Helper method to call the actual heavy-weight analysis
         method(s).
 

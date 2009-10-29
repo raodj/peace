@@ -27,10 +27,14 @@
 #include "HashMap.h"
 #include <cmath>
 
+// The static variable to generate unique cluster ID values.
+int MSTCluster::clusterIDSequence = 0;
+
 // A type-def for HashMap to make code cleaner.
 typedef HashMap<int, MSTCluster*> ClusterMap;
 
-MSTCluster::MSTCluster(MSTCluster* owner) : parent(owner) {
+MSTCluster::MSTCluster(MSTCluster* owner) :
+    parent(owner), clusterID(clusterIDSequence++) {
     // Nothing else to be done for now.
 }
 
@@ -206,12 +210,6 @@ MSTCluster::makeMergedClusters(const int size, int* parent, bool* root) {
 void
 MSTCluster::printClusterTree(std::ostream& os,
                              const std::string& prefix) const {
-    static int clusterID = 0;
-    if (parent == NULL) {
-        clusterID = 0;
-    } else {
-        clusterID++;
-    }
     // First print information about this cluster itself.
     os << "Cluster #" << clusterID << " (#sub-clusters="
        << clusterList.size() << ", #members=" << members.size() << ")\n";
@@ -237,12 +235,48 @@ MSTCluster::printClusterTree(std::ostream& os,
     }
 }
 
+void
+MSTCluster::guiPrintClusterTree(std::ostream& os, const char *srcFile) const {
+    // This  method must be called only on the root node.
+    ASSERT ( parent == NULL );
+    // Buffer for string of time for reporting
+    char  now[128], srcTimeStr[128] = "<none>";
+    if (srcFile != NULL) {
+        // Get time stamp of source file for coherence checks.
+        getTimeStamp(srcFile, srcTimeStr);
+    }
+    // Dump meta data about how this cluster was built.
+    os << "# Cluster Data\n"
+       << "# Generated on: "    << getTime(now)
+       << "# Generated from source file: "
+       << ((srcFile != NULL) ? srcFile : "<none>") << "\n"
+       << "# Source file timestamp: " << srcTimeStr
+       << "# Data format: <E,estIdx,clstrId> | <C,clstrID,ParntClstrID>\n"
+       << "# Command Line: \n";
+    // Now print the mst cluster for GUI processing
+    guiPrintTree(os);
+}
+
+void
+MSTCluster::guiPrintTree(std::ostream& os) const {
+    // Print information about this cluster and its parent cluster.
+    os << "C," << ((parent != NULL) ? parent->clusterID : -1)
+       << ","  << clusterID << std::endl;
+    // Print all the ESTs in this cluster.
+    for(size_t i = 0; (i < members.size()); i++) {
+        os << "E," << members[i].getESTIdx()
+           << ","  << clusterID << "\n";
+    }
+    // Get sub-clusters to print their own information.
+    for(size_t i = 0; (i < clusterList.size()); i++) {
+        clusterList[i]->guiPrintTree(os);
+    }
+}
+
 std::ostream&
 operator<<(std::ostream& os, const MSTCluster& cluster) {
-    static int clusterID = 0;
-    clusterID = (cluster.parent != NULL) ? (clusterID + 1) : 0;
     // Print information abou this cluster.
-    os << "Cluster #" << clusterID << "\n";
+    os << "Cluster #" << cluster.clusterID << "\n";
     for(size_t i = 0; (i < cluster.members.size()); i++) {
         os << cluster.members[i].getESTInfo() << "\n";
     }
