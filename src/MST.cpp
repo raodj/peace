@@ -24,6 +24,7 @@
 
 #include "MST.h"
 #include "Utilities.h"
+#include "arg_parser.h"
 #include <iterator>
 #include <fstream>
 
@@ -57,7 +58,8 @@ MST::serialize(const char *fileName, const char *srcFile) const {
             << "# Generated from source file: " << srcFile << "\n"
             << "# Source file timestamp: " << getTimeStamp(srcFile, srcTimeStr)
             << "# Data format: <parentESTidx>,<estIdx>,<similarityMetric>\n"
-            << "# Total MST distance: " << getMSTDistance() << "\n";
+            << "# Total MST distance: " << getMSTDistance() << "\n"
+            << "# Command line: " << arg_parser::get_global_args() << "\n";
     
     // Stream the data out to the file.
     for(size_t i = 0; (i < nodeList.size()); i++) {

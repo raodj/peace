@@ -25,6 +25,7 @@
 #include "MSTCluster.h"
 #include "Utilities.h"
 #include "HashMap.h"
+#include "arg_parser.h"
 #include <cmath>
 
 // The static variable to generate unique cluster ID values.
@@ -252,7 +253,7 @@ MSTCluster::guiPrintClusterTree(std::ostream& os, const char *srcFile) const {
        << ((srcFile != NULL) ? srcFile : "<none>") << "\n"
        << "# Source file timestamp: " << srcTimeStr
        << "# Data format: <E,estIdx,clstrId> | <C,clstrID,ParntClstrID>\n"
-       << "# Command Line: \n";
+       << "# Command Line: " << arg_parser::get_global_args() << "\n";
     // Now print the mst cluster for GUI processing
     guiPrintTree(os);
 }
