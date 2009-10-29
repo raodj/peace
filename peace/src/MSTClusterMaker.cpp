@@ -51,6 +51,7 @@ char*  MSTClusterMaker::inputMSTFile  = NULL;
 char*  MSTClusterMaker::outputMSTFile = NULL;
 bool   MSTClusterMaker::dontCluster   = false;
 bool   MSTClusterMaker::prettyPrint   = false;
+bool   MSTClusterMaker::guiPrint      = false;
 double MSTClusterMaker::percentile    = 1.0;
 int    MSTClusterMaker::maxUse        = 0;
 char*  MSTClusterMaker::cacheType     = DefCacheType;
@@ -73,6 +74,8 @@ arg_parser::arg_record MSTClusterMaker::argsList[] = {
      &MSTClusterMaker::dontCluster, arg_parser::BOOLEAN},
     {"--pretty-print", "Print a pretty cluster tree.",
      &MSTClusterMaker::prettyPrint, arg_parser::BOOLEAN},
+    {"--gui-print", "Print the cluster tree for GUI processing.",
+     &MSTClusterMaker::guiPrint, arg_parser::BOOLEAN},
     {"--maxUse", "Set a threshold to aggressively use metrics (default=0)",
      &MSTClusterMaker::maxUse, arg_parser::INTEGER},
     {"--cacheType", "Set type of cache (heap or mlist) to use (default=heap)",
@@ -377,10 +380,8 @@ MSTClusterMaker::worker() {
 
 int
 MSTClusterMaker::getOwnerProcess(const int estIdx) const {
-    const int ESTsPerProcess = EST::getESTList().size() /
-        MPI_GET_SIZE();
-    const int ExtraESTs      = EST::getESTList().size() %
-        MPI_GET_SIZE();
+    const int ESTsPerProcess = EST::getESTList().size() / MPI_GET_SIZE();
+    const int ExtraESTs      = EST::getESTList().size() % MPI_GET_SIZE();
     const int ExtraESTsCutOff= (ExtraESTs * ESTsPerProcess) + ExtraESTs;
     
     // If the estIdx is less that the ExtraESTsCutOff then account for
@@ -401,6 +402,11 @@ MSTClusterMaker::analyze(const int otherEST) {
 
 int
 MSTClusterMaker::initialize() {
+    // Hack to fix the baton maxUse problem until a better solution is found
+    if (!analyzer->getName().compare("baton") && maxUse > -1) {
+        maxUse = 100;
+    }
+    // Return success.
     return NO_ERROR;
 }
 
@@ -562,6 +568,115 @@ MSTClusterMaker::displayStats(std::ostream& os) {
 }
 
 int
+MSTClusterMaker::populateMST() {
+    if (inputMSTFile != NULL) {
+        // In this case the MST is to be read from an input file.
+        // So let's do that.
+        if ((mst = MST::deSerialize(inputMSTFile)) == NULL) {
+            // Some error occured loading MST. Can't proceed further
+            return 2;
+        }
+    }
+    
+    // No input MST file supplied.  That means the MST must be
+    // built. The local cache that contains information to build the
+    // MST.  The cache for that contains information regarding ESTs
+    // under the ownership of this process.  The cache facilitates
+    // rapid construction of ESTs but minimizing the number of times
+    // similarity metrics need to computed.  The cache needs to know
+    // the starting indedx of the EST whose data must be cached by
+    // this process.  So this information is computed first.
+    int result = NO_ERROR;
+    int startESTidx, endESTidx;
+    getOwnedESTidx(startESTidx, endESTidx);
+    // Create a suitable cache.
+    if (!strcmp(cacheType, "mlist")) {
+        cache = new MSTMultiListCache(EST::getESTList().size(), startESTidx,
+                                      endESTidx - startESTidx, analyzer,
+                                      !noCacheRepop, cacheSize);
+    } else {
+        cache = new MSTHeapCache(EST::getESTList().size(), startESTidx,
+                                 endESTidx - startESTidx, analyzer,
+                                 !noCacheRepop, cacheSize);
+    }
+    ASSERT ( cache != NULL );
+    // Act as manager or worker depending on MPI rank.
+    if (MPI_GET_RANK() == MANAGER_RANK) {
+        // Get this MPI process to act as the manager.
+        result = manager();
+    } else {
+        // Since rank in non-zero, this process must behave as a
+        // worker
+        result = worker();
+    }
+    // Now either we have a MST built or there is an error.
+    return result;
+}
+
+int
+MSTClusterMaker::getTotalSuccesses(const std::string& heuristicName) {
+    int totalSuccesses = -1;
+    // In order to build clusters using the new threshold computation
+    // method, we need to collate some statistics from all processes.
+    Heuristic* tv = (HeuristicChain::getHeuristicChain())->getHeuristic(heuristicName);
+    if (tv != NULL) {
+        // We are good to go for summing the statistics
+        int tvSuccesses = tv->getSuccessCount();
+        // Add the manager's successes first
+        totalSuccesses = tvSuccesses;
+        //MPI::COMM_WORLD.Reduce(&tvSuccesses, &totalSuccesses, 1,
+        //                       MPI::INT, MPI::SUM, MANAGER_RANK);
+        
+        // Get each worker's number of successes and add them
+        if (MPI_GET_RANK() == MANAGER_RANK) {
+            for (int i = 1; i < MPI_GET_SIZE(); i++) {
+                MPI_RECV(&tvSuccesses, 1, MPI_TYPE_INT, MPI_ANY_SOURCE,
+                         COMPUTE_TOTAL_ANALYSIS_COUNT);
+                totalSuccesses+=tvSuccesses;
+                //printf("%d\n", i);
+            }
+        } else {
+            // Workers send
+            MPI_SEND(&tvSuccesses, 1, MPI_TYPE_INT, MANAGER_RANK,
+                     COMPUTE_TOTAL_ANALYSIS_COUNT);
+        }
+    }
+    // return the global totals
+    return totalSuccesses;
+}
+
+int
+MSTClusterMaker::buildAndShowClusters(int totalSuccesses) {
+    MSTCluster root;
+    root.makeClusters(mst->getNodes(), percentile, totalSuccesses, analyzer);
+    
+    // Redirect cluster output to outputFile as needed.
+    std::ofstream outFile;
+    if (!outputFileName.empty()) {
+        outFile.open(outputFileName.c_str());
+        if (!outFile.good()) {
+            std::cerr << "Error opening output file " << outputFileName
+                      << " for writing cluster data.\n"
+                      << "Cluster data will be dumped on stdout.\n";
+        }
+    }
+    // Choose output stream depending on condition of outFile.
+    std::ostream& dest = (outFile.is_open() && outFile.good()) ?
+        outFile : std::cout;
+    if (prettyPrint) {
+        root.printClusterTree(dest);
+    } else if (guiPrint) {
+        root.guiPrintClusterTree(dest, analyzer->getInputFileName());
+    }  else {
+        // No pretty printing. Just dump the info out.
+        dest << root << std::endl;
+    }
+    // Can't have errors (yet in this method).
+    return NO_ERROR;
+}
+
+
+int
 MSTClusterMaker::makeClusters() {
     int result = NO_ERROR;
 
@@ -573,121 +688,42 @@ MSTClusterMaker::makeClusters() {
         return result;
     }
 
-    // Hack to fix the baton maxUse problem until a better solution is found
-    if (!analyzer->getName().compare("baton") && maxUse > -1) {
-	maxUse = 100;
-    }
-
+    // Variable to track total (from all processes) successful matches
+    // reported by the u/v heuristic. This value is used to fine tune
+    // the threshold for clustering.
     int totalSuccesses = 0;
-
-    if (inputMSTFile == NULL) {
-        // No input MST file supplied.  That means the MST must be
-        // built. The local cache that contains information to build
-        // the MST.  The cache for that contains information regarding
-        // ESTs under the ownership of this process.  The cache
-        // facilitates rapid construction of ESTs but minimizing the
-        // number of times similarity metrics need to computed.  The
-        // cache needs to know the starting indedx of the EST whose
-        // data must be cached by this process.  So this information
-        // is computed first.
-        int startESTidx, endESTidx;
-        getOwnedESTidx(startESTidx, endESTidx);
-        if (!strcmp(cacheType, "mlist")) {
-            cache = new MSTMultiListCache(EST::getESTList().size(), startESTidx,
-                                          endESTidx - startESTidx, analyzer,
-                                          !noCacheRepop, cacheSize);
-        } else {
-            cache = new MSTHeapCache(EST::getESTList().size(), startESTidx,
-                                     endESTidx - startESTidx, analyzer,
-                                     !noCacheRepop, cacheSize);
-        }
-        
-        // Act as manager or worker depending on MPI rank.
-        if (MPI_GET_RANK() == MANAGER_RANK) {
-            // Get this MPI process to act as the manager.
-            result = manager();
-        } else {
-            // Since rank in non-zero, this process must behave as a
-            // worker
-            result = worker();
-        }
-        // In order to build clusters using the new threshold computation
-        // method, we need to collate some statistics from all processes.
-        Heuristic* tv = (HeuristicChain::getHeuristicChain())
-            ->getHeuristic("tv");
-        if (tv != NULL) {
-            // We are good to go for summing the statistics
-            int tvSuccesses = tv->getSuccessCount();
-            // Add the manager's successes first
-            totalSuccesses = tvSuccesses;
-            //MPI::COMM_WORLD.Reduce(&tvSuccesses, &totalSuccesses, 1,
-            //                       MPI::INT, MPI::SUM, MANAGER_RANK);
-
-            // Get each worker's number of successes and add them
-            if (MPI_GET_RANK() == MANAGER_RANK) {
-                for (int i = 1; i < MPI_GET_SIZE(); i++) {
-                    MPI_RECV(&tvSuccesses, 1, MPI_TYPE_INT, MPI_ANY_SOURCE,
-                             COMPUTE_TOTAL_ANALYSIS_COUNT);
-                    totalSuccesses+=tvSuccesses;
-                    //printf("%d\n", i);
-                }
-            } else {
-                // Workers send
-                MPI_SEND(&tvSuccesses, 1, MPI_TYPE_INT, MANAGER_RANK,
-                         COMPUTE_TOTAL_ANALYSIS_COUNT);
-            }
-        }
-    
-        // Display statistics by writing all the data to a string
-        // stream and then flushing the stream.  This tries to working
-        // around (it is not perfect solution) interspersed data from
-        // multiple MPI processes
-        std::ostringstream buffer;
-        displayStats(buffer);
-        std::cout << buffer.str() << std::endl;
-        // Delete the cache as we no longer needed it.
-        delete cache;
-    } else {
-        // In this case the MST is to be read from an input file.
-        // So let's do that.
-        mst = MST::deSerialize(inputMSTFile);
+    // Next compute/load MST using helper method.
+    if ((result = populateMST()) == NO_ERROR) {
+        // Compute the grand total successes for clustering threshold
+        // fine tuning further below.
+        totalSuccesses = getTotalSuccesses("tv");
     }
+    
+    // Display statistics by writing all the data to a string stream
+    // and then flushing the stream.  This tries to working around (it
+    // is not perfect solution) interspersed data from multiple MPI
+    // processes
+    std::ostringstream buffer;
+    displayStats(buffer);
+    std::cout << buffer.str() << std::endl;
+    // Delete the cache as we no longer needed it.
+    delete cache;
 
-
-    if ((result != NO_ERROR) || (mst == NULL)) {
+    if ((result != NO_ERROR) || (mst == NULL) || (totalSuccesses == -1)) {
         // Some error occured.  Can't proceed further.
         return result;
     }
+    
     ASSERT ( mst != NULL );
-    // Dump MST out to the specified output file.
+    // Dump MST out to the specified output file (if any).
     if ((outputMSTFile != NULL) && (mst != NULL)) {
         mst->serialize(outputMSTFile, (inputMSTFile != NULL) ? inputMSTFile :
                        analyzer->getInputFileName());
     }
-    // Do clustering if so desired.
+    
+    // Do clustering and display results if so desired.
     if (!dontCluster) {
-        MSTCluster root;
-        root.makeClusters(mst->getNodes(), percentile, totalSuccesses,
-                          analyzer);
-                    
-        // Redirect cluster output to outputFile as needed.
-        std::ofstream outFile;
-        if (!outputFileName.empty()) {
-            outFile.open(outputFileName.c_str());
-            if (!outFile.good()) {
-                std::cerr << "Error opening output file " << outputFileName
-                          << " for writing cluster data.\n"
-                          << "Cluster data will be dumped on stdout.\n";
-            }
-        }
-        if (prettyPrint) {
-            root.printClusterTree((outFile.is_open() && outFile.good()) ?
-                                  outFile : std::cout);
-        } else {
-            // No pretty printing. Just dump the info out.
-            ((outFile.is_open() && outFile.good()) ? outFile : std::cout)
-                << root << std::endl;
-        }
+        result = buildAndShowClusters(totalSuccesses);
     }
     // Return result from behaving as a manager or a worker.
     return result;

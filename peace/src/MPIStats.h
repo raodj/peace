@@ -105,6 +105,19 @@ public:
     */
     static int bcastCount;
 
+    /** Number of times reduction operation was performed by this process.
+
+        This \b static instance variable (initialized to 0 (zero)) is
+        used to essentially track the number of calls to MPI reduce
+        method.  This variable must be incremented each time MPI's
+        reduce method is invoked.  This variable is finally printed in
+        the displayStats() method.
+
+        \note Using the MPI_REDUCE macro call streamlines this process
+        as it increments the reduceCount as well.
+    */
+    static int reduceCount;
+	
     /** Number of time this process probed for messages.
 
         This \b static instance variable (initialized to 0 (zero)) is
@@ -141,6 +154,10 @@ public:
         <li> The number of calls to broadcast (essentially calls to
         MPI Bcast method).  This information is tracked in the
         bcastCount instance variable. </li>
+
+        <li> The number of reduction operations (essentially calls to
+        MPI Reduce method).  This information is tracked in the
+        reduceCount instance variable. </li>
 
        <li> The number of calls to proble (essentially calls to MPI
         probe method).  This information is tracked in the probeCount
@@ -364,6 +381,43 @@ private:
 #else
 // If we don't have MPI then MPI_BCAST reduces to nothing.
 #define MPI_BCAST(data, count, dataType, senderRank)
+#endif
+
+/** \def MPI_REDUCE
+
+    \brief A simple, convenience macro to track number of calls to
+    MPI::COMM_WORLD.Reduce() method.
+
+    This macro provides a convenient wrapper around MPI's Reduce
+    method call to update MPIStats::reduceCount variable.  This macro
+    can be used as shown below:
+
+    \code
+
+    #include "MPI.h"
+
+    void someMethod() {
+        // ... some code goes here ..
+        int localSuccess = 10, totalSuccess = 0;
+        MPI_REDUCE(&localSuccess, &totalSuccess, 1, MPI::INT, MPI::SUM, 0);
+        // ... more code goes here ..
+    }
+
+    \endcode
+
+    \note This macro calls MPI::COMM_WORD.Reduce only if MPI is
+    enabled. If MPI is not enabled (or is unavailable) then this macro
+    reduces to nothing and the actual broadcast call is never made.
+*/
+#ifdef HAVE_LIBMPI
+#define MPI_REDUCE(srcBufr, destBufr, count, dataType, op, destRank)  { \
+   	    MPI::COMM_WORLD.Reduce(srcBufr, destBufr, count, dataType,		\
+							   op, destRank);							\
+        MPIStats::reduceCount++;                                        \
+    }
+#else
+// If we don't have MPI then MPI_BCAST reduces to nothing.
+#define MPI_REDUCE(srcBufr, destBufr, count, dataType, op, destRank)
 #endif
 
 #endif

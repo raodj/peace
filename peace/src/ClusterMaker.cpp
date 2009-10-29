@@ -65,6 +65,7 @@ ClusterMaker::parseArguments(int& argc, char **argv) {
     return true;
 }
 
+// Dummy operator= to keep VC'09 happy.
 ClusterMaker& 
 ClusterMaker::operator=(const ClusterMaker&) {
     return *this;

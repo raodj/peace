@@ -63,6 +63,11 @@ TransMSTClusterMaker::displayStats(std::ostream& os) {
 
 int
 TransMSTClusterMaker::initialize() {
+    int result = MSTClusterMaker::initialize();
+    if (result != NO_ERROR) {
+        // Error during initialization. Bail out.
+        return result;
+    }
     if (analyzer->getHeuristicChain() == NULL) {
         std::cerr << "TransMSTClusterMaker: No suitable heuristic found!"
                   << "\n";

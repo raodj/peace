@@ -176,7 +176,16 @@ public:
         \return The distance metric value set for this node.
     */
     inline int getAlignmentMetric() const { return alignmentMetric; }
-    
+
+	/** Returns the index of the EST that is set for this node.
+
+		This method returns the index of the EST that was set when
+		this node was created.
+
+		\return The index of the EST set for this node.
+	*/
+	inline int getESTIdx() const { return estIdx; }
+	
     /** The zero-based index of the parent EST.  If a node has no
         parent (it is the root of the MST) then this value is set
         to -1.  The \c parentIdx is an offset into the list of
