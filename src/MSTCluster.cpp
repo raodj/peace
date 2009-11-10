@@ -261,8 +261,8 @@ MSTCluster::guiPrintClusterTree(std::ostream& os, const char *srcFile) const {
 void
 MSTCluster::guiPrintTree(std::ostream& os) const {
     // Print information about this cluster and its parent cluster.
-    os << "C," << ((parent != NULL) ? parent->clusterID : -1)
-       << ","  << clusterID << std::endl;
+    os << "C," << clusterID << ","
+       << ((parent != NULL) ? parent->clusterID : -1) << std::endl;
     // Print all the ESTs in this cluster.
     for(size_t i = 0; (i < members.size()); i++) {
         os << "E," << members[i].getESTIdx()
