@@ -170,7 +170,7 @@ main(int argc, char* argv[]) {
     if ((analyzer == NULL) || (showOptions) ||
         (!analyzer->parseArguments(argc, argv))) {
         showUsage(ap, analyzer, clusterMaker, heuristicChain);
-        return 1;
+        return (showOptions ? 0 : 1);
     }
 
     // Check if cluster maker was specified and successfully created.
@@ -178,7 +178,7 @@ main(int argc, char* argv[]) {
         if ((clusterMaker == NULL) || (showOptions) ||
             (!clusterMaker->parseArguments(argc, argv))) {
             showUsage(ap, analyzer, clusterMaker, heuristicChain);
-            return 2;            
+            return (showOptions ? 0 : 2);
         }
     }
 
@@ -187,7 +187,7 @@ main(int argc, char* argv[]) {
         if ((heuristicChain == NULL) || (showOptions) ||
             (!heuristicChain->parseArguments(argc, argv))) {
             showUsage(ap, analyzer, clusterMaker, heuristicChain);
-            return 3;
+            return (showOptions ? 0 : 3);
         }
     }
 
