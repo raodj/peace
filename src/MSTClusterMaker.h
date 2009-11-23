@@ -25,6 +25,7 @@
 #include "ClusterMaker.h"
 #include "MSTCache.h"
 #include "MST.h"
+#include <fstream>
 
 /** A Minimum Spanning Tree (MST) based parallel cluster maker.
 
@@ -284,7 +285,16 @@ protected:
         default using the command line parameter \c --cacheType.
     */
     static char* cacheType;
-    
+
+	/** Name of file to report progress in during MST construction.
+
+        This command line argument provides the name of the log file
+		where progress information is to be written. The progress
+		information is in the form: #estsProcessed, #ests. This value
+		is specified via a command line argument.
+    */
+    static char *progFileName;
+	
     /** Helper method to perform manager tasks.
 
         This method has been introduced to streamline the operations
@@ -448,6 +458,25 @@ protected:
     */
     virtual void populateCache(const int estIdx, SMList* metricList = NULL);
 
+    /** Method to generate progress logs (if requested by user).
+
+        This method is a helper method that is called from the core
+        manager() method loop to generate progress logs as ESTs are
+        analyzed and updated.  This method cuts logs only if the
+        progFileName comamnd line argument was specified and the
+        progress file could be created.
+
+        \note The progress file is opened only once, first time this
+        method is called. So this method should not hurt performance
+        by much.
+        
+        \param[in] estsAnalyzed The number of ESTs analyzed thus far.
+
+        \param[in] totalESTcount The total number of ESTs to be
+        analyzed.
+    */
+    void updateProgress(const int estsAnalyzed, const int totalESTcount);
+        
     /** Helper method in Manager process to update distributed caches.
 
         This is a helper method that is used only in the Manager
@@ -474,10 +503,10 @@ protected:
 
         \param[in] estIdx The index of the newly added EST.
 
-	\param[in] refreshEST If this flag is \c true (the default
-	value), then the neighbors for the newly added EST (specified
-	by estIdx) are computed and the caches are updated.
-	
+        \param[in] refreshEST If this flag is \c true (the default
+        value), then the neighbors for the newly added EST (specified
+        by estIdx) are computed and the caches are updated.
+        
         \return This method returns 0 on success or an suitable error
         code on failure.
     */
@@ -513,13 +542,13 @@ protected:
 
         \param[out] similarity The similarity metric between the
         srcESTidx and the destESTidx.
-
-	\param[out] alignmentData The alignment information between
-	the two ESTs represented by their index values in parentESTidx
-	and estToAdd.
+        
+        \param[out] alignmentData The alignment information between
+        the two ESTs represented by their index values in parentESTidx
+        and estToAdd.
     */
     void computeNextESTidx(int& parentESTidx, int& estToAdd,
-			   float &similarity, int& alignmentData) const;
+                           float &similarity, int& alignmentData) const;
     
     /** Determine the owner process Rank for a given estIdx.
 
@@ -569,22 +598,22 @@ protected:
 
     /** Helper method for a worker process.
 
-	This method is invoked from the worker() method to receive and
-	process various requests from the manager process.  This
-	method currently handles the following requests:
+        This method is invoked from the worker() method to receive and
+        process various requests from the manager process.  This
+        method currently handles the following requests:
+        
+        <ul>
+        
+        <li>\c COMPUTE_SIMILARITY_REQUEST : Computes the subset of the
+        similarity metric for the given EST index and returns the
+        partial list back to the owner process.</li>
 
-	<ul>
-
-	<li>\c COMPUTE_SIMILARITY_REQUEST : Computes the subset of the
-	similarity metric for the given EST index and returns the
-	partial list back to the owner process.</li>
-
-	<li> \c COMPUTE_MAX_SIMILARITY_REQUEST : Computes the highest
-	similarity value between all the ESTs on this cluster and
-	returns the top entry back to the manager.  Once this request
-	has been processed this method returns control back.
-
-	</ul>
+        <li> \c COMPUTE_MAX_SIMILARITY_REQUEST : Computes the highest
+        similarity value between all the ESTs on this cluster and
+        returns the top entry back to the manager.  Once this request
+        has been processed this method returns control back.
+        
+        </ul>
     */
     void workerProcessRequests();
 
@@ -602,18 +631,18 @@ protected:
     void sendToWorkers(int data, const int tag) const;
 
     /** Method to detect if a given SMList has at least one, valid
-	entry.
-
-	This method is used (in the populateCache()) to determine if a
-	given SMList has at least one valid entry.  This method is
-	useful particularly when a empty SMList is received from a
-	remote process and in this case there ine one entry in the
-	SMList (-1, -1). 
-	
-	\param[in] list The list to check if it has a valid entry.
+        entry.
+        
+        This method is used (in the populateCache()) to determine if a
+        given SMList has at least one valid entry.  This method is
+        useful particularly when a empty SMList is received from a
+        remote process and in this case there ine one entry in the
+        SMList (-1, -1). 
+        
+        \param[in] list The list to check if it has a valid entry.
     */
     bool hasValidSMEntry(const SMList& list) const;
-
+    
     /** Helper method to distribute index of newly added EST to all
         workers and gather cache repopulation requests.
 
@@ -646,7 +675,7 @@ protected:
     void estAdded(const int estIdx, std::vector<int>& repopulateList);
 
     /** Helper method in \b Manager process to add as many child nodes
-	as possible for the given parent.
+        as possible for the given parent.
 
         This is a helper method that is used only in the Manager
         process <b>only when the \c maxUse parameter is != -1</b>.
@@ -684,12 +713,12 @@ protected:
         \param[in,out] metric The similarity/distance metric between
         the parentESTidx and the estToAdd.  This method updates this
         value if additional ESTs are added to the MST by this method.
-
-	\param[in,out] alignmentData The alignment information between
-	the two ESTs represented by their index values in parentESTidx
-	and estToAdd.  This method updates this value if additional
-	ESTs are added to the MST by this method.
-
+        
+        \param[in,out] alignmentData The alignment information between
+        the two ESTs represented by their index values in parentESTidx
+        and estToAdd.  This method updates this value if additional
+        ESTs are added to the MST by this method.
+        
         \param[in,out] pendingESTs The number of pending ESTs that
         have not yet been added to the MST.  This value is used and
         udpated by this method each time it adds a EST.
@@ -747,7 +776,16 @@ protected:
         process (to minimize memory footprint).
     */
     MSTCache *cache;
-    
+
+	/** File stream to log progress information.
+
+		This output stream is created when the first progress information
+		is logged and closed after the last progress information has been
+		logged. The progress information is generated by the updateProgress
+		method if progressFileName is not NULL.
+	*/
+	std::ofstream progressFile;
+	
 private:    
     /** The Minimum Spanning Tree (MST) built by this class.
 
