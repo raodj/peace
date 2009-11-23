@@ -76,6 +76,7 @@ AC_DEFUN([AC_PROG_MPI],
      else
          CXX=mpicxx
          AC_SUBST(MPI)
+	 AC_DEFINE([HAVE_LIBMPI], [1], [Using MPI to compile PEACE])
      fi
 ])
 
@@ -93,6 +94,7 @@ AC_DEFUN([AC_LINK_STDCPP],
 	 ],
 	 [AC_MSG_RESULT([yes])
 	     STDCPP="-lstdc++"
+	     LIBS="-lstdc++"
 	 ])
 
      AC_SUBST(STDCPP)
@@ -145,7 +147,7 @@ AC_PROG_RANLIB
 # Checks for libraries.
 #AC_CHECK_LIB([pthread], [pthread_create])
 AC_CHECK_LIB([m],[asin],,,[-lstdc++])
-AC_CHECK_LIB([mpi],[MPI_Init],,,[-lstdc++])
+AC_CHECK_FUNCS([MPI_Init])
 AC_CHECK_LIB([readline],[readline],,,[-lstdc++])
 #AC_SEARCH_LIBS([gethostname], [c,nsl])
 #AC_CHECK_LIB([nsl],[gethostname])
