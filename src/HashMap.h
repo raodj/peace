@@ -23,6 +23,7 @@
 //---------------------------------------------------------------------------
 
 #include <cstring>
+#include <string>
 #include <memory>
 
 #ifndef _WINDOWS
@@ -41,16 +42,25 @@
 
 #else // Not gcc 4.2+ (but linux)
 
+#ifdef HAVE_EXT_HASH_MAP
 // Use standard hash map from the extended name space.  With GCC 3.2
 // and above the hash map data structure has been moded to a extended
 // directory under a non-std namespace.  The following defines
 // attempts to put the hash map in the standard context making it much
 // easier to work with.
-
 #include <ext/hash_map>
 #define GLIBC_NAMESPACE __gnu_cxx
 #define HashMap __gnu_cxx::hash_map
 #define Hash    __gnu_cxx::hash
+
+#else
+// No TR1 and no EXT. Hopefully HASH_HASH_MAP is true
+#include <hash_map>
+#define GLIBC_NAMESPACE std
+#define HashMap std::hash_map
+#define Hash    std::hash
+
+#endif
 
 #endif
 
