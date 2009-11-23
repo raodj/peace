@@ -135,6 +135,22 @@ AC_DEFUN([AC_PROG_ICC],
      AC_SUBST(ICC_NO_WARN_SOME)
 ])
 
+AC_DEFUN([AC_CHECK_ARGS],
+[
+	AC_MSG_CHECKING([whether _AC_LANG compiler accepts $1])
+	AC_LANG_CONFTEST(
+			AC_LANG_PROGRAM([[#include <iostream>]],
+							[[std::cout << "ac_check_args"]]))
+	output=`$CXX $CXXFLAGS $1 conftest.cpp 2>&1`
+	if test -z "$output"; then
+	    AC_MSG_RESULT([yes])
+	    m4_default([$2], :)
+	else
+		AC_MSG_RESULT([no])
+		m4_default([$3], :)
+	fi
+])
+
 # Checks for programs.
 AC_PROG_MPI
 AC_MSG_CHECKING([properties of (MPI) compiler])
@@ -143,6 +159,17 @@ AC_PROG_CXX
 AC_LINK_STDCPP
 AC_PROG_ICC
 AC_PROG_RANLIB
+
+# Check and set some default compiler flags for the build
+AC_CHECK_ARGS([-Minform,warn], [INFORM_WARN="-Minform,warn"], [INFORM_WARN=""])
+AC_SUBST(INFORM_WARN)
+AC_CHECK_ARGS([-Wall], [WALL="-Wall"], [WALL=""])
+AC_SUBST(WALL)
+AC_CHECK_ARGS([-Wextra], [WEXTRA="-Wextra"], [WEXTRA=""])
+AC_SUBST(WEXTRA)
+AC_CHECK_ARGS([-pipe], [PIPE="-pipe"], [PIPE=""])
+AC_SUBST(PIPE)
+
 
 # Checks for libraries.
 #AC_CHECK_LIB([pthread], [pthread_create])
