@@ -280,7 +280,7 @@ public:
     \endcode
 */
 #ifdef HAVE_LIBMPI
-#define MPI_FINALIZE() MPI::Finalize
+#define MPI_FINALIZE() MPI::Finalize()
 #else
 // MPI is not available
 #define MPI_FINALIZE()
