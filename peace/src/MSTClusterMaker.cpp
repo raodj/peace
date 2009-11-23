@@ -53,9 +53,10 @@ bool   MSTClusterMaker::dontCluster   = false;
 bool   MSTClusterMaker::prettyPrint   = false;
 bool   MSTClusterMaker::guiPrint      = false;
 double MSTClusterMaker::percentile    = 1.0;
-int    MSTClusterMaker::maxUse        = 0;
+int    MSTClusterMaker::maxUse        = -1;
 char*  MSTClusterMaker::cacheType     = DefCacheType;
-
+char*  MSTClusterMaker::progFileName  = NULL;
+    
 // The common set of arguments for all FW EST analyzers
 arg_parser::arg_record MSTClusterMaker::argsList[] = {
     {"--cache", "#similarity metrics to cache per EST",
@@ -79,7 +80,9 @@ arg_parser::arg_record MSTClusterMaker::argsList[] = {
     {"--maxUse", "Set a threshold to aggressively use metrics (default=0)",
      &MSTClusterMaker::maxUse, arg_parser::INTEGER},
     {"--cacheType", "Set type of cache (heap or mlist) to use (default=heap)",
-     &MSTClusterMaker::cacheType, arg_parser::STRING},    
+     &MSTClusterMaker::cacheType, arg_parser::STRING},
+    {"--progress", "Log MST construction progress in a file (used by GUI)",
+     &MSTClusterMaker::progFileName, arg_parser::STRING},        
     {NULL, NULL}
 };
 
@@ -266,10 +269,30 @@ MSTClusterMaker::addMoreChildESTs(const int parentESTidx, int& estToAdd,
     } while (newParent == parentESTidx);
 }
 
+void
+MSTClusterMaker::updateProgress(const int estsAnalyzed,
+                                const int totalESTcount) {
+    if (progFileName == NULL) {
+        // No need to report progress
+        return;
+    }
+    // Open the progress file in a lazy manner as needed.
+    if (!progressFile.is_open()) {
+        progressFile.open(progFileName);
+    }
+    // Log the progress information.
+    if (progressFile.good()) {
+        progressFile << estsAnalyzed << "," << totalESTcount
+                     << "\n" << std::flush;
+        progressFile.seekp(0);
+    }
+}
+
 int
 MSTClusterMaker::manager() {
     // The number of pending nodes to be added to the MST.
-    int pendingESTs = EST::getESTList().size();
+    const int TotalESTcount = EST::getESTList().size();
+    int pendingESTs         = TotalESTcount;
     // The minimum spanning tree that is built by this manager.
     int dummy;
     mst = new MST(pendingESTs, analyzer->getAlignmentData(dummy));
@@ -280,6 +303,8 @@ MSTClusterMaker::manager() {
     float metric        = analyzer->getValidMetric();
     int   alignmentInfo = 0;
     do {
+        // Update progress information as needed
+        updateProgress(TotalESTcount - pendingESTs, TotalESTcount);
         // Add the EST to the MST vector, if needed.
         if ((maxUse == -1) || (parentESTidx == -1)) {
             ASSERT ( estToAdd != -1 );
@@ -306,7 +331,9 @@ MSTClusterMaker::manager() {
                              alignmentInfo, pendingESTs);
         }
     } while (pendingESTs > 0);
-    
+
+    // Update progress information as needed
+    updateProgress(TotalESTcount - pendingESTs, TotalESTcount);
     // Broad cast an estIdx of -1 to all the workers to indicate that
     // MST building is done.
     sendToWorkers(-1, ADD_EST);
