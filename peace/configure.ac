@@ -94,7 +94,7 @@ AC_DEFUN([AC_LINK_STDCPP],
 	 ],
 	 [AC_MSG_RESULT([yes])
 	     STDCPP="-lstdc++"
-	     LIBS="-lstdc++"
+	     LIBS="$LIBS -lstdc++"
 	 ])
 
      AC_SUBST(STDCPP)
@@ -114,7 +114,7 @@ AC_DEFUN([AC_PROG_ICC],
 
      if test -z "$icc"; then
          AC_MSG_CHECKING([for icc])
-         icc=`mpicxx --version | grep "^icc"`
+         icc=`mpicxx --version 2>&1 | grep "^icc"`
 	 if test -n "$icc"; then
 	     icc="yes"
 	 else
@@ -131,7 +131,7 @@ AC_DEFUN([AC_PROG_ICC],
           ICC_NO_WARN_SOME=""
      fi
 
-     AC_SUBST(USING_ICC)          
+     AC_SUBST(USING_ICC) 
      AC_SUBST(ICC_NO_WARN_SOME)
 ])
 
@@ -164,10 +164,10 @@ AC_TYPE_SIZE_T
 AC_HEADER_TIME
 AC_C_VOLATILE
 
-# check if recent version of hash map is available in c++ land
+# checks for the version of hash map is available in c++ land
 AC_LANG_PUSH([C])
 AC_LANG([C++])
-AC_CHECK_HEADERS([tr1/unordered_map])
+AC_CHECK_HEADERS([tr1/unordered_map ext/hash_map hash_map])
 AC_LANG_POP([C++])
 
 # Checks for library functions.
