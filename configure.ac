@@ -126,9 +126,11 @@ AC_DEFUN([AC_PROG_ICC],
      if test "yes" == "$icc"; then
 	  USING_ICC="-DICC"
           ICC_NO_WARN_SOME="-wd981 -wd383"
+          ICC_NO_WARN_FOR_CONFIGURE="-wd981 -wd383 -wd1419"
      else
      	  USING_ICC=""
           ICC_NO_WARN_SOME=""
+          ICC_NO_WARN_FOR_CONFIGURE=""
      fi
 
      AC_SUBST(USING_ICC) 
@@ -141,8 +143,8 @@ AC_DEFUN([AC_CHECK_ARGS],
 	AC_LANG_CONFTEST(
 			AC_LANG_PROGRAM([[#include <iostream>]],
 							[[std::cout << "ac_check_args"]]))
-    src=`ls conftest.*`
-	output=`$CXX $CXXFLAGS $1 $src 2>&1`
+    src=`ls conftest.c*`
+	output=`$CXX $1 $CXXFLAGS $LIBS $ICC_NO_WARN_FOR_CONFIGURE $src 2>&1`
 	if test -z "$output"; then
 	    AC_MSG_RESULT([yes])
 	    m4_default([$2], :)
