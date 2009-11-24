@@ -162,7 +162,7 @@ AC_PROG_ICC
 AC_PROG_RANLIB
 
 # Check and set some default compiler flags for the build
-AC_CHECK_ARGS([-Minform,warn], [INFORM_WARN="-Minform,warn"], [INFORM_WARN=""])
+AC_CHECK_ARGS([-Minform,warn], [INFORM_WARN="-Minform=warn"], [INFORM_WARN=""])
 AC_SUBST(INFORM_WARN)
 AC_CHECK_ARGS([-Wall], [WALL="-Wall"], [WALL=""])
 AC_SUBST(WALL)
