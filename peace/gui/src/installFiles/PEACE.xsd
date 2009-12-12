@@ -1,0 +1,425 @@
+<?xml version="1.0"?>
+<!-- The XML Schema definition for PEACE workspace configuration file -->
+
+<!--
+	
+	This file is part of PEACE.
+	
+	PEACE is free software: you can redistribute it and/or modify it
+	under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+	
+	PEACE is distributed in the hope that it will be useful, but
+	WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+	General Public License for more details.
+ 
+	You should have received a copy of the GNU General Public License
+	along with PEACE.  If not, see <http://www.gnu.org/licenses/>.
+	
+	Miami University makes no representations or warranties about the
+	suitability of the software, either express or implied, including
+	but not limited to the implied warranties of merchantability,
+	fitness for a particular purpose, or non-infringement.  Miami
+	University shall not be liable for any damages suffered by
+	licensee as a result of using, result of using, modifying or
+	distributing this software or its derivatives.
+
+	By using or copying this Software, Licensee agrees to abide by the
+	intellectual property laws, and all other applicable laws of the
+	U.S., and the terms of GNU General Public License (version 3).
+	
+	Authors:   Dhananjai M. Rao              raodm@muohio.edu
+
+-->
+
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+	targetNamespace="http://www.peace-tools.org/"
+	xmlns="http://www.peace-tools.org/" elementFormDefault="qualified">
+
+	<!-- Datatype for the version ID used further below in this schema  -->
+	<xsd:simpleType name="VersionID">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="0.1" />
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<!-- The Workspace root element definition. A workspace has the
+		following information associated with it:
+		
+		1. A root directory where all files associated with the
+		workspace are stored.
+		2. A creation time stamp when the workspace was created.
+		3. Zero or more DataSet elements (see definition for DataSet
+		element further below).
+		4. A ServerList element (see definition for the ServerList
+		element further below.
+	-->
+	<xsd:element name="Workspace">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="Directory" type="xsd:string" />
+				<xsd:element name="CreationTimestamp" type="xsd:dateTime" />
+				<xsd:element name="SeqCounter" type="xsd:positiveInteger"/>
+				<xsd:element ref="DataSet" minOccurs="0" maxOccurs="unbounded" />
+				<xsd:element ref="ServerList"/>
+				<xsd:element ref="JobList"/>
+				<xsd:element ref="ClassifierList"/>
+			</xsd:sequence>
+			<xsd:attribute name="Version" type="VersionID" use="required" />
+		</xsd:complexType>
+	</xsd:element>
+
+	<!--
+		A DataSet essentially defines the set of files that this
+		workspace is dealing with. A DataSet is organized as follows:
+		
+		1. Every data set must have a primary ESTFile element that it is
+		operating with.  This is source EST/FASTA file that contains
+		the sequences being operated on.
+		2. A DataSet may have zero or more MSTData element (or MST
+		files) associated with it.
+		3. A DataSet may have zero or more MSTClusterData elements (or
+		clustering information associated with it).
+	-->
+	<xsd:element name="DataSet">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element ref="ESTData" minOccurs="1" />
+				<xsd:element ref="MSTData" minOccurs="0" maxOccurs="unbounded"/>
+				<xsd:element ref="MSTClusterData" minOccurs="0" maxOccurs="unbounded"/>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+	
+	<!-- The ESTFile is the FASTA file that provides the core sequence
+		data that is used to do all the analysis in this data set.  -->
+	<xsd:element name="ESTData">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="Path" type="xsd:string" />
+				<xsd:element name="Description" type="xsd:string" />
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+
+	<!-- [Analyzer definitions. Add Baton approach below -->
+	<xsd:simpleType name="MetricType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="distance" />
+			<xsd:enumeration value="similarity" />
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:simpleType name="FWAnalyzerType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="d2" />
+			<xsd:enumeration value="d2zim" />
+			<xsd:enumeration value="twopassd2" />
+			<xsd:enumeration value="clu" />
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:element name="FWAnalyzer">
+		<xsd:annotation>
+			<xsd:documentation>
+				This element contains information regarding the
+				Frame/Word concept-based analysis algorithm that
+				was used to generate distance or similarity metric
+				that was used to generate the Minimum Spanning Tree.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="Type" type="FWAnalyzerType"/>
+				<xsd:element name="WindowSize" type="xsd:positiveInteger"/>
+				<xsd:element name="WordSize" type="xsd:positiveInteger"/>
+				<xsd:element name="CacheType" type="xsd:string"/>
+				<xsd:element name="CacheSize" type="xsd:positiveInteger"/>
+			</xsd:sequence>
+			<xsd:attribute name="metric" type="MetricType" use="required"/>
+		</xsd:complexType>
+	</xsd:element>
+	
+	<!-- [Heuristic definition ] -->
+	<xsd:simpleType name="HeuristicType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="uv" />
+			<xsd:enumeration value="tv" />
+		</xsd:restriction>
+	</xsd:simpleType>
+	
+	<xsd:element name="Param">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="Name" type="xsd:string"/>
+				<xsd:element name="Value" type="xsd:string"/>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+	
+	<xsd:element name="Heuristic">
+		<xsd:annotation>
+			<xsd:documentation>
+				This is a generic heuristic element that can be used
+				to include any heuristic (such as: the u/v or t/v
+				heuristic) along with parameter values that was used
+				for accelerating clustering.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="Name" type="HeuristicType"/>
+				<xsd:element ref="Param" 
+					minOccurs="0" maxOccurs="unbounded"/>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+	
+	<xsd:element name="HeuristicChain">
+		<xsd:annotation>
+			<xsd:documentation>
+				A heuristic chain that simply contains a sequence of
+				zero or more heuristics that were used for obtaining
+				a specific set of data.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element ref="Heuristic" minOccurs="0" maxOccurs="unbounded"/>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+
+	<!--  enumerations defining different status values for jobs -->
+	<xsd:simpleType name="JobStatusType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="starting" />
+			<xsd:enumeration value="queued" />
+			<xsd:enumeration value="running" />
+			<xsd:enumeration value="finishing" />
+			<xsd:enumeration value="success" />
+			<xsd:enumeration value="failed" />
+		</xsd:restriction>
+	</xsd:simpleType>
+	
+	<xsd:element name="JobSummary">
+		<xsd:annotation>
+			<xsd:documentation>
+				This element contains brief but useful information about
+				the job that was used to generate a given data file. More
+				details on the job can be determined via the jobRef 
+				attribute that references a particular job.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="Status" type="JobStatusType"/>
+				<xsd:element name="ServerName">
+					<xsd:complexType>
+						<xsd:simpleContent>
+							<xsd:extension base="xsd:string">
+								<xsd:attribute name="serverID" type="xsd:token" use="required"/>
+							</xsd:extension>
+						</xsd:simpleContent>
+					</xsd:complexType>
+				</xsd:element>
+				<xsd:element name="CPUs" type="xsd:positiveInteger"/>
+				<xsd:element name="RunTime" type="xsd:duration" minOccurs="0"/>
+			</xsd:sequence>
+			<xsd:attribute name="jobID" type="xsd:token"/>
+		</xsd:complexType>
+	</xsd:element>
+	
+	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - -->
+	<!--  The element that defines data for each MST file. -->
+		<xsd:simpleType name="MSTBuilderType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="mst" />
+			<xsd:enumeration value="pmst" />
+			<xsd:enumeration value="tmst" />
+		</xsd:restriction>
+	</xsd:simpleType>
+	
+	<xsd:element name="MSTData">
+		<xsd:annotation>
+			<xsd:documentation>
+				This element defines the contents and metadata associated
+				with a Minimum Spanning Tree (MST) data structure generated
+				by PEACE by applying a suitable FWAnalyzer for generating
+				distance/similarity metrics. This element also contains data
+				regarding the job that was/is being run to get the data.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="ID" type="xsd:token"/>
+				<xsd:element name="Type" type="MSTBuilderType"/>
+				<xsd:element name="Path" type="xsd:string"/>
+				<xsd:element name="Description" type="xsd:string"/>
+				<xsd:element ref="FWAnalyzer"/>
+				<xsd:element ref="HeuristicChain"/>
+				<xsd:element ref="JobSummary"/>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+
+	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+	<!--  The element that defines data for each Cluster file. -->
+	<xsd:element name="MSTClusterData">
+		<xsd:annotation>
+			<xsd:documentation>
+				This element provides metadata regarding clustering 
+				information stored in this file. Clustering information
+				is obtained from a MSTData in a given DataSet.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:sequence>			
+				<xsd:element name="MSTRef" type="xsd:token"/>
+				<xsd:element name="Path" type="xsd:string"/>
+				<xsd:element name="Description" type="xsd:string"/>
+				<xsd:element name="Threshold" type="xsd:positiveInteger"/>
+				<xsd:element ref="JobSummary"/>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>	
+	
+	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+	<!--
+		ServerList is just list of zero or more Server entries
+	-->
+	<xsd:element name="ServerList">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="SeqCounter" type="xsd:positiveInteger"/>
+				<xsd:element ref="Server" minOccurs="0"
+					maxOccurs="unbounded" />
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+
+	<!-- First several definitions in this schema define the various
+		types that are used by various elements further below.  -->
+	<xsd:simpleType name="ServerType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="local" />
+			<xsd:enumeration value="remote" />
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<!-- This element represnets a server entry and defines all the
+		information that is needed to access a server and run jobs is
+		defined here.
+	-->
+	<!--  enumerations defining different status values for servers -->
+	<xsd:simpleType name="ServerStatusType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="installing" />
+			<xsd:enumeration value="install_failed" />
+			<xsd:enumeration value="good" />
+			<xsd:enumeration value="uninstalling" />
+			<xsd:enumeration value="uninstall_failed" />
+			<xsd:enumeration value="connect_failed" />
+		</xsd:restriction>
+	</xsd:simpleType>
+	
+	<xsd:element name="Server">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="ID" type="xsd:token" />
+				<xsd:element name="Name" type="xsd:token" />
+				<xsd:element name="Description" type="xsd:string" />
+				<xsd:element name="UserID" type="xsd:token"
+					minOccurs="0" />
+				<xsd:element name="InstallPath" type="xsd:string" />
+				<xsd:element name="PollTime" type="xsd:duration"
+					default="PT30S" />
+				<xsd:element name="Status" type="ServerStatusType"/>
+			</xsd:sequence>
+			<xsd:attribute name="type" type="ServerType" use="required" />
+		</xsd:complexType>
+	</xsd:element>
+
+	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+	<!--
+		JobList is just list of zero or more Job entries. 
+		Each Job entry provides information about a job that is
+		being run or has been run. Each job entry includes
+		additional information about the job to verify its 
+		operational status.
+	-->
+	<xsd:element name="Job">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+					This element defines the various values that
+					are maintained for each job started by the GUI
+					system. The ID is a locally generated ID while
+					JobID is either a remote PBS job ID or a local
+					process ID. The "Server" element contains ID of
+					the server. Path contains the location where files
+					(input and output) for this job are stored.
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:sequence>
+				<xsd:element name="JobID" type="xsd:token"/>
+				<xsd:element name="Description" type="xsd:string"/>
+				<xsd:element name="ServerID" type="xsd:token"/>
+				<xsd:element name="Path" type="xsd:string"/>
+				<xsd:element name="Nodes" type="xsd:positiveInteger"/>
+				<xsd:element name="CPUsPerNode" type="xsd:positiveInteger"/>
+				<xsd:element name="Memory" type="xsd:positiveInteger"/>
+				<xsd:element name="MaxRunTime" type="xsd:positiveInteger"/>
+				<xsd:element name="StartTimestamp" type="xsd:dateTime" minOccurs="0"/>
+				<xsd:element name="Status" type="JobStatusType"/>
+				<xsd:element name="LastUpdateTimestamp" type="xsd:dateTime"/>
+				<xsd:element name="RunTime" type="xsd:duration" minOccurs="0"/>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+	
+	<xsd:element name="JobList">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="SeqCounter" type="xsd:positiveInteger"/>
+				<xsd:element ref="Job" minOccurs="0" maxOccurs="unbounded"/>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+	
+	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+	<!--
+		ClassifierList is just list of zero or more DBClassifier 
+		entries. Each classifier entry provides information about
+		identifiying a EST from a given data base. ESTs are 
+		classified by applying a regular expression to the 
+		information in a FASTA header.
+	-->
+	<xsd:element name="DBClassifier">
+		<xsd:complexType>
+			<xsd:annotation>
+				<xsd:documentation>
+					This element defines the various values that
+					are maintained for each data base classifier
+				</xsd:documentation>
+			</xsd:annotation>
+			<xsd:sequence>
+				<xsd:element name="Description" type="xsd:string"/>
+				<xsd:element name="RegExp" type="xsd:string"/>
+				<xsd:element name="Color" type="xsd:integer"/>
+				<xsd:element name="Enabled" type="xsd:boolean"/>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+	
+	<xsd:element name="ClassifierList">
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element ref="DBClassifier" minOccurs="0" maxOccurs="unbounded"/>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+
+</xsd:schema>

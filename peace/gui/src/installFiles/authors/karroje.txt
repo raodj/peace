@@ -1,0 +1,5 @@
+<b>John Karro</b><br>
+Email: karroje@muohio.edu<br>
+Web page: http://www.eas.muohio.edu/people/karroje<br>
+<i>Brief description of this authors contribution to<br>
+the project.</i>
