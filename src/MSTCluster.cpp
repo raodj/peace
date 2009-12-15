@@ -56,11 +56,8 @@ MSTCluster::add(const MSTNode& node) {
 }
 
 double
-MSTCluster::makeClusters(NodeList& nodeList, const double percentile,
-                         const int analysisCount, const ESTAnalyzer* analyzer) {
-    // Compute the threshold based on the percentile value provided.
-    const float threshold = (float) calculateThreshold(nodeList.size(), percentile,
-                                                analysisCount, analyzer);
+MSTCluster::makeClusters(NodeList& nodeList, const ESTAnalyzer* analyzer) {
+    const float threshold = 130;
     // Now create a hash map to track cluster for a given node
     ClusterMap clusterMap;
     // Now extract nodes from the nodeList and add it to appropriate
@@ -127,56 +124,6 @@ MSTCluster::makeClusters(NodeList& nodeList, const double percentile,
     nodeList.clear();
     // Return threshold value back to the caller
     return threshold;
-}
-
-double
-MSTCluster::calculateThreshold(const int nodeCount,
-                               const double UNREFERENCED_PARAMETER(percentile),
-                               const int analysisCount,
-                               const ESTAnalyzer* analyzer) const {
-    /*double totalSim    = 0;
-    double totalSimSqr = 0;
-    // Iterate over the set of nodes and compute total values to
-    // determine mean and standard deviation.
-    for(NodeList::const_iterator curr = nodeList.begin();
-        (curr != nodeList.end()); curr++) {
-        const float sim = (*curr).getMetric();
-        totalSim    += sim;
-        totalSimSqr += (sim * sim);
-    }
-    const double mean  = totalSim / (nodeList.size() - 1);
-    const double stDev = sqrt((totalSimSqr / (nodeList.size() - 1))
-                              - (mean * mean));
-    // Compute the threshold based on percentile value provided.
-    return mean + (stDev * percentile);*/
-
-    if (!analysisCount) {
-        // We are not using the TV heuristic
-        // Return a threshold based on the analyzer in use
-        if (!analyzer->getName().compare("baton")) {
-            return 30;
-        } else {
-            return 40;
-        }
-    } else {
-        // Threshold is based on ratio of full analysis (i.e. D2 runs)
-        // to total number of comparisons made (EST count choose 2).
-        // The idea is that this ratio will provide a measure of the overall
-        // similarity of ESTs in the data set, and we can adjust our threshold
-        // to compensate.  When the ratio is relatively high, we want the
-        // threshold to be lower (to better differentiate the ESTs) and when
-        // the ratio is relatively low, we want the threshold to be higher
-        // (to cut down on singletons and give us clusters of meaningful size).
-
-        int totalCmps = nodeCount * (nodeCount - 1) / 2;
-        double ratio = ((double) analysisCount) / ((double) totalCmps);
-        int threshold = (int) (.08 / ratio); // magic number, worked for current data
-        // Put some hard limits on the threshold
-        if (threshold < 40) threshold = 40;
-        if (threshold > 130) threshold = 130;
-        printf("Threshold: %d\n", threshold);
-        return threshold;
-    }
 }
 
 void

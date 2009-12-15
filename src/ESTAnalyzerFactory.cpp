@@ -30,9 +30,7 @@
 #include "D2.h"
 #include "D2Zim.h"
 #include "TwoPassD2.h"
-#include "SimulationD2.h"
 #include "MatrixFileAnalyzer.h"
-#include "BatonAnalyzer.h"
 
 void
 ESTAnalyzerFactory::displayList(std::ostream &os) {
@@ -51,10 +49,8 @@ ESTAnalyzerFactory::displayList(std::ostream &os) {
          NULL, arg_parser::STRING},
 	{"twopassD2", "Use two-pass asymmetric/bounded symmetric D2",
          NULL, arg_parser::STRING},
-        {"d2sim", "Use special version of D2 for simulation project",
-         NULL, arg_parser::STRING},
-        {"baton", "Use prototype baton-based analyzer",
-         NULL, arg_parser::STRING},
+        //        {"d2sim", "Use special version of D2 for simulation project",
+        //         NULL, arg_parser::STRING},
         {NULL, NULL}
     };
     arg_parser dummyParser(dummy_args);
@@ -85,10 +81,8 @@ ESTAnalyzerFactory::create(const char* name, const int refESTidx,
         return new D2Zim(refESTidx, outputFileName);        
     } else if (!strcmp("twopassD2", name)) {
 	return new TwoPassD2(refESTidx, outputFileName);
-    } else if (!strcmp("d2sim", name)) {
-        return new SimulationD2(refESTidx, outputFileName);
-    } else if (!strcmp("baton", name)) {
-        return new BatonAnalyzer(refESTidx, outputFileName);
+        //    } else if (!strcmp("d2sim", name)) {
+        //        return new SimulationD2(refESTidx, outputFileName);
     }
     
     // invalid analyzer name!

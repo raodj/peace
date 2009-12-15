@@ -52,7 +52,6 @@ char*  MSTClusterMaker::outputMSTFile = NULL;
 bool   MSTClusterMaker::dontCluster   = false;
 bool   MSTClusterMaker::prettyPrint   = false;
 bool   MSTClusterMaker::guiPrint      = false;
-double MSTClusterMaker::percentile    = 1.0;
 int    MSTClusterMaker::maxUse        = -1;
 char*  MSTClusterMaker::cacheType     = DefCacheType;
 char*  MSTClusterMaker::progFileName  = NULL;
@@ -63,8 +62,6 @@ arg_parser::arg_record MSTClusterMaker::argsList[] = {
      &MSTClusterMaker::cacheSize, arg_parser::INTEGER},
     {"--no-cache-repop", "Suppress EST cache repopulation",
      &MSTClusterMaker::noCacheRepop, arg_parser::BOOLEAN},    
-    {"--percentile", "Percentile deviation to use to compute threshold value",
-     &MSTClusterMaker::percentile, arg_parser::DOUBLE},
     {"--no-order", "Disable strict order of processing messages",
      &MSTClusterMaker::strictOrder, arg_parser::BOOLEAN},
     {"--input-mst-file", "Read MST data from file (skip parallel MST building)",
@@ -641,41 +638,9 @@ MSTClusterMaker::populateMST() {
 }
 
 int
-MSTClusterMaker::getTotalSuccesses(const std::string& heuristicName) {
-    int totalSuccesses = -1;
-    // In order to build clusters using the new threshold computation
-    // method, we need to collate some statistics from all processes.
-    Heuristic* tv = (HeuristicChain::getHeuristicChain())->getHeuristic(heuristicName);
-    if (tv != NULL) {
-        // We are good to go for summing the statistics
-        int tvSuccesses = tv->getSuccessCount();
-        // Add the manager's successes first
-        totalSuccesses = tvSuccesses;
-        //MPI::COMM_WORLD.Reduce(&tvSuccesses, &totalSuccesses, 1,
-        //                       MPI::INT, MPI::SUM, MANAGER_RANK);
-        
-        // Get each worker's number of successes and add them
-        if (MPI_GET_RANK() == MANAGER_RANK) {
-            for (int i = 1; i < MPI_GET_SIZE(); i++) {
-                MPI_RECV(&tvSuccesses, 1, MPI_TYPE_INT, MPI_ANY_SOURCE,
-                         COMPUTE_TOTAL_ANALYSIS_COUNT);
-                totalSuccesses+=tvSuccesses;
-                //printf("%d\n", i);
-            }
-        } else {
-            // Workers send
-            MPI_SEND(&tvSuccesses, 1, MPI_TYPE_INT, MANAGER_RANK,
-                     COMPUTE_TOTAL_ANALYSIS_COUNT);
-        }
-    }
-    // return the global totals
-    return totalSuccesses;
-}
-
-int
-MSTClusterMaker::buildAndShowClusters(int totalSuccesses) {
+MSTClusterMaker::buildAndShowClusters() {
     MSTCluster root;
-    root.makeClusters(mst->getNodes(), percentile, totalSuccesses, analyzer);
+    root.makeClusters(mst->getNodes(), analyzer);
     
     // Redirect cluster output to outputFile as needed.
     std::ofstream outFile;
@@ -715,16 +680,8 @@ MSTClusterMaker::makeClusters() {
         return result;
     }
 
-    // Variable to track total (from all processes) successful matches
-    // reported by the u/v heuristic. This value is used to fine tune
-    // the threshold for clustering.
-    int totalSuccesses = 0;
     // Next compute/load MST using helper method.
-    if ((result = populateMST()) == NO_ERROR) {
-        // Compute the grand total successes for clustering threshold
-        // fine tuning further below.
-        totalSuccesses = getTotalSuccesses("tv");
-    }
+    result = populateMST();
     
     // Display statistics by writing all the data to a string stream
     // and then flushing the stream.  This tries to working around (it
@@ -736,7 +693,7 @@ MSTClusterMaker::makeClusters() {
     // Delete the cache as we no longer needed it.
     delete cache;
 
-    if ((result != NO_ERROR) || (mst == NULL) || (totalSuccesses == -1)) {
+    if ((result != NO_ERROR) || (mst == NULL)) {
         // Some error occured.  Can't proceed further.
         return result;
     }
@@ -750,7 +707,7 @@ MSTClusterMaker::makeClusters() {
     
     // Do clustering and display results if so desired.
     if (!dontCluster) {
-        result = buildAndShowClusters(totalSuccesses);
+        result = buildAndShowClusters();
     }
     // Return result from behaving as a manager or a worker.
     return result;
