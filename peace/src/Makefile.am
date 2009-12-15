@@ -89,8 +89,6 @@ Heuristic.h\
 Heuristic.cpp\
 HeuristicFactory.h\
 HeuristicFactory.cpp\
-SimulationD2.h\
-SimulationD2.cpp\
 HeuristicChain.h\
 HeuristicChain.cpp\
 UVSampleHeuristic.h\
@@ -114,15 +112,6 @@ TransCacheEntry.h\
 TransCacheEntry.cpp\
 TransMSTClusterMaker.cpp\
 TransMSTClusterMaker.h\
-PMSTClusterMaker.cpp\
-PMSTClusterMaker.h\
-PMSTHeapCache.cpp\
-PMSTHeapCache.h\
-Baton.h\
-BatonESTData.cpp\
-BatonESTData.h\
-BatonAnalyzer.cpp\
-BatonAnalyzer.h \
 MPI.h \
 MPI.cpp
 

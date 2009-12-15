@@ -28,7 +28,6 @@
 
 #include "MSTClusterMaker.h"
 #include "TransMSTClusterMaker.h"
-#include "PMSTClusterMaker.h"
 
 void
 ClusterMakerFactory::displayList(std::ostream &os) {
@@ -38,8 +37,6 @@ ClusterMakerFactory::displayList(std::ostream &os) {
         {"mst", "MST-based Cluster Maker",
          NULL, arg_parser::STRING},
         {"tmst", "MST-based Cluster Maker with Transitivity",
-         NULL, arg_parser::STRING},
-        {"pmst", "Partitioned MST-based Cluster Maker",
          NULL, arg_parser::STRING},
         {NULL, NULL}
     };
@@ -69,8 +66,6 @@ ClusterMakerFactory::create(const char* name, ESTAnalyzer *analyzer,
         return new MSTClusterMaker(analyzer, refESTidx, outputFileName);
     } else if (!strcmp("tmst", name)) {
         return new TransMSTClusterMaker(analyzer, refESTidx, outputFileName);
-    } else if (!strcmp("pmst", name)) {
-        return new PMSTClusterMaker(analyzer, refESTidx, outputFileName);
     }
     
     // invalid analyzer name!

@@ -62,8 +62,7 @@ public:
     MSTCluster(MSTCluster* owner = NULL);
     ~MSTCluster();
 
-    double makeClusters(NodeList& nodeList, const double percentile,
-			const int analysisCount, const ESTAnalyzer* analyzer);
+    double makeClusters(NodeList& nodeList, const ESTAnalyzer* analyzer);
     void add(const MSTNode& node);
 
     void printClusterTree(std::ostream& os = std::cout,
@@ -74,12 +73,6 @@ public:
 
     void makeMergedClusters(const int size, int* parent, bool* root);
                
-    //protected:
-    double calculateThreshold(const int nodeCount,
-                              const double percentile,
-			      const int analysisCount,
-			      const ESTAnalyzer* analyzer) const;
-
     inline int getClusterID() const { return clusterID; }
     
 protected:

@@ -142,23 +142,6 @@ protected:
     */
     static int cacheSize;
 
-    /** Command line option to set percentile value to compute
-	clustering threshold.
-
-	<p> This variable is used to indicate the percentile value
-        that must be used to determine the threshold for clustering.
-        This value is initialized to 1.0. This value is ultimately
-        used in the MSTCluster::calculateThreshold() method to compute
-        the threshold using the formula: </p>
-
-	<i> threshold = mean + (stDev * percentile); </li>
-
-	<p> The value is changed by the parseArguments() method if the
-        user has specified the --percentile option to override the
-        default. </p>
-    */
-    static double percentile;
-        
     /** Variable to indicate if strict ordering of worker Ranks must
         be followed.
 
@@ -373,23 +356,6 @@ protected:
     */
     virtual int populateMST();
 
-    /** Obtain total (from all processes) successes for a given
-        heuristic.
-
-        This method is a refactored utility method used to determine
-        the total number of times a given heuristic reported
-        success. A heuristic reporting success implies that the
-        heuristic reported that two ESTs are related to each other.
-
-        \param[in] heuristicName The name of the heuristic (such as:
-        "tv" or "uv") whose total success count is desired.
-
-        \return This metod returns the total (sum of successes from
-        all processes) number of success reported by the given
-        heuristic. It returns -1, to indicate an error.
-    */
-    virtual int getTotalSuccesses(const std::string& heuristicName);
-
     /** Utility method to do the final clustering step.
 
         This is a refactored (primarily to keep the code clutter to a
@@ -399,15 +365,11 @@ protected:
         using the MST. Once the clusters are built, this method dumps
         the cluster information to the user-specified (via command
         line arguments) output stream.
-
-        \param[in] totalSuccesses The global (from all processes)
-        total number of u/v heuristic success count to be used for
-        fine tuning clustering threshold value.
         
         \return This method returns zero on success. If errors occur,
         this method returns a non-zero error code.
     */
-    virtual int buildAndShowClusters(int totalSuccesses);
+    virtual int buildAndShowClusters();
     
     /** Helper method to call the actual heavy-weight analysis
         method(s).
