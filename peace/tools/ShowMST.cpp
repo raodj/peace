@@ -162,7 +162,7 @@ ShowMST::drawNode(const MSTguiNode& node,
     xfig.drawLine(childX, topChildY, childX, bottomChildY);
     // Do a horizonal line with text in the middle for this non-leaf node.
     const int midY   = (topChildY + bottomChildY) / 2;
-    const int labelX = startX + (MIN_SPC / 2) + (node.metric * xScale);
+    const int labelX = (int) (startX + (MIN_SPC / 2) + (node.metric * xScale));
     xfig.drawLine(startX, midY, labelX, midY);
     xfig.drawText(label, labelX, midY - (FontHeight / 2),
                   COURIER, FONT_SIZE, getColor(node.estIdx));
