@@ -137,7 +137,8 @@ ShowMST::drawNode(const MSTguiNode& node,
     std::string label   = getESTId(node, 10);
     int labelSize       = label.size() * FontWidth;
     // First dump out all our children.
-    const int childX    = startX + MIN_SPC + labelSize + (node.metric * xScale);
+    const int childX    = (int) (startX + MIN_SPC + labelSize +
+                                 (node.metric * xScale));
     int topChildY       = 0, bottomChildY = 0;
     endY                = startY;
     bool firstChild     = true;
@@ -177,7 +178,7 @@ ShowMST::drawESTinfo(const MSTguiNode& node,
     // Get EST information for this leaf node first.
     std::string info = getESTId(node, 20);
     // Draw the EST fasta info at the supplied startX & startY 
-    int childX = startX + (MIN_SPC / 2) + (node.metric * xScale);
+    int childX = (int) (startX + (MIN_SPC / 2) + (node.metric * xScale));
     const int textHeight = xfig.drawText(info, childX + MIN_SPC / 2, startY,
                                          COURIER, FONT_SIZE,
                                          getColor(node.estIdx));
@@ -185,7 +186,7 @@ ShowMST::drawESTinfo(const MSTguiNode& node,
     const int midY = startY + (textHeight / 2);
     xfig.drawLine(startX, midY, childX, midY);
     // Compute the ending point for this node.
-    endY = startY + (textHeight * yScale);
+    endY = (int) (startY + (textHeight * yScale));
     
     return midY;
 }
