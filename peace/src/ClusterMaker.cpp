@@ -30,7 +30,7 @@
 
 // The common set of arguments for all EST analyzers
 arg_parser::arg_record ClusterMaker::commonArgsList[] = {
-    {NULL, NULL}
+    {NULL, NULL, NULL, arg_parser::BOOLEAN}
 };
 
 ClusterMaker::ClusterMaker(const std::string& myName, ESTAnalyzer *myAnalyzer,

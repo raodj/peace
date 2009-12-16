@@ -101,7 +101,7 @@ operator<<(std::ostream& os, const std::string& str) {
     under gcc (4.2) and therefore on Linux/gcc this macro resolves to
     nothing.
 */
-#if !defined(_WINDOWS) && !defined(ICC)
+#if !defined(_WINDOWS) && !defined(ICC) && !defined(GCC)
 
 #ifndef UNREFERENCED_PARAMETER
 #define UNREFERENCED_PARAMETER(param) param

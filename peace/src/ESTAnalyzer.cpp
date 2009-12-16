@@ -42,7 +42,7 @@ arg_parser::arg_record ESTAnalyzer::commonArgsList[] = {
      &ESTAnalyzer::estFileName, arg_parser::STRING}, 
     {"--html", "Generate analysis report in HTML format",
      &ESTAnalyzer::htmlLog, arg_parser::BOOLEAN},   
-    {NULL, NULL}
+    {NULL, NULL, NULL, arg_parser::BOOLEAN}
 };
 
 ESTAnalyzer::ESTAnalyzer(const std::string& name, const int estIdx,

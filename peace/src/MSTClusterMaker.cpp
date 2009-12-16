@@ -80,7 +80,7 @@ arg_parser::arg_record MSTClusterMaker::argsList[] = {
      &MSTClusterMaker::cacheType, arg_parser::STRING},
     {"--progress", "Log MST construction progress in a file (used by GUI)",
      &MSTClusterMaker::progFileName, arg_parser::STRING},        
-    {NULL, NULL}
+    {NULL, NULL, NULL, arg_parser::BOOLEAN}
 };
 
 MSTClusterMaker::MSTClusterMaker(ESTAnalyzer *analyzer,

@@ -37,6 +37,7 @@ import java.awt.Component;
 import java.awt.Container;
 import java.awt.Dimension;
 import java.util.ArrayList;
+
 import javax.swing.Icon;
 import javax.swing.JOptionPane;
 import javax.swing.JSplitPane;
@@ -133,6 +134,10 @@ public class DnDTabPos {
 	 * (that is its parent pointer is still valid). Any previous position
 	 * information stored in this class is lost.
 	 * 
+	 * @param desktop
+	 * 			  The central desktop that contains all the panels including
+	 *            the permanent panel. The same panel should be used when
+	 *            restoring the window's position via the restorePosition() method. 
 	 * @param tab
 	 *            The tab (or child window) whose relative position must
 	 *            determined and remembered by this class.
@@ -141,71 +146,29 @@ public class DnDTabPos {
 	 *         successfully saved. If the relative position could not be saved,
 	 *         then this method returns false.
 	 */
-	public boolean savePosition(Component tab) {
+	public boolean savePosition(Container desktop, Component tab) {
 	    // Clear the path from the permanent tab to the given tab.
 	    path.clear();
-	    // First obtain the top-level permanent tab.
-	    DnDTabbedPane permPanel = getPermanentParent(tab);
-	    if (permPanel == null) {
-	    	// Cannot save position without a permanent pane.
+	    // Ensure that the top-level desktop is not null.
+	    if (desktop == null) {
+	    	// Cannot save position without a permanent desktop
 	    	return false;
 	    }
+	    // Get the first child in the desktop. Either it is a
+	    // DnDTabbedPane (if windows are not split) or is a JSplitPane
+	    // if windows are split.
+	    assert(desktop.getComponentCount() == 1);
+	    Component topChild = desktop.getComponent(0);
 	    // Now have the recursive helper method do rest of the work.
-	    // permPanel.freze(); // Don't update yet.
-	    boolean retVal = savePosition(permPanel, tab);
-	    //permPanel.Thaw(); // Now update
+	    boolean retVal = savePosition(topChild, tab);
+	    if (!retVal) {
+	    	// Huh! the window was not at all found. That is bad.
+	    	JOptionPane.showMessageDialog(desktop, 
+	    			"Panel whose position is to saved was not " +
+	    			"found in the hierarchy!", "Position save error",
+	    			JOptionPane.WARNING_MESSAGE);
+	    }
 	    return retVal;
-	}
-
-	public void restorePosition(DnDTabbedPane permTab, Component tab) {
-	    DnDTabbedPane.Location dir[] = new DnDTabbedPane.Location[1];
-	    dir[0] = DnDTabbedPane.Location.CENTER;
-	    // permTab.freeze(); // Avoid updates to reduce flicker
-	    
-	    Component currWin = getPosition(permTab, dir);
-	    // When control drops here, dir has the direction in which tab
-		// must be placed with respect to currWindow. There are two
-		// cases: (i) currWindow is a DndTabPanel and everything is good;
-		// (ii) currWindow is a wxSplitterWindow in which case we need to
-		// suitably re-split it to include the child at the correct
-		// location.
-	    if (currWin == null) {
-	    	// This is no good. Log an error
-	    	return;
-	    }
-	    // This if handles the case where currWin is a DnDTabbedPane
-	    if (currWin instanceof DnDTabbedPane)  {
-	    	DnDTabbedPane owner = (DnDTabbedPane) currWin;
-	        // OK! the original location was found. Simple case.
-	        owner.createSplitPane(prevName, prevIcon, tab, dir[0]);
-	        // Ensure the tab is visible.
-	        tab.setVisible(true);
-	        // Re-enable drawing. Hopefully flicker goes down.
-	        // permTab.thaw();
-	        return;
-	    }
-	    // The original location was not found. So have to place the
-	    // window in this logical spot by suitably inserting a splitter
-	    // window instead of this window.
-	    JSplitPane splitWin = (JSplitPane) currWin;
-	    // Create a splitWindow to hold a new DndTabPanel and currWin.
-	    Container parent = splitWin.getParent();
-	    // First create a DndTabPanel to hold this tab.
-	    DnDTabbedPane sibling = new DnDTabbedPane();
-	    sibling.addTab(prevName, prevIcon, tab);
-	    final int index = sibling.indexOfComponent(tab);
-	    sibling.setTabComponentAt(index, new DnDTabButton(sibling, index));
-
-	    // Ensure direction is not wxALL in this case.
-	    dir[0] = (dir[0].equals(DnDTabbedPane.Location.CENTER)) ? 
-	    		DnDTabbedPane.Location.RIGHT : dir[0];
-	    // Create a new split pan and configure the new split window
-	    // depending on direction and add the new split window suitably
-	    // using the helper method defined in the tabbed pane class.
-	    DnDTabbedPane.setSplitWindow(parent, dir[0], splitWin, sibling,
-	                               prevSize.width, prevSize.height);
-	    // Reenable drawing. Hopefully flicker goes down.
-	    // permTab.thaw();
 	}
 
 	/**
@@ -241,10 +204,6 @@ public class DnDTabPos {
 			if (dndPanel.indexOfComponent(tab) != -1) {
 				// Found it! First save information about it.
 				saveInfo(dndPanel, tab);
-				// Remove this tab from tab pane.
-				dndPanel.remove(tab);
-				// Ensure that the tab is not visible.
-				tab.setVisible(false);
 				// Return true to indicate things went fine.
 				return true;
 			}
@@ -258,31 +217,29 @@ public class DnDTabPos {
 	    if (savePosition(splitWin.getLeftComponent(), tab)) {
 	        // Found it in the top/left. Save the information.
 	        dir = (splitWin.getOrientation() == JSplitPane.HORIZONTAL_SPLIT) ?
-	             DnDTabbedPane.Location.TOP : DnDTabbedPane.Location.LEFT;
+	             DnDTabbedPane.Location.LEFT : DnDTabbedPane.Location.TOP;
 	    } else if (savePosition(splitWin.getRightComponent(), tab)) {
 	        // Found it in the bottom/right. Save the information.
 	        dir = (splitWin.getOrientation() == JSplitPane.HORIZONTAL_SPLIT) ?
-	            DnDTabbedPane.Location.BOTTOM : DnDTabbedPane.Location.RIGHT;
+	            DnDTabbedPane.Location.RIGHT : DnDTabbedPane.Location.BOTTOM;
 	    } else {
-	        // Huh! the window was not at all found. That is bad.
-	    	JOptionPane.showInternalMessageDialog(currWin, 
-	    		"Panel whose position is to saved was not " +
-	    		"found in the hierarchy!", "Position save error",
-	    		JOptionPane.WARNING_MESSAGE);
+	    	// Window was not found in this hierarchy.
 	        return false;
 	    }
+	    
 	    // Save the direction traversed
 	    path.add(dir);
 	    // Return true to indicate we saved the path
 	    return true;
 	}
 
+	
 	/**
 	 * Helper method to save information about the given tab.
 	 * 
 	 * This is a helper method that is used to save information about a given
 	 * child tab. The information saved includes the tab title text and the icon
-	 * (if any) associated with the tab. This method udpates the prevName and
+	 * (if any) associated with the tab. This method updates the prevName and
 	 * prevIcon instance variables.
 	 * 
 	 * @param owner
@@ -291,20 +248,87 @@ public class DnDTabPos {
 	 * @param tab
 	 *            The child tab whose information is to be saved.
 	 */
-	void saveInfo(DnDTabbedPane owner, Component tab) {
+	private void saveInfo(DnDTabbedPane owner, Component tab) {
 		// Find the index of the tab in the dnd panel in order to obtain
 		// the necessary information.
-		for (int idx = 0; (idx < owner.getComponentCount()); idx++) {
-			if (owner.getComponentAt(idx) == tab) {
-				// Found the index. Save the info.
-				prevName = owner.getTitleAt(idx);
-				// Save the icon for the tab (if any)
-				prevIcon = owner.getIconAt(idx);
-				// Save the size information.
-				prevSize = tab.getSize();
-				break;
-			}
+		int idx = owner.indexOfComponent(tab);
+		if (idx != -1) {
+			// Found the index. Save the info.
+			prevName = owner.getTitleAt(idx);
+			// Save the icon for the tab (if any)
+			prevIcon = owner.getIconAt(idx);
+			// Save the size information.
+			prevSize = tab.getSize();
 		}
+	}
+
+	/**
+	 * Primary interface to restore position of a tab.
+	 * 
+	 * This method is the complementary method to savePosition()  method
+	 * in this class. This method performs the task of repositioning a 
+	 * given tab within a DnDTabbedPane at its former position. This method
+	 * does best effort to restore position of the tab. If the window
+	 * layout has significantly changed, then this method places the window
+	 * at at position at this closest to its pervious position without
+	 * significantly impacting the current window layout.
+	 * 
+	 * @param desktop
+	 * 			  The central desktop that contains all the panels including
+	 *            the permanent panel. The same panel should be used when
+	 *            saving the window's position via the savePosition() method.
+	 *            
+	 * @param tab The component whose position is to be restored.
+	 */
+	public void restorePosition(Container desktop, Component tab) {
+	    DnDTabbedPane.Location dir[] = new DnDTabbedPane.Location[1];
+	    dir[0] = DnDTabbedPane.Location.CENTER;
+	    
+	    // Get the first child in the desktop. Either it is a
+	    // DnDTabbedPane (if windows are not split) or is a JSplitPane
+	    // if windows are split.
+	    assert(desktop.getComponentCount() == 1);	
+	    Component currWin = getPosition(desktop.getComponent(0), dir);
+	    // When control drops here, dir has the direction in which tab
+		// must be placed with respect to currWindow. There are two
+		// cases: (i) currWindow is a DndTabPanel and everything is good;
+		// (ii) currWindow is a wxSplitterWindow in which case we need to
+		// suitably re-split it to include the child at the correct
+		// location.
+	    if (currWin == null) {
+	    	// This is no good. Log an error
+	    	return;
+	    }
+	    // This if handles the case where currWin is a DnDTabbedPane
+	    if (currWin instanceof DnDTabbedPane)  {
+	    	DnDTabbedPane owner = (DnDTabbedPane) currWin;
+	        // OK! the original location was found. Simple case.
+	        owner = owner.createSplitPane(prevName, prevIcon, tab, dir[0]);
+	        // Ensure the tab is visible and selected.
+	        tab.setVisible(true);
+	        owner.setSelectedComponent(tab);
+	        return;
+	    }
+	    // The original location was not found. So have to place the
+	    // window in this logical spot by suitably inserting a splitter
+	    // window instead of this window.
+	    JSplitPane splitWin = (JSplitPane) currWin;
+	    // Create a splitWindow to hold a new DndTabPanel and currWin.
+	    Container parent = splitWin.getParent();
+	    // First create a DndTabPanel to hold this tab.
+	    DnDTabbedPane sibling = new DnDTabbedPane();
+	    sibling.addTab(prevName, prevIcon, tab);
+	    final int index = sibling.indexOfComponent(tab);
+	    sibling.setTabComponentAt(index, new DnDTabButton(sibling, index));
+
+	    // Ensure direction is not wxALL in this case.
+	    dir[0] = (dir[0].equals(DnDTabbedPane.Location.CENTER)) ? 
+	    		DnDTabbedPane.Location.RIGHT : dir[0];
+	    // Create a new split pan and configure the new split window
+	    // depending on direction and add the new split window suitably
+	    // using the helper method defined in the tabbed pane class.
+	    DnDTabbedPane.setSplitWindow(parent, dir[0], splitWin, sibling,
+	                               prevSize.width, prevSize.height);
 	}
 	
     /**
@@ -353,13 +377,13 @@ public class DnDTabPos {
 	    	curr = path.get(idx);
 	        if (((curr.equals(DnDTabbedPane.Location.TOP)) || 
 	        	 (curr.equals(DnDTabbedPane.Location.BOTTOM))) &&
-	            (splitWin.getOrientation() != JSplitPane.HORIZONTAL_SPLIT)) {
+	            (splitWin.getOrientation() != JSplitPane.VERTICAL_SPLIT)) {
 	            // We wan't to traverse up/down but can't.  So stop here.
 	            break;
 	        }
 	        if (((curr.equals(DnDTabbedPane.Location.LEFT)) || 
 		        	 (curr.equals(DnDTabbedPane.Location.RIGHT))) &&
-		            (splitWin.getOrientation() != JSplitPane.VERTICAL_SPLIT)) {
+		            (splitWin.getOrientation() != JSplitPane.HORIZONTAL_SPLIT)) {
 		            // We wan't to traverse left/right but can't.  So stop here.
 		            break;
 		    }
@@ -383,27 +407,7 @@ public class DnDTabPos {
 	    // Return the current/final panel
 	    return currWin;
 	}
-	
-	/**
-	 * This is a helper method that is used to locate the permanent DnDTabbedPane
-	 * that ultimately contains a given child window. The permanent tabbed pane
-	 * is used to save the position of a given tab with respect to the permanent
-	 * tab.
-	 * 
-	 * @param child The child window whose parent permanent tab is desired.
-	 * 
-	 * @return The parent DnDTabbedPane if one was found. Otherwise this
-	 * method returns null.
-	 */
-	private DnDTabbedPane getPermanentParent(Component child) {
-		while ((child != null) && !(child instanceof DnDTabbedPane)) { 
-			child = child.getParent();
-		}
-		if (child != null) {
-			return (DnDTabbedPane) child;
-		}
-		return null;
-	}
+
 	/**
 	 * The name for the tab when its position is restored.
 	 * 
@@ -422,7 +426,7 @@ public class DnDTabPos {
 	Icon prevIcon;
 
 	/**
-	 * The perferred width / height of the tab.
+	 * The preferred width / height of the tab.
 	 * 
 	 * This instance variable is used to maintain the previous preferred width
 	 * or height of the window. This information is updated in the

@@ -127,7 +127,7 @@ main(int argc, char* argv[]) {
          &showOptions, arg_parser::BOOLEAN},
         {"--interactive", "Lauch PEACE interactive console",
          &interactive, arg_parser::BOOLEAN},
-        {NULL, NULL}
+        {NULL, NULL, NULL, arg_parser::BOOLEAN}
     };
    
     // Perform any mpi initialization as needed

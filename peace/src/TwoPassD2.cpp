@@ -55,7 +55,7 @@ arg_parser::arg_record TwoPassD2::argsList[] = {
      &TwoPassD2::threshold, arg_parser::INTEGER},    
     {"--maxThreshold", "Threshold score to run bounded symmetric D2 (default=130)",
      &TwoPassD2::maxThreshold, arg_parser::INTEGER},    
-    {NULL, NULL}
+    {NULL, NULL, NULL, arg_parser::BOOLEAN}
 };
 
 TwoPassD2::TwoPassD2(const int refESTidx, const std::string& outputFileName)
@@ -214,7 +214,7 @@ TwoPassD2::runD2Asymmetric(const int otherEST, int* s1MinScoreIdx,
 
     // Initialize the delta tables.
     memset(delta, 0, sizeof(int) * (1 << (wordSize * 2)));
-    register int score = 0;
+    int score = 0;
     // First compute the score for first windows.
     for(int i = 0; (i < numWordsInWindow); i++) {
         // Process i'th word in EST 1
@@ -233,7 +233,7 @@ TwoPassD2::runD2Asymmetric(const int otherEST, int* s1MinScoreIdx,
     const int LastWindowInSq2  = (sq2End - wordSize + 1) - numWordsInWindow;
     const int FirstWindowInSq2 = sq2Start + numWordsInWindow - 1;
     // Variable to track the minimum d2 distance observed.
-    register int minScore   = score;
+    int minScore   = score;
     int s1Win, s2Win, i;
     for(s1Win = sq1Start; (s1Win < LastWindowInSq1); s1Win += frameShift*2) {
         // Check each window in EST #2 against current window in EST
@@ -316,7 +316,7 @@ TwoPassD2::runD2Bounded(const int otherEST, int sq1Start, int sq1End,
 	
     // Initialize the delta tables.
     memset(delta, 0, sizeof(int) * (1 << (wordSize * 2)));
-    register int score = 0;
+    int score = 0;
     // First compute the score for first windows.
     for(int i = 0; (i < numWordsInWindow); i++) {
         // Process i'th word in EST 1
@@ -335,7 +335,7 @@ TwoPassD2::runD2Bounded(const int otherEST, int sq1Start, int sq1End,
     const int FirstWindowInSq2 = sq2Start + numWordsInWindow - 1;
 
     // Variable to track the minimum d2 distance observed.
-    register int minScore   = score;
+    int minScore   = score;
     alignmentMetric = sq1Start - sq2Start;
     int s1Win, s2Win;
     for(s1Win = sq1Start; (s1Win < LastWindowInSq1); s1Win += 2) {

@@ -34,7 +34,7 @@ char* MatrixFileAnalyzer::dataFileName  = NULL;
 arg_parser::arg_record MatrixFileAnalyzer::argsList[] = {
     {"--dataFile", "Data file containing matrix of distance metrics",
      &MatrixFileAnalyzer::dataFileName, arg_parser::STRING},
-    {NULL, NULL}
+    {NULL, NULL, NULL, arg_parser::BOOLEAN}
 };
 
 MatrixFileAnalyzer::MatrixFileAnalyzer(const int refESTidx,

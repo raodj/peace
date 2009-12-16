@@ -40,7 +40,7 @@ size_t D2Zim::wordTableSize = 0;
 arg_parser::arg_record D2Zim::argsList[] = {
     {"--frameShift", "Frame Shift (default=1)",
      &D2Zim::frameShift, arg_parser::INTEGER},
-    {NULL, NULL}
+    {NULL, NULL, NULL, arg_parser::BOOLEAN}
 };
 
 D2Zim::D2Zim(const int refESTidx, const std::string& outputFileName)

@@ -35,9 +35,15 @@ package org.peace_tools.views;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 import javax.swing.Icon;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -60,7 +66,7 @@ import org.peace_tools.workspace.JobBase;
  *  JobListTableModel class that provides the Job data from the
  *  work space in a form that is easily displayed in a table.
  */
-public class JobListView extends JPanel {
+public class JobListView extends JPanel implements ActionListener {
 	/**
 	 * The default constructor. 
 	 * 
@@ -116,8 +122,127 @@ public class JobListView extends JPanel {
         		"Delete all old job entries", true));
         // Add tool bar to the north
         add(toolbar, BorderLayout.NORTH);
+        // Finally create pop up menu for various job options
+        createPopupMenu();
+        // Add a mouse handler to trigger popups
+        addMouseAdapter(jobTable);
 	}
 	
+	/**
+	 * This is a helper method to create the pop-up menu.
+	 * 
+	 * This is a helper method that was introduced to streamline the
+	 * code in the constructor. This method creates a popup menu
+	 * that provides options for monitoring and controlling 
+	 * jobs and outputs. 
+	 */
+	private void createPopupMenu() {
+		popupMenu = new JPopupMenu();
+		popupMenu.add(Utilities.createMenuItem(Utilities.MENU_ITEM, 
+				"Start job monitor (daemon thread)", "startMonitor", this, 
+				"images/16x16/StartJobMonitor.png", null, true, false));
+		popupMenu.add(Utilities.createMenuItem(Utilities.MENU_ITEM, 
+				"Stop job monitor (daemon thread)", "stopMonitor", this, 
+				"images/16x16/StopJobMonitor.png", null, true, false));
+		popupMenu.addSeparator();
+		//--------------------------------------------------
+		popupMenu.add(Utilities.createMenuItem(Utilities.MENU_ITEM, 
+				"Show outputs from the job", "view", this, 
+				"images/16x16/DefaultView.png", null, true, false));
+		popupMenu.add(Utilities.createMenuItem(Utilities.MENU_ITEM, 
+				"Show all jobs on server", "jobListAll", this, 
+				"images/16x16/ServerInfo.png", null, true, false));
+		popupMenu.add(Utilities.createMenuItem(Utilities.MENU_ITEM, 
+				"Show my jobs on server", "jobList", this, 
+				null, null, true, false));
+		popupMenu.addSeparator();
+		//--------------------------------------------------
+		popupMenu.add(Utilities.createMenuItem(Utilities.MENU_ITEM, 
+				"Remove entry from Workspace", "delete", this, 
+				"images/16x16/Delete.png", null, true, false));
+
+	}
+	
+	/**
+	 * A refactored helper method to add a mouse adapter. This method
+	 * adds a mouse adapter to intercept certain mouse events occurring
+	 * on the data set tree to trigger various operations. The mouse
+	 * adapter simply delegates the actual operations to other methods 
+	 * in this class.
+	 * 
+	 * @param list The list object to which the mouse adapter is to be
+	 * added.
+	 */
+	private void addMouseAdapter(JComponent list) {
+		list.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if (e.getClickCount() == 2) {
+					handleDoubleClick(e);
+				}
+			}
+			@Override
+			public void mousePressed(MouseEvent e) {
+				if (e.isPopupTrigger()) {
+					handlePopup(e);
+				}
+			}
+			@Override
+			public void mouseReleased(MouseEvent e) {
+				if (e.isPopupTrigger()) {
+					handlePopup(e);
+				}
+			}
+		});
+	}
+	
+	/**
+	 * Helper method to left mouse click on a table item.
+	 * 
+	 * This method is invoked whenever the user clicks on the left
+	 * mouse button on a item in the job table. This method checks
+	 * to see if the entry is valid and if so, pops up a menu with
+	 * valid operations for the selected job entry.
+	 * 
+	 * @param me The mouse event associated with the mouse click.
+	 */
+	public void handlePopup(MouseEvent me) {
+		int row = jobTable.rowAtPoint(me.getPoint());
+		// Get the file at the given row and column.
+		Job job = model.getJob(row);
+		if (job == null) {
+			return;
+		}
+        // Select the table entry
+		jobTable.setRowSelectionInterval(row, row);
+        // Now enable/disable popup menu items based on the item
+        // selected in the list.
+        // popupMenu.updateItems(entry, false);
+        // Show pop-up menu.
+        popupMenu.show(jobTable, me.getX(), me.getY());
+	}
+	
+	/**
+	 * Helper method to handle double click of the mouse on a list item.
+	 * 
+	 * This method is invoked whenever the user double clicks on a
+	 * row in the  set tree. This method checks to see if the
+	 * entry is valid and if so, opens a view of the specified
+	 * data file. 
+	 * 
+	 * @param me The mouse event associated with the double click.
+	 */
+	private void handleDoubleClick(MouseEvent me) {
+		assert (me.getClickCount() == 2);
+		// Obtain the row that was selected 
+		int row = jobTable.rowAtPoint(me.getPoint());
+		// Get the file at the given row and column.
+		Object entry = model.getJob(row);
+		if (entry == null) {
+			return;
+		}
+	}
+
 	/**
 	 * A simple renderer that uses a JLabel to render JobName and
 	 * icon indicating job status.
@@ -241,6 +366,12 @@ public class JobListView extends JPanel {
 	 * list of jobs currently configured on this workspace.
 	 */
 	private JTable jobTable;
+
+	/**
+	 * The pop up menu that is displayed when the user left-clicks
+	 * on an item in the job list view. 
+	 */
+	private JPopupMenu popupMenu;
 	
 	/**
 	 * An instance of the cell renderer that is used to render the
@@ -263,4 +394,9 @@ public class JobListView extends JPanel {
 	 */
 	private static final long serialVersionUID = 80617431851108817L;
 
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
 }

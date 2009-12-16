@@ -76,7 +76,7 @@ public class JobMonitor implements Runnable {
 	 * @return This method returns true if the thread was started.
 	 * 
 	 */
-	public static boolean create(Job job, ActionListener listener) {
+	public static synchronized boolean create(Job job, ActionListener listener) {
 		// Obtain the server reference for this job.
 		Server server = Workspace.get().getServerList().getServer(job.getServerID());
 		if (server == null) {
@@ -92,7 +92,36 @@ public class JobMonitor implements Runnable {
 		jmThread.setPriority(Thread.MIN_PRIORITY);
 		jmThread.start();
 		// Everything went well
+		UserLog.log(UserLog.LogLevel.NOTICE, "JobMonitor", 
+				"Started job monitoring thread for job " + job.getJobID());
 		return true;
+	}
+	
+	/**
+	 * Method to obtain an existing monitor thread for this job.
+	 * 
+	 * This method is a convenience method that can be used to obtain
+	 * the job monitor associated with a given job.
+	 * 
+	 * @param job The job whose job monitor thread is to be returned.
+	 * 
+	 * @return The job thread (if any) associated with the job. If the
+	 * job does not have a monitor thread associated with this then this
+	 * method returns null.
+	 */
+	public static synchronized Thread getMonitor(Job job) {
+		final String jobID   = job.getJobID();
+		ThreadGroup group    = MainFrame.getWorkerThreads();
+		Thread[] monitorList = new Thread[group.activeCount() + 10];
+		int threadCount      = group.enumerate(monitorList);
+		// Search in threads
+		for(int i = 0; (i < threadCount); i++) {
+			if (jobID.equals(monitorList[i].getName())) {
+				return monitorList[i];	
+			}
+		}
+		// No matching job thread found.
+		return null;
 	}
 	
 	@Override
@@ -116,10 +145,12 @@ public class JobMonitor implements Runnable {
 			}
 		}
 		// When control drops here that means the job has finished
-		// running. Either its status is FINISHING which means it
+		// running or the thread ws interrupted. If job completed then
+		// Either its status is FINISHING which means it
 		// finished correctly and the output files are ready to be
 		// copied to local machine or it failed. Either way report
-		// the information through a suitable action event
+		// the thread completion information through a suitable 
+		// action event
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
@@ -240,11 +271,16 @@ public class JobMonitor implements Runnable {
 		}
 		
 		try {
-			// First try to create a session.
-			ServerSession tempSession = SessionFactory.createSession(null, server);
-			tempSession.connect();
-			// Session is good. Update instance variable.
-			session = tempSession;
+			// Synchronize on job monitor so that request for 
+			// passwords don't all popup up at the same time when job
+			// monitor threads are started up when a work space is loaded.
+			synchronized (JobMonitor.class) {
+				// First try to create a session.
+				ServerSession tempSession = SessionFactory.createSession(null, server);
+				tempSession.connect();
+				// Session is good. Update instance variable.
+				session = tempSession;
+			}
 		} catch (IOException ioe) {
 			UserLog.log(UserLog.LogLevel.WARNING, "JobMointor", 
 					"Unable to connect to server: " + server.getName()

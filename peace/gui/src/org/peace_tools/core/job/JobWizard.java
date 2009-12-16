@@ -171,7 +171,7 @@ public class JobWizard extends WizardDialog {
 	 * Obtain the job entry created and added by this wizard.
 	 * 
 	 * The return value from this method is valid only after the
-	 * last wizard page has been dispalyed and it has called
+	 * last wizard page has been displayed and it has called
 	 * the createWorkspaceEntries() method to actually create
 	 * this entry.
 	 * 
@@ -224,7 +224,8 @@ public class JobWizard extends WizardDialog {
 				"", awp.getAnalyzer(), 
 				hwp.getHeuristics(), summary);
 		// Finally create the cluster entry.
-		clusterData = cwp.getClusterEntry(mstData.getID(), summary);
+		clusterData = cwp.getClusterEntry(workspace.reserveID(), 
+				mstData.getID(), summary);
 		// Add all the entries to the work space.
 		workspace.getJobList().add(job);
 		// Add MST and cluster entries to the data set
@@ -256,7 +257,7 @@ public class JobWizard extends WizardDialog {
 		sb.append(mstEntry.getSummary("\t"));
 		// Append information about cluster file by creating a 
 		// temporary dummy entry.
-		MSTClusterData cluster = cwp.getClusterEntry("TBD", null);
+		MSTClusterData cluster = cwp.getClusterEntry("TBD", "TBD", null);
 		sb.append("\nCluster Data Summary:\n");
 		sb.append(cluster.getSummary("\t"));
 		// Return the summary as a string.

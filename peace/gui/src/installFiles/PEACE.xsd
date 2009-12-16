@@ -98,6 +98,7 @@
 	<xsd:element name="ESTData">
 		<xsd:complexType>
 			<xsd:sequence>
+				<xsd:element name="ID" type="xsd:token"/>
 				<xsd:element name="Path" type="xsd:string" />
 				<xsd:element name="Description" type="xsd:string" />
 			</xsd:sequence>
@@ -276,7 +277,8 @@
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
-			<xsd:sequence>			
+			<xsd:sequence>
+				<xsd:element name="ID" type="xsd:token"/>			
 				<xsd:element name="MSTRef" type="xsd:token"/>
 				<xsd:element name="Path" type="xsd:string"/>
 				<xsd:element name="Description" type="xsd:string"/>

@@ -46,7 +46,7 @@ Align::main(int argc, char *argv[]) {
          &outFileName, arg_parser::STRING},
         {"--options", "Lists options for this tool",
          &showOptions, arg_parser::BOOLEAN},
-        {NULL, NULL}
+        {NULL, NULL, NULL, arg_parser::BOOLEAN}
     };
     
     // Get the argument parser to parse and consume the global

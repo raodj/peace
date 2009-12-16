@@ -65,10 +65,11 @@ public class DataSet {
 	public static DataSet create(Element data) throws Exception {
 		// First extract the necessary information from the DOM tree.
 		Element estData= DOMHelper.getElement(data, "ESTData");
-		String  path   = DOMHelper.getStringValue(estData, "Path");
-		String  desc   = DOMHelper.getStringValue(estData, "Description");
+		String id     = DOMHelper.getStringValue(estData, "ID"); 
+		String path   = DOMHelper.getStringValue(estData, "Path");
+		String desc   = DOMHelper.getStringValue(estData, "Description");
 		// Create the data set entry.
-		DataSet dataSet= new DataSet(path, desc);
+		DataSet dataSet= new DataSet(id, path, desc);
 		// Now parse in any MSTData elements for this DataSet
 		NodeList mstNodes = data.getElementsByTagName("MSTData");
 		for(int idx = 0; (idx < mstNodes.getLength()); idx++) {
@@ -92,6 +93,13 @@ public class DataSet {
 	}
 	
 	/**
+	 * Constructor to create a Data Set entry.
+	 * 
+	 * This constructor must be used to create a new data set entry to
+	 * be added to the work space. 
+	 * 
+	 * @param id The workspace-wide unique ID to be set for this data
+	 * set. This ID must be obtained via a call to Workspace.reserveID().
 	 * 
 	 * @param path
 	 *            The path to the actual EST file (on the local machine) that is
@@ -99,7 +107,8 @@ public class DataSet {
 	 * @param description
 	 *            A user defined description for the EST data file.
 	 */
-	public DataSet(String path, String description) {
+	public DataSet(String id, String path, String description) {
+		this.id          = id;
 		this.path        = path;
 		this.description = description;
 		this.mstList     = new ArrayList<MSTData>();
@@ -137,6 +146,32 @@ public class DataSet {
 	 */
 	public String getDescription() { return description; }
 
+	/**
+	 * Obtain the work space wide unique identifier set for 
+	 * this data set. The ID value is created when data sets are added.
+	 * The ID is persisted in the work space configuration file and 
+	 * loaded when a work space is opened in the GUI.
+	 * 
+	 * @return This method returns the unique identifier set for this
+	 * data set.
+	 */
+	public String getID() { return id; }
+	
+	/**
+	 * Set the workspace-wide ID for this DataSet.
+	 * 
+	 * This method can be used to reset the ID associated with this data 
+	 * set. This method can be used as long as the data set has not been
+	 * added to the workspace. After it has been added, it is unwise to 
+	 * change the ID.
+	 * 
+	 * @param id The new ID to be set for this entry. This value is obtained
+	 * via a call to Workspace.reserveID() method.
+	 */
+	public void setID(String id) {
+		this.id = id;
+	}
+	
 	/**
 	 * Set an user supplied description for this this data. The value is set
 	 * when a new data set is added to the work space. The description is
@@ -214,6 +249,7 @@ public class DataSet {
 		Element dataset = DOMHelper.addElement(workspace, "DataSet", null);
 		// Add new sub-element for the ESTData node
 		Element estData = DOMHelper.addElement(dataset, "ESTData", null);
+		DOMHelper.addElement(estData, "ID", id);
 		DOMHelper.addElement(estData, "Path", path);
 		DOMHelper.addElement(estData, "Description", description);
 		// Add new sub-elements for each MSTData entries.
@@ -241,7 +277,8 @@ public class DataSet {
 		// Create a top-level server entry for this server
 		out.printf("%s<DataSet>\n", Indent); 
 		// Add new sub-elements for the ESTData element
-		out.printf("%s\t<ESTData>\n", Indent); 
+		out.printf("%s\t<ESTData>\n", Indent);
+		out.printf(STR_ELEMENT, "ID", id);
 		out.printf(STR_ELEMENT, "Path", path);
 		out.printf(STR_ELEMENT, "Description", DOMHelper.xmlEncode(description));
 		out.printf("%s\t</ESTData>\n", Indent); 
@@ -380,4 +417,13 @@ public class DataSet {
 	 * configuration for future references.
 	 */
 	private String description;
+	
+	/**
+	 * The unique generated data set ID value for this data. This value is
+	 * created when a new data set is added. This value is persisted in
+	 * the work space configuration. It provides a convenient mechanism
+	 * to refer to a specific entry within the workspace. The IDs are 
+	 * generated via  a call to Workspace.reserveID() method.
+	 */
+	private String id;
 }

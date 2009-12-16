@@ -249,6 +249,9 @@ implements ActionListener {
 	 * This method is used by the JobWizard to create a complete
 	 * MSTCluster data entry.
 	 * 
+	 * @param id The workspace-wide unique ID to be set for this cluster
+	 * file entry.
+	 * 
 	 * @param mstID The ID associated with the MST data file that was
 	 * used to generate this cluster.
 	 * 
@@ -257,9 +260,10 @@ implements ActionListener {
 	 * 
 	 * @return The cluster file entry to be added to the workspace.
 	 */
-	protected MSTClusterData getClusterEntry(String mstID, JobSummary summary) {
+	protected MSTClusterData getClusterEntry(String id, String mstID, 
+			JobSummary summary) {
 		int thresh = ((Number) threshold.getValue()).intValue();
-		return new MSTClusterData(mstID, clusterFile.getText(), "", 
+		return new MSTClusterData(id, mstID, clusterFile.getText(), "", 
 				thresh, summary);
 	}
 	

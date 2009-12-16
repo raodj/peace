@@ -80,7 +80,7 @@ arg_parser::arg_record PMSTClusterMaker::argsList[] = {
      &PMSTClusterMaker::maxUse, arg_parser::INTEGER},
     {"--cacheType", "Set type of cache (heap or mlist) to use (default=heap)",
      &PMSTClusterMaker::cacheType, arg_parser::STRING},   
-    {NULL, NULL}
+    {NULL, NULL, NULL, arg_parser::BOOLEAN}
 };
 
 PMSTClusterMaker::PMSTClusterMaker(ESTAnalyzer *analyzer,

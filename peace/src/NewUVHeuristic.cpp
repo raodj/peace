@@ -48,7 +48,7 @@ arg_parser::arg_record NewUVHeuristic::argsList[] = {
      &NewUVHeuristic::wordShift, arg_parser::INTEGER},
     {"--uv_passes", "Number of Passes (default=3)",
      &NewUVHeuristic::passes, arg_parser::INTEGER},
-    {NULL, NULL}
+    {NULL, NULL, NULL, arg_parser::BOOLEAN}
 };
 
 NewUVHeuristic::NewUVHeuristic(const std::string& name,
@@ -184,7 +184,7 @@ NewUVHeuristic::computeHash(const int estIdx) {
     // Now, go through the EST sq2 and build hash values
     for (register int start = 0; (start < End); start += wordShift) {
         // Compute the hash for the next v words.
-        register unsigned short hash = 0;
+        unsigned short hash = 0;
         const int endBP    = start + v;
         for(register int i = start; (i < endBP); i++) {
             hash = (unsigned short) encoder(hash, sq2[i]);

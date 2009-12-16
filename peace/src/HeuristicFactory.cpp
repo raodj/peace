@@ -37,7 +37,7 @@ HeuristicFactory::displayList(std::ostream &os) {
          NULL, arg_parser::STRING},
         {"tv", "TV Heuristic",
          NULL, arg_parser::STRING},
-        {NULL, NULL}
+        {NULL, NULL, NULL, arg_parser::BOOLEAN}
     };
     arg_parser dummyParser(dummy_args);
     os << dummyParser;

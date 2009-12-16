@@ -60,7 +60,7 @@ DrawMatrix::main(int argc, char *argv[]) {
          &sqSize, arg_parser::INTEGER},
         {"--options", "Lists options for this tool",
          &showOptions, arg_parser::BOOLEAN},
-        {NULL, NULL}
+        {NULL, NULL, NULL, arg_parser::BOOLEAN}
     };
     
     // Get the argument parser to parse and consume the global
