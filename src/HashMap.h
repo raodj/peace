@@ -86,12 +86,23 @@
 */
 typedef HashMap<std::string, int> StringIntMap;
 
+// Hasher for std::string. This hash function is needed to use std::string
+// objects as key value in hash_map
+struct StringHasher  {
+    inline size_t operator()(const std::string& s) const {
+        Hash<const char*> hasher;
+        return hasher(s.c_str());
+
+    }
+};
+
 #else // Windows code path begins 
 
 #include <hash_map>
 
 // In windows the following mappings are used.
 #define HashMap stdext::hash_map
+#define Hash    stdext::hash
 
 /** String comparison structure for const char *.
 
@@ -128,16 +139,6 @@ typedef HashMap<std::string, int, stdext::hash_compare<std::string, LessString> 
 struct EqualStr {
     bool operator()(const char* s1, const char* s2) const {
         return strcmp(s1, s2) == 0;
-    }
-};
-
-// Hasher for std::string. This hash function is needed to use std::string
-// objects as key value in hash_map
-struct StringHasher  {
-    inline size_t operator()(const std::string& s) const {
-        Hash<const char*> hasher;
-        return hasher(s.c_str());
-
     }
 };
 
