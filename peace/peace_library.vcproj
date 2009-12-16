@@ -156,14 +156,6 @@
 				>
 			</File>
 			<File
-				RelativePath="src\BatonAnalyzer.cpp"
-				>
-			</File>
-			<File
-				RelativePath="src\BatonESTData.cpp"
-				>
-			</File>
-			<File
 				RelativePath="src\CLU.cpp"
 				>
 			</File>
@@ -264,19 +256,7 @@
 				>
 			</File>
 			<File
-				RelativePath="src\PMSTClusterMaker.cpp"
-				>
-			</File>
-			<File
-				RelativePath="src\PMSTHeapCache.cpp"
-				>
-			</File>
-			<File
 				RelativePath="src\ResultLog.cpp"
-				>
-			</File>
-			<File
-				RelativePath="src\SimulationD2.cpp"
 				>
 			</File>
 			<File
@@ -311,18 +291,6 @@
 			>
 			<File
 				RelativePath="src\arg_parser.h"
-				>
-			</File>
-			<File
-				RelativePath="src\Baton.h"
-				>
-			</File>
-			<File
-				RelativePath="src\BatonAnalyzer.h"
-				>
-			</File>
-			<File
-				RelativePath="src\BatonESTData.h"
 				>
 			</File>
 			<File
@@ -454,19 +422,7 @@
 				>
 			</File>
 			<File
-				RelativePath="src\PMSTClusterMaker.h"
-				>
-			</File>
-			<File
-				RelativePath="src\PMSTHeapCache.h"
-				>
-			</File>
-			<File
 				RelativePath="src\ResultLog.h"
-				>
-			</File>
-			<File
-				RelativePath="src\SimulationD2.h"
 				>
 			</File>
 			<File
