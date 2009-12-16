@@ -68,6 +68,7 @@ public class MSTClusterData {
 	 */
 	public static MSTClusterData create(Element clstrData) throws Exception {
 		// First extract the necessary information from the DOM tree.
+		String id      = DOMHelper.getStringValue(clstrData, "ID");
 		String mstID   = DOMHelper.getStringValue(clstrData, "MSTRef");
 		String path    = DOMHelper.getStringValue(clstrData, "Path");
 		String desc    = DOMHelper.getStringValue(clstrData, "Description", true);
@@ -77,7 +78,7 @@ public class MSTClusterData {
 		JobSummary summary = JobSummary.create(jobData);
 		// Now that we have all the information create the actual 
 		// cluster data node.
-		return new MSTClusterData(mstID, path, desc, thresh, summary);
+		return new MSTClusterData(id, mstID, path, desc, thresh, summary);
 	}
 	
 	/**
@@ -85,7 +86,10 @@ public class MSTClusterData {
 	 * contains all the meta data regarding a MST file that has been generated
 	 * from a given EST file.
 	 * 
-	 * @param id
+	 * @param id The workspace wide unique ID associated with this
+	 * entry.
+	 * 
+	 * @param mstID
 	 *            The unique MST data set ID value for this data.
 	 * @param path
 	 *            The path to the actual cluster file (on the local machine) that is
@@ -98,14 +102,29 @@ public class MSTClusterData {
 	 *            The core/useful information about the job that was run to
 	 *            compute the MST.
 	 */
-	public MSTClusterData(String mstID, String path, String description,
-			int threshold, JobSummary summary) {
+	public MSTClusterData(String id, String mstID, String path, 
+			String description, int threshold, JobSummary summary) {
+		this.id          = id;
 		this.mstID       = mstID;
 		this.path        = path;
 		this.description = description;
 		this.threshold   = threshold;
 		this.jobSummary  = summary;
 	}
+	
+	/**
+	 * Obtain the work space wide unique identifier set for 
+	 * this entry. 
+	 * 
+	 * The ID value is created when a job is scheduled to compute
+	 * clustering from a data set. The ID is persisted in the work
+	 * space configuration file and loaded when a work space is 
+	 * opened in the GUI.
+	 * 
+	 * @return This method returns the unique identifier set for this
+	 * data set.
+	 */
+	public String getID() { return id; }
 	
 	/**
 	 * Obtain the work space wide unique identifier set for this MST data set.
@@ -116,7 +135,7 @@ public class MSTClusterData {
 	 * @return This method returns the unique MSTData identifier set for 
 	 * this data set.
 	 */
-	public String getID() { return mstID; }
+	public String getMSTID() { return mstID; }
 		
 	/**
 	 * Obtain the complete file name and path where the actual cluster file is
@@ -171,6 +190,7 @@ public class MSTClusterData {
 		// Create a top-level entry for this "Job"
 		Element clstrData = DOMHelper.addElement(dataset, "MSTClusterData", null);
 		// Add new sub-elements for each sub-element
+		DOMHelper.addElement(clstrData, "ID", id);
 		DOMHelper.addElement(clstrData, "MSTRef", mstID);
 		DOMHelper.addElement(clstrData, "Path", path);
 		DOMHelper.addElement(clstrData, "Description", 
@@ -195,6 +215,7 @@ public class MSTClusterData {
 		// Create a top-level server entry for this server
 		out.printf("%s<MSTClusterData>\n", Indent); 
 		// Add new sub-elements for each value.
+		out.printf(STR_ELEMENT, "ID", id);
 		out.printf(STR_ELEMENT, "MSTRef", mstID);
 		out.printf(STR_ELEMENT, "Path", path);
 		out.printf(STR_ELEMENT, "Description", 
@@ -299,6 +320,15 @@ public class MSTClusterData {
      */
     private transient DataSet dataSet;
 
+	/**
+	 * The unique generated ID value for this entry. This value is
+	 * created when a new entry is added. This value is persisted in
+	 * the work space configuration. It provides a convenient mechanism
+	 * to refer to a specific entry within the workspace. The IDs are 
+	 * generated via  a call to Workspace.reserveID() method.
+	 */
+	private String id;
+	
 	/**
 	 * The unique value for the MSTData entry based on which this cluster data
 	 * was generated. This value value is persisted in the work space

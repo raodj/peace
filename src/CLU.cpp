@@ -36,7 +36,7 @@ int  CLU::abundanceFraction = 10; // 10 is default from CLU implementation.
 arg_parser::arg_record CLU::argsList[] = {
     {"--abdFrac", "Abundance Fraction (default=10)",
      &CLU::abundanceFraction, arg_parser::INTEGER},
-    {NULL, NULL}
+    {NULL, NULL, NULL, arg_parser::BOOLEAN}
 };
 
 // The simple translation table to convert chars to int.

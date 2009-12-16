@@ -1,39 +1,40 @@
 //--------------------------------------------------------------------
-//
-// This file is part of PEACE.
-// 
-// PEACE is free software: you can redistribute it and/or modify it
-// under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-// 
-// PEACE is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-// General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with PEACE.  If not, see <http://www.gnu.org/licenses/>.
-// 
-// Miami University makes no representations or warranties about the
-// suitability of the software, either express or implied, including
-// but not limited to the implied warranties of merchantability,
-// fitness for a particular purpose, or non-infringement.  Miami
-// University shall not be liable for any damages suffered by licensee
-// as a result of using, result of using, modifying or distributing
-// this software or its derivatives.
-//
-// By using or copying this Software, Licensee agrees to abide by the
-// intellectual property laws, and all other applicable laws of the
-// U.S., and the terms of GNU General Public License (version 3).
-//
-// Authors:   Dhananjai M. Rao          raodm@muohio.edu
-//
+
+//This file is part of PEACE.
+
+//PEACE is free software: you can redistribute it and/or modify it
+//under the terms of the GNU General Public License as published by
+//the Free Software Foundation, either version 3 of the License, or
+//(at your option) any later version.
+
+//PEACE is distributed in the hope that it will be useful, but
+//WITHOUT ANY WARRANTY; without even the implied warranty of
+//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//General Public License for more details.
+
+//You should have received a copy of the GNU General Public License
+//along with PEACE.  If not, see <http://www.gnu.org/licenses/>.
+
+//Miami University makes no representations or warranties about the
+//suitability of the software, either express or implied, including
+//but not limited to the implied warranties of merchantability,
+//fitness for a particular purpose, or non-infringement.  Miami
+//University shall not be liable for any damages suffered by licensee
+//as a result of using, result of using, modifying or distributing
+//this software or its derivatives.
+
+//By using or copying this Software, Licensee agrees to abide by the
+//intellectual property laws, and all other applicable laws of the
+//U.S., and the terms of GNU General Public License (version 3).
+
+//Authors:   Dhananjai M. Rao          raodm@muohio.edu
+
 //---------------------------------------------------------------------
 
 package org.peace_tools.core;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Desktop;
 import java.awt.Dialog;
@@ -61,6 +62,7 @@ import org.peace_tools.generic.Utilities;
 import org.peace_tools.generic.dndTabs.DnDTabbedPane;
 import org.peace_tools.workspace.Job;
 import org.peace_tools.workspace.JobBase;
+import org.peace_tools.workspace.JobList;
 import org.peace_tools.workspace.Server;
 import org.peace_tools.workspace.Workspace;
 
@@ -70,7 +72,15 @@ public class MainFrame extends JFrame implements ActionListener {
 	 * This pane is created in the constructor and is never changed. 
 	 */
 	private final DnDTabbedPane centerPane;
-	
+
+	/**
+	 * This is the parent component of all the tabs and tabbed panes
+	 * that constitute the visual layout of the main frame. This
+	 * component is always present and is never removed from the
+	 * main frame.
+	 */
+	private final JPanel desktop;
+
 	/**
 	 * Sets up the default layout for the main frame.
 	 * The constructor uses the data in the current workspace to setup
@@ -94,14 +104,18 @@ public class MainFrame extends JFrame implements ActionListener {
 		centerPane = new DnDTabbedPane();
 		centerPane.setPermanent(true);
 		centerPane.setPreferredSize(getPreferredSize());
+		centerPane.setBackground(new Color(200, 200, 255));
+		// Create our desktop and add it to the main frame.
+		desktop = new JPanel(new BorderLayout(0, 0));
+		desktop.add(centerPane);
 		// Add the permanent tab to our frame. This must be done
 		// before splitting the centerPane below.
-		add(centerPane, BorderLayout.CENTER);
+		add(desktop, BorderLayout.CENTER);
 		// Create the standard views via the view factory.
 		defaultViewFactory = new DefaultViewFactory(this);
 		defaultViewFactory.createStaticViews();
 	}
-	
+
 	/**
 	 * This is a helper method that invoked from the constructor to
 	 * create the main menu and associated toolbars. This method was
@@ -138,14 +152,21 @@ public class MainFrame extends JFrame implements ActionListener {
 		setJMenuBar(mainmenu);
 		add(toolbar, BorderLayout.NORTH);
 	}
-	
+
+	/**
+	 * Obtain the permanent desktop panel for this frame.
+	 * 
+	 * @return The permanent desktop panel for this frame.
+	 */
+	JPanel getDesktop() { return this.desktop; }
+
 	/**
 	 * Obtain the permanent, center pane for this frame.
 	 * 
 	 * @return The permanent center pane for this frame.
 	 */
 	DnDTabbedPane getCenterPane() { return this.centerPane; }
-	
+
 	/**
 	 * Obtain the toolbar associated with this frame.
 	 * 
@@ -154,7 +175,7 @@ public class MainFrame extends JFrame implements ActionListener {
 	 * times. 
 	 */
 	JToolBar getToolBar() { return toolbar; }
-	
+
 	/**
 	 * The action performed method that handles various application-level
 	 * events. One event that this method processes is notifications from
@@ -193,11 +214,11 @@ public class MainFrame extends JFrame implements ActionListener {
 						"The job monitor for job " + job.getJobID() + 
 						" running on server " + srvrName + 
 						" has unexpectedly terminated. You may want to " +
-						"restart the job monitor for this job.");
+				"restart the job monitor for this job.");
 			}
 		}
 	}
-	
+
 	/**
 	 * Save the workspace data directly.
 	 * 
@@ -236,7 +257,7 @@ public class MainFrame extends JFrame implements ActionListener {
 			setCursor(Cursor.getDefaultCursor());
 		}
 	}
-	
+
 	/**
 	 * This method is a helper method to save the workspace from a 
 	 * separate thread. This method creates a dialog indicating that
@@ -277,7 +298,7 @@ public class MainFrame extends JFrame implements ActionListener {
 			}
 		});
 	}
-	
+
 	/**
 	 * Obtain the view factory associated with this main frame.
 	 * 
@@ -286,52 +307,73 @@ public class MainFrame extends JFrame implements ActionListener {
 	public ViewFactory getViewFactory() {
 		return defaultViewFactory;
 	}
-	
-    /** Displays a given URL.
-     * 
-     * This method is used when the user chooses to view one of
-     * the selected help topics.  This method is actually invoked 
-     * from various classes to display help. The help is actually
-     * redirected to the PEACE web site.  Having users visit a web
-     * site permits help content to be developed independently
-     * and updated consistently.
-     * 
-     * @param url The complete web site URL that must be displayed in 
-     * the default system browser.
-     */
-	 public void showHelp(String url) {
-		 if (Desktop.isDesktopSupported() && 
-			(Desktop.getDesktop().isSupported(Desktop.Action.BROWSE))) {
-			 // Desktop is supported with browse to launch browser
-			 try {
-				 Desktop.getDesktop().browse(new URI(url));
-			 } catch (Exception e) {
-				 // Log the exception
-				 ProgrammerLog.log(e);
-				 // Display error to the user.
-				 UserLog.log(UserLog.LogLevel.ERROR, 
-							"PEACE", e.getMessage());
-					JPanel msg = Utilities.collapsedMessage(HELP_ERROR,
-							Utilities.toString(e));
-					JOptionPane.showMessageDialog(this, msg,
-							"Error Displaying Help", JOptionPane.ERROR_MESSAGE);
-			 }
-		 } else {
-			 JOptionPane.showMessageDialog(this, 
+
+	/** Displays a given URL.
+	 * 
+	 * This method is used when the user chooses to view one of
+	 * the selected help topics.  This method is actually invoked 
+	 * from various classes to display help. The help is actually
+	 * redirected to the PEACE web site.  Having users visit a web
+	 * site permits help content to be developed independently
+	 * and updated consistently.
+	 * 
+	 * @param url The complete web site URL that must be displayed in 
+	 * the default system browser.
+	 */
+	public void showHelp(String url) {
+		if (Desktop.isDesktopSupported() && 
+				(Desktop.getDesktop().isSupported(Desktop.Action.BROWSE))) {
+			// Desktop is supported with browse to launch browser
+			try {
+				Desktop.getDesktop().browse(new URI(url));
+			} catch (Exception e) {
+				// Log the exception
+				ProgrammerLog.log(e);
+				// Display error to the user.
+				UserLog.log(UserLog.LogLevel.ERROR, 
+						"PEACE", e.getMessage());
+				JPanel msg = Utilities.collapsedMessage(HELP_ERROR,
+						Utilities.toString(e));
+				JOptionPane.showMessageDialog(this, msg,
+						"Error Displaying Help", JOptionPane.ERROR_MESSAGE);
+			}
+		} else {
+			JOptionPane.showMessageDialog(this, 
 					"Your Java version does not provide the necessary features\n" +
 					"to launch the online help directly from PEACE GUI.\n" +
 					"You may view the requested help information via the URL:\n" +
 					url, "Java Feature Unavailable", JOptionPane.WARNING_MESSAGE);
-		 }
-	 }
-	 
+		}
+	}
+
+	/**
+	 * Method to create threads for all jobs whose status is to be monitored.
+	 * 
+	 * This method is typically invoked from PEACE.launchMainFrame() method
+	 * after the main frame is created. This method performs the task of 
+	 * checking job status and creating a job thread if a job needs to be
+	 * monitored.
+	 * 
+	 * @note Invoking this method twice will cause unnecessary monitoring
+	 * threads to start up. So avoid duplicate calls.
+	 */
+	public void createJobThreads() {
+		JobList jobList = Workspace.get().getJobList();
+		for(Job job: jobList.getJobs()) {
+			if (!JobBase.JobStatusType.FAILED.equals(job.getStatus()) &&
+				!JobBase.JobStatusType.SUCCESS.equals(job.getStatus())) {
+				// This job requires some monitoring. Start thread for this job.
+				JobMonitor.create(job, this);
+			}
+		}
+	}
+
 	/**
 	 * The default view factory that is used to create all the
 	 * views associated with this main frame.
 	 */
 	private DefaultViewFactory defaultViewFactory = null;
 
-	
 	/**
 	 * A default implementation for a view factory. This approach
 	 * is a feeble attempt at trying to control the instantiation
@@ -350,7 +392,7 @@ public class MainFrame extends JFrame implements ActionListener {
 			super(mf);
 		}
 	}
-	
+
 	/**
 	 * Obtain the thread group that contains the job status monitoring
 	 * threads.
@@ -359,13 +401,13 @@ public class MainFrame extends JFrame implements ActionListener {
 	 * status monitoring threads that are currently active.
 	 */
 	protected static ThreadGroup getWorkerThreads() { return workerThreads; }
-	
+
 	/**
 	 * A reference to the toolbar associated with this main frame. The
 	 * tool bar may be visible or invisible at any given time.
 	 */
 	private JToolBar toolbar;
-	
+
 	/**
 	 * A thread group that contains various worker threads. This
 	 * thread group is created when a main frame is instantiated.
@@ -373,8 +415,8 @@ public class MainFrame extends JFrame implements ActionListener {
 	 * be asynchronously monitored and updated by the JobWizard.
 	 */
 	private static transient final ThreadGroup workerThreads 
-		= new ThreadGroup("JobStatusUpdateThreads");
-	
+	= new ThreadGroup("JobStatusUpdateThreads");
+
 	/**
 	 * This message is displayed by the main frame when a job being
 	 * monitored does not complete successfully. This message is
@@ -382,11 +424,11 @@ public class MainFrame extends JFrame implements ActionListener {
 	 * the user.
 	 */
 	private static final String JOB_ERR_MSG = "<html>" +
-			"The job (ID: %1$s) that was scheduled to run on<br>" +
-			"server: %2$s<br>" +
-			"did not complete successfully. You can review the outputs<br>" +
-			"from the job to determine the root cause of failure.</html>";
-	
+	"The job (ID: %1$s) that was scheduled to run on<br>" +
+	"server: %2$s<br>" +
+	"did not complete successfully. You can review the outputs<br>" +
+	"from the job to determine the root cause of failure.</html>";
+
 	/**
 	 * This message is displayed by the main frame when a job being
 	 * monitored does complete successfully and the files need to be
@@ -394,31 +436,31 @@ public class MainFrame extends JFrame implements ActionListener {
 	 * before it is displayed to the user.
 	 */
 	private static final String JOB_DONE_MSG = "<html>" +
-			"The job (ID: %1$s) that was scheduled to run on<br>" +
-			"server: %2$s<br>" +			
-			"has completed successfully. The generated data files<br>" +
-			"need to copied to be viewed in the GUI. <br><br>" +
-			"<b>Would you like to copy the generated file(s) now?</b></html>";
+	"The job (ID: %1$s) that was scheduled to run on<br>" +
+	"server: %2$s<br>" +			
+	"has completed successfully. The generated data files<br>" +
+	"need to copied to be viewed in the GUI. <br><br>" +
+	"<b>Would you like to copy the generated file(s) now?</b></html>";
 
 	/**
 	 * This message is displayed when the work space file could not
 	 * be saved successfully.
 	 */
 	private static final String SAVING_ERROR = "<html>" +
-		"The workspace file could not be saved. This is a serious issue.<br>" +
-		"Plese refer to the details to identify the root cause. You may try<br>" +
-		"to save the workspace via the menus." +
-		"</html>";
-	
+	"The workspace file could not be saved. This is a serious issue.<br>" +
+	"Plese refer to the details to identify the root cause. You may try<br>" +
+	"to save the workspace via the menus." +
+	"</html>";
+
 	/**
 	 * This message is displayed when the default system browser could
 	 * not be launched to display help.
 	 */
 	private static final String HELP_ERROR = "<html>" +
-		"The default system browser could not be launched to display help.<br>" +
-		"You may view the help web site directly from your system browser by<br>" +
-		"navigating to the appropriate help section from http://www.peace-tools.org/" +
-		"</html>";
+	"The default system browser could not be launched to display help.<br>" +
+	"You may view the help web site directly from your system browser by<br>" +
+	"navigating to the appropriate help section from http://www.peace-tools.org/" +
+	"</html>";
 
 	/**
 	 * A generated serial version ID.

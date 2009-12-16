@@ -39,6 +39,9 @@
 #include "XFigHelper.h"
 #include "MSTguiNode.h"
 
+#include <vector>
+#include <algorithm>
+
 /** \typedef HashMap<std::string, int> ColorCodeMap;
 
     \brief A short cut typedef to conveniently use a hash_map.

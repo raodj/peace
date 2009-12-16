@@ -45,7 +45,7 @@ arg_parser::arg_record UVSampleHeuristic::argsList[] = {
      &UVSampleHeuristic::v, arg_parser::INTEGER},
     {"--uv_wordShift", "Word Shift (default=16)",
      &UVSampleHeuristic::wordShift, arg_parser::INTEGER},
-    {NULL, NULL}
+    {NULL, NULL, NULL, arg_parser::BOOLEAN}
 };
 
 UVSampleHeuristic::UVSampleHeuristic(const std::string& name,
@@ -182,7 +182,7 @@ UVSampleHeuristic::computeHash(const int estIdx) {
     // Now, go through the EST sq2 and build hash values
     for (register int start = 0; (start < End); start += wordShift) {
         // Compute the hash for the next v words.
-        register unsigned short hash = 0;
+        unsigned short hash = 0;
         const int endBP    = start + v;
         for(register int i = start; (i < endBP); i++) {
             hash = (unsigned short) encoder(hash, sq2[i]);

@@ -166,6 +166,38 @@ AC_DEFUN([AC_CHECK_ARGS],
 	fi
 ])
 
+# Check if we are using gcc to supress a couple of useless remarks
+AC_DEFUN([AC_PROG_GCC],
+[
+    AC_ARG_WITH(gcc,
+            AC_HELP_STRING([--with-gcc],[Code will be compiled with gcc]),
+    [ if test "$withval" != "yes"; then
+	  gcc="yes"
+      else
+	  gcc="no"
+      fi
+     ])
+
+     if test -z "$gcc"; then
+         AC_MSG_CHECKING([for gcc])
+         gcc=`mpicxx --version 2>&1 | grep "GCC"`
+	 if test -n "$gcc"; then
+	     gcc="yes"
+	 else
+	     gcc="no"
+	 fi
+         AC_MSG_RESULT([$gcc])
+     fi
+
+     if test "yes" == "$gcc"; then
+	 	USING_GCC="-DGCC"
+     else
+     	USING_GCC=""
+     fi
+
+     AC_SUBST(USING_GCC) 
+])
+
 # Checks for programs.
 AC_PROG_MPI
 AC_MSG_CHECKING([properties of (MPI) compiler])
@@ -173,6 +205,7 @@ AC_MSG_RESULT([$CXX])
 AC_PROG_CXX
 AC_LINK_STDCPP
 AC_PROG_ICC
+AC_PROG_GCC
 AC_PROG_RANLIB
 
 # Check and set some default compiler flags for the build

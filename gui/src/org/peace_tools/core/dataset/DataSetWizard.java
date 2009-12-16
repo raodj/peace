@@ -82,7 +82,7 @@ public class DataSetWizard extends WizardDialog {
 		
 		// Create the data set that this wizard is going to be
 		// modifying.
-		dataSet = new DataSet(null, "");
+		dataSet = new DataSet("", null, "");
 		// First setup the overview page.
 		createOverview();
 		// Create page to read/edit EST FASTA File
@@ -144,7 +144,8 @@ public class DataSetWizard extends WizardDialog {
 		if (!success) {
 			return;
 		}
-		// Add the data set to the workspace.
+		// Add the data set to the workspace. But first update ID
+		dataSet.setID(Workspace.get().reserveID());
 		Workspace.get().addDataSet(dataSet);
 		// Save the workspace automatically.
 		MainFrame mf = (MainFrame) getParent();

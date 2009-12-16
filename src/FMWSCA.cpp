@@ -31,7 +31,7 @@ bool FMWSCA::caseSensitive  = false;
 arg_parser::arg_record FMWSCA::argsList[] = {
     {"--case", "Make comparisons of BP case sensitive",
      &FMWSCA::caseSensitive, arg_parser::BOOLEAN},
-    {NULL, NULL}
+    {NULL, NULL, NULL, arg_parser::BOOLEAN}
 };
 
 FMWSCA::FMWSCA(const int refESTidx, const std::string& outputFile)

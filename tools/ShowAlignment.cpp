@@ -52,7 +52,7 @@ ShowAlignment::main(int argc, char *argv[]) {
          &rectHeight, arg_parser::INTEGER},
         {"--options", "Lists options for this tool",
          &showOptions, arg_parser::BOOLEAN},
-        {NULL, NULL}
+        {NULL, NULL, NULL, arg_parser::BOOLEAN}
     };
     
     // Get the argument parser to parse and consume the global

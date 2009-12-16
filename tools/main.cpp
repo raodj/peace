@@ -80,7 +80,7 @@ main(int argc, char* argv[]) {
     arg_parser::arg_record arg_list[] = {
         {"--tool", "Name of the tool to be run",
          &tool, arg_parser::STRING},
-        {NULL, NULL}
+        {NULL, NULL, NULL, arg_parser::BOOLEAN}
     };
 
     // Get the argument parser to parse and consume the global

@@ -78,7 +78,7 @@ public class PEACE {
 	protected void launchMainFrame(String workspacePath) {
 		if ((workspacePath != null) && (Workspace.get() != null)) {
 			// Launch the main frame and we are done.
-			MainFrame mf = new MainFrame();
+			final MainFrame mf = new MainFrame();
 			mf.pack();
 			mf.setVisible(true);
 			// Cut logs in the user log to provide core information.
@@ -88,6 +88,21 @@ public class PEACE {
 			// Cut information in the programmer log about environment
 			ProgrammerLog.log(Version.GUI_VERSION + "\n");
 			ProgrammerLog.log(Version.COPYRIGHT + "\n");
+			// Create job threads for monitoring jobs after some delay
+			// to let the GUI settle in first.
+			SwingUtilities.invokeLater(new Runnable() {
+				@Override
+				public void run() {
+					try {
+						// Give a couple of seconds for the GUI to settle
+						Thread.sleep(2000);
+						// Create threads for monitoring job status
+						mf.createJobThreads();
+					} catch (InterruptedException e) {
+						ProgrammerLog.log(e);
+					}
+				}
+			});
 		}
 	}
 	

@@ -40,7 +40,7 @@ arg_parser::arg_record FWAnalyzer::commonArgsList[] = {
      &FWAnalyzer::frameSize, arg_parser::INTEGER},
     {"--word", "Word size (in base pairs, default=6)",
      &FWAnalyzer::wordSize, arg_parser::INTEGER},    
-    {NULL, NULL}
+    {NULL, NULL, NULL, arg_parser::BOOLEAN}
 };
 
 FWAnalyzer::FWAnalyzer(const std::string& analyzerName, const int refESTidx,

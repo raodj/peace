@@ -66,7 +66,7 @@
 #define Hash    __gnu_cxx::hash
 
 #else
-// No TR1 and no EXT. Hopefully HASH_HASH_MAP is true
+// No TR1 and no EXT. Hopefully HAS_HASH_MAP is true
 #include <hash_map>
 #define GLIBC_NAMESPACE std
 #define HashMap std::hash_map
@@ -128,6 +128,16 @@ typedef HashMap<std::string, int, stdext::hash_compare<std::string, LessString> 
 struct EqualStr {
     bool operator()(const char* s1, const char* s2) const {
         return strcmp(s1, s2) == 0;
+    }
+};
+
+// Hasher for std::string. This hash function is needed to use std::string
+// objects as key value in hash_map
+struct StringHasher  {
+    inline size_t operator()(const std::string& s) const {
+        Hash<const char*> hasher;
+        return hasher(s.c_str());
+
     }
 };
 

@@ -351,9 +351,11 @@ public class DnDTabbedPane extends JTabbedPane {
 	 * @param componentRemoved
 	 */
 	public void deleteTab(Component componentRemoved) {
-		removeTab(componentRemoved);
-		// Remote to listeners that the component has been removed
+		// First Report to listeners that the component is being
+		// removed. This gives them a chance to save the position.
 		notifyListeners(componentRemoved);
+		// Now remove the component.
+		removeTab(componentRemoved);
 	}
 	
 	/**

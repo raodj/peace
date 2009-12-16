@@ -61,6 +61,7 @@ import org.peace_tools.data.MSTTreeModel;
 import org.peace_tools.generic.ProgrammerLog;
 import org.peace_tools.generic.Utilities;
 import org.peace_tools.generic.dndTabs.DnDTabListener;
+import org.peace_tools.generic.dndTabs.DnDTabPos;
 import org.peace_tools.generic.dndTabs.DnDTabbedPane;
 import org.peace_tools.views.ClusterSummaryView;
 import org.peace_tools.views.ClusterTreeTableView;
@@ -119,12 +120,41 @@ public abstract class ViewFactory implements DnDTabListener {
 	 */
 	public synchronized void createStaticViews() {
 		if (staticViews == null) {
-			staticViews = new HashMap<ViewType, JComponent>();
+			staticViews   = new HashMap<ViewType, JComponent>();
+			staticViewPos = new HashMap<ViewType, DnDTabPos>();
 			createViews();
 			createLogViews();
 		}
 	}
 
+	/**
+	 * Method to display a static view that is currently not visible.
+	 * 
+	 * This method can be used to re-display the view that is currently
+	 * not visible. If a view is already visible then this method
+	 * does not have any side effect. 
+	 * 
+	 * @param view The type of view to be displayed by this method. 
+	 */
+	public void showStaticView(ViewType view) {
+		JComponent staticView = staticViews.get(view);
+		if (staticView == null) {
+			// The view is not available or is already visible.
+			return;
+		}
+		if (staticView.isVisible()) {
+			// The view is already visible. Simply emphasize it.
+			this.emphasize(staticView);
+		}
+		// Make the view visible and restore its position.
+		DnDTabPos tabPos = staticViewPos.get(view);
+		if (tabPos != null) {
+			// Found a valid component and position. Restore the view.
+			staticView.setVisible(true);
+			tabPos.restorePosition(mainFrame.getDesktop(), staticView);
+		}
+	}
+	
 	/**
 	 * This is a helper method that invoked from the constructor to
 	 * create the programmer and user log panes. This method was
@@ -517,6 +547,20 @@ public abstract class ViewFactory implements DnDTabListener {
 			if (viewList.size() == 0) {
 				views.remove(component.getName());
 			}
+		} else {
+			// If this is one of the static views that don't get really
+			// removed but just hidden, then save its position.
+			for(ViewType view: ViewType.values()) { 
+				if (staticViews.get(view) == component) {
+					// Found a valid component. Save its position.
+					DnDTabPos tabPos = new DnDTabPos();
+					tabPos.savePosition(mainFrame.getDesktop(), component);
+					// Save it in reference map for future reference
+					staticViewPos.put(view, tabPos);
+					// Hide the component
+					component.setVisible(false);
+				}
+			}
 		}
 	}
 
@@ -546,10 +590,18 @@ public abstract class ViewFactory implements DnDTabListener {
 	/**
 	 * The list of static views associated with any main frame.
 	 * The static views are created only once for a given main frame.
-	 * 
+	 * Each view is represented by a unique enumeration value.
 	 */
 	private HashMap<ViewType, JComponent > staticViews = null;
 
+	/**
+	 * The last saved positions for the various static views. This
+	 * hash map saves the last saved positions for the various static
+	 * views. This enables restoring static views (assuming they are
+	 * visible) at appropriate positions.
+	 */
+	private HashMap<ViewType, DnDTabPos> staticViewPos = null;
+	
 	/**
 	 * The array of icons that are displayed in a the tabs along
 	 * with titles for each view. The icons are arranged in the

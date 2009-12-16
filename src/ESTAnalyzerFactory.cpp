@@ -51,7 +51,7 @@ ESTAnalyzerFactory::displayList(std::ostream &os) {
          NULL, arg_parser::STRING},
         //        {"d2sim", "Use special version of D2 for simulation project",
         //         NULL, arg_parser::STRING},
-        {NULL, NULL}
+        {NULL, NULL, NULL, arg_parser::BOOLEAN}
     };
     arg_parser dummyParser(dummy_args);
     os << dummyParser;

@@ -100,37 +100,37 @@ public class ViewMenuHelper implements ActionListener {
 		item = Utilities.createMenuItem(Utilities.MENU_ITEM, 
 				"Workspace Hierarchy Browser",
 				"View files in workspace in a hierarchy based on data sets",
-				"ViewHierarchy", this, "images/24x24/DataSetView.png", null, true, false);
+				"DATASET_TREE", this, "images/24x24/DataSetView.png", null, true, false);
 		viewMenu.add(item);
 		item = Utilities.createMenuItem(Utilities.MENU_ITEM, 
 				"Workspace File Browser",
 				"View files in current workspace in as a simple but comprehensive list",
-				"ViewFiles", this, "images/24x24/FileView.png", null, true, false);
+				"DATASET_FILE", this, "images/24x24/FileView.png", null, true, false);
 		viewMenu.add(item);
 		viewMenu.addSeparator();
 		//----------------------------------------------------------
 		item = Utilities.createMenuItem(Utilities.MENU_ITEM, 
 				"View All Jobs",
 				"View the current and completed jobs in the current workspace",
-				"ViewJobs", this, "images/24x24/Jobs.png", null, true, false);
+				"JOB_LIST", this, "images/24x24/Jobs.png", null, true, false);
 		viewMenu.add(item);
 		item = Utilities.createMenuItem(Utilities.MENU_ITEM, 
 				"View All Servers",
 				"A tabular view of all the servers currently configured in this workspace",
-				"ViewServers", this, "images/24x24/Server.png", null, true, false);
+				"SERVER_LIST", this, "images/24x24/Server.png", null, true, false);
 		viewMenu.add(item);
 		viewMenu.addSeparator();
 		//----------------------------------------------------------
 		item = Utilities.createMenuItem(Utilities.MENU_ITEM, 
 				"User Logs",
 				"Opens a tabular view of logs that provide additional information to a user",
-				"ViewUserLogs", this, "images/24x24/UserLog.png", 
+				"USER_LOGS", this, "images/24x24/UserLog.png", 
 				null, true, false);
 		viewMenu.add(item);
 		item = Utilities.createMenuItem(Utilities.MENU_ITEM, 
 				"Programmer Logs",
 				"View a textual form of the programmer logs with internal logs",
-				"ViewProgrammerLogs", this, "images/24x24/ProgLog.png", 
+				"PROGRAMMER_LOGS", this, "images/24x24/ProgLog.png", 
 				null, true, false);
 		viewMenu.add(item);
 		
@@ -147,7 +147,21 @@ public class ViewMenuHelper implements ActionListener {
  
 	@Override
 	public void actionPerformed(ActionEvent event) {
-
+		String cmd = event.getActionCommand();
+		// Process the command 
+		if ("NewFrame".equals(cmd)) {
+			// Not yet implemented
+		} else if ("DupTab".equals(cmd)) {
+			// Not yet implement
+		} else {
+			// This must be to view a specific view. The action
+			// command has the type of view to be shown.
+			ViewFactory.ViewType view = ViewFactory.ViewType.valueOf(cmd);
+			if (view != null) {
+				// Display the static view if it is not already visible.
+				mainFrame.getViewFactory().showStaticView(view);
+			}
+		}
 	}
 
 	/**

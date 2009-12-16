@@ -47,7 +47,7 @@ arg_parser::arg_record D2::argsList[] = {
      &D2::frameShift, arg_parser::INTEGER},
     {"--threshold", "Threshold score to break out of D2 (default=0)",
      &D2::threshold, arg_parser::INTEGER},    
-    {NULL, NULL}
+    {NULL, NULL, NULL, arg_parser::BOOLEAN}
 };
 
 D2::D2(const int refESTidx, const std::string& outputFileName)
@@ -191,7 +191,7 @@ D2::runD2(const int otherEST) {
 
     // Initialize the delta tables.
     memset(delta, 0, sizeof(int) * (1 << (wordSize * 2)));
-    register int score = 0;
+    int score = 0;
     // First compute the score for first windows.
     for(int i = 0; (i < numWordsInWindow); i++) {
         // Process i'th word in EST 1
@@ -210,7 +210,7 @@ D2::runD2(const int otherEST) {
     const int LastWordInSq2  = (sq2End - wordSize + 1) - numWordsInWindow;
     const int FirstWordInSq2 = sq2Start + numWordsInWindow - 1;
     // Variable to track the minimum d2 distance observed.
-    register int minScore   = score;
+    int minScore  = score;
     for(int s1Win = sq1Start; (s1Win < LastWordInSq1); s1Win += 2) {
         // Check each window in EST #2 against current window in EST
         // #1 by sliding EST #2 window to right
