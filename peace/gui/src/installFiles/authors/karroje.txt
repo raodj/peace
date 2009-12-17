@@ -1,5 +1,11 @@
 <b>John Karro</b><br>
 Email: karroje@muohio.edu<br>
 Web page: http://www.eas.muohio.edu/people/karroje<br>
-<i>Brief description of this authors contribution to<br>
-the project.</i>
+<i> John Karro contributed to the development of the algorithms
+underlying Peace, consulted on the tool development, provided
+background biological knowledge, and organized and directed the
+testing and statistical analysis of results.  He is currently
+conducting a statistical analysis of the d2 distance metric for the
+purposes of parameter optimization, and is directing efforts to extend
+PEACE into the problem of transcript assembly and iso form
+differentiation.  </i>
