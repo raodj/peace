@@ -1,5 +1,8 @@
 <b>Yuan Zhang</b><br>
 Email: zhangy9@muohio.edu<br>
 Web page:  <br>
-<i>Brief description of this authors contribution to<br>
-the project.</i>
+<i>Yuan Zhang assisted with the analysis of PEACE results.  She
+contributed to the design of software for compiling and presenting
+statistics on Peace performance and quality, and is currently working
+on the extension of PEACE into the problem of transcript assembly and
+isoform differentiation.</i>
