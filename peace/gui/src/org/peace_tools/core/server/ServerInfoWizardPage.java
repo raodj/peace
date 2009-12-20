@@ -100,17 +100,19 @@ implements Runnable, ActionListener {
 		setBorder(new EmptyBorder(5, 5, 5, 5));
 		// Create panels with description, install folder, and
 		// polling time.
-		description = new JTextArea(3, 10);
+		description = new JTextArea(3, 3);
+		JScrollPane jsp = new JScrollPane(description);
+		jsp.setMinimumSize(description.getPreferredSize());
+		
 		JComponent descBox = 
 			Utilities.createLabeledComponents("Description for server:",
-					"(This is for your reference & can be anything)", 0, 
-					new JScrollPane(description));
+					"(This is for your reference & can be anything)", 0, false, 
+					jsp);
 		// Put the install path text file and browse button into a 
 		// single horizontal panel.
 		browse = Utilities.createButton(null, " Browse ", 
 				"Browse", this, "Browse local file system", false);
-		installPath = new JTextField(30);
-		Utilities.adjustDimension(installPath, 200, 4);
+		installPath = new JTextField(10);
 		JPanel horizBox = new JPanel(new BorderLayout(0, 10));
 		horizBox.add(installPath, BorderLayout.CENTER);
 		horizBox.add(browse, BorderLayout.EAST);
@@ -118,34 +120,31 @@ implements Runnable, ActionListener {
 		JComponent dirBox =
 			Utilities.createLabeledComponents("Enter install directory (absolute path):",
 					"(Directory must not exist for fresh installs)",
-					0, horizBox);
+					0, false, horizBox);
 		JComponent timeBox =
 			Utilities.createLabeledComponents("Enter polling delay (seconds):",
-					"(Delay between successive checks for job completion)",
-					0, (pollTime = new JSpinner(new SpinnerNumberModel(30, 10, 120, 1))));
-		Utilities.adjustDimension(pollTime, 10, 4);		
-		// Pack the options along with a pretty icon and label into 
-		// a sub-panel.
-		JPanel subPanel = new JPanel();
-		subPanel.setLayout(new BoxLayout(subPanel, BoxLayout.Y_AXIS));
-		subPanel.setBorder(new EmptyBorder(5, 15, 10, 10));
-		// Pack the default fields into the subPanel.
-		subPanel.add(descBox);
-		subPanel.add(Box.createVerticalStrut(10));
-		subPanel.add(dirBox);
-		subPanel.add(Box.createVerticalStrut(10));
-		subPanel.add(timeBox);
-		subPanel.add(Box.createVerticalStrut(10));
+					"(Delay between successive checks for job completion)", 4,
+					false, (pollTime = new JSpinner(new SpinnerNumberModel(30, 10, 120, 1))));
+		
 		// Set up additional informational panel if the install
 		// directory is editable for verification.
+		JPanel labelPanel = null;
 		if (!lockPath) {
 			// Create the informational panel.
-			createInfoPanel(subPanel);
+			labelPanel = createInfoPanel();
 		} else {
 			installPath.setEnabled(false);
 		}
-		// Finally add a filler to take up some vertical space.
-		subPanel.add(Box.createVerticalGlue());
+
+		// Pack the options along with a pretty icon and label into 
+		// a sub-panel.
+		JPanel subPanel = Utilities.createLabeledComponents(null, null, 0, true,
+			descBox, Box.createVerticalStrut(10),
+			dirBox, Box.createVerticalStrut(10),
+			timeBox, Box.createVerticalStrut(10),
+			labelPanel);
+		// Set up the border
+		subPanel.setBorder(new EmptyBorder(5, 15, 10, 10));
 		// Add the contents to this page
 		add(subPanel, BorderLayout.CENTER);
 	}
@@ -155,14 +154,14 @@ implements Runnable, ActionListener {
 	 * labels. This method was introduced to keep the code clutter in
 	 * the constructor to a minimum. 
 	 * 
-	 * @param subPanel The panel to which the labels are to be 
-	 * added.
+	 * @return A panel to which the labels have been added.
+	 * 
 	 */
-	private void createInfoPanel(JPanel subPanel) {
+	private JPanel createInfoPanel() {
 		// Let the user know the remote directory will be validated when
 		// they click the "Next>" button.
-		fixedMsgs[0] = new JLabel("Install path will be verified when " + 
-				"the Next button is clicked", 
+		fixedMsgs[0] = new JLabel("<html>Install path will be verified when " + 
+				"the<br>Next button is clicked</html>", 
 				Utilities.getIcon("images/16x16/Information.png"),
 				JLabel.LEFT);
 		// The fixedMsg to inform user to "wait" is a bit more involved.
@@ -188,9 +187,11 @@ implements Runnable, ActionListener {
 		// we need to set the x-alignment correctly.
 		fixedMsgs[0].setAlignmentX(0);
 		fixedMsgs[1].setAlignmentX(0);
-		// Add the messages to the subPanel.
-		subPanel.add(fixedMsgs[0]);
-		subPanel.add(fixedMsgs[1]);
+		// Create and add the messages to the subPanel.
+		JPanel subPanel = new JPanel(new BorderLayout(0, 0));
+		subPanel.add(fixedMsgs[0], BorderLayout.NORTH);
+		subPanel.add(fixedMsgs[1], BorderLayout.SOUTH);
+		return subPanel;
 	}
 		
 	/**
@@ -325,13 +326,32 @@ implements Runnable, ActionListener {
 			// Unix family of servers.
 			if (!ServerSession.OSType.WINDOWS.equals(serverSession.getOSType())) {
 				String cmd = "/usr/bin/which automake autoconf tar gzip " +
-						"make mpicc grep";
+						"make grep";
 				if ((serverSession.exec(cmd, streamsData) != 0) ||
 						(streamsData[0] == null) || 
 						(streamsData[1].length() > 0)) {
 					throw new Exception("The remote server does not seem to have " +
 							"the necessary software tools.\nPEACE runtime cannot be installed " +
 							"without the necessary tools.\nThe software required are:\n" + cmd);
+				}
+				// OK, the basic stuff checks out. Next check if we have mpicc.
+				String prevOutput = streamsData[0]; 
+				cmd = "/usr/bin/which mpicc";
+				if ((serverSession.exec(cmd, streamsData) != 0) ||
+						(streamsData[0] == null) || 
+						(streamsData[1].length() > 0)) {
+					int choice = JOptionPane.showConfirmDialog(wizard, 
+							NO_MPI_MSG, "Unable to find mpicc", 
+							JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+					if (choice == JOptionPane.NO_OPTION) {
+						throw new Exception("The remote server does not seem to have " +
+								"mpicc installed on it.\nPEACE clustering engine install " +
+								"aborted.");
+					}
+					// Check to ensure we have some c++ compiler installed?
+				} else {
+					// Add current output with previous output.
+					streamsData[0] = prevOutput + "\n" + streamsData[0];
 				}
 			} else {
 				// Set a default detail so the user does not freak out.
@@ -491,9 +511,26 @@ implements Runnable, ActionListener {
 		"Unable to proceed further with the provided server information.<br/>" +
 		"Either the installation path is not valid or the server does<br/>" +
 		"not have the necessary software tools installed on it.<br/>" + 
-		"Please verify that the information you provided is correct and try again." +
+		"<b>See details below for full details.</b><br>" +
+		"Contact your system administrator to ensure all the necessary<br>" +
+		"software tools are installed and the server is operational." +
 		"</html>";
-	
+
+	/**
+	 * A warning message that is displayed when mpicc is unavailable 
+	 * on the remote machine on which PEACE is being installed.
+	 */
+	private static final String NO_MPI_MSG = "<html>" + 
+		"The MPI C++ compiler (mpicc) was not found in the default path.<br>" +
+		"Most likely MPI is not installed on the machine or your path is<br>" +
+		"incorrectly setup. You need to contact your system adminstrator to<br>" +
+		"to determine if MPI is setup or if your path is not correct. Some<br>" +
+		"clusters require MPI module(s) to be loaded manually, which your<br>" +
+		"administrator can automate so that PEACE finds mpicc correctly.<br><br>" +
+		"You may still procceed further with the default non-MPI based C++<br>" +
+		"compiler. <i>However, PEACE will not run in parallel mode.</i><br><br>" +
+		"Do you wish to proceed with default C++ compiler (if available)?</html>";
+		
 	/**
 	 * A serialization UID to keep the compiler happy.
 	 */

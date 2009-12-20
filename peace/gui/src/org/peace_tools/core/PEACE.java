@@ -34,6 +34,7 @@
 package org.peace_tools.core;
 
 import javax.swing.SwingUtilities;
+import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 
 import org.peace_tools.generic.Log;
@@ -68,17 +69,21 @@ public class PEACE {
 	}
 	
 	/**
-	 * Call back method from the workspace chooser. This method is
-	 * called from the workspace chooser after the user has selected
-	 * a valid workspace to work. This method launches the main frame
+	 * Call back method from the work space chooser. This method is
+	 * called from the work space chooser after the user has selected
+	 * a valid work space to work. This method launches the main frame
 	 * that takes the place of the work space chooser.
 	 * 
-	 * @param workspacePath The full absolute path to the workspace.
+	 * @param workspacePath The full absolute path to the work space.
+	 * 
+	 * @param firstLaunch If this flag is true, then it is assumed that
+	 * PEACE GUI is being run for the first time and a welcome screen 
+	 * with some basic instructions is displayed to the user.
 	 */
-	protected void launchMainFrame(String workspacePath) {
+	protected void launchMainFrame(String workspacePath, boolean firstLaunch) {
 		if ((workspacePath != null) && (Workspace.get() != null)) {
 			// Launch the main frame and we are done.
-			final MainFrame mf = new MainFrame();
+			final MainFrame mf = new MainFrame(firstLaunch);
 			mf.pack();
 			mf.setVisible(true);
 			// Cut logs in the user log to provide core information.
@@ -89,20 +94,28 @@ public class PEACE {
 			ProgrammerLog.log(Version.GUI_VERSION + "\n");
 			ProgrammerLog.log(Version.COPYRIGHT + "\n");
 			// Create job threads for monitoring jobs after some delay
-			// to let the GUI settle in first.
-			SwingUtilities.invokeLater(new Runnable() {
+			// to let the GUI settle in first. So we do it from a 
+			// separate thread.
+			Thread bgThread = new Thread(new Runnable() {
 				@Override
 				public void run() {
 					try {
 						// Give a couple of seconds for the GUI to settle
 						Thread.sleep(2000);
-						// Create threads for monitoring job status
-						mf.createJobThreads();
+						// Create threads for monitoring job status from
+						// the main Swing thread.
+						SwingUtilities.invokeLater(new Runnable() {
+							@Override
+							public void run() {
+								mf.createJobThreads();
+							}
+						});
 					} catch (InterruptedException e) {
 						ProgrammerLog.log(e);
 					}
 				}
 			});
+			bgThread.start();
 		}
 	}
 	
@@ -127,6 +140,13 @@ public class PEACE {
 	private PEACE() {
 		// Turn off metal's use of bold fonts
 		UIManager.put("swing.boldMetal", Boolean.FALSE);
+		// try {
+		//	UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		// } catch (Exception e) {}
+		
+		// Make tool tips show up faster than normal
+		ToolTipManager ttm = ToolTipManager.sharedInstance();
+		ttm.setInitialDelay(3 * ttm.getInitialDelay() / 4);
 		
 		// Create and show the top-level work space chooser class.
 		WorkspaceChooser wsChooser = new WorkspaceChooser(null, this);

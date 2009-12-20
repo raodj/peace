@@ -38,6 +38,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+
+import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
@@ -49,6 +51,7 @@ import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.SwingConstants;
+
 import org.peace_tools.generic.Log;
 import org.peace_tools.generic.LogListener;
 import org.peace_tools.generic.Utilities;
@@ -180,7 +183,7 @@ implements ActionListener, LogListener {
 		logLevelList.setBackground(Color.white);
 		// Create the container with suitable layout.
 		toolBar.add(new JSeparator(SwingConstants.VERTICAL));
-		toolBar.addSeparator();
+		toolBar.add(Box.createHorizontalStrut(5));
 		JLabel label = new JLabel("Set logging level: ");
 		Utilities.adjustFont(label, FONT_SIZE_CHANGE, 8, -1);
 		toolBar.add(label);

@@ -76,12 +76,16 @@ public class JobMonitor implements Runnable {
 	 * @return This method returns true if the thread was started.
 	 * 
 	 */
-	public static synchronized boolean create(Job job, ActionListener listener) {
+	public static boolean create(Job job, ActionListener listener) {
 		// Obtain the server reference for this job.
 		Server server = Workspace.get().getServerList().getServer(job.getServerID());
 		if (server == null) {
 			// We don't have a valid server for this job. Can't
 			// start up a job monitor.
+			return false;
+		}
+		if (job.getMonitor() != null) {
+			// A monitor thread already exists. Don't start another one.
 			return false;
 		}
 		// Have a valid server and a job. Start up the job monitor.
@@ -90,11 +94,30 @@ public class JobMonitor implements Runnable {
 		Thread jmThread = new Thread(MainFrame.getWorkerThreads(), jm, job.getJobID());
 		jmThread.setDaemon(true);
 		jmThread.setPriority(Thread.MIN_PRIORITY);
+		// Set cross reference in job.
+		job.setMonitor(jmThread);
+		// Start the monitor thread.
 		jmThread.start();
 		// Everything went well
 		UserLog.log(UserLog.LogLevel.NOTICE, "JobMonitor", 
 				"Started job monitoring thread for job " + job.getJobID());
 		return true;
+	}
+	
+	/**
+	 * Convenience method to interrupt a job monitor thread.
+	 * 
+	 * This method is a convenience method to interrupt the operations
+	 * of a job monitoring thread.
+	 *  
+	 * @param job The job whose monitoring thread is to be interrupted.
+	 * 
+	 */
+	public static void interrupt(Job job) {
+		Thread monitor = job.getMonitor();
+		if (monitor != null) {
+			monitor.interrupt();
+		}
 	}
 	
 	/**
@@ -131,7 +154,11 @@ public class JobMonitor implements Runnable {
 		while ((!job.isDone()) && 
 			   (!JobBase.JobStatusType.FINISHING.equals(job.getStatus()))) {
 			// Create connection to the server to check job status
-			createSession();
+			if (!createSession()) {
+				// The session creation was interrupted or canceled
+				break;
+			}
+		
 			// Check and update status of job.
 			if (session != null) {
 				if (!updateJobStatus()) {
@@ -158,7 +185,8 @@ public class JobMonitor implements Runnable {
 				listener.actionPerformed(ae);
 			}
 		});
-		
+		// Clear out reference in job
+		job.setMonitor(null);
 	}
 
 	/**
@@ -264,10 +292,13 @@ public class JobMonitor implements Runnable {
 	 * 
 	 * @note If a valid session could not be established this method
 	 * will simply sleep for 5 minutes before returning control.
+	 * 
+	 * @return This method returns false if the calling outer loop
+	 * must stop because the user interrupted or canceled the session.
 	 */
-	private void createSession() {
+	private boolean createSession() {
 		if (session != null) {
-			return;
+			return true;
 		}
 		
 		try {
@@ -277,6 +308,9 @@ public class JobMonitor implements Runnable {
 			synchronized (JobMonitor.class) {
 				// First try to create a session.
 				ServerSession tempSession = SessionFactory.createSession(null, server);
+				// Set the purpose for this session.
+				String purpose = String.format(PURPOSE_MSG, job.getJobID(), server.getName());
+				tempSession.setPurpose(purpose);
 				tempSession.connect();
 				// Session is good. Update instance variable.
 				session = tempSession;
@@ -294,8 +328,13 @@ public class JobMonitor implements Runnable {
 			// sleeps for a 5 minutes and try's again.
 			try {
 				Thread.sleep(5 * 60 * 1000L);
-			} catch (InterruptedException e) {}
+			} catch (InterruptedException e) {
+				// We were interrupted. This is not a good sign
+				return false;
+			}
 		}
+		// Try again later
+		return true;
 	}
 	
 	/**
@@ -353,4 +392,16 @@ public class JobMonitor implements Runnable {
 	 * milliseconds.
 	 */
 	private transient int recheckDelay;
+	
+	/**
+	 * A static formatable purpose message that is filled in and 
+	 * used as the purpose for the server session initiated by this
+	 * job monitor.
+	 */
+	private static final String PURPOSE_MSG =
+		"<html>This session is being used to monitor a Job<br>" +
+				"(<i>Job ID: %s</i>) running on the server named<br>" +
+				"<i>%s</i>.<br>" +
+				"The session will be closed once the job is complete.<br>" +
+				"You may stop the monitor via the Job table.</html>";
 }

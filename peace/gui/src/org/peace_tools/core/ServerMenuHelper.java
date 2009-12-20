@@ -36,6 +36,7 @@ package org.peace_tools.core;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.Box;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JToolBar;
@@ -107,7 +108,7 @@ public class ServerMenuHelper implements ActionListener {
 		if (toolbar != null) {
 			// Add some of the tools that we anticipate users to work
 			// with frequently to the tool bar.
-			toolbar.addSeparator();
+			toolbar.add(Box.createHorizontalStrut(5));
 			toolbar.add(Utilities.createToolButton("images/24x24/ServerAdd.png", 
 					null, "AddServer", this,
 					"Launch wizard to add a new server and install " +

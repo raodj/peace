@@ -36,6 +36,7 @@ package org.peace_tools.core;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.Box;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -134,13 +135,22 @@ public class HelpMenuHelper implements ActionListener {
 		helpMenu.addSeparator();
 		//----------------------------------------------------------
 		item = Utilities.createMenuItem(Utilities.MENU_ITEM, 
+				"Welcome & Quick Start",
+				"The initial welcome screen with quick start guide about PEACE",
+				"Welcome", this, "images/24x24/WelcomeSrc.png", 
+				null, true, false);
+		helpMenu.add(item);
+		item = Utilities.createMenuItem(Utilities.MENU_ITEM, 
 				"About PEACE",
 				"Credits and copyright information about the PEACE software system",
 				"About", this, "images/24x24/PEACE.png", null, true, false);
 		helpMenu.add(item);
 		
 		if (toolbar != null) {
-			toolbar.addSeparator();
+			toolbar.add(Box.createHorizontalStrut(5));
+			toolbar.add(Utilities.createToolButton("images/24x24/WelcomeSrc.png", 
+					null, "Welcome", this, 
+					"Show welcome message & quick start guide", true));
 			toolbar.add(Utilities.createToolButton("images/24x24/Help.png", 
 					null, "HelpContents", this, 
 					"Launch online PEACE via your default browser", true));
@@ -158,7 +168,7 @@ public class HelpMenuHelper implements ActionListener {
 		// The action commands.
 		String ActionCmds[] = {"HelpContents", "HelpTutorials", 
 				"HelpPubs", "HelpUpdates", "HelpProgDoc",
-				"HelpNotes", "HelpBug", "HelpEmail", "About"};
+				"HelpNotes", "HelpBug", "HelpEmail", "Welcome", "About"};
 		// Map action command to index ids
 		int index;
 		final String cmd = event.getActionCommand();
@@ -173,6 +183,11 @@ public class HelpMenuHelper implements ActionListener {
 			// This is online HTML page request. Use helper method to
 			// launch browser if possible.
 			mainFrame.showHelp("http://www.peace-tools.org/" + HelpURLs[index]);
+		} else if (index == ActionCmds.length - 2) {
+			// Show the welcome screen if it is not already there.
+			ViewFactory vf = mainFrame.getViewFactory();
+			vf.createView("../../../installFiles/welcome.html", null,
+						  ViewFactory.ViewType.HTML_VIEW, false, false);
 		} else if (index == ActionCmds.length - 1) {
 			// Launch about dialog box.
 			try {

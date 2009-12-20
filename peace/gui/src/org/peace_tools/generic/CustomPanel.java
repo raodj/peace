@@ -109,7 +109,8 @@ public class CustomPanel extends JPanel {
 	public CustomPanel(LayoutManager layout) {
 		super(layout);
 		backgroundImage = null;
-		useImageSize = true;
+		useImageWidth   = true;
+		useImageHeight  = true;
 	}
 	
 	/**
@@ -147,11 +148,15 @@ public class CustomPanel extends JPanel {
 	 * Method to set if the panel should use the background image size
 	 * as the preferred size for the panel.
 	 * 
-	 * @param useImageSize If the parameter is true, then the panel reports
-	 * the background image size as the preferred image size.
+	 * @param useImageWidth If the parameter is true, then the panel reports
+	 * the width of the background image size as the preferred image width.
+	 * 
+	 * @param useImageHeight If the parameter is true, then the panel reports
+	 * the height of the background image size as the preferred image height.
 	 */
-	public void setUseImageSize(boolean useImageSize) {
-		this.useImageSize = useImageSize;
+	public void setUseImageSize(boolean useImageWidth, boolean useImageHeight) {
+		this.useImageWidth  = useImageWidth;
+		this.useImageHeight = useImageHeight;
 	}
 	
 	/**
@@ -216,18 +221,31 @@ public class CustomPanel extends JPanel {
 	 * @see javax.swing.JPanel
 	 */
 	public Dimension getPreferredSize() {
-		if ((backgroundImage != null) && (useImageSize)) {
-			return getSize();
+		Dimension size = super.getPreferredSize();
+		if (backgroundImage != null) {
+			// Override width and height as needed
+			if (this.useImageWidth) {
+				size.width = backgroundImage.getIconWidth();
+			}
+			if (this.useImageHeight) {
+				size.height = backgroundImage.getIconHeight();
+			}
 		}
-		return super.getPreferredSize();
+		return size;
 	}
 	
 	/**
 	 * Flag to indicate if the size of the image should be used
 	 * as the preferred size for this panel.
 	 */
-	private boolean useImageSize;
-	
+	private boolean useImageWidth;
+
+	/**
+	 * Flag to indicate if the size of the image should be used
+	 * as the preferred size for this panel.
+	 */
+	private boolean useImageHeight;
+
 	/**
 	 * The image used for the background
 	 * 

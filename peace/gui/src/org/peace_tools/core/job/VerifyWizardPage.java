@@ -70,22 +70,26 @@ public class VerifyWizardPage extends GenericWizardPage {
 		setBorder(new EmptyBorder(5, 5, 5, 5));
 		// Create the job summary information text area.
 		summary = new JTextArea(3, 10);
+		JScrollPane jsp = new JScrollPane(summary);
+		jsp.setMinimumSize(summary.getPreferredSize());
 		JComponent descBox = 
 			Utilities.createLabeledComponents("Job information summary:",
-					"(This information cannot be edited)", 0, 
-					new JScrollPane(summary));
+					"(This information cannot be edited)", 0, false, null, null);
+		JPanel infoPanel = new JPanel(new BorderLayout(0, 0));
+		infoPanel.add(descBox, BorderLayout.NORTH);
+		infoPanel.add(jsp, BorderLayout.CENTER);
 		// Create the informational labels.
 		JLabel info = new JLabel(INFO_MSG, 
-				Utilities.getIcon("images/16x16/Information.png"), 
+				Utilities.getIcon("images/32x32/Information.png"), 
 				JLabel.LEFT);
 		JLabel caution = new JLabel(CAUTION_MSG, 
-				Utilities.getIcon("images/16x16/Warning.png"), 
+				Utilities.getIcon("images/24x24/Warning.png"), 
 				JLabel.LEFT);
 		
 		// Pack the display fields into a suitable panel
 		JPanel subPanel = new JPanel(new BorderLayout(5, 5));
 		subPanel.add(info, BorderLayout.NORTH);
-		subPanel.add(descBox, BorderLayout.CENTER);
+		subPanel.add(infoPanel, BorderLayout.CENTER);
 		subPanel.add(caution, BorderLayout.SOUTH);
 		// Finally add the sub panel to this panel.
 		add(subPanel, BorderLayout.CENTER);
@@ -124,8 +128,8 @@ public class VerifyWizardPage extends GenericWizardPage {
 	 */
 	private static final String INFO_MSG = 
 		"<html>You have provided the following information regarding<br>" +
-		"the job to be scheduled. Please verify the information. Next,k<br>" +
-		"'the wizard will perform the initial job setup.</html>";
+		"the job to be scheduled. Please verify the information. Next<br>" +
+		"the wizard will perform the initial job setup.</html>";
 
 	/**
 	 * A simple caution message that is displayed at the bottom of the

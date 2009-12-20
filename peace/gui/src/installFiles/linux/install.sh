@@ -58,9 +58,18 @@ if [ $? -ne 0 ]; then
    exit 3
 fi
 
+# Detect and workaround absence of mpicc
+useMpi=""
+which mpicc
+if [ $? -ne 0 ]; then
+	echo "Warning: mpicc not found in path."
+	echo "Warning: Proceeding with default C++ compiler"
+	useMpi="--without-mpi"
+fi
+
 echo "-----------------------------------------------------"
 echo "Configuring build system"
-./configure
+./configure $useMpi
 if [ $? -ne 0 ]; then
    echo "Configure failed."
    exit 4

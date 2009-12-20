@@ -36,8 +36,8 @@ package org.peace_tools.core.server;
 import java.awt.BorderLayout;
 import java.awt.Color;
 
-import javax.swing.Box;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
@@ -81,27 +81,25 @@ public class ServerAddingEntryWizardPage extends GenericWizardPage {
 		// Setup the title(s) for this page and border
 		setTitle("Server Summary", 
 				"Adds server entry & starts installation");
-		setBorder(new EmptyBorder(20, 10, 5, 10));
+		setBorder(new EmptyBorder(10, 10, 5, 10));
 		// Create labels with all the necessary information.
 		for(int i = 0; (i < infoFields.length); i++) {
 			infoFields[i] = new JTextField();
 			infoFields[i].setEditable(false);
 			infoFields[i].setBackground(Color.lightGray.brighter());
-			Utilities.adjustDimension(infoFields[i], 600, 4);
 		}
 		// Pack all the labels into a panel with vertical box layout.
-		Box container = 
-		Utilities.createLabeledComponents(STANDARD_MSG, 0,
+		JPanel container = 
+		Utilities.createLabeledComponents(STANDARD_MSG, null, 4, true,
 				new JLabel(" "), // Blank line
 				new JLabel("Server's host name:"), infoFields[0],
 				new JLabel(" "), // Blank line
 				new JLabel("Install directory:"), infoFields[1],
 				new JLabel(" "), // Blank line
 				new JLabel(INFO_MSG, 
-						Utilities.getIcon("images/16x16/Information.png"),
+						Utilities.getIcon("images/32x32/Information.png"),
 						JLabel.LEFT)
 				);
-		container.add(Box.createVerticalGlue());
 		// Add container to this page
 		add(container, BorderLayout.CENTER);
 	}
@@ -144,8 +142,9 @@ public class ServerAddingEntryWizardPage extends GenericWizardPage {
 	 * A simple standard message to be displayed at the bottom of this page.
 	 */
 	private static final String INFO_MSG = "<html>" +
-		"The install process will be run in the background and the results<br>" +
-		"will be displayed on a separate window in the workpsace.</html>";
+		"The install process will be run in the background<br>" +
+		"and the results will be displayed on a separate<br>" +
+		"window in the workpsace.</html>";
 	
 	/**
 	 * A reference to the wizard dialog that logically owns this

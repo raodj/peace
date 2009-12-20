@@ -54,7 +54,8 @@ import org.peace_tools.workspace.WorkspaceListener;
  * set views.
  * 
  * @note This table model currently provides the following information
- * for each job: JobID, Server, CPUs, Status.
+ * for each job: JobID, Server, Monitor, CPUs, Status. The monitor column
+ * indicates the status of the background job monitoring thread.
  */
 public class JobListTableModel extends AbstractTableModel implements WorkspaceListener {
 	/**
@@ -71,11 +72,11 @@ public class JobListTableModel extends AbstractTableModel implements WorkspaceLi
 	 * Method to obtain the columns that are to be displayed by in a
 	 * Job table.
 	 * 
-	 * @return This method currently always returns 4.
+	 * @return This method currently always returns 5.
 	 */
 	@Override
 	public int getColumnCount() {
-		return 4;
+		return 5;
 	}
 
 	/**
@@ -100,7 +101,7 @@ public class JobListTableModel extends AbstractTableModel implements WorkspaceLi
 	 */
 	public Job getJob(int row) {
 		Workspace ws = Workspace.get();
-		if (ws.getJobList().getJobs().size() < row) {
+		if ((row < 0) || (ws.getJobList().getJobs().size() < row)) {
 			return null;
 		}
 		// Obtain the job object whose data is to be returned
@@ -127,9 +128,16 @@ public class JobListTableModel extends AbstractTableModel implements WorkspaceLi
 			return job.getJobID();
 		case 1: // return the current status.
 			return job.getStatus();
-		case 2: // return the server on which job is running.
+		case 2: // return monitor status.
+			if (job.getMonitor() != null) {
+				return "Running";
+			} else if (!job.isDone()) {
+				return "Needed";
+			}
+			return "Not Needed";
+		case 3: // return the server on which job is running.
 			return (srvr != null) ? srvr.getName() : "<n/a>";
-		case 3: // return number of CPUs 
+		case 4: // return number of CPUs 
 			return "" + (job.getCPUsPerNode() * job.getNodes());
 		}
 		// A invalid column!
@@ -196,7 +204,7 @@ public class JobListTableModel extends AbstractTableModel implements WorkspaceLi
 	 */
 	@Override
 	public String getColumnName(int col) {
-		String titles[] = {"Job ID", "Status", "Server", "CPUs"};
+		String titles[] = {"Job ID", "Status", "Monitor", "Server", "CPUs"};
 		return titles[col];
 	}
 	

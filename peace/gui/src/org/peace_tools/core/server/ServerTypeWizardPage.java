@@ -38,7 +38,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -102,7 +101,7 @@ implements ActionListener, Runnable {
 		// Pack the options along with a pretty icon and label into 
 		// a sub-panel.
 		JPanel subPanel = new JPanel(new BorderLayout(2, 2));
-		subPanel.setBorder(new EmptyBorder(30, 15, 10, 10));
+		subPanel.setBorder(new EmptyBorder(10, 15, 10, 10));
 		subPanel.add(new JLabel("Select type of server to add:"), BorderLayout.NORTH);
 		subPanel.add(serverTypes, BorderLayout.SOUTH);
 		// Add sub-panel to the main panel
@@ -112,18 +111,18 @@ implements ActionListener, Runnable {
 		// password for accessing a remote machine.
 		JComponent srvrNameBox = 
 			Utilities.createLabeledComponents("Enter name or IP Address of server:",
-				0, (hostName = new JTextField(30)));
-		Utilities.adjustDimension(hostName, 200, 4);
+				null, 4, false, (hostName = new JTextField(10)));
+		// Utilities.adjustDimension(hostName, 200, 4);
 		// Create the user-name and password fields
 		JComponent userNameBox = 
-			Utilities.createLabeledComponents("Login (user) ID:",
-				0, (userName = new JTextField(12)));
-		Utilities.adjustDimension(userName, 200, 4);
+			Utilities.createLabeledComponents("Login (user) ID:", null,
+				4, false, (userName = new JTextField(10)));
+		// Utilities.adjustDimension(userName, 200, 4);
 		userNameBox.setAlignmentY(0);
 		JComponent passwordBox = 
-			Utilities.createLabeledComponents("Password:",
-				0, (password = new JPasswordField(12)));
-		Utilities.adjustDimension(password, 200, 4);
+			Utilities.createLabeledComponents("Password:", null,
+				4, false, (password = new JPasswordField(10)));
+		// Utilities.adjustDimension(password, 200, 4);
 		passwordBox.setAlignmentY(0);
 		// Wrap the credential inputs appropriately
 		JComponent credentialBox = Box.createHorizontalBox();
@@ -132,8 +131,8 @@ implements ActionListener, Runnable {
 		credentialBox.add(passwordBox);
 		// Let the user know the credentials will be validated when
 		// they click the "Next>" button.
-		fixedMsgs[0] = new JLabel("Login credentials will be verified when " + 
-				"the Next button is clicked", 
+		fixedMsgs[0] = new JLabel("<html>Login credentials will be verified when " + 
+				"<br>the Next button is clicked.<br></html>", 
 				Utilities.getIcon("images/16x16/Information.png"),
 				JLabel.LEFT);
 		// The fixedMsg to inform user to wait is a bit more involved.
@@ -149,23 +148,15 @@ implements ActionListener, Runnable {
 				new EmptyBorder(5, 30, 5, 30)));
 		Utilities.adjustFont(fixedMsgs[1], 0, 10, 1);
 		fixedMsgs[1].setVisible(false);
-		// Pack the various Box'es into a suitable panel. For this
-		// we need to set the yalignment correctly.
-		srvrNameBox.setAlignmentX(0);
-		credentialBox.setAlignmentX(0);
-		fixedMsgs[0].setAlignmentX(0);
-		fixedMsgs[1].setAlignmentX(0);
-		remoteSrvrInfo = new JPanel();
+		// Pack the various Box'es into a suitable panel.
+		remoteSrvrInfo = Utilities.createLabeledComponents(null, null, 0, true,
+				srvrNameBox,
+				Box.createVerticalStrut(10),
+				credentialBox,
+				Box.createVerticalStrut(10),
+				fixedMsgs[0], fixedMsgs[1]);		
 		remoteSrvrInfo.setBorder(new CompoundBorder(new TitledBorder(" Remote Server Data "),
 				new EmptyBorder(10, 10, 10, 10)));
-		remoteSrvrInfo.setLayout(new BoxLayout(remoteSrvrInfo, BoxLayout.Y_AXIS));
-		remoteSrvrInfo.add(srvrNameBox);
-		remoteSrvrInfo.add(Box.createVerticalStrut(10));
-		remoteSrvrInfo.add(credentialBox);
-		remoteSrvrInfo.add(Box.createVerticalStrut(30));
-		remoteSrvrInfo.add(fixedMsgs[0]);
-		remoteSrvrInfo.add(fixedMsgs[1]);
-		remoteSrvrInfo.add(Box.createVerticalGlue());
 		// Add the remote server Information panel to the main page
 		add(remoteSrvrInfo, BorderLayout.CENTER);
 	}
@@ -312,7 +303,7 @@ implements ActionListener, Runnable {
 				// But disable the label with message...
 				progressBar.setIndeterminate(false);
 				fixedMsgs[1].setVisible(false);
-				fixedMsgs[0].setVisible(false);
+				fixedMsgs[0].setVisible(true);
 				validate();
 				// Disable other controls if only credentials are to change
 				serverTypes.setEnabled(!changeCredentialsOnly);

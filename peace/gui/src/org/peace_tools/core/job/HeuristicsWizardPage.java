@@ -41,7 +41,6 @@ import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -88,17 +87,13 @@ implements ActionListener {
 				JLabel.LEFT);
 		info.setAlignmentX(0);
 		// Pack the input fields into a box
-		JPanel subPanel = new JPanel();
-		subPanel.setLayout(new BoxLayout(subPanel, BoxLayout.Y_AXIS));
+		JPanel subPanel = Utilities.createLabeledComponents(null, null, 0, true,
+				info, Box.createVerticalStrut(5),
+				createUvPanels(),
+				Box.createVerticalStrut(5),
+				createTvPanels());
+		// Set border to make layout look good.
 		subPanel.setBorder(new EmptyBorder(5, 15, 10, 10));
-		// Pack the default fields into the subPanel.
-		subPanel.add(info);
-		subPanel.add(Box.createVerticalStrut(5));
-		createUvPanels(subPanel);
-		subPanel.add(Box.createVerticalStrut(5));
-		createTvPanels(subPanel);
-		// Finally add a filler to take up some vertical space.
-		subPanel.add(Box.createVerticalGlue());
 		// Add the contents to this page
 		add(subPanel, BorderLayout.CENTER);
 	}
@@ -118,8 +113,6 @@ implements ActionListener {
 		cb.setActionCommand(cmd);
 		cb.setAlignmentX(0);
 		cb.addActionListener(this);
-		Utilities.adjustDimension(cb, 400, 0);
-		Utilities.adjustFont(cb, 0, 10, 1);
 		JPanel bag = new JPanel(new BorderLayout(0, 0));
 		bag.setBackground(Color.white);
 		bag.setBorder(BorderFactory.createCompoundBorder(
@@ -127,7 +120,6 @@ implements ActionListener {
 				BorderFactory.createEmptyBorder(1, 2, 1, 2)));
 		bag.add(cb, BorderLayout.NORTH);
 		bag.setAlignmentX(0);
-		Utilities.adjustDimension(bag, 400, 0);
 		return bag;
 	}
 	/**
@@ -137,7 +129,7 @@ implements ActionListener {
 	 * @param subPanel The sub-panel to which the text controls are
 	 * to be added. 
 	 */
-	private void createUvPanels(JPanel subPanel) {
+	private JPanel createUvPanels() {
 		// First create enable/disable checkbox with nice border.
 		enableUV = new JCheckBox("Enable u/v sample heuristic for this job");
 		JPanel bag = adjustCheckBox(enableUV, "uv");
@@ -153,39 +145,33 @@ implements ActionListener {
 				new SpinnerNumberModel(DefaultValues[i], 2, 32, 1);
 			// Create and configure the spinner.
 			uvParams[i] = new JSpinner(model); 
-			Utilities.adjustDimension(uvParams[i], 100, 4); // Adjust size to look right
+			Utilities.adjustDimension(uvParams[i], 50, 4); // Adjust size to look right
 			if (i > 0) {
 				horizBox.add(Box.createHorizontalStrut(20));
 			}
-			horizBox.add(Utilities.createLabeledComponents(Titles[i], 
-					0, uvParams[i]));
+			horizBox.add(Utilities.createLabeledComponents(Titles[i], null,
+					0, false, uvParams[i]));
 		}
 		// Now put all the information into a nice titled panel.
-		JPanel bigBox = new JPanel();
-		bigBox.setAlignmentX(0);
-		bigBox.setLayout(new BoxLayout(bigBox, BoxLayout.Y_AXIS));
+		JPanel bigBox = Utilities.createLabeledComponents(null, null, 0, false,
+				bag, Box.createVerticalStrut(5), 
+				new JLabel(UV_INFO_MSG), 
+				Box.createVerticalStrut(5),
+				horizBox);
+		// Set border to make things look good.
 		bigBox.setBorder(BorderFactory.createCompoundBorder(
 				BorderFactory.createTitledBorder("u/v Heuristic"),
 				BorderFactory.createEmptyBorder(5, 5, 5, 5)));
-		bigBox.add(bag);
-		bigBox.add(Box.createVerticalStrut(5));
-		JLabel info = new JLabel(UV_INFO_MSG);
-		info.setAlignmentX(0);
-		bigBox.add(info);
-		bigBox.add(Box.createVerticalStrut(5));
-		bigBox.add(horizBox);
-		// Add all the information it to the parent panel.
-		subPanel.add(bigBox);
+		return bigBox;
 	}
 	
 	/**
 	 * This is a helper method that is used to create the necessary
 	 * information regarding the t/v heuristic.
 	 * 
-	 * @param subPanel The sub-panel to which the text controls are
-	 * to be added. 
+	 * @return A panel to which the text controls have been added. 
 	 */
-	private void createTvPanels(JPanel subPanel) {
+	private JPanel createTvPanels() {
 		// First create enable/disable checkbox with nice border.
 		enableTV = new JCheckBox("Enable t/v sample heuristic (needs u/v)");
 		JPanel bag = adjustCheckBox(enableTV, "tv");
@@ -199,28 +185,25 @@ implements ActionListener {
 				new SpinnerNumberModel(DefaultValues[i], 2, 1000, 1);
 			// Create and configure the spinner.
 			tvParams[i] = new JSpinner(model); 
-			Utilities.adjustDimension(tvParams[i], 200, 4); // Adjust size to look right
+			Utilities.adjustDimension(tvParams[i], 100, 4); // Adjust size to look right
 			if (i > 0) {
 				horizBox.add(Box.createHorizontalStrut(30));
 			}
-			horizBox.add(Utilities.createLabeledComponents(Titles[i], 
-					0, tvParams[i]));
+			horizBox.add(Utilities.createLabeledComponents(Titles[i], null,
+					0, false, tvParams[i]));
 		}
 		// The first parameter is locked based on analyze frame size
 		tvParams[0].setEnabled(false);
 
 		// Now put all the information into a nice titled panel.
-		JPanel bigBox = new JPanel();
-		bigBox.setAlignmentX(0);
-		bigBox.setLayout(new BoxLayout(bigBox, BoxLayout.Y_AXIS));
+		JPanel bigBox = Utilities.createLabeledComponents(null, null, 0, false,
+				bag, Box.createVerticalStrut(5), horizBox);
+		// Set up border 
 		bigBox.setBorder(BorderFactory.createCompoundBorder(
 				BorderFactory.createTitledBorder("t/v Heuristic"),
 				BorderFactory.createEmptyBorder(5, 5, 5, 5)));
-		bigBox.add(bag);
-		bigBox.add(Box.createVerticalStrut(5));
-		bigBox.add(horizBox);
-		// Add all the information it to the parent panel.
-		subPanel.add(bigBox);
+		// Return panel back to caller
+		return bigBox;
 	}
 
 	/**

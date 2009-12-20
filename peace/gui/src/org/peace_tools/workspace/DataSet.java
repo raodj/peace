@@ -370,7 +370,7 @@ public class DataSet {
 	public synchronized void remove(MSTClusterData cluster) {
 		Workspace ws = Workspace.get();
 		if (cluster != null) {
-			mstList.remove(cluster);
+			clusterList.remove(cluster);
 			WorkspaceEvent wse = new WorkspaceEvent(cluster,
 					WorkspaceEvent.Operation.DELETE);
 			ws.fireWorkspaceChanged(wse);

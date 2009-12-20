@@ -37,7 +37,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 
 import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -81,7 +80,6 @@ public class JobInfoWizardPage extends GenericWizardPage {
 		// Create the combo-box with list of data sets.
 		dataSetList = new JComboBox();
 		dataSetList.setBackground(Color.white);
-		Utilities.adjustDimension(dataSetList, 500, 0);
 				
 		for(DataSet ds: Workspace.get().getDataSets()) {
 			dataSetList.addItem(ds.toString());
@@ -89,33 +87,28 @@ public class JobInfoWizardPage extends GenericWizardPage {
 		// Create panel with the combo box for the user to choose
 		JComponent dataSetBox = 
 			Utilities.createLabeledComponents("Select Data Set for Job:",
-					"(The EST file in data set will be processed)", 0, 
+					"(The EST file in data set will be processed)", 0, false, 
 					dataSetList);
 		
 		// Create panels with description of the job
-		description = new JTextArea(3, 10);
+		description = new JTextArea(3, 3);
+		JScrollPane jsp = new JScrollPane(description);
+		jsp.setMinimumSize(description.getPreferredSize());
 		JComponent descBox = 
 			Utilities.createLabeledComponents("Description for job:",
 					"(This is for your reference & can be anything)", 0, 
-					new JScrollPane(description));
+					false, jsp);
 		// Create the informational label.
 		JLabel info = new JLabel(INFO_MSG, 
-				Utilities.getIcon("images/16x16/Information.png"), 
+				Utilities.getIcon("images/32x32/Information.png"), 
 				JLabel.LEFT);
 		
 		// Pack the input fields into a box
-		JPanel subPanel = new JPanel();
-		subPanel.setLayout(new BoxLayout(subPanel, BoxLayout.Y_AXIS));
+		JPanel subPanel = Utilities.createLabeledComponents(null, null, 0, true,
+			info, Box.createVerticalStrut(20),
+			dataSetBox, Box.createVerticalStrut(20),
+			descBox);
 		subPanel.setBorder(new EmptyBorder(5, 15, 10, 10));
-		// Pack the default fields into the subPanel.
-		subPanel.add(info);
-		subPanel.add(Box.createVerticalStrut(20));
-		subPanel.add(dataSetBox);
-		subPanel.add(Box.createVerticalStrut(20));
-		subPanel.add(descBox);
-		subPanel.add(Box.createVerticalStrut(20));
-		// Finally add a filler to take up some vertical space.
-		subPanel.add(Box.createVerticalGlue());
 		// Add the contents to this page
 		add(subPanel, BorderLayout.CENTER);
 	}
@@ -190,9 +183,10 @@ public class JobInfoWizardPage extends GenericWizardPage {
 	 */
 	private static final String INFO_MSG = 
 		"<html>Select the data set that contains the EST file to be<br>" +
-		"processed by this job. Subsequent wizard pages will permit<br>" +
-		"setting up additional information for the job such as: MST<br>" +
-		"generation parameters, server to run the job, etc.</html>";
+		"processed by this job. Subsequent wizard pages will<br>" +
+		"permit setting up additional information for the job<br>" +
+		"such as: MST generation parameters, clustering<br>" +
+		"settings, and server to run the job, etc.</html>";
 	
 	/**
 	 * A serialization UID to keep the compiler happy.

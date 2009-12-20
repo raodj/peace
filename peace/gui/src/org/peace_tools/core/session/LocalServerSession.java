@@ -74,6 +74,7 @@ public class LocalServerSession extends ServerSession {
 	 */
 	protected LocalServerSession(Component parent, Server server) {
 		super(server, parent);
+		purpose = null;
 	}
 
 	/**
@@ -304,8 +305,7 @@ public class LocalServerSession extends ServerSession {
 			srcDirectory = ".";
 		}
 		final String sourceFile = srcDirectory + "/" + srcFileName; 
-		// A try..finally block to ensure sftp and ftp connections
-		// get closed
+		// A try..finally block to ensure streams get closed
 		FileInputStream srcFile = null;
 		try {
 			// Make the progress bar indeterminate for now.
@@ -429,16 +429,37 @@ public class LocalServerSession extends ServerSession {
 		file.setExecutable((perm & 0x1) != 0, owner);
 	}
 	
-	public static void main(String args[]) throws Exception {
-		final String InstPath = "D:\\Documents and Settings\\raodm\\Local Settings\\Temp\\PEACE";
-		Server server = new Server("1", "localhost", "test host",
-				"raodm", InstPath, null, false);
-		LocalServerSession lss = new LocalServerSession(null, server);
-		lss.connect();
-		String outputs[] = new String[2];
-		final String jobRunner = "which ls && ls";
-		lss.exec(jobRunner, outputs);
-		// print results.
-		System.out.println(outputs[0]);
+	/**
+	 * A simple method to set a purpose message for this session.
+	 * 
+	 * This method can be used to set up a purpose message for a
+	 * server session. The purpose message is displayed
+	 * to the user when prompting for inputs from the user.
+	 *  
+	 * @param text This string is used to create a label (possibly
+	 * with an icon on it). So it can be plain text or HTML. If the
+	 * message is long, then ensure it is properly broken into 
+	 * multiple lines so that dialog boxes don't get too large.
+	 */
+	public void setPurpose(String text) {
+		purpose = text;
 	}
+	
+	/**
+	 * Obtain the purpose set for this session.
+	 * 
+	 * @return The purpose set for this session. If a purpose is
+	 * not set then this method returns null.
+	 */
+	public String getPurpose() {
+		return purpose;
+	}
+	
+	/**
+	 * A simple textual information indicating the purpose for this
+	 * session. This string is more meanigful to the user and is 
+	 * merely used to provide additional information when prompting
+	 * for inputs from the user.
+	 */
+	private String purpose;
 }

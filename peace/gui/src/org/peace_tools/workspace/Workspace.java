@@ -578,7 +578,7 @@ public class Workspace {
      */
     public synchronized void removeDataSet(DataSet dataSet) {
     	if (dataSet != null) {
-    		dataSetList.add(dataSet);
+    		dataSetList.remove(dataSet);
     		// Notify all listeners about the change.
     		fireWorkspaceChanged(new WorkspaceEvent(dataSet, WorkspaceEvent.Operation.DELETE));
     	}

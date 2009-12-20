@@ -313,6 +313,22 @@ public abstract class ServerSession {
 	abstract public FileInfo fstat(String path) throws IOException;
 	
 	/**
+	 * A simple method to set a purpose message for this session.
+	 * 
+	 * This method can be used to set up a purpose message for a
+	 * server session. The purpose message is typically displayed
+	 * to the user when prompting for inputs from the user for 
+	 * credentials. The message serves the purpose of appraising the
+	 * user about the purpose of the session.
+	 *  
+	 * @param text This string is used to create a label (possibly
+	 * with an icon on it). So it can be plain text or HTML. If the
+	 * message is long, then ensure it is properly broken into 
+	 * multiple lines so that dialog boxes don't get too large.
+	 */
+	abstract public void setPurpose(String text);
+	
+	/**
 	 * The server data entry that provides the necessary information to 
 	 * connect to the server.
 	 */
