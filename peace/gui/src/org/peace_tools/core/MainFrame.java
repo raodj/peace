@@ -93,7 +93,7 @@ public class MainFrame extends JFrame implements ActionListener {
 	 *  PEACE GUI is being launched for the first time. In this case,
 	 *  display the "Welcome" view to the user.
 	 */
-	public MainFrame(boolean firstLaunch) {
+	public MainFrame() {
 		super();
 		assert ( Workspace.get() != null );
 		setTitle("PEACE: " + Workspace.get().getDirectory());
@@ -118,12 +118,6 @@ public class MainFrame extends JFrame implements ActionListener {
 		// Create the standard views via the view factory.
 		defaultViewFactory = new DefaultViewFactory(this);
 		defaultViewFactory.createStaticViews();
-		// For first launch also display the welcome & quick start
-		// guide to PEACE.
-		if (firstLaunch) {
-			defaultViewFactory.createView("../../../installFiles/welcome.html", null,
-					  ViewFactory.ViewType.HTML_VIEW, false, false);
-		}
 	}
 
 	/**

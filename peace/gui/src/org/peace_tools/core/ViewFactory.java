@@ -171,7 +171,7 @@ public abstract class ViewFactory implements DnDTabListener {
 		DnDTabbedPane logArea = 
 			centerPane.createSplitPane("User Logs", 
 					Utilities.getIcon("images/16x16/UserLog.png"), ulp, 
-					DnDTabbedPane.Location.BOTTOM, 0.8, 575);
+					DnDTabbedPane.Location.BOTTOM, 0.7, 500);
 		// Add the programmer log behind the user pane.
 		logArea.createSplitPane("Programmer Logs",
 				Utilities.getIcon("images/16x16/ProgLog.png"), plp, 
@@ -209,7 +209,7 @@ public abstract class ViewFactory implements DnDTabListener {
 		DnDTabbedPane leftBotPane = 
 			leftPane.createSplitPane("Jobs", 
 					Utilities.getIcon("images/16x16/Job.png"), 
-					jlv, DnDTabbedPane.Location.BOTTOM, 0.5, 350);
+					jlv, DnDTabbedPane.Location.BOTTOM, 0.5, 250);
 		// Create server list and add that below the list of jobs
 		ServerListView slv = new ServerListView(mainFrame);
 		leftBotPane.createSplitPane("Servers",

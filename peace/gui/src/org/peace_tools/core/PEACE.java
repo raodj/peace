@@ -80,10 +80,10 @@ public class PEACE {
 	 * PEACE GUI is being run for the first time and a welcome screen 
 	 * with some basic instructions is displayed to the user.
 	 */
-	protected void launchMainFrame(String workspacePath, boolean firstLaunch) {
+	protected void launchMainFrame(String workspacePath, final boolean firstLaunch) {
 		if ((workspacePath != null) && (Workspace.get() != null)) {
 			// Launch the main frame and we are done.
-			final MainFrame mf = new MainFrame(firstLaunch);
+			final MainFrame mf = new MainFrame();
 			mf.pack();
 			mf.setVisible(true);
 			// Cut logs in the user log to provide core information.
@@ -93,7 +93,8 @@ public class PEACE {
 			// Cut information in the programmer log about environment
 			ProgrammerLog.log(Version.GUI_VERSION + "\n");
 			ProgrammerLog.log(Version.COPYRIGHT + "\n");
-			// Create job threads for monitoring jobs after some delay
+			// Create welcome tab and the job threads for monitoring
+			// jobs after some delay
 			// to let the GUI settle in first. So we do it from a 
 			// separate thread.
 			Thread bgThread = new Thread(new Runnable() {
@@ -107,6 +108,14 @@ public class PEACE {
 						SwingUtilities.invokeLater(new Runnable() {
 							@Override
 							public void run() {
+								// First create the welcome tab if needed
+								// Show the welcome screen if it is not already there.
+								if (firstLaunch) {
+									ViewFactory vf = mf.getViewFactory();
+									vf.createView("../../../installFiles/welcome.html", null,
+											ViewFactory.ViewType.HTML_VIEW, false, false);
+								}
+								// Create job threads for all jobs that need them.
 								mf.createJobThreads();
 							}
 						});
