@@ -90,7 +90,7 @@ public class Utilities {
 	 * the various methods in this class. This prefix path enables organizing
 	 * and collating files appropriately.
 	 */
-	private static final String PATH_PREFIX = "../../../";
+	public static final String PATH_PREFIX = "../../../";
 
 	/** Constant that can be supplied to the createMenuItem method */
 	public static final int MENU_ITEM = 1;

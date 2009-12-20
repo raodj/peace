@@ -17,6 +17,8 @@ import javax.swing.text.EditorKit;
 import javax.swing.text.html.HTMLEditorKit;
 
 import org.peace_tools.core.MainFrame;
+import org.peace_tools.generic.ProgrammerLog;
+import org.peace_tools.generic.Utilities;
 
 /**
  * A HTML-based view to display simple HTML data.
@@ -55,7 +57,14 @@ public class GenericHTMLView extends JPanel implements HyperlinkListener {
 		if (fileOrURL.startsWith("http")) {
 			url = new URL(fileOrURL);
 		} else {
-			url = GenericHTMLView.class.getResource(fileOrURL);
+			// We need to check two different paths to handle difference between
+			// running via a Jar file and running in development environment (Eclipse).
+			// Try the Jar file choice first so that regular runs go faster.
+			url = Utilities.class.getResource("/" + fileOrURL);
+			if (url == null) {
+				url = Utilities.class.getResource(Utilities.PATH_PREFIX + fileOrURL);
+			}
+			ProgrammerLog.log("HTML editor is loading: " + url);
 		}
 		// Force loading HTML page synchronously to work around Java bug
 		JEditorPane htmlPane = new JEditorPane();

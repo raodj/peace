@@ -163,7 +163,7 @@ public class ViewMenuHelper implements ActionListener {
 		} else if ("WELCOME_SCREEN".equals(cmd)) {
 			// Show the welcome screen if it is not already there.
 			ViewFactory vf = mainFrame.getViewFactory();
-			vf.createView("../../../installFiles/welcome.html", null,
+			vf.createView("installFiles/welcome.html", null,
 						  ViewFactory.ViewType.HTML_VIEW, false, false);
 		} else {
 			// This must be to view a specific view. The action

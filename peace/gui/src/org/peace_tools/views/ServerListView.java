@@ -153,7 +153,7 @@ implements ListSelectionListener, ActionListener {
 		//--------------------------------------------------
 		popupMenu.add(Utilities.createMenuItem(Utilities.MENU_ITEM, 
 				"Show all jobs on this server", "jobListAll", this, 
-				"images/16x16/JobMonitor.png", null, true, false));
+				"images/16x16/ServerInfo.png", null, true, false));
 		popupMenu.add(Utilities.createMenuItem(Utilities.MENU_ITEM, 
 				"Show just your jobs on this server", "jobList", this, 
 				null, null, true, false));
