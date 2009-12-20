@@ -186,7 +186,7 @@ public class HelpMenuHelper implements ActionListener {
 		} else if (index == ActionCmds.length - 2) {
 			// Show the welcome screen if it is not already there.
 			ViewFactory vf = mainFrame.getViewFactory();
-			vf.createView("../../../installFiles/welcome.html", null,
+			vf.createView("installFiles/welcome.html", null,
 						  ViewFactory.ViewType.HTML_VIEW, false, false);
 		} else if (index == ActionCmds.length - 1) {
 			// Launch about dialog box.

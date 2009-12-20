@@ -112,7 +112,7 @@ public class PEACE {
 								// Show the welcome screen if it is not already there.
 								if (firstLaunch) {
 									ViewFactory vf = mf.getViewFactory();
-									vf.createView("../../../installFiles/welcome.html", null,
+									vf.createView("installFiles/welcome.html", null,
 											ViewFactory.ViewType.HTML_VIEW, false, false);
 								}
 								// Create job threads for all jobs that need them.
