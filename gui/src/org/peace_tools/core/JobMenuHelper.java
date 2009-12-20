@@ -103,7 +103,7 @@ public class JobMenuHelper extends WindowAdapter implements ActionListener {
 			Utilities.createMenuItem(Utilities.MENU_ITEM, "Job to Compute Clusters",
 				"Computes new clustering using existing MST data (quick operation)",
 				"NewClusters", fileHelper, "images/24x24/NewCluster.png", 
-				null, true, false);
+				null, false, false);
 		jobMenu.add(item);
 		jobMenu.addSeparator();
 		// Options to clear all jobs in the current work space.

@@ -35,7 +35,6 @@ package org.peace_tools.core.server;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
 
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -80,9 +79,6 @@ public class ServerWizard extends WizardDialog {
 		setTitleBackground("images/peace_wizard_header.png", Color.white);
 		// Set up the column image we want to use.
 		setSequenceBackground("images/peace_wizard_column.png");
-		// Setup the overall preferred size
-		setPreferredSize(new Dimension(600, 440));
-		// setMaximumSize(new Dimension(600, 420));
 		// Create a dummy server entry that is being edited by this wizard
 		server = new Server("", "", "", "", "", null, true);
 		server.setPollTime(30);
@@ -109,7 +105,7 @@ public class ServerWizard extends WizardDialog {
 	 */
 	private void createOverview() {
 		JLabel message = new JLabel(OverviewMsg);
-		Utilities.adjustFont(message, 0, 10, -1);
+		// Utilities.adjustFont(message, 0, 10, -1);
 		GenericWizardPage overview = new GenericWizardPage();
 		overview.add(message, BorderLayout.NORTH);
 		overview.setTitle("Overview", "Overview of tasks in this wizard.");

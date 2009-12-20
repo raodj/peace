@@ -108,7 +108,7 @@ public class WizardDialog extends JDialog implements ActionListener {
 		pagePanel = new CustomPanel(new CardLayout());
 		// Create the title panel with a box layout.
 		titlePanel = new CustomPanel(new BorderLayout(0, 0));
-		
+		titlePanel.setUseImageSize(false, true);
 		// Next create the sequence panel to display sequence overview
 		sequencePanel = new CustomPanel();
 		sequencePanel.setLayout(new BoxLayout(sequencePanel, BoxLayout.Y_AXIS));
@@ -229,7 +229,7 @@ public class WizardDialog extends JDialog implements ActionListener {
 		// Pack the wizard forcing layout to happen
 		pack();
 		// Center it on the parent.
-		// setLocationRelativeTo(getOwner()); 
+		setLocationRelativeTo(getOwner()); 
 		// Set the current page being displayed
 		currentPage = 0;
 		// Now the indicate that the first page is to be displayed
@@ -417,7 +417,7 @@ public class WizardDialog extends JDialog implements ActionListener {
 	protected void layoutSequencePanel() {
 		// Add some blank space at the top to make things pretty.
 		sequencePanel.setBorder(new EmptyBorder(25, 5, 5, 0));
-		sequencePanel.setUseImageSize(false);
+		sequencePanel.setUseImageSize(false, false);
 		// Get the empty black box icon for each step.
 		ImageIcon box = Utilities.getIcon("images/16x16/BoxWhite.png");
 		// Create a sequence of labels for each wizard page.

@@ -1,0 +1,126 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<html>
+  <head>
+    <title>Welcome to PEACE</title>
+  </head>
+  <body >
+    <center>
+      <table width="700">
+		<tr>
+          <td width="100%" height="130" align="center"><img src="../images/peace_welcome_header.png" width="549" height="111" alt="banner"></td>
+		</tr>
+		<tr>
+		  <td align="center">
+			<font size="+2" color="#000090"><b>Welcome & Quick Start Guide</b></font>
+		  </td>
+		</tr>
+		<tr>
+          <td>
+			<p align="justify">
+			  Thank you for choosing to use PEACE. PEACE is an acronym
+			  for Parallel EST Analyzer and Clustering Engine. As the
+			  name suggests, the primary objective of PEACE is to ease
+			  clustering and analysis of Expressed Sequence Tags
+			  (ESTs). EST clustering is a computationally demanding
+			  task and clustering large EST data sets requires hours
+			  of compute (or CPU) time.  In order to reduce wall clock
+			  time, PEACE has the ability to cluster ESTs in parallel
+			  using a modern supercomputing cluster. You can read more
+			  about PEACE and associated tools via the PEACE website
+			  <a href="http://www.peace-tools.org/">http://www.peace-tools.org/</a>.
+			</p>
+		  </td>
+		</tr>
+		<tr>
+		  <td>
+			<br>
+			<p align="justify">
+			  Here is a quick overview of the various steps that are
+			  needed to perform some basic EST clustering and analysis:
+			</p>
+		  </td>
+		</tr>
+	  </table>
+      <table width="700">		
+		<tr>
+		  <td width="30" align="center" valign="center" bgcolor="#dddddd"><br><a href="##AddServer"><img src="../images/24x24/ServerAdd.png" width="24" height="24" alt="AddServer"></a></td>
+		  
+		  <td>
+			<p align="justify">
+			  <b>Step 1: Server/Supercomputing cluster setup</b><br>
+			  
+			  The first step in the process is to create a server
+			  entry in PEACE GUI. Click on
+			  the <a href="##AddServer">Add Server</a> tool in the
+			  main toolbar to launch the wizard to add a server. This
+			  wizard guides you through the process of installing the
+			  core PEACE clustering engine on a <i>Linux/Unix</i>
+			  machine or supercomputing cluster. You need to have a
+			  valid login to the machine on which PEACE clustering
+			  engine will run.
+			</p>
+		  </td>
+		</tr>
+
+		<tr><td> </td></tr>
+		
+		<tr>
+		  <td width="30" align="center" valign="center" bgcolor="#dddddd"><br><a href="##NewDataSet"><img src="../images/24x24/NewDataSet.png" width="24" height="24" alt="NewDataSet"></a></td>
+		  
+		  <td>
+			<p align="justify">
+			  <b>Step 2: Create Data Set</b><br>
+			  
+			  Once you have successfully added a server entry, the
+			  next step is to create a Data Set. A data set contains
+			  the EST (FASTA) file and associated clustering data
+			  files.  Click on the <a href="##NewDataSet">New Data
+			  Set</a> tool in the main toolbar to launch the wizard to
+			  create a new data set from an existing EST (FASTA)
+			  file.
+			</p>
+		  </td>
+		</tr>
+		
+		<tr><td> </td></tr>
+		
+		<tr>
+		  <td width="30" align="center" valign="center" bgcolor="#dddddd"><br><a href="##NewMST"><img src="../images/24x24/NewMST.png" width="24" height="24" alt="NewJob"></a></td>
+		  
+		  <td>
+			<p align="justify">
+			  <b>Step 3: Start Job to perform clustering</b><br>
+
+			  Next step is to launch a job to analyze a selected EST
+			  (FASTA) file and identify clusters.  This task is
+			  performed by the <a href="##NewMST">New Job/MST</a>
+			  wizard. This wizard can be launched via
+			  the <a href="##NewMST">New Job/MST</a> tool. The default
+			  values in this wizard are preset and provide a good
+			  start on clustering with PEACE.
+			</p>
+		  </td>
+		</tr>
+
+		<tr><td> </td></tr>
+		
+		<tr>
+		  <td width="30" align="center" valign="center" bgcolor="#dddddd"><br><img src="../images/24x24/NewCluster.png" width="24" height="24" alt="Cluster"></td>
+		  
+		  <td>
+			<p align="justify">
+			  <b>Step 4: View/Analyze Clusters</b><br>
+			  Once the clustering job is complete, the generated data
+			  files are copied by PEACE from the server to your local
+			  machine. The files will appear under the data set in the
+			  <i>Hierarchy</i> tab. Right click on the appropriate
+			  entry and select the appropriate view to view the
+			  clustered ESTs.
+			</p>
+		  </td>
+		</tr>
+	  </table>
+	  <br>
+	</center>
+  </body>
+</html>

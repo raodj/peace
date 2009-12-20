@@ -35,7 +35,6 @@ package org.peace_tools.core.job;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
 
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -84,10 +83,6 @@ public class JobWizard extends WizardDialog {
 		setTitleBackground("images/peace_wizard_header.png", Color.white);
 		// Set up the column image we want to use.
 		setSequenceBackground("images/peace_wizard_column.png");
-		// Setup the overall preferred size
-		setPreferredSize(new Dimension(600, 450));
-		// setMaximumSize(new Dimension(600, 400));
-		
 		// First setup the overview page.
 		createOverview();
 		// Create page to permit the user to select data set
@@ -394,13 +389,13 @@ public class JobWizard extends WizardDialog {
 	private static final String OVERVIEW_MSG = "<html>" +
 		"This wizard guides you through the process of creating a job.<br>" +
 		"A job runs on a selected server (in parallel is so configured)<br>"+
-		"and computes Minimum Spanning Tree (MST) data as well as clustering<br>" +
-		"information for a given EST file. The EST file is chosen from a data<br>" +
-		"set added to the workspace.<br><br>" + 
+		"and computes Minimum Spanning Tree (MST) data as well as<br>" +
+		"clustering information for a given EST file. The EST file is<br>" +
+		"chosen from a data set added to the workspace.<br><br>" + 
 		"The time taken to compute MST data is O(<i>n</i><sup>2</sup>), where <i>n</i><br>" +
-		"is the number of EST sequences in the EST file. It is best to run even<br>" +
-		"medium (more than 25,0000) sets of ESTs in parallel to obtain<br>" +
-		"the results quickly.<br><br>" +		
+		"is the number of EST sequences in the EST file. It is best to<br>" +
+		"run even medium (more than 25,0000) sets of ESTs in parallel<br>" +
+		"to obtain the results quickly.<br><br>" +		
 		"<b>Note</b>: Existing MST and cluster files can be added to the data<br>" +
 		"set and do not have to be generated.<br></html>";
 

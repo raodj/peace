@@ -40,7 +40,6 @@ import java.io.File;
 import java.io.IOException;
 
 import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -90,16 +89,12 @@ implements ActionListener {
 				"Configure cluster file information");
 		setBorder(new EmptyBorder(5, 5, 5, 5));
 		// Pack the input fields into a box
-		JPanel subPanel = new JPanel();
-		subPanel.setLayout(new BoxLayout(subPanel, BoxLayout.Y_AXIS));
+		JPanel subPanel = Utilities.createLabeledComponents(null, null, 0, true,
+				createClusterFileBox(), 
+				Box.createVerticalStrut(10),
+				createOthers());
+		// Separate components from border a bit.
 		subPanel.setBorder(new EmptyBorder(5, 15, 10, 10));
-		subPanel.add(Box.createVerticalGlue());
-		subPanel.add(createClusterFileBox());
-		subPanel.add(Box.createVerticalStrut(10));
-		// Create other controls
-		createOthers(subPanel);
-		// Finally add a filler to take up some vertical space.
-		subPanel.add(Box.createVerticalGlue());
 		// Add the contents to this page
 		add(subPanel, BorderLayout.CENTER);
 	}
@@ -119,8 +114,7 @@ implements ActionListener {
 		browse = Utilities.createButton(null, " Browse ", 
 				"Browse", this, "Browse local file system to " +
 				"choose cluster file folder", true);
-		clusterFile = new JTextField(30);
-		Utilities.adjustDimension(clusterFile, 200, 4);
+		clusterFile = new JTextField(10);
 		Box horizBox = Box.createHorizontalBox();
 		horizBox.add(clusterFile);
 		horizBox.add(Box.createHorizontalStrut(10));
@@ -129,7 +123,7 @@ implements ActionListener {
 		JComponent dirBox =
 			Utilities.createLabeledComponents("Specify local cluster file:",
 					"(The *.clr file is to be created and must not exist)",
-					0, horizBox);		
+					0, false, horizBox);		
 		// Return the box to the caller
 		return dirBox;
 	}
@@ -141,32 +135,32 @@ implements ActionListener {
 	 * method was introduced just to streamline the code in the 
 	 * constructor
 	 * 
-	 * @param subPanel The sub-panel to which the controls are to be
-	 * added. 
+	 * @return The sub-panel to which the controls are added. 
 	 */
-	private void createOthers(JPanel subPanel) {
+	private JPanel createOthers() {
 		// Create panels with description, install folder, and
 		// polling time.
-		description = new JTextArea(3, 10);
+		description = new JTextArea(3, 3);
+		JScrollPane jsp = new JScrollPane(description);
+		jsp.setMinimumSize(description.getPreferredSize());
 		JComponent descBox = 
 			Utilities.createLabeledComponents("Description for cluster file:",
-					"(This is for your reference & can be anything)", 0, 
-					new JScrollPane(description));
-		subPanel.add(descBox);
-		subPanel.add(Box.createVerticalStrut(10));
+					"(This is for your reference & can be anything)", 0, false,
+					jsp);
 		// Create the spinner.
 		threshold = new JSpinner(new SpinnerNumberModel(130, 1, 1024, 10));
-		Utilities.adjustDimension(threshold, 100, 3);
 		JComponent threshBox = 
 			Utilities.createLabeledComponents("Threshold for clustering:",
-					"(See note below for tips)", 0, threshold);
-		subPanel.add(threshBox); 
+					"(See note below for tips)", 4, false, threshold);
 		JLabel note = new JLabel(THRESHOLD_INFO, 
 				Utilities.getIcon("images/24x24/Warning.png"), JLabel.LEFT);
 		Utilities.adjustFont(note, -2, 8, -1);
 		note.setAlignmentX(0);
-		subPanel.add(Box.createVerticalStrut(5));
-		subPanel.add(note);
+		// Organize components in a vertical panel
+		return Utilities.createLabeledComponents(null, null, 0, false, 
+				descBox, Box.createVerticalStrut(10), 
+				threshBox, Box.createVerticalStrut(5),
+				note);
 	}
 	
 	/**
@@ -315,9 +309,9 @@ implements ActionListener {
 	 * on the significance of the threshold value.
 	 */
 	private static final String THRESHOLD_INFO = 
-		"<html>This is an <b>important</b> value. Small values discriminate " +
-		"ESTs more making more clusters. Larger thresholds make larger clusters. " +
-		"Optional threshold value is important  for best results. " +
+		"<html>This is an <b>important</b> value. Small values discriminate<br>" +
+		"ESTs more making more clusters. Larger thresholds make larger clusters.<br>" +
+		"Optional threshold value is important  for best results.<br>" +
 		"See help for more details." +
 		"</html>";
 	

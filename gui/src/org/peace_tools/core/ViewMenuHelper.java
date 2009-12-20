@@ -36,6 +36,7 @@ package org.peace_tools.core;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.Box;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JToolBar;
@@ -133,9 +134,15 @@ public class ViewMenuHelper implements ActionListener {
 				"PROGRAMMER_LOGS", this, "images/24x24/ProgLog.png", 
 				null, true, false);
 		viewMenu.add(item);
+		item = Utilities.createMenuItem(Utilities.MENU_ITEM, 
+				"Welcome & Quick Start",
+				"The initial welcome screen with quick start guide about PEACE",
+				"WELCOME_SCREEN", this, "images/24x24/WelcomeSrc.png", 
+				null, true, false);
+		viewMenu.add(item);
 		
 		if (toolbar != null) {
-			toolbar.addSeparator();
+			toolbar.add(Box.createHorizontalStrut(5));
 			toolbar.add(Utilities.createToolButton("images/24x24/UserLog.png", 
 					null, "ViewUserLogs", this,
 					"Opens a tabular view of logs that provide additional information to a user", 
@@ -153,6 +160,11 @@ public class ViewMenuHelper implements ActionListener {
 			// Not yet implemented
 		} else if ("DupTab".equals(cmd)) {
 			// Not yet implement
+		} else if ("WELCOME_SCREEN".equals(cmd)) {
+			// Show the welcome screen if it is not already there.
+			ViewFactory vf = mainFrame.getViewFactory();
+			vf.createView("../../../installFiles/welcome.html", null,
+						  ViewFactory.ViewType.HTML_VIEW, false, false);
 		} else {
 			// This must be to view a specific view. The action
 			// command has the type of view to be shown.

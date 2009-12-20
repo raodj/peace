@@ -447,6 +447,11 @@ public class Server {
 		out.printf("%s</Server>\n", Indent);
 	}
 	
+	@Override
+	public String toString() {
+		return name;
+	}
+	
 	/**
 	 * A unique identifier for this Server entry. For new Server entries 
 	 * this value is obtained via the ServerList.reserveServerID() method.

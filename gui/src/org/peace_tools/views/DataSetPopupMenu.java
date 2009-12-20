@@ -40,6 +40,7 @@ import java.awt.event.ActionListener;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 
+import org.peace_tools.core.DeleteDialog;
 import org.peace_tools.core.MainFrame;
 import org.peace_tools.generic.Utilities;
 import org.peace_tools.workspace.DataSet;
@@ -118,8 +119,8 @@ public class DataSetPopupMenu extends JPopupMenu implements ActionListener {
 		getComponent(4).setEnabled(entry instanceof MSTClusterData);
 		// Enable/disable expand or collapse options
 		if (isTreeView) {
-			getComponent(7).setEnabled(isExpanded);
-			getComponent(8).setEnabled(!isExpanded);
+			getComponent(8).setEnabled(isExpanded);
+			getComponent(9).setEnabled(!isExpanded);
 		}
 		// Save current entry for use in actionPerformed method
 		this.entry = entry;
@@ -131,15 +132,17 @@ public class DataSetPopupMenu extends JPopupMenu implements ActionListener {
 		if (("view".equals(cmd)) && (entry != null)) {
 			 // Check and display the view (if one does not exist)
 	        mainFrame.getViewFactory().createView(entry, false, false);
-		}
-		if (("text".equals(cmd)) && (entry != null)) {
+		} else if (("text".equals(cmd)) && (entry != null)) {
 			 // Check and display a text view (if one does not exist)
 	        mainFrame.getViewFactory().createView(entry, false, true);
-		}
-		if ("summary".equals(cmd) && (entry != null) && 
+		} else if ("summary".equals(cmd) && (entry != null) && 
 				(entry instanceof MSTClusterData)) {
 			// Check and display cluster summary 
 	        mainFrame.getViewFactory().createSummaryView((MSTClusterData) entry);
+		} else if ("delete".equals(cmd) && (entry != null)) {
+			// Delete the entry via the delete dialog.
+			DeleteDialog delDiag = new DeleteDialog(mainFrame, entry);
+			delDiag.setVisible(true);
 		}
 	}
 

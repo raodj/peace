@@ -35,9 +35,9 @@ package org.peace_tools.core.job;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.GridLayout;
 
 import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -79,31 +79,26 @@ public class AnalyzerWizardPage extends GenericWizardPage {
 		// Create the combo-box with list of analyzers.
 		analyzerList = new JComboBox(ANALYZERS);
 		analyzerList.setBackground(Color.white);
-		Utilities.adjustDimension(analyzerList, 500, 0);				
+ 				
 		// Create panel with the combo box for the user to choose
 		JComponent analyzerBox = 
 			Utilities.createLabeledComponents("Select analyzer for EST comparison:",
 					"(Analyzers provide distance or similarity metrics for clustering)", 0, 
-					analyzerList);
+					false, analyzerList);
 		// Create the informational label.
 		JLabel info = new JLabel(INFO_MSG, 
 				Utilities.getIcon("images/16x16/Information.png"), 
 				JLabel.LEFT);
 		
 		// Pack the input fields into a box
-		JPanel subPanel = new JPanel();
-		subPanel.setLayout(new BoxLayout(subPanel, BoxLayout.Y_AXIS));
+		JPanel subPanel = Utilities.createLabeledComponents(null, null, 0, true,
+				info, Box.createVerticalStrut(10), 
+				analyzerBox, Box.createVerticalStrut(10),
+				createFrameWordPanels(), 
+				Box.createVerticalStrut(10),
+				createCachePanels());
+		// Set border to layout things nicely
 		subPanel.setBorder(new EmptyBorder(5, 15, 10, 10));
-		// Pack the default fields into the subPanel.
-		subPanel.add(info);
-		subPanel.add(Box.createVerticalStrut(10));
-		subPanel.add(analyzerBox);
-		subPanel.add(Box.createVerticalStrut(10));
-		createFrameWordPanels(subPanel);
-		subPanel.add(Box.createVerticalStrut(10));
-		createCachePanels(subPanel);
-		// Finally add a filler to take up some vertical space.
-		subPanel.add(Box.createVerticalGlue());
 		// Add the contents to this page
 		add(subPanel, BorderLayout.CENTER);
 	}
@@ -113,29 +108,25 @@ public class AnalyzerWizardPage extends GenericWizardPage {
 	 * word entry boxes. This method adds the two controls with 
 	 * suitable labels to the supplied sub-panel.
 	 * 
-	 * @param subPanel The sub-panel to which the text controls are
-	 * to be added. 
+	 * @return A panel to which the text controls have been added.
 	 */
-	private void createFrameWordPanels(JPanel subPanel) {
+	private JPanel createFrameWordPanels() {
 		// Create the frame size spinner.
 		frameSize = new JSpinner(new SpinnerNumberModel(100, 10, 1000, 5));
-		Utilities.adjustDimension(frameSize, 200, 6); // Adjust size to look right
+		Utilities.adjustDimension(frameSize, 0, 6); // Adjust size to look right
 		// Create the word size selection combo box 
 		wordSize = new JComboBox(new String[]{"6 bp"});
-		Utilities.adjustDimension(wordSize, 200, 2); // Adjust size to look right
 		wordSize.setBackground(Color.white);
 		// Put the above two components into a horizontal box.
-		Box horizBox = Box.createHorizontalBox();
+		JPanel horizBox = new JPanel(new GridLayout(1, 2, 20, 0));
 		horizBox.add(Utilities.createLabeledComponents("Window size (bp):", 
-				0, frameSize));
-		horizBox.add(Box.createHorizontalStrut(20));
+				null, 0, false, frameSize), BorderLayout.WEST);
 		horizBox.add(Utilities.createLabeledComponents("Word size (bp):", 
-				0, wordSize));
+				null, 0, false, wordSize));
+		horizBox.setBorder(new EmptyBorder(3, 0, 0, 0));
 		// Put the horizontal box into a top-level labeled box.
-		Box bigBox = Utilities.createLabeledComponents("Set window & frame size for analyzer:",
-				"(influences speed, memory, and sensitivity)", 0, horizBox);
-		// Add it to the parent panel.
-		subPanel.add(bigBox);
+		return Utilities.createLabeledComponents("Set window & frame size for analyzer:",
+				"(influences speed, memory, and sensitivity)", 0, false, horizBox);
 	}
 	
 	/**
@@ -148,28 +139,25 @@ public class AnalyzerWizardPage extends GenericWizardPage {
 	 * @param subPanel The sub-panel to which the text controls are
 	 * to be added. 
 	 */
-	private void createCachePanels(JPanel subPanel) {
+	private JPanel createCachePanels() {
 		// Create the frame size spinner.
 		cacheList = new JComboBox(new String[]{"Heap (best bet)", 
 				"Multi List (alternative)"
 		});
 		cacheList.setBackground(Color.white);
-		Utilities.adjustDimension(cacheList, 200, 2); // Adjust size to look right
 		// Create the cache size selection combo box 
 		cacheSize = new JSpinner(new SpinnerNumberModel(128, 32, 1024, 16)); 
-		Utilities.adjustDimension(cacheSize, 200, 6); // Adjust size to look right
+		Utilities.adjustDimension(cacheSize, 0, 6); // Adjust size to look right
 		// Put the above two components into a horizontal box.
-		Box horizBox = Box.createHorizontalBox();
-		horizBox.add(Utilities.createLabeledComponents("Cache Type:", 
-				0, cacheList));
-		horizBox.add(Box.createHorizontalStrut(20));
-		horizBox.add(Utilities.createLabeledComponents("Cache size:", 
-				0, cacheSize));
+		JPanel horizBox = new JPanel(new GridLayout(1, 2, 20, 0));
+		horizBox.add(Utilities.createLabeledComponents("Cache Type:", null, 
+				0, false, cacheList));
+		horizBox.add(Utilities.createLabeledComponents("Cache size:", null, 
+				0, false, cacheSize));
+		horizBox.setBorder(new EmptyBorder(3, 0, 0, 0));
 		// Put the horizontal box into a top-level labeled box.
-		Box bigBox = Utilities.createLabeledComponents("Set cache data structure and maximum metrics to cache:",
-				"(influences speed and memory of MST construction)", 0, horizBox);
-		// Add it to the parent panel.
-		subPanel.add(bigBox);
+		return Utilities.createLabeledComponents("Set cache data structure and maximum metrics to cache:",
+				"(influences speed and memory of MST construction)", 0, false, horizBox);
 	}
 	
 	/**

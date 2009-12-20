@@ -38,6 +38,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
+import javax.swing.Box;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
@@ -104,7 +105,7 @@ public class FileMenuHelper extends WindowAdapter implements ActionListener {
 					"Switch workspace", 
 					"Save current workspace and switch to a new workspace",
 					"Switch", this, "images/24x24/SwitchWorkspace.png", 
-					null, true, false);
+					null, false, false);
 		fileMenu.add(item);
 		fileMenu.addSeparator();
 		
@@ -135,7 +136,7 @@ public class FileMenuHelper extends WindowAdapter implements ActionListener {
 			Utilities.createMenuItem(Utilities.MENU_ITEM, "Import Data Set",
 					"Import a data set from another workspace into current workspace",
 				"Import", this, "images/24x24/Import.png", 
-				null, true, false);
+				null, false, false);
 		fileMenu.add(item);
 		fileMenu.addSeparator();
 		// Finally add the quit option.
@@ -154,7 +155,7 @@ public class FileMenuHelper extends WindowAdapter implements ActionListener {
 			toolbar.add(Utilities.createToolButton("images/24x24/SaveWorkspace.png", 
 					null, "Save", this, 
 					"Saves current workspace information to disk", true));
-			toolbar.addSeparator();
+			toolbar.add(Box.createHorizontalStrut(5));
 			toolbar.add(Utilities.createToolButton("images/24x24/NewDataSet.png", 
 					null, "NewDataSet", this, 
 					"Add a new data set (includes EST data and " +
@@ -166,7 +167,7 @@ public class FileMenuHelper extends WindowAdapter implements ActionListener {
 			toolbar.add(Utilities.createToolButton("images/24x24/NewCluster.png", 
 					null, "NewCluster", this, 
 					"Compute new cluster data using a given MST data file " +
-					"in a data set", true));
+					"in a data set", false));
 		}
 		return fileMenu;
 	}

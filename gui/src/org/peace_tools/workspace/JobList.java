@@ -138,15 +138,15 @@ public class JobList {
 	}
 	
 	/**
-	 * Method to add a new server entry to this server list.
+	 * Method to add a new job entry to the job list.
 	 * 
-	 * This method sets a new server ID for the entry and 
+	 * This method adds the specified job to the job list and 
 	 * fires a WorkspaceEvent indicating the addition of the new
-	 * server entry to all listeners.
+	 * entry to all listeners.
 	 * 
-	 * @param server The new server entry to be added.
+	 * @param job The new job entry to be added to the job list.
 	 */
-	public synchronized void  add(Job job) {
+	public synchronized void add(Job job) {
 		// Add the entry
 		jobs.add(job);
 		// Fire notification to listeners to update GUIs
@@ -154,6 +154,27 @@ public class JobList {
 		Workspace.get().fireWorkspaceChanged(we);
 	}
 
+	/**
+	 * Method to remove a job entry.
+	 * 
+	 * This method removes the given job entry from the job list
+	 * and fires a WorkspaceEvent indicating the removal of the
+	 * job entry to all listeners.
+	 * 
+	 * @note This method does not delete any of the files associated
+	 * with the job. It simply removes the job entry from the work
+	 * space.
+	 * 
+	 * @param job The job entry to be removed from the job list.
+	 */
+	public synchronized void remove(Job job) {
+		// Add the entry
+		if (jobs.remove(job)) {
+			// Fire notification to listeners to update GUIs
+			WorkspaceEvent we = new WorkspaceEvent(job, WorkspaceEvent.Operation.DELETE);
+			Workspace.get().fireWorkspaceChanged(we);
+		}
+	}
 	/**
 	 * Obtain the list of job objects that are currently available
 	 * in a work space.

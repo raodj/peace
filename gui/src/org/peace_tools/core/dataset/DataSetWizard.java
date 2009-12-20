@@ -35,7 +35,6 @@ package org.peace_tools.core.dataset;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
 
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -76,10 +75,6 @@ public class DataSetWizard extends WizardDialog {
 		setTitleBackground("images/peace_wizard_header.png", Color.white);
 		// Set up the column image we want to use.
 		setSequenceBackground("images/peace_wizard_column.png");
-		// Setup the overall preferred size
-		setPreferredSize(new Dimension(600, 400));
-		setMaximumSize(new Dimension(600, 400));
-		
 		// Create the data set that this wizard is going to be
 		// modifying.
 		dataSet = new DataSet("", null, "");

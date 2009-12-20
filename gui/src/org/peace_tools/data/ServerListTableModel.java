@@ -101,7 +101,7 @@ public class ServerListTableModel extends AbstractTableModel implements Workspac
 		if (ws.getServerList().getServers().size() < row) {
 			return null;
 		}
-		// Obtain the job object whose data is to be returned
+		// Obtain the server object whose data is to be returned
 		Server server = ws.getServerList().getServers().get(row);
 		switch (column) {
 		case 0:
@@ -128,6 +128,23 @@ public class ServerListTableModel extends AbstractTableModel implements Workspac
 		return false;
 	}
 
+	/**
+	 * This is a convenience method to obtain the server entry.
+	 * 
+	 * @param row The row id whose server entry is to be returned.
+	 * 
+	 * @return The server entry corresponding to a given row. If the
+	 * entry is unavailable, this method returns null.
+	 */
+	public Server getServer(int row) {
+		Workspace ws = Workspace.get();
+		if ((row < 0) || (ws.getServerList().getServers().size() < row)) {
+			return null;
+		}
+		// Obtain the server object whose data is to be returned
+		return ws.getServerList().getServers().get(row);
+	}
+	
 	@Override
 	public void workspaceChanged(WorkspaceEvent event) {
 		// Handle only server entries.

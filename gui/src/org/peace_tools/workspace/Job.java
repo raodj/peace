@@ -321,6 +321,11 @@ public class Job extends JobBase {
 	 */
 	public int[] getProgressInfo() { return progressInfo; }
 	
+	@Override
+	public String toString() {
+		return jobID;
+	}
+	
 	/**
 	 * Method to marshall the data stored in this object to become part of
 	 * a DOM tree element passed in. This method assumes that the element
@@ -387,6 +392,34 @@ public class Job extends JobBase {
 		// Close the job tag
 		out.printf("%s</Job>\n", Indent);
 	}
+
+	/**
+	 * Set the monitoring thread for this Job.
+	 * 
+	 * This method sets up the monitoring thread for this job. It
+	 * also broadcasts an update event to all workspace listeners.
+	 * This enables any GUI components to update their display.
+	 * 
+	 * @param monitor The monitoring thread for this job. If this
+	 * parameter is null, then the job monitor thread is cleared.
+	 */
+	public synchronized void setMonitor(Thread monitor) {
+		this.monitor = monitor;
+		// Notify all the listeners about the status change.
+		// Fire notification to listeners to update GUIs
+		WorkspaceEvent we = new WorkspaceEvent(this, WorkspaceEvent.Operation.UPDATE);
+		Workspace.get().fireWorkspaceChanged(we);
+	}
+	
+	/**
+	 * Obtain the job monitoring thread (if any)
+	 * 
+	 * @return The job monitoring thread associated with this job. If
+	 * a monitor thread is not set, then this method returns null.
+	 */
+	public Thread getMonitor() {
+		return monitor;
+	}
 	
 	/**
 	 * A user defined description for this job. This description is set when
@@ -449,4 +482,13 @@ public class Job extends JobBase {
 	 * the run() method if the job is in QUEUED or RUNNING status.
 	 */
 	private transient int progressInfo[] = {-1, -1};
+	
+	/**
+	 * A transient (not persistent) reference to the monitor thread
+	 * for this job (if any). This value is set whenever a new 
+	 * monitor thread is created for this job. The reference is reset
+	 * when the monitor thread is stopped. The monitoring thread
+	 * is actually implemented by org.peace_tools.core.JobMonitor class.
+	 */
+	private transient Thread monitor;
 }

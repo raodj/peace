@@ -67,6 +67,7 @@ import org.peace_tools.views.ClusterSummaryView;
 import org.peace_tools.views.ClusterTreeTableView;
 import org.peace_tools.views.DataSetFileListView;
 import org.peace_tools.views.DataSetTreeView;
+import org.peace_tools.views.GenericHTMLView;
 import org.peace_tools.views.JobListView;
 import org.peace_tools.views.MSTFileView;
 import org.peace_tools.views.ProgrammerLogPane;
@@ -90,8 +91,9 @@ public abstract class ViewFactory implements DnDTabListener {
 	 * views that this factory can create. 
 	 */
 	public enum ViewType { EST_FILE, MST_FILE, CLUSTER_FILE, 
-		CLUSTER_SUMMARY, DATASET_TREE, DATASET_FILE, JOB_LIST, SERVER_LIST, 
-		USER_LOGS, PROGRAMMER_LOGS, TEXT_VEIW, DEFAULT_VIEW}
+		CLUSTER_SUMMARY, HTML_VIEW, TEXT_VEIW, DEFAULT_VIEW, 
+		DATASET_TREE, DATASET_FILE, JOB_LIST, SERVER_LIST, 
+		USER_LOGS, PROGRAMMER_LOGS}
 
 	/**
 	 * The constructor. 
@@ -122,7 +124,7 @@ public abstract class ViewFactory implements DnDTabListener {
 		if (staticViews == null) {
 			staticViews   = new HashMap<ViewType, JComponent>();
 			staticViewPos = new HashMap<ViewType, DnDTabPos>();
-			createViews();
+			createStandardViews();
 			createLogViews();
 		}
 	}
@@ -185,7 +187,7 @@ public abstract class ViewFactory implements DnDTabListener {
 	 * from the work space) . This method was mainly introduced to keep 
 	 * the code clutter down in the constructor.
 	 */
-	private void createViews() {
+	private void createStandardViews() {
 		DnDTabbedPane centerPane = mainFrame.getCenterPane();
 		// Create the hierarchical data set view and add it to the left
 		// of the center pane.
@@ -203,13 +205,13 @@ public abstract class ViewFactory implements DnDTabListener {
 				Utilities.getIcon("images/16x16/FileView.png"), dsflv, 
 				DnDTabbedPane.Location.CENTER);
 		// Create and add job list to the bottom of the hierarchy
-		JobListView jlv = new JobListView();
+		JobListView jlv = new JobListView(mainFrame);
 		DnDTabbedPane leftBotPane = 
 			leftPane.createSplitPane("Jobs", 
 					Utilities.getIcon("images/16x16/Job.png"), 
 					jlv, DnDTabbedPane.Location.BOTTOM, 0.5, 350);
 		// Create server list and add that below the list of jobs
-		ServerListView slv = new ServerListView();
+		ServerListView slv = new ServerListView(mainFrame);
 		leftBotPane.createSplitPane("Servers",
 				Utilities.getIcon("images/16x16/Server.png"),
 				slv, DnDTabbedPane.Location.BOTTOM, 0.5, 200);
@@ -243,22 +245,23 @@ public abstract class ViewFactory implements DnDTabListener {
 			ests = DataStore.get().getFASTA(estFileName, mainFrame);
 		}
 		// Check and load the data file depending on the view type
-		switch (viewType.ordinal()) {
-		case 1:
+		if (ViewType.MST_FILE.equals(viewType)) {
 			MST mst = DataStore.get().getMSTData(dataFileName, mainFrame);
 			MSTTreeModel mstModel = new MSTTreeModel(mst, ests);
 			view = new MSTFileView(mainFrame, mstModel);
-			break;
-
-		case 2:
+		} else if (ViewType.CLUSTER_FILE.equals(viewType)) {
 			ClusterFile ct = DataStore.get().getClusterData(dataFileName, mainFrame);
 			ClusterTreeTableModel model = new ClusterTreeTableModel(ct, ests); 
 			view = new ClusterTreeTableView(model, mainFrame);
-			break;
-
-		case 0:
-		default:
+		} else if (ViewType.EST_FILE.equals(viewType)) {
+			// Currently not implemented maybe a simple text area
+			// would suffice?
+			view = createTextView(estFileName);
+		} else if (ViewType.HTML_VIEW.equals(viewType)) {
+			// Create an HTML view of the specified data file.
+			view = new GenericHTMLView(dataFileName, mainFrame);
 		}
+		// return the view created in one of the conditions above.
 		return view;
 	}
 
@@ -381,11 +384,14 @@ public abstract class ViewFactory implements DnDTabListener {
 
 	/**
 	 * Method to ease creation of a specific view. 
-	 * 
-	 * This method is the preferred approach to creating and adding
-	 * a view to the MainFrame. A view is a specific display of a 
-	 * given data item. This method creates and adds a view as
-	 * needed.
+	 *
+	 * This method is a convenience method that can be used to 
+	 * automatically detect the type of object and appropriately
+	 * use the default view type for the specified object. Note
+	 * that this method currently handles only the following
+	 * types of objects: DataSet (representing a FASTA file),
+	 * MSTData (representing an MST file), and MSTClusterData
+	 * (representing a cluster data file). 
 	 * 
 	 * @param wsEntry The work space entry for which a view must be
 	 * created (if one does not exist).
@@ -414,6 +420,33 @@ public abstract class ViewFactory implements DnDTabListener {
 			dataFileName           = cluster.getPath();
 			viewType               = ViewType.CLUSTER_FILE;
 		}
+		// Now get the other public method do the view creation.
+		createView(dataFileName, estFileName, viewType, duplicate, textView);
+	}
+
+	/**
+	 * Method to create a specific view. 
+	 * 
+	 * This method is the preferred approach to creating and adding
+	 * non-static views to the MainFrame. A view is a specific display
+	 * of a given data file. This method creates and adds a view as
+	 * needed.
+	 * 
+	 * @param dataFileName The full path to the data file that is to be
+	 * loaded and displayed in the specified view.
+	 * @param estFileName An optional EST (FASTA) file that is associated
+	 * with the data file. The EST file name is typically used to obtain
+	 * additional information to be displayed to the user.
+	 * @param viewType The type of view to be created. This value must be
+	 * from one of the predefined enumerations. Note that the view type and
+	 * the type of file must be coordinated with each other. 
+	 * @param duplicate If this flag is true, then a duplicate view is created
+	 * even if a view already exists.
+	 * @param text If this flag is true, then a textual view of the data is
+	 * created.
+	 */
+	public void createView(String dataFileName, String estFileName, ViewType viewType,
+			boolean duplicate, final boolean textView) {
 		// Check and handle duplicate file name & view type.
 		String viewSignature = dataFileName + "_" + (textView ? ViewType.TEXT_VEIW : viewType);
 		if ((!duplicate) &&  (views.get(viewSignature) != null)) {
@@ -613,6 +646,7 @@ public abstract class ViewFactory implements DnDTabListener {
 		Utilities.getIcon("images/16x16/EST.png"),
 		Utilities.getIcon("images/16x16/MST.png"),
 		Utilities.getIcon("images/16x16/Cluster.png"),
-		Utilities.getIcon("images/16x16/ClusterSummary.png")
+		Utilities.getIcon("images/16x16/ClusterSummary.png"),
+		Utilities.getIcon("images/16x16/HTML.png")
 	};
 }

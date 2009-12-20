@@ -44,7 +44,6 @@ import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -99,14 +98,11 @@ implements ActionListener {
 				"Configure MST & Server configuration");
 		setBorder(new EmptyBorder(5, 5, 5, 5));
 		// Pack the input fields into a box
-		JPanel subPanel = new JPanel();
-		subPanel.setLayout(new BoxLayout(subPanel, BoxLayout.Y_AXIS));
+		JPanel subPanel = Utilities.createLabeledComponents(null, null, 0, true,
+			createMSTFileBox(),	Box.createVerticalStrut(5),
+			createServerPanel(), Box.createVerticalStrut(5));
+		// Set up the border to make things look good.
 		subPanel.setBorder(new EmptyBorder(5, 15, 10, 10));
-		subPanel.add(createMSTFileBox());
-		subPanel.add(Box.createVerticalStrut(5));
-		subPanel.add(createServerPanel());
-		// Finally add a filler to take up some vertical space.
-		subPanel.add(Box.createVerticalGlue());
 		// Add the contents to this page
 		add(subPanel, BorderLayout.CENTER);
 	}
@@ -127,16 +123,15 @@ implements ActionListener {
 				"Browse", this, "Browse local file system to " +
 				"choose MST file folder", true);
 		mstFile = new JTextField(30);
-		Utilities.adjustDimension(mstFile, 200, 4);
-		Box horizBox = Box.createHorizontalBox();
-		horizBox.add(mstFile);
-		horizBox.add(Box.createHorizontalStrut(10));
-		horizBox.add(browse);
+		Utilities.adjustDimension(mstFile, 0, 4);
+		JPanel horizBox = new JPanel(new BorderLayout(10, 0));
+		horizBox.add(mstFile, BorderLayout.WEST);
+		horizBox.add(browse, BorderLayout.EAST);
 		// Create a labeled component.
 		JComponent dirBox =
 			Utilities.createLabeledComponents("Specify local MST file:",
 					"(The *.mst file is to be created and must not exist)",
-					0, horizBox);		
+					0, false, horizBox);		
 		// Return the box to the caller
 		return dirBox;
 	}
@@ -169,26 +164,25 @@ implements ActionListener {
 		JPanel grid = new JPanel(new GridLayout(2, 2, 10, 3));
 		grid.setAlignmentX(0);
 		for(int i = 0; (i < nodeInfo.length); i++) {
-			Utilities.adjustDimension(nodeInfo[i], 150, 4); // Adjust size to look right
-			grid.add(Utilities.createLabeledComponents(Labels[i], 0, nodeInfo[i]));
+			Utilities.adjustDimension(nodeInfo[i], 10, 4); // Adjust size to look right
+			grid.add(Utilities.createLabeledComponents(Labels[i], null, 0, false, nodeInfo[i]));
 		}
 		// Now put all the information into a nice titled panel.
-		JPanel bigBox = new JPanel();
-		bigBox.setAlignmentX(0);
-		bigBox.setLayout(new BoxLayout(bigBox, BoxLayout.Y_AXIS));
-		bigBox.setBorder(BorderFactory.createCompoundBorder(
+		JPanel bigBox = Utilities.createLabeledComponents(null, null, 0, true,
+			// First add server selection combo-box.
+			createServerList(),
+			// Second add the cpu, nodes/cpu spinners
+			Box.createVerticalStrut(5),
+			grid,
+			// Add information at bottom.
+			new JLabel(CPU_INFO_MSG, 
+						Utilities.getIcon("images/16x16/Information.png"), JLabel.LEFT)
+		);
+		// Set border to to make things look good.
+ 		bigBox.setBorder(BorderFactory.createCompoundBorder(
 				BorderFactory.createTitledBorder("Server Info:"),
 				BorderFactory.createEmptyBorder(5, 5, 5, 5)));
-		// First add server selection combo-box.
-		createServerList(bigBox);
-		// Second add the cpu, nodes/cpu spinners
-		bigBox.add(Box.createVerticalStrut(5));
-		bigBox.add(grid);
-		// Add information at bottom.
-		JLabel info = new JLabel(CPU_INFO_MSG, 
-				Utilities.getIcon("images/16x16/Information.png"), JLabel.LEFT);
-		info.setAlignmentX(0);
-		bigBox.add(info);
+ 		// Return the panel to the caller
 		return bigBox;
 	}
 	
@@ -200,22 +194,17 @@ implements ActionListener {
 	 * method. This method was introduced just to streamline the code 
 	 * better.
 	 * 
-	 * @param bigBox The encapsulating panel to which the combo box
-	 * must be added.
+	 * @return A panel containing the server list and labels.
 	 */
-	private void createServerList(JPanel bigBox) {
+	private JPanel createServerList() {
 		// Create and setup visual properties of the combo-box
 		serverList = new JComboBox();
 		serverList.setBackground(Color.white);
-		Utilities.adjustDimension(serverList, 500, 0);
-
 		// Pack the server list with a suitable label
-		JComponent dataSetBox = 
+		return 
 			Utilities.createLabeledComponents("Select Server to Use for Job:",
 					"(A serial or parallel job will be run on the server)", 0, 
-					serverList);
-		// Put all the information into the bigBox
-		bigBox.add(dataSetBox);
+					false, serverList);
 	}
 
 	/**
@@ -435,8 +424,8 @@ implements ActionListener {
 	 * to provide information about the u/v heuristic.
 	 */
 	private static final String CPU_INFO_MSG = 
-		"<html>The CPUs selected and nodes per CPU must match the<br>" +
-		"configuration of the server.</html>";
+		"<html>The CPUs selected and nodes per CPU must match<br>" +
+		"the configuration of the server.</html>";
 
 	/**
 	 * A generic informational message that is displayed to the user

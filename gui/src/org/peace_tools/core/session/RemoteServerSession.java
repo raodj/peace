@@ -105,6 +105,7 @@ implements ServerHostKeyVerifier {
 		super(server, parent);
 		connection = null;
 		osType     = null;
+		purpose    = null;
 	}
 
 	/**
@@ -170,7 +171,7 @@ implements ServerHostKeyVerifier {
 					"password is not supported by remote server.\n" +
 					"That is rather strange. You need to contact the " +
 					"system adminstrator to enable support for\n" +
-			"bon-interactive logins using password.");
+			"non-interactive logins using password.");
 		}
 		int retryCount = 3;
 		do {
@@ -212,22 +213,36 @@ implements ServerHostKeyVerifier {
 		JPasswordField password = new JPasswordField(10);
 
 		// Create components by laying them out appropriately
-		JPanel parent = new JPanel(new GridLayout(2, 2, 0, 3));
-		parent.add(new JLabel("User id:"));
-		parent.add(userID);
+		JPanel credPanel = new JPanel(new GridLayout(2, 2, 0, 3));
+		credPanel.add(new JLabel("User id:"));
+		credPanel.add(userID);
 		Utilities.adjustDimension(userID, 0, 6);
-		parent.add(new JLabel("Password:"));
+		credPanel.add(new JLabel("Password:"));
 		Utilities.adjustDimension(password, 0, 6);
-		parent.add(password);
+		credPanel.add(password);
 		// Another panel to control the size o the grid layout 
 		// to ensure it looks decent
-		JPanel outer = new JPanel(new BorderLayout(0, 0));
-		outer.add(parent, BorderLayout.NORTH);
+		JPanel msgPanel = new JPanel(new BorderLayout(0, 5));
+		msgPanel.add(credPanel, BorderLayout.SOUTH);
+		// Add a label indicating server information.
+		JLabel subInfo = new JLabel("<html>Enter login credentials for <b>" + 
+				server.getName() + "</b></html>");
+		msgPanel.add(subInfo, BorderLayout.NORTH);
+		// If purpose has been given add purpose information into another
+		// panel.
+		if (purpose != null) {
+			JLabel info = new JLabel(purpose, Utilities.getIcon("images/32x32/Information.png"), 
+									 JLabel.LEFT);
+			 JPanel outer = new JPanel(new BorderLayout(0, 0));
+			 outer.add(info, BorderLayout.CENTER);
+			 outer.add(msgPanel, BorderLayout.SOUTH);
+			 // Set message panel to be the outer most one now.
+			 msgPanel = outer;
+		}
 		// Pack all the elements into an array
-		Object items[] = { new JLabel("Enter login credentials for " + server.getName()),
-				outer};
+		Object items[] = { msgPanel };
 		int result = 
-		JOptionPane.showConfirmDialog(null, items, "Enter Passowrd", 
+		JOptionPane.showConfirmDialog(null, items, "Enter Password", 
                 JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 		if (result == JOptionPane.OK_OPTION) {
 			server.setUserID(userID.getText());
@@ -847,6 +862,24 @@ implements ServerHostKeyVerifier {
 	}
 	
 	/**
+	 * A simple method to set a purpose message for this session.
+	 * 
+	 * This method can be used to set up a purpose message for a
+	 * server session. The purpose message is displayed
+	 * to the user when prompting for inputs from the user for 
+	 * credentials. The message serves the purpose of appraising the
+	 * user about the purpose of the session.
+	 *  
+	 * @param text This string is used to create a label (possibly
+	 * with an icon on it). So it can be plain text or HTML. If the
+	 * message is long, then ensure it is properly broken into 
+	 * multiple lines so that dialog boxes don't get too large.
+	 */
+	public void setPurpose(String text) {
+		purpose = text;
+	}
+	
+	/**
 	 * The connection to the remote server via which the remote server can
 	 * be accessed for performing various operations. The connection is
 	 * created via the connect()  method.
@@ -876,6 +909,14 @@ implements ServerHostKeyVerifier {
 	 */
 	private static Object knownHostsLock = new Boolean(false);
 
+	/**
+	 * A simple textual information indicating the purpose for this
+	 * session. This string is more meanigful to the user and is 
+	 * merely used to provide additional information when prompting
+	 * for inputs from the user.
+	 */
+	private String purpose;
+	
 	/**
 	 * The OS-specific path where the list of known hosts (that is
 	 * the servers to which we have connected before) is stored. This

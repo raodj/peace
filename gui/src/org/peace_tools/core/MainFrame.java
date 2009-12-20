@@ -88,8 +88,12 @@ public class MainFrame extends JFrame implements ActionListener {
 	 * 
 	 *  @note Prior to creating the main frame ensure that a valid
 	 *  operational work space has been created.
+	 *  
+	 *  @param firstLaunch If this flag is true, that indicates that
+	 *  PEACE GUI is being launched for the first time. In this case,
+	 *  display the "Welcome" view to the user.
 	 */
-	public MainFrame() {
+	public MainFrame(boolean firstLaunch) {
 		super();
 		assert ( Workspace.get() != null );
 		setTitle("PEACE: " + Workspace.get().getDirectory());
@@ -114,6 +118,12 @@ public class MainFrame extends JFrame implements ActionListener {
 		// Create the standard views via the view factory.
 		defaultViewFactory = new DefaultViewFactory(this);
 		defaultViewFactory.createStaticViews();
+		// For first launch also display the welcome & quick start
+		// guide to PEACE.
+		if (firstLaunch) {
+			defaultViewFactory.createView("../../../installFiles/welcome.html", null,
+					  ViewFactory.ViewType.HTML_VIEW, false, false);
+		}
 	}
 
 	/**
@@ -131,7 +141,7 @@ public class MainFrame extends JFrame implements ActionListener {
 		HelpMenuHelper   hm  = new HelpMenuHelper(this);
 		// Next create tool bar and the main menu using various
 		// helpers.
-		JToolBar toolbar  = new JToolBar();
+		toolbar  = new JToolBar();
 		toolbar.setFloatable(false);
 		toolbar.setBorder(new CompoundBorder(new CustomBorder("ssds"),
 				new EmptyBorder(2, 6, 2, 6)));
@@ -165,7 +175,7 @@ public class MainFrame extends JFrame implements ActionListener {
 	 * 
 	 * @return The permanent center pane for this frame.
 	 */
-	DnDTabbedPane getCenterPane() { return this.centerPane; }
+	public DnDTabbedPane getCenterPane() { return this.centerPane; }
 
 	/**
 	 * Obtain the toolbar associated with this frame.
@@ -174,7 +184,7 @@ public class MainFrame extends JFrame implements ActionListener {
 	 * is never null. However, the toolbar may not be visible at all
 	 * times. 
 	 */
-	JToolBar getToolBar() { return toolbar; }
+	public JToolBar getToolBar() { return toolbar; }
 
 	/**
 	 * The action performed method that handles various application-level
@@ -228,9 +238,8 @@ public class MainFrame extends JFrame implements ActionListener {
 	 * @param dialog If the dialog is not null, then this method
 	 * hides and disposes the dialog. This parameter can be null.
 	 */
-	public synchronized void saveWorkspace(final Dialog dialog) {
+	public void saveWorkspace(final Dialog dialog) {
 		try {
-			setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 			Thread.sleep(100); // Maybe this sleep is not needed. but helps visually
 			Workspace.get().saveWorkspace();
 		} catch (Exception e) {
@@ -291,6 +300,8 @@ public class MainFrame extends JFrame implements ActionListener {
 						saveWorkspace(dialog);
 					}
 				});
+				// Setup a wait cursor
+				setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 				// Start thread in the background.
 				saver.start();
 				// Finally make the dialog visible.

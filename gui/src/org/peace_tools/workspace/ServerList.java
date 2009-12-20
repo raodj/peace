@@ -123,7 +123,7 @@ public class ServerList {
 	 * 
 	 * @param server The new server entry to be added.
 	 */
-	public void add(Server server) {
+	public synchronized void add(Server server) {
 		// First setup a new ID for this entry.
 		server.setID(reserveServerID());
 		// Add the entry
@@ -132,6 +132,26 @@ public class ServerList {
 		WorkspaceEvent we = new WorkspaceEvent(server, WorkspaceEvent.Operation.INSERT);
 		Workspace.get().fireWorkspaceChanged(we);
 	}
+	
+	
+	/**
+	 * Method to remove a server entry to this server list.
+	 * 
+	 * This method must be used to remove a server entry from the
+	 * server list. Once the entry has been removed, this method 
+	 * fires a WorkspaceEvent indicating the removal of the
+	 * server entry to all listeners.
+	 * 
+	 * @param server The new server entry to be removed.
+	 */
+	public synchronized void remove(Server server) {
+		if (servers.remove(server)) {
+			// Fire notification to listeners to update GUIs
+			WorkspaceEvent we = new WorkspaceEvent(server, WorkspaceEvent.Operation.DELETE);
+			Workspace.get().fireWorkspaceChanged(we);
+		}
+	}
+	
 	
 	/**
 	 * Obtain reference to a Server object, given its work space wide unique

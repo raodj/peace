@@ -40,7 +40,6 @@ import java.io.File;
 import java.io.FileInputStream;
 
 import javax.swing.Box;
-import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -98,46 +97,42 @@ implements Runnable, ActionListener {
 		// single horizontal panel.
 		browse = Utilities.createButton(null, " Browse ", 
 				"Browse", this, "Browse local file system", false);
-		estFile = new JTextField(30);
-		Utilities.adjustDimension(estFile, 200, 4);
-		JPanel horizBox = new JPanel(new BorderLayout(0, 10));
+		estFile = new JTextField();
+		JPanel horizBox = new JPanel(new BorderLayout(10, 0));
 		horizBox.add(estFile, BorderLayout.CENTER);
 		horizBox.add(browse, BorderLayout.EAST);
 		// Create a labeled component.
 		JComponent dirBox =
 			Utilities.createLabeledComponents("Enter EST FASTA File Name:",
 					"(FASTA file must exist and must be valid)",
-					0, horizBox);		
+					0, false, horizBox);		
 		// Create panels with description, install folder, and
 		// polling time.
-		description = new JTextArea(4, 10);
+		description = new JTextArea(4, 4);
+		JScrollPane jsp = new JScrollPane(description);
+		jsp.setMinimumSize(description.getPreferredSize());
 		JComponent descBox = 
 			Utilities.createLabeledComponents("Description for EST file:",
 					"(This is for your reference & can be anything)", 0, 
-					new JScrollPane(description));
-
+					false, jsp); 
 		// Pack the options along with a pretty icon and label into 
 		// a sub-panel.
-		JPanel subPanel = new JPanel();
-		subPanel.setLayout(new BoxLayout(subPanel, BoxLayout.Y_AXIS));
-		subPanel.setBorder(new EmptyBorder(5, 15, 10, 10));
-		// Pack the default fields into the subPanel.
-		subPanel.add(dirBox);
-		subPanel.add(Box.createVerticalStrut(10));
-		subPanel.add(descBox);
-		subPanel.add(Box.createVerticalStrut(10));
-
+		JComponent infoLabel = null;
 		// Set up additional informational panel if the install
 		// directory is editable for verification.
 		if (!lockPath) {
 			// Create the informational panel.
-			createInfoPanel(subPanel);
+			infoLabel = createInfoPanel();
 		} else {
 			estFile.setEnabled(false);
 			browse.setEnabled(false);
 		}
-		// Finally add a filler to take up some vertical space.
-		subPanel.add(Box.createVerticalGlue());
+		// Create a sub panel with all the components
+		JPanel subPanel = Utilities.createLabeledComponents(null, null, 0, true,
+				dirBox, Box.createVerticalStrut(10),
+				descBox, Box.createVerticalStrut(10),
+				infoLabel);
+		subPanel.setBorder(new EmptyBorder(5, 15, 10, 10));
 		// Add the contents to this page
 		add(subPanel, BorderLayout.NORTH);
 	}
@@ -147,21 +142,16 @@ implements Runnable, ActionListener {
 	 * labels. This method was introduced to keep the code clutter in
 	 * the constructor to a minimum. 
 	 * 
-	 * @param subPanel The panel to which the labels are to be 
-	 * added.
+	 * @return The label to be used as the information panel.
 	 */
-	private void createInfoPanel(JPanel subPanel) {
+	private JComponent createInfoPanel() {
 		// Let the user know the remote directory will be validated when
 		// they click the "Next>" button.
-		JLabel info = new JLabel("EST file will be verified when " + 
-				"the Next button is clicked", 
+		JLabel info = new JLabel("<html>EST file will be verified when " + 
+				"the<br>Next button is clicked</html>", 
 				Utilities.getIcon("images/16x16/Information.png"),
 				JLabel.LEFT);
-		// Pack the various Box'es into the main panel. For this
-		// we need to set the x-alignment correctly.
-		info.setAlignmentX(0);
-		// Add the messages to the subPanel.
-		subPanel.add(info);
+		return info;
 	}
 
 	/**

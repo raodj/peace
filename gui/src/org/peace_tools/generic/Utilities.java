@@ -39,6 +39,8 @@ import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.Point;
 import java.awt.Window;
 import java.awt.event.ActionEvent;
@@ -69,7 +71,9 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButtonMenuItem;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
+import javax.swing.JSpinner;
 import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.KeyStroke;
 import javax.swing.ProgressMonitor;
@@ -339,8 +343,6 @@ public class Utilities {
 		default:
 			menuItem = new JMenuItem(fullItem, icon);
 		}
-		// Enable / disable the menu item.
-		menuItem.setEnabled(enable);
 		// Set gap to make things better
 		if (icon != null) {
 			menuItem.setIconTextGap(6);
@@ -352,10 +354,78 @@ public class Utilities {
 			menuItem.setAccelerator(shortCut);
 			menuItem.setMnemonic(mnemonic);
 		}
+		// Disable the menu item if needed.
+		if (!enable) {
+			setEnabled(menuItem, enable);
+		}
 		// Let the caller have it.
 		return menuItem;
 	}
 
+	/**
+	 * Utility method to update menu item text that uses HTML.
+	 * 
+	 * For some reason when menu items use HTML for formatting the 
+	 * enabling/disabling of the text does not operate correctly 
+	 * because HTML ignores default color settings. This method
+	 * introduces colors into the menu items to make them appear
+	 * enabled/disabled.
+	 * 
+	 * @note Calling this method with menu items whose text is not
+	 * HTML causes no side effects. So it is safe to call this method
+	 * with any menu item.
+	 * 
+	 * @param menuItem The menu item that must be enabled or disabled.
+	 * @param enabled If this parameter is true, then the menu item is
+	 * enabled. Otherwise it is disabled.
+	 */
+	public static void setEnabled(JMenuItem menuItem, boolean enabled) {
+		menuItem.setEnabled(enabled);
+		String text = menuItem.getText();
+		// Reset text item.
+		menuItem.setText(enableHTMLText(text, enabled));
+	}
+	
+	/**
+	 * Utility method to modify HTML text to look enabled or disabled.
+	 * 
+	 * For some reason when labels or menu items use HTML for 
+	 * formatting the enabling/disabling of the text does not 
+	 * operate correctly because HTML ignores default color settings. 
+	 * This method introduces colors into the HTML text to make them 
+	 * appear enabled/disabled.
+	 * 
+	 * @note Calling this method with text that is not HTML causes no 
+	 * side effects. So it is safe to call this method with any text
+	 *  
+	 * @param text The message whose text is to be modified to make
+	 * it appear enabled to disabled.
+	 * @param enabled If this parameter is true, then the text is
+	 * updated to appear enabled. Otherwise it is set to appear disabled.
+	 * @return The modified string. If the original message wasn't HTML
+	 * then this method simply returns the original text.
+	 */
+	public static String enableHTMLText(String text, boolean enabled) {
+		if (!text.startsWith("<html>")) {
+			// Plain menu item. nothing to do
+			return text;
+		}
+		// Add color to html depending on enabled status. First strip
+		// out leading and trailing <html> and </html>
+		text = text.substring(6, text.length() - 7);
+		// Remove any font color specifications if present
+		if (text.startsWith("<font color")) {
+			text = text.substring(text.indexOf('>') + 1, text.length() - 7);
+		}
+		// Redo HTML text based on status.
+		if (!enabled) {
+			text = "<font color='gray'>" + text + "</font>";
+		}
+		text = "<html>" + text + "</html>";
+		// Return the modified text.
+		return text;
+	}
+	
 	/**
 	 * This method is a utility method to create generic buttons.
 	 * 
@@ -527,64 +597,15 @@ public class Utilities {
 		}
 		return container;
 	}
-
+	
 	/**
-	 * This method is a helper method that takes the alignment for a
-	 * {@link java.awt.FlowLayout}, a label to identify the components, and the
-	 * actual JComponents themselves and places them in a JPanel with a
-	 * FlowLayout. The panel is useful for situations that require multiple
-	 * panels to create a vertical layout of many components. (Note: FlowLayout
-	 * performs only a horizontal layout)
+	 * This method is a helper method to lay out components vertically.
 	 * 
-	 * @param alignment
-	 *            The Alignment, one of {@link java.awt.FlowLayout#LEFT},
-	 *            {@link java.awt.FlowLayout#RIGHT},
-	 *            {@link java.awt.FlowLayout#CENTER},
-	 *            {@link java.awt.FlowLayout#LEADING} or
-	 *            {@link java.awt.FlowLayout#TRAILING}
-	 * @param label
-	 *            The label to put before the components (gets converted into a
-	 *            JLabel, set to null for none)
-	 *            
-	 * @param xAlignment The X-alignment to be set for the components as
-	 * they are being layed out in a vertical container. Supply 0 for left
-	 * alignment, 0.5 for center alignment, and 1.0 for right alignment.
+	 * This is a helper method that is used to layout components in 
+	 * a vertical manner. In addition, this method also creates a
+	 * label at the top of the components (if a non-null string 
+	 * is specified).
 	 * 
-	 * @param components
-	 *            One or more comma separated components to place in the JPanel.
-	 * @return A new JPanel containing all of the specified components
-	 */
-	public static Box createLabeledComponents(String label,
-			float xAlignment,
-			JComponent... components) {
-		Box container = Box.createVerticalBox();
-		if (label != null) {
-			JLabel title = new JLabel(label);
-			title.setAlignmentX(xAlignment);
-			container.add(new JLabel(label));
-		}
-		for (int index = 0; (index < components.length); index++) {
-			container.add(components[index]);
-			components[index].setAlignmentX(xAlignment);
-		}
-		container.setAlignmentY(0);
-		return container;
-	}
-
-	/**
-	 * This method is a helper method that takes the alignment for a
-	 * {@link java.awt.FlowLayout}, a label to identify the components, and the
-	 * actual JComponents themselves and places them in a JPanel with a
-	 * FlowLayout. The panel is useful for situations that require multiple
-	 * panels to create a vertical layout of many components. (Note: FlowLayout
-	 * performs only a horizontal layout)
-	 * 
-	 * @param alignment
-	 *            The Alignment, one of {@link java.awt.FlowLayout#LEFT},
-	 *            {@link java.awt.FlowLayout#RIGHT},
-	 *            {@link java.awt.FlowLayout#CENTER},
-	 *            {@link java.awt.FlowLayout#LEADING} or
-	 *            {@link java.awt.FlowLayout#TRAILING}
 	 * @param label
 	 *            The label to put before the components (gets converted into a
 	 *            JLabel, set to null for none)
@@ -592,35 +613,72 @@ public class Utilities {
 	 * @param subLabel A sub-label to be placed below the main label. This
 	 * label is displayed with a smaller font if it is not null. 
 	 * 
-	 * @param xAlignment The X-alignment to be set for the components as
-	 * they are being layed out in a vertical container. Supply 0 for left
-	 * alignment, 0.5 for center alignment, and 1.0 for right alignment.
+	 * @param textBoxHeightDelta If this parameter is non-zero then it adds this
+	 * value to the preferred height of any JTextField components in the
+	 * component list. This feature is useful to ensure that text fields are
+	 * not too small (they happen to be in GTK)
+	 * 
+	 * @param addEndSpacer If this flag is true, then this method adds a
+	 * trailing empty component that will stretch to take up any available
+	 * vertical space.
 	 * 
 	 * @param components
 	 *            One or more comma separated components to place in the JPanel.
+	 *            
 	 * @return A new JPanel containing all of the specified components
 	 */
-	public static Box createLabeledComponents(String label, 
+	public static JPanel createLabeledComponents(String label,
 			String subLabel,
-			float xAlignment,
-			JComponent... components) {
-		Box container = Box.createVerticalBox();
+			int textBoxHeightDelta, boolean addEndSpacer, 
+			Component... components) {
+		GridBagLayout gbLayout = new GridBagLayout();
+		JPanel container       = new JPanel(gbLayout);
+		// The same constraints for all components.
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.weightx            = 1.0; // Take all horizontal space
+        gbc.fill               = GridBagConstraints.HORIZONTAL;
+        gbc.gridwidth          = GridBagConstraints.REMAINDER;
+		// Create the label.
 		if (label != null) {
 			JLabel title = new JLabel(label);
-			title.setAlignmentX(xAlignment);
+			gbLayout.setConstraints(title, gbc);
 			container.add(title);
 		}
 		if (subLabel != null) {
-			JLabel title = new JLabel(subLabel);
-			Utilities.adjustFont(title, -2, 8, -1);
-			title.setAlignmentX(xAlignment);
-			container.add(title);
+			JLabel subTitle = new JLabel(subLabel);
+			Utilities.adjustFont(subTitle, -2, 8, -1);
+			gbLayout.setConstraints(subTitle, gbc);
+			container.add(subTitle);
 		}
+		// Apply the same grid bag constraints to all the components.
 		for (int index = 0; (index < components.length); index++) {
+			if (components[index] == null) {
+				continue;
+			}
+			if (textBoxHeightDelta > 0) {
+				if ((components[index] instanceof JTextField) ||
+					(components[index] instanceof JSpinner)) {
+					Dimension size = components[index].getPreferredSize();
+					size.height   += textBoxHeightDelta;
+					components[index].setPreferredSize(size);
+				}
+			}
+			// Setup constraints and add component to container
+			gbLayout.setConstraints(components[index], gbc);
 			container.add(components[index]);
-			components[index].setAlignmentX(xAlignment);
 		}
-		container.setAlignmentX(xAlignment);
+		// Add a spacer if requested
+		if (addEndSpacer) {
+			Component spacer = Box.createVerticalGlue();
+			// Reset some properties set earlier.
+			gbc.weighty    = 1.0;
+			gbc.fill       = GridBagConstraints.BOTH;
+			gbc.gridheight = GridBagConstraints.REMAINDER;
+			// Add the vertical spacer.
+			gbLayout.setConstraints(spacer, gbc);
+			container.add(spacer);
+		}
+		// return a new JPanel that contains the components
 		return container;
 	}
 

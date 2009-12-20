@@ -110,9 +110,11 @@ implements Runnable {
 		setBorder(new EmptyBorder(5, 5, 5, 5));
 		// Create the job summary information text area.
 		log = new JTextArea(3, 10);
+		JScrollPane jsp = new JScrollPane(log);
+		jsp.setMinimumSize(log.getPreferredSize());
 		JComponent logBox = 
 			Utilities.createLabeledComponents("Additional information:",
-					0, new JScrollPane(log));
+					null, 0, false, jsp);
 		// Create the informational labels.
 		JLabel info = new JLabel(INFO_MSG, 
 				Utilities.getIcon("images/16x16/Information.png"), 
@@ -488,6 +490,8 @@ implements Runnable {
 		Server srvr = Workspace.get().getServerList().getServer(job.getServerID());
 		log.append("Attempting to connect to server " + srvr.getName() + "\n");
 		server = SessionFactory.createSession(wizard, srvr);
+		// Setup purpose so the user knows why we are connecting
+		server.setPurpose("Attempting to start a new job");
 		// Connect to the server.
 		server.connect();
 		// Done. update status.

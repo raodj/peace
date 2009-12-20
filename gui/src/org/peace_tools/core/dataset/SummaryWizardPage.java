@@ -37,8 +37,8 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
@@ -75,16 +75,15 @@ public class SummaryWizardPage extends GenericWizardPage {
 		setBorder(new EmptyBorder(30, 10, 5, 10));
 		// Create and set properties for the text fields.
 		infoFields[0] = new JTextField();
-		infoFields[1] = new JTextArea(5, 10);
+		infoFields[1] = new JTextArea(5, 5);
 		for(int i = 0; (i < infoFields.length); i++) {
 			infoFields[i].setEditable(false);
 			infoFields[i].setBackground(Color.white);
 			infoFields[i].setBorder(BorderFactory.createEtchedBorder());
-			Utilities.adjustDimension(infoFields[i], 600, 4);
 		}
 		// Pack all the labels into a panel with vertical box layout.
-		Box container = 
-		Utilities.createLabeledComponents(STANDARD_MSG, 0,
+		JPanel container = 
+		Utilities.createLabeledComponents(STANDARD_MSG, null, 4, true,
 			new JLabel(" "), // Blank line
 			new JLabel("EST file name:"), infoFields[0],
 			new JLabel(" "), // Blank line
@@ -94,7 +93,6 @@ public class SummaryWizardPage extends GenericWizardPage {
 					Utilities.getIcon("images/16x16/Information.png"),
 					JLabel.LEFT)
 		);
-		container.add(Box.createVerticalGlue());
 		// Add container to this page
 		add(container, BorderLayout.CENTER);
 	}
@@ -122,8 +120,8 @@ public class SummaryWizardPage extends GenericWizardPage {
 	/**
 	 * A simple standard message to be displayed at the top of this page.
 	 */
-	private final String STANDARD_MSG =  "A new data will be created " +
-		"with using the following EST data file:";
+	private final String STANDARD_MSG =  "<html>A new data set will be created " +
+		"with using the<br>following EST data file:</html>";
 	
 	/**
 	 * A simple standard message to be displayed at the bottom of this

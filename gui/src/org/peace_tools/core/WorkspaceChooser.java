@@ -151,7 +151,7 @@ public class WorkspaceChooser extends JDialog implements ActionListener {
 		JLabel imgHolder = new JLabel(Utilities.getIcon("images/peace_blue_header.png"));
 		// Use the logo's width as the preferred width for this dialog.
 		Dimension size = imgHolder.getPreferredSize();
-		size.height = 375;
+		size.height = 400;
 		setPreferredSize(size);
 		setSize(size);
 		// Add logo and tabs to the main dialog
@@ -669,7 +669,7 @@ public class WorkspaceChooser extends JDialog implements ActionListener {
 		// Now set the workspace instance variable.
 		workspace = wsPath.getAbsolutePath();
 		// Let the main PEACE class know it can now launch the main frame.
-		peace.launchMainFrame(workspace);
+		peace.launchMainFrame(workspace, firstLaunch);
 		// Dispose this dialog returning control to main.
 		setVisible(false);
 	}
