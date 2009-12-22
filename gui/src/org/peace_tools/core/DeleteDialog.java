@@ -95,8 +95,8 @@ implements ActionListener, Runnable {
 		// Finally put the buttonPanel and progPanel in a card layout
 		// so that they can switched easily later on.
 		bottomPanel = new JPanel(new CardLayout());
-		bottomPanel.add(buttonPanel);
-		bottomPanel.add(progPanel);
+		bottomPanel.add(buttonPanel, "buttons");
+		bottomPanel.add(progPanel, "progbar");
 		// Add bottom panel to the south of the dialog
 		contentPane.add(bottomPanel, BorderLayout.SOUTH);
 		

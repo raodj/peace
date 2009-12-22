@@ -41,7 +41,7 @@ AM_CXXFLAGS=$(GLOBALCXXFLAGS)
 bin_PROGRAMS = UsingPeace
 
 UsingPeace_LDFLAGS = -L../src
-UsingPeace_LDADD = $(STDCPP) -lreadline -lcurses -lpeace
+UsingPeace_LDADD = $(STDCPP) -lpeace
 
 UsingPeace_SOURCES = \
 UsingPeace.cpp

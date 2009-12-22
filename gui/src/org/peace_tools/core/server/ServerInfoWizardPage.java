@@ -204,7 +204,12 @@ implements Runnable, ActionListener {
 	public void pageChanged(WizardDialog dialog, int currPage, int prevPage) {
 		// First update the necessary information.
 		description.setText(server.getDescription());
-		installPath.setText(server.getInstallPath());
+		installPath.setText(server.getInstallPath().trim());
+		// Setup default install path for remote server.
+		if ((installPath.getText().length() == 0) && 
+			(server.isRemote())) {
+			installPath.setText("/home/" + server.getUserID() + "/PEACE");
+		}
 		pollTime.setValue(new Integer((int) server.getPollTime()));
 		// Enable browse button only for local installs
 		browse.setEnabled(!server.isRemote());

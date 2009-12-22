@@ -152,8 +152,8 @@ implements ActionListener {
 		Box horizBox = Box.createHorizontalBox();
 		horizBox.setAlignmentX(0);
 		// Create the spinners for nodes and cpus/node
-		nodeInfo[0] = new JSpinner(new SpinnerNumberModel(10, 1, 1024, 2));
-		nodeInfo[1] = new JSpinner(new SpinnerNumberModel(2, 1, 32, 1));
+		nodeInfo[0] = new JSpinner(new SpinnerNumberModel(1, 1, 1024, 2));
+		nodeInfo[1] = new JSpinner(new SpinnerNumberModel(1, 1, 32, 1));
 		// Memory and wall clock time.
 		nodeInfo[2] = new JSpinner(new SpinnerNumberModel(2048, 64, 102400, 256));
 		nodeInfo[3] = new JSpinner(new SpinnerNumberModel(6, 1, 168, 1));
@@ -236,10 +236,11 @@ implements ActionListener {
 		// Populate the combo-box with server entries from work space.
 		ServerList list = Workspace.get().getServerList();
 		ArrayList<Server> servers = list.getServers();
-		// On add servers in good operational condition.
+		// On add servers that are a successful PEACE install.
 		for(Server srvr: servers) {
-			if (!Server.ServerStatusType.GOOD.equals(srvr.getStatus())) {
-				// Status is not good.
+			if (!Server.ServerStatusType.GOOD.equals(srvr.getStatus()) && 
+				!Server.ServerStatusType.CONNECT_FAILED.equals(srvr.getStatus())) {
+				// Server does not have a useable PEACE install
 				continue;
 			}
 			// Create string with necessary information.

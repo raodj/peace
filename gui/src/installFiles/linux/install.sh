@@ -77,7 +77,17 @@ fi
 
 echo "-----------------------------------------------------"
 echo "Building PEACE"
-cores=`grep -c -i "Processor" /proc/cpuinfo`
+cores=1
+# If the machine has cpu info and machine has many cores do a
+# parallel build to speedup installation.
+if [ -f /proc/cpuinfo ]; then
+	cores=`grep -c -i "^Processor" /proc/cpuinfo`
+	# Don't exceed 4-way build. Not polite on shared clusters
+	if [ $cores -gt 4 ]; then
+		cores=4
+	fi
+fi
+
 make -j$cores 2>&1
 if [ $? -ne 0 ]; then
    echo "Build Failed"
