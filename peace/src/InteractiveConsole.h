@@ -34,6 +34,8 @@
 //
 //---------------------------------------------------------------------
 
+#include "config.h"
+
 #include <vector>
 #include <string>
 
@@ -195,7 +197,7 @@ protected:
     */
     void print(const std::vector<std::string>& cmdWords);
 
-#ifdef _WINDOWS
+#ifndef HAVE_LIBREADLINE
     /** A helper method used only under Windows.
 
 	This is a replacement for the wonderful and interactive

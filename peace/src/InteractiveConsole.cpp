@@ -31,7 +31,7 @@
 #include <algorithm>
 #include <stdio.h>
 
-#ifndef _WINDOWS
+#ifdef HAVE_LIBREADLINE 
 #include <readline/readline.h>
 #include <readline/history.h>
 #else
@@ -330,20 +330,20 @@ InteractiveConsole::help(const std::vector<std::string>& UNREFERENCED_PARAMETER(
               << "exit      Quit out of PEACE interactive console.\n";
 }
 
-#ifdef _WINDOWS
+#ifndef HAVE_LIBREADLINE
 char* 
 InteractiveConsole::readline(const char *prompt) {
     std::cout << prompt;
     char line[1024];
     std::cin.getline(line, 1024);
     if (std::cin.gcount() == 0) {
-	// NO characters were read.
-	return NULL;
+        // NO characters were read.
+        return NULL;
     }
     // Make a copy of the line for returning
     const int len = (int) strlen(line) + 1;
     char *retVal = (char *) malloc(len);
-    strcpy_s(retVal, len, line);
+    strcpy(retVal, line);
     return retVal;
 }
 #endif

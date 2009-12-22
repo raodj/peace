@@ -42,7 +42,7 @@ noinst_LIBRARIES = libpeace.a
 bin_PROGRAMS = peace
 
 peace_LDFLAGS = -L.
-peace_LDADD = $(STDCPP) -lreadline -lcurses libpeace.a
+peace_LDADD = $(STDCPP) libpeace.a
 
 libpeace_a_SOURCES = \
 arg_parser.cpp\
