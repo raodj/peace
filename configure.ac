@@ -223,16 +223,8 @@ AC_SUBST(PIPE)
 #AC_CHECK_LIB([pthread], [pthread_create])
 AC_CHECK_LIB([m],[asin],,,[-lstdc++])
 AC_CHECK_FUNCS([MPI_Init])
-# Handle readline in different cases: (i) no need for stdc++ (ii) need
-# stdc++ but no curses; (iii) need stdc++ and curses to work. Since
-# previous calls are cached subsequent searches are not run giving us
-# the minimal set of libs needed to link
-AC_SEARCH_LIBS([readline],[readline],,[
-	AC_SEARCH_LIBS([readline],[readline],,[
-		AC_SEARCH_LIBS([readline],[readline],,,[-lstdc++ -lcurses])
-	],[-lstdc++])
-])
-
+AC_SEARCH_LIBS([initscr],[curses],,,[-lstdc++])
+AC_SEARCH_LIBS([readline],[readline],,,[-lstdc++])
 
 #AC_SEARCH_LIBS([gethostname], [c,nsl])
 #AC_CHECK_LIB([nsl],[gethostname])
