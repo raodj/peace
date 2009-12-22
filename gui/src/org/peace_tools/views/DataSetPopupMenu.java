@@ -42,10 +42,10 @@ import javax.swing.JPopupMenu;
 
 import org.peace_tools.core.DeleteDialog;
 import org.peace_tools.core.MainFrame;
+import org.peace_tools.core.job.JobWizard;
 import org.peace_tools.generic.Utilities;
 import org.peace_tools.workspace.DataSet;
 import org.peace_tools.workspace.MSTClusterData;
-import org.peace_tools.workspace.MSTData;
 
 /**
  * Class to generate and handle pop-up menus for data set viewers.
@@ -71,9 +71,9 @@ public class DataSetPopupMenu extends JPopupMenu implements ActionListener {
 		this.isTreeView = treeView;
 		add(Utilities.createMenuItem(Utilities.MENU_ITEM, 
 				"Generate MST & Clustering", "mst", this, 
-				"images/16x16/MST.png", null, true, false));
+				"images/16x16/MST.png", null, false, false));
 		add(Utilities.createMenuItem(Utilities.MENU_ITEM, 
-				"Recluster using MST", "cluster", this, 
+				"Generate MST & Clustering", "mst", this, 
 				"images/16x16/Cluster.png", null, true, false));
 		addSeparator();
 		//--------------------------------------------------
@@ -114,8 +114,8 @@ public class DataSetPopupMenu extends JPopupMenu implements ActionListener {
 	 * in expanded or collapsed state.
 	 */
 	public void updateItems(Object entry, boolean isExpanded) {
-		getComponent(0).setEnabled(entry instanceof DataSet);
-		getComponent(1).setEnabled(entry instanceof MSTData);
+		getComponent(1).setEnabled(entry instanceof DataSet);
+		// getComponent(1).setEnabled(entry instanceof MSTData);
 		getComponent(4).setEnabled(entry instanceof MSTClusterData);
 		// Enable/disable expand or collapse options
 		if (isTreeView) {
@@ -143,6 +143,12 @@ public class DataSetPopupMenu extends JPopupMenu implements ActionListener {
 			// Delete the entry via the delete dialog.
 			DeleteDialog delDiag = new DeleteDialog(mainFrame, entry);
 			delDiag.setVisible(true);
+		} else if ("mst".equals(cmd)) {
+			 // Display the wizard to create a new data set
+			 JobWizard jobWizard = 
+				 new JobWizard("Create New MST", mainFrame);
+			 Utilities.centerPanel(mainFrame, jobWizard);
+			 jobWizard.showWizard("http://www.peace-tools.org/");
 		}
 	}
 

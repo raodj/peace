@@ -67,7 +67,8 @@ public class Job extends JobBase {
 	public static Job create(Element jobNode) throws Exception {
 		// First extract the necessary information from the DOM tree.
 		String jobID    = DOMHelper.getStringValue(jobNode, "JobID");
-		String desc     = DOMHelper.getStringValue(jobNode, "Description");
+		String desc     = DOMHelper.getStringValue(jobNode, "Description", false);
+		desc            = (desc != null) ? desc : "";
 		String serverID = DOMHelper.getStringValue(jobNode, "ServerID");
 		String path     = DOMHelper.getStringValue(jobNode, "Path");
 		int    nodes    = DOMHelper.getIntValue(jobNode, "Nodes");
