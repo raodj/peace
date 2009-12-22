@@ -1051,17 +1051,20 @@ public class Utilities {
 		// dimensions of the collapsible panel.
 		final JTextArea msg   = new JTextArea(details);
 		final JScrollPane jsp = new JScrollPane(msg);
-		jsp.setVisible(false);
+		jsp.setVisible(true);
 		// Setup the maximum scroll pane size so that it looks good.
 		Dimension maxSize = info.getPreferredSize();
 		maxSize.height    = 100;
+		maxSize.width     = Math.max(550, maxSize.width);
 		jsp.setPreferredSize(maxSize);
 		jsp.setMaximumSize(maxSize);
+		jsp.setMinimumSize(maxSize);
 		// The simple details button with an icon.
 		final JToggleButton detailBtn = new JToggleButton("Details  ", Utilities.getIcon("images/16x16/MoreDetails.png"));
 		detailBtn.setSelectedIcon(Utilities.getIcon("images/16x16/LessDetails.png"));
 		detailBtn.setBorder(null);
 		detailBtn.setContentAreaFilled(false);
+		detailBtn.setSelected(true);
 		detailBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
