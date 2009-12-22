@@ -73,7 +73,7 @@ public class ServerListTableModel extends AbstractTableModel implements Workspac
 	 */
 	@Override
 	public int getColumnCount() {
-		return 2;
+		return 3;
 	}
 
 	/**
@@ -111,6 +111,8 @@ public class ServerListTableModel extends AbstractTableModel implements Workspac
 			//		JLabel.LEFT);
 		case 1: // return the status of the server
 			return StatusStrings[server.getStatus().ordinal()];
+		case 2: // return server id
+			return server.getID();
 		}
 		// A invalid column!
 		return null;
@@ -186,7 +188,7 @@ public class ServerListTableModel extends AbstractTableModel implements Workspac
 	 */
 	@Override
 	public String getColumnName(int col) {
-		String titles[] = {"Server", "Status"};
+		String titles[] = {"Server", "Status", "ID"};
 		return titles[col];
 	}
 	

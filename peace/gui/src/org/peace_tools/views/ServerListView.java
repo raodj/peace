@@ -123,6 +123,9 @@ implements ListSelectionListener, ActionListener {
         toolbar.add(Utilities.createToolButton("images/16x16/ServerAdd.png", 
         		null, "addServer", this, 
         		"Add a new server entry", true));
+        toolbar.add(Utilities.createToolButton("images/16x16/ServerGood.png", 
+        		null, "connectServer", this, 
+        		"Try to connect to server", false));
         toolbar.add(Utilities.createToolButton("images/16x16/ServerInfo.png", 
         		null, "jobListAll", this, 
         		"Show all jobs (or processes) running on the server", false));
@@ -149,6 +152,9 @@ implements ListSelectionListener, ActionListener {
 		popupMenu.add(Utilities.createMenuItem(Utilities.MENU_ITEM, 
 				"Add a new server entry", "addServer", this, 
 				"images/16x16/ServerAdd.png", null, true, false));
+		popupMenu.add(Utilities.createMenuItem(Utilities.MENU_ITEM, 
+				"Try to connect to server", "connectServer", this, 
+				"images/16x16/ServerGood.png", null, true, false));
 		popupMenu.addSeparator();
 		//--------------------------------------------------
 		popupMenu.add(Utilities.createMenuItem(Utilities.MENU_ITEM, 
@@ -218,9 +224,11 @@ implements ListSelectionListener, ActionListener {
         // Now enable/disable popup menu items based on the item
         // Enable the show jobs options and delete options only if
 		// the value is valid.
-		popupMenu.getComponent(2).setEnabled(server != null);
+		popupMenu.getComponent(1).setEnabled((server != null) && 
+				(server.getStatus().equals(Server.ServerStatusType.CONNECT_FAILED)));
 		popupMenu.getComponent(3).setEnabled(server != null);
-		popupMenu.getComponent(5).setEnabled(server != null);
+		popupMenu.getComponent(4).setEnabled(server != null);
+		popupMenu.getComponent(6).setEnabled(server != null);
         // Show pop-up menu.
         popupMenu.show(serverTable, me.getX(), me.getY());
 	}
@@ -263,8 +271,10 @@ implements ListSelectionListener, ActionListener {
 	public void valueChanged(ListSelectionEvent event) {
 		Server server = model.getServer(serverTable.getSelectedRow());
 		// Set tool bar buttons based on server entry.
-		toolbar.getComponent(1).setEnabled(server != null);
+		toolbar.getComponent(1).setEnabled((server != null) && 
+				(server.getStatus().equals(Server.ServerStatusType.CONNECT_FAILED)));
 		toolbar.getComponent(2).setEnabled(server != null);
+		toolbar.getComponent(3).setEnabled(server != null);
 	}
 
 	/**
@@ -287,6 +297,9 @@ implements ListSelectionListener, ActionListener {
 		} else if ("deleteServer".equals(cmd)) {
 			// Use helper method to verify and delete entry.
 			deleteServer();
+		} else if ("connectServer".equals(cmd)) {
+			// Try to connect to he server.
+			
 		}
 	}
 	

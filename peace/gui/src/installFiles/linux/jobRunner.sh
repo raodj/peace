@@ -112,13 +112,27 @@ function runCmdLine {
 	outFile="job.o$$"
 	errFile="job.e$$"
 	scriptFile="job_$$.sh"
+	# Check and set if we have mpicc to run in parallel via mpi
+	haveMpicc=0
+	which mpicc 1>/dev/null 2>/dev/null
+	if [ $? -eq 0 ]; then
+		haveMpicc=1
+	fi
+	
 	# Run the job in the background and save exit status in
 	# exit_status file. The following command line will be expanded
 	# when this file is deployed and echoed to a script
 	echo "#!/bin/bash" > $scriptFile
-	echo "time mpiexec -n $procs %peace% %cmdLine% > $outFile 2> $errFile" >> $scriptFile
+	if [ $haveMpicc -eq 1 ]; then
+		# Run via MPI
+		echo "time mpiexec -n $procs %peace% %cmdLine% > $outFile 2> $errFile" >> $scriptFile
+	else
+		# Simple run
+		echo "time %peace% %cmdLine% > $outFile 2> $errFile" >> $scriptFile
+	fi
 	echo 'echo $? > exit_status' >> $scriptFile
 	chmod +x $scriptFile
+	
 	# Ensure that the runner script was created successfully.
 	if [[ $? -ne 0 || !( -f $scriptFile ) ]]; then
 		# Hmmm..some error occured
