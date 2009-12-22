@@ -115,7 +115,8 @@ public class Server {
 		// First extract the necessary information from the DOM tree.
 		String ID     = DOMHelper.getStringValue(serverNode, "ID");
 		String name   = DOMHelper.getStringValue(serverNode, "Name");
-		String desc   = DOMHelper.getStringValue(serverNode, "Description");
+		String desc   = DOMHelper.getStringValue(serverNode, "Description", false);
+		desc          = (desc != null) ? desc : "";
 		String status = DOMHelper.getStringValue(serverNode, "Status");
 		String userId = null;
 		if (remote) {

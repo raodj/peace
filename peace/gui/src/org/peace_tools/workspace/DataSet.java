@@ -67,7 +67,8 @@ public class DataSet {
 		Element estData= DOMHelper.getElement(data, "ESTData");
 		String id     = DOMHelper.getStringValue(estData, "ID"); 
 		String path   = DOMHelper.getStringValue(estData, "Path");
-		String desc   = DOMHelper.getStringValue(estData, "Description");
+		String desc   = DOMHelper.getStringValue(estData, "Description", true);
+		desc          = (desc != null) ? desc : "";
 		// Create the data set entry.
 		DataSet dataSet= new DataSet(id, path, desc);
 		// Now parse in any MSTData elements for this DataSet

@@ -121,13 +121,13 @@ public class FileMenuHelper extends WindowAdapter implements ActionListener {
 			Utilities.createMenuItem(Utilities.MENU_ITEM, "Compute MST",
 				"Starts wizard to compute MST and clustering for a ESTs in a data set",
 				"NewMST", this, "images/24x24/NewMST.png", 
-				null, true, false);
+				null, false, false);
 		fileMenu.add(item);
 		// Option to compute new Clustering data
 		item = 
 			Utilities.createMenuItem(Utilities.MENU_ITEM, "Compute Clusters",
-				"Computes new clustering using existing MST data (quick operation)",
-				"NewClusters", this, "images/24x24/NewCluster.png", 
+				"Starts wizard to compute MST and clustering for a ESTs in a data set",
+				"NewCluster", this, "images/24x24/NewCluster.png", 
 				null, true, false);
 		fileMenu.add(item);
 		fileMenu.addSeparator();
@@ -163,11 +163,11 @@ public class FileMenuHelper extends WindowAdapter implements ActionListener {
 			toolbar.add(Utilities.createToolButton("images/24x24/NewMST.png", 
 					null, "NewMST", this, 
 					"Compute new MST & Cluster data using a given FASTA file " +
-					"from an existing data set", true));
+					"from an existing data set", false));
 			toolbar.add(Utilities.createToolButton("images/24x24/NewCluster.png", 
 					null, "NewCluster", this, 
-					"Compute new cluster data using a given MST data file " +
-					"in a data set", false));
+					"Compute new MST & Cluster data using a given FASTA file " +
+					"from an existing data set", true));
 		}
 		return fileMenu;
 	}
@@ -182,7 +182,7 @@ public class FileMenuHelper extends WindowAdapter implements ActionListener {
 			 Utilities.centerPanel(mainFrame, dsWizard);
 			 dsWizard.showWizard("http://www.peace-tools.org/");
 		 }
-		 if ("NewMST".equals(cmd)) {
+		 if ("NewMST".equals(cmd) || "NewCluster".equals(cmd)) {
 			 // Display the wizard to create a new data set
 			 JobWizard jobWizard = 
 				 new JobWizard("Create New MST", mainFrame);

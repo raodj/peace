@@ -64,8 +64,10 @@ public class DBClassifier {
 	 */
 	public static DBClassifier create(Element jobNode) throws Exception {
 		// First extract the necessary information from the DOM tree.
-		String regExp   = DOMHelper.getStringValue(jobNode, "RegExp");
-		String desc     = DOMHelper.getStringValue(jobNode, "Description");
+		String regExp   = DOMHelper.getStringValue(jobNode, "RegExp", true);
+		regExp          = (regExp != null) ? regExp : "";
+		String desc     = DOMHelper.getStringValue(jobNode, "Description", true);
+		desc            = (desc != null) ? desc : "";
 		String colorStr = DOMHelper.getStringValue(jobNode, "Color");
 		String enableStr= DOMHelper.getStringValue(jobNode, "Enabled");
 		// Convert color to an integer.
