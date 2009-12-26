@@ -386,7 +386,7 @@ public class PEACEInstaller extends SwingWorker<Void, Void> implements DocumentL
 	 * a command, then make the last entry null.
 	 */
 	private static final String LinuxInstallFiles[] = 
-		{"peace.tar.gz", "install.sh", "./install.sh"};
+		{"peace.tar.gz", "install.sh", "listJobs.sh", "./install.sh"};
 
 	/**
 	 * The list of files to be installed on a Windows machine. Note

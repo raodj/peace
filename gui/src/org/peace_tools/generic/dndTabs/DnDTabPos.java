@@ -303,7 +303,10 @@ public class DnDTabPos {
 	    if (currWin instanceof DnDTabbedPane)  {
 	    	DnDTabbedPane owner = (DnDTabbedPane) currWin;
 	        // OK! the original location was found. Simple case.
-	        owner = owner.createSplitPane(prevName, prevIcon, tab, dir[0]);
+	    	boolean verticalSplit = dir[0].equals(DnDTabbedPane.Location.BOTTOM) ||
+	    		dir[0].equals(DnDTabbedPane.Location.TOP);
+	        owner = owner.createSplitPane(prevName, prevIcon, tab, dir[0], 0.0, 
+	        		verticalSplit ? prevSize.height : prevSize.width);
 	        // Ensure the tab is visible and selected.
 	        tab.setVisible(true);
 	        owner.setSelectedComponent(tab);
@@ -321,14 +324,15 @@ public class DnDTabPos {
 	    final int index = sibling.indexOfComponent(tab);
 	    sibling.setTabComponentAt(index, new DnDTabButton(sibling, index));
 
-	    // Ensure direction is not wxALL in this case.
+	    // Ensure direction is not CENTER in this case.
 	    dir[0] = (dir[0].equals(DnDTabbedPane.Location.CENTER)) ? 
 	    		DnDTabbedPane.Location.RIGHT : dir[0];
 	    // Create a new split pan and configure the new split window
 	    // depending on direction and add the new split window suitably
 	    // using the helper method defined in the tabbed pane class.
 	    DnDTabbedPane.setSplitWindow(parent, dir[0], splitWin, sibling,
-	                               prevSize.width, prevSize.height);
+	                               prevSize.width, prevSize.height, 
+	                               splitWin.getSize());
 	}
 	
     /**
@@ -366,6 +370,8 @@ public class DnDTabPos {
 	    int idx;
 	    DnDTabbedPane.Location curr = DnDTabbedPane.Location.CENTER;
 	    for(idx = path.size() - 1; (idx >= 0); idx--) {
+	    	// Update current movement being considered.
+	    	curr = path.get(idx);
 	    	if (!(currWin instanceof JSplitPane)) {
 	    		// A non-splitter window encountered. Cannot proceed
 	            // further.
@@ -374,7 +380,6 @@ public class DnDTabPos {
 	    	JSplitPane splitWin = (JSplitPane) currWin;
 	        // Update the currWindow depending on the direction of
 	        // movement and move only if possible.
-	    	curr = path.get(idx);
 	        if (((curr.equals(DnDTabbedPane.Location.TOP)) || 
 	        	 (curr.equals(DnDTabbedPane.Location.BOTTOM))) &&
 	            (splitWin.getOrientation() != JSplitPane.VERTICAL_SPLIT)) {
@@ -397,8 +402,7 @@ public class DnDTabPos {
 	    }
 	    // Update direction if we have reached our final destination
 	    // successfully.
-	    if ((currWin instanceof DnDTabbedPane) &&
-	    	(idx < 0)) {
+	    if ((currWin instanceof DnDTabbedPane) && (idx < 0)) {
 	        // We have successfully reached our final destination
 	    	curr = DnDTabbedPane.Location.CENTER;
 	    }

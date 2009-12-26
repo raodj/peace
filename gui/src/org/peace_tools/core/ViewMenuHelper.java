@@ -36,10 +36,15 @@ package org.peace_tools.core;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.AbstractButton;
 import javax.swing.Box;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import javax.swing.JTable;
 import javax.swing.JToolBar;
+import javax.swing.JTree;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TreeSelectionListener;
 
 import org.peace_tools.generic.Utilities;
 
@@ -55,7 +60,8 @@ import org.peace_tools.generic.Utilities;
  * class also provides a  createViewMenu() method that actually creates
  * the "View" menu.
  */
-public class ViewMenuHelper implements ActionListener {
+public class ViewMenuHelper extends AbstractMenuHelper 
+implements ActionListener {
 	/**
 	 * The constructor. This class is an action listener that responds to the
 	 * user clicking on various menu items. Since this is only an action listener
@@ -65,8 +71,7 @@ public class ViewMenuHelper implements ActionListener {
 	 * top-level menu bar. This reference is saved in this class for future use.
 	 */
 	public ViewMenuHelper(MainFrame mainFrame) {
-		this.mainFrame = mainFrame;
-		assert(this.mainFrame != null);
+		super(HelperType.VIEW_MENU, mainFrame);
 	}
 
 	/**
@@ -80,78 +85,86 @@ public class ViewMenuHelper implements ActionListener {
 	 * @param toolbar The tool bar to which frequently used shortcuts can
 	 * be added typically in the form of icons. If the tool bar is null, then
 	 * shortcuts are not added.
+	 * 
+	 * @param hmh The help menu helper object associated with the main 
+	 * frame. It is used to add a menu entry for the quick start guide.
 	 */
-	public JMenu createViewMenu(JToolBar toolbar) {
+	public JMenu createViewMenu(JToolBar toolbar, AbstractMenuHelper hmh) {
 		// Create the actual menu.
 		JMenu viewMenu = new JMenu("View  ");
 	    // First create and add the new file creation menu options.
-		JMenuItem item = 
-			Utilities.createMenuItem(Utilities.MENU_ITEM, "New Main Frame",
-				"Open a new main frame to provide extra screen real estate to view data",
-				"NewFrame", this, "images/24x24/MainFrame.png", null, true, false);
-		viewMenu.add(item);
-		item = Utilities.createMenuItem(Utilities.MENU_ITEM, "Duplicate Editor",
-				"Add a duplicate view of the currently selected view to the same main frame",
-				"DupTab", this, "images/24x24/DupTab.png", 
-				null, true, false);
-		viewMenu.add(item);
+		viewMenu.add(getMenuItem(ActionType.NEW_MAIN_FRAME, true));
+		viewMenu.add(getMenuItem(ActionType.DUPLICATE_EDITOR, true));
 		viewMenu.addSeparator();
 		//----------------------------------------------------------
 		// Menu items to display any special views
-		item = Utilities.createMenuItem(Utilities.MENU_ITEM, 
-				"Workspace Hierarchy Browser",
-				"View files in workspace in a hierarchy based on data sets",
-				"DATASET_TREE", this, "images/24x24/DataSetView.png", null, true, false);
-		viewMenu.add(item);
-		item = Utilities.createMenuItem(Utilities.MENU_ITEM, 
-				"Workspace File Browser",
-				"View files in current workspace in as a simple but comprehensive list",
-				"DATASET_FILE", this, "images/24x24/FileView.png", null, true, false);
-		viewMenu.add(item);
+		viewMenu.add(getMenuItem(ActionType.SHOW_WORKSPACE_HIERARCHY_BROWSER, true));
+		viewMenu.add(getMenuItem(ActionType.SHOW_WORKSPACE_FILE_BROWSER, true));
 		viewMenu.addSeparator();
 		//----------------------------------------------------------
-		item = Utilities.createMenuItem(Utilities.MENU_ITEM, 
-				"View All Jobs",
-				"View the current and completed jobs in the current workspace",
-				"JOB_LIST", this, "images/24x24/Jobs.png", null, true, false);
-		viewMenu.add(item);
-		item = Utilities.createMenuItem(Utilities.MENU_ITEM, 
-				"View All Servers",
-				"A tabular view of all the servers currently configured in this workspace",
-				"SERVER_LIST", this, "images/24x24/Server.png", null, true, false);
-		viewMenu.add(item);
+		viewMenu.add(getMenuItem(ActionType.VIEW_JOBS, true));
+		viewMenu.add(getMenuItem(ActionType.VIEW_SERVERS, true));
 		viewMenu.addSeparator();
 		//----------------------------------------------------------
-		item = Utilities.createMenuItem(Utilities.MENU_ITEM, 
-				"User Logs",
-				"Opens a tabular view of logs that provide additional information to a user",
-				"USER_LOGS", this, "images/24x24/UserLog.png", 
-				null, true, false);
-		viewMenu.add(item);
-		item = Utilities.createMenuItem(Utilities.MENU_ITEM, 
-				"Programmer Logs",
-				"View a textual form of the programmer logs with internal logs",
-				"PROGRAMMER_LOGS", this, "images/24x24/ProgLog.png", 
-				null, true, false);
-		viewMenu.add(item);
-		item = Utilities.createMenuItem(Utilities.MENU_ITEM, 
-				"Welcome & Quick Start",
-				"The initial welcome screen with quick start guide about PEACE",
-				"WELCOME_SCREEN", this, "images/24x24/WelcomeSrc.png", 
-				null, true, false);
-		viewMenu.add(item);
+		viewMenu.add(getMenuItem(ActionType.SHOW_USER_LOGS, true));
+		viewMenu.add(getMenuItem(ActionType.SHOW_PROG_LOGS, true));
+		viewMenu.add(hmh.getMenuItem(ActionType.SHOW_QUICK_START, true));
 		
 		if (toolbar != null) {
 			toolbar.add(Box.createHorizontalStrut(5));
-			toolbar.add(Utilities.createToolButton("images/24x24/UserLog.png", 
-					null, "ViewUserLogs", this,
-					"Opens a tabular view of logs that provide additional information to a user", 
-					true));
+			toolbar.add(getTool(ActionType.SHOW_USER_LOGS, true));
 		}
 		return viewMenu;
 	}
 	
- 
+	@Override
+	public JMenuItem getMenuItem(ActionType actionType, boolean mainMenu) {
+		int index = actionType.ordinal() - ActionType.NEW_MAIN_FRAME.ordinal();
+		if ((index < 0) || (index >= MenuTitles.length)) {
+			// Unsupported option
+			return null;
+		}
+		// Setup icon path depending on menu type
+		final String IconPath = "images/" + (mainMenu ? "24x24/" : "16x16/") 
+			+ IconNames[index] + ".png";
+		// Create and return the main menu item
+		return Utilities.createMenuItem(Utilities.MENU_ITEM, MenuTitles[index],
+				(mainMenu ? MenuSubTitles[index] : null),
+				ActionCmds[index], this, IconPath, 
+				null, true, false);
+	}
+	
+	@Override
+	public AbstractButton getTool(ActionType actionType, boolean mainToolBar) {
+		int index = actionType.ordinal() - ActionType.NEW_MAIN_FRAME.ordinal();
+		if ((index < 0) || (index >= MenuTitles.length)) {
+			// Unsupported option
+			return null;
+		}
+		// Setup icon path depending on menu type
+		final String IconPath = "images/" + (mainToolBar ? "24x24/" : "16x16/") 
+			+ IconNames[index] + ".png";
+
+		return Utilities.createToolButton(IconPath, null, ActionCmds[index], this, 
+				MenuSubTitles[index], true);
+	}
+	
+	@Override
+	public TreeSelectionListener getTreeSelectionListener(JTree tree) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ActionListener getActionListener() {
+		return this;
+	}
+
+	@Override
+	public ListSelectionListener getListSelectionListener(JTable table) {
+		return null;
+	}
+
 	@Override
 	public void actionPerformed(ActionEvent event) {
 		String cmd = event.getActionCommand();
@@ -177,9 +190,73 @@ public class ViewMenuHelper implements ActionListener {
 	}
 
 	/**
-	 * Convenient reference to the main frame class that logically owns
-	 * this menu in its JMenuBar. This value is set in the constructor
-	 * and is never changed.
+	 * The strings for each menu title created by this helper. The list of
+	 * values are organized in the same order as the ordinal values of 
+	 * the ActionType enumeration. Preserving the order is important.
 	 */
-	private final MainFrame mainFrame;
+	private static final String MenuTitles[] = {
+		"New Main Frame", 
+		"Duplicate Editor",
+		"Workspace Hierarchy Browser",
+		"Workspace File Browser",
+		"View All Jobs",
+		"View All Servers",
+		"User Logs",
+		"Programmer Logs",
+	};
+	
+	/**
+	 * The icon file names for each menu title created by this helper. 
+	 * The list of values are organized in the same order as the ordinal 
+	 * values of the ActionType enumeration. Preserving the order is
+	 * important. Note that a prefix directory (such as: images/16x16)
+	 * and a suffix extension (.png) is added when tools or menu items
+	 * are created.
+	 */
+	private static final String IconNames[] = {
+		"MainFrame", 
+		"DupTab",
+		"DataSetView",
+		"FileView",
+		"Jobs",
+		"Server",
+		"UserLog",
+		"ProgLog",
+	};
+	
+	/**
+	 * The strings for the action commands generated by the various menu items
+	 * in the help menu. The list of values are organized in the same order as
+	 * the ordinal values of the ActionType enumeration. Preserving the order 
+	 * is important.
+	 */
+	private static final String ActionCmds[] = {
+		"NewFrame", 
+		"DupTab",
+		"DATASET_TREE",
+		"DATASET_FILE",
+		"JOB_LIST",
+		"SERVER_LIST",
+		"USER_LOGS",
+		"PROGRAMMER_LOGS",
+	};
+	
+	/**
+	 * The various sub menu titles that are used in the main menu. The
+	 * sub menu titles are used to provide the user with a bit more 
+	 * verbose description on the action that will be performed by a given
+	 * menu item. The list of values are organized in the same order as 
+	 *  the ordinal values of the ActionType enumeration. Preserving the 
+	 *  order is important.
+	 */
+	private static final String MenuSubTitles[] = {
+		"Open a new main frame to provide extra screen real estate to view data",
+		"Add a duplicate view of the currently selected view to the same main frame",
+		"View files in workspace in a hierarchy based on data sets",
+		"View files in current workspace in as a simple but comprehensive list",
+		"View the current and completed jobs in the current workspace",
+		"A tabular view of all the servers currently configured in this workspace",
+		"Opens a tabular view of logs that provide additional information to a user",
+		"View a textual form of the programmer logs with internal logs",
+	};
 }

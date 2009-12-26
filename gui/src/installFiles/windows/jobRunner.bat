@@ -36,7 +36,7 @@ REM ---------------------------------------------------------------------
 :main
     REM Check and ensure we have exactly two command line arguments.
     REM The first one is the name of the script itself.
-    REM The second argument must be "start", "status", or "output"
+    REM The second argument must be "start", "status", "output", "scripts"
 
     if "%1" == "" goto showUsage
 
@@ -55,7 +55,10 @@ REM ---------------------------------------------------------------------
     ) 
     if "%1" == "output" (
         call :output
-	goto end
+		goto end
+	if "%1" == "scripts" (
+        call :scripts
+        goto end
     )
     if "%1" == "runPeace" (
         call :runPeace
@@ -103,5 +106,28 @@ REM --- Sub routine to start PEACE with a given set of parameters ---
     type job.stdout
     type job.stderr 1>&2
     goto :EOF
-    
+
+:scripts
+    REM dump out script information
+	REM Echo files used and the scripts to run the job.
+	echo List of files in %CD%:
+	dir
+	echo ---------------------------------------------------------------
+	
+	REM Display progress information if we have any
+	if exist progress.dat (
+	   echo Contents of progress data file in %CD%\progress.dat:
+       type progress.dat
+       echo ---------------------------------------------------------------
+	)
+
+	REM Display exit status if file exists
+	if exist exit_status (
+	   echo Contents of progress data file in %CD%\exit_status:
+       type exit_status
+       echo ---------------------------------------------------------------
+	)
+	
+    goto :EOF
+	
 REM end of file

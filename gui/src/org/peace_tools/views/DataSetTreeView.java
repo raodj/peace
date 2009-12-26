@@ -42,6 +42,7 @@ import java.awt.event.MouseEvent;
 
 import javax.swing.Icon;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
 import javax.swing.ToolTipManager;
@@ -84,8 +85,10 @@ public class DataSetTreeView extends JPanel implements ActionListener {
         // Add a mouse adapter to intercept double clicks to open
         // the files on the tree entry items.
         addMouseAdapter(dataSetTree);
-        // Add tree to the center.
-        this.add(dataSetTree, BorderLayout.CENTER);
+        // Wrap the tree view in a scroll pane to let it scroll.
+		JScrollPane jsp = new JScrollPane(dataSetTree);
+		jsp.setBorder(null);
+        this.add(jsp, BorderLayout.CENTER);
         
         // Create and setup the tool bar.
         toolbar = new JToolBar();
@@ -157,6 +160,10 @@ public class DataSetTreeView extends JPanel implements ActionListener {
         }
         // Select the path first
         dataSetTree.setSelectionPath(path);
+        // Update cross reference if set.
+        if (listView != null) {
+        	listView.setSelectedEntry(path.getLastPathComponent());
+        }
         // Obtain needed information for pop up menu
         final Object  entry      = path.getLastPathComponent();
         final boolean isExpanded = dataSetTree.isExpanded(path);
@@ -238,6 +245,41 @@ public class DataSetTreeView extends JPanel implements ActionListener {
 	}
 	
 	/**
+	 * Set the reference to the file table to be synchronized with
+	 * this tree.
+	 * 
+	 * This method is used by the ViewFactory to setup cross reference
+	 * between the tree view and the data set file list view.
+	 * 
+	 * @param listView The list view whose selected entry is to be 
+	 * synchronized with that of this tree.
+	 */
+	public void setTableView(DataSetFileListView listView) {
+		this.listView = listView;
+	}
+	
+	/**
+	 * Method to select entry in the data set tree view 
+	 * 
+	 * This is a helper method that is primarily used by the
+	 * DataSetFileListView to update the selected entry when when
+	 * the selection in the table changes.
+	 * 
+	 * @param entry The entry to be selected. If this value is null
+	 * then selections are cleared.
+	 */
+	public void setSelectedEntry(Object entry) {
+		TreePath path = (entry != null) ? treeModel.getPath(entry) : null;
+		if (path == null) {
+			// No real selection.
+			dataSetTree.clearSelection();
+		} else {
+			dataSetTree.setSelectionPath(path);
+			dataSetTree.expandPath(path);
+		}
+	}
+	
+	/**
 	 * The static set of icons that are repeatedly used by
 	 * the custom cell renderer used by this tree view class.
 	 */
@@ -281,6 +323,14 @@ public class DataSetTreeView extends JPanel implements ActionListener {
      */
     private JTree dataSetTree;
 	
+	/**
+	 * The actual JTable that provides a graphical view of the
+	 * data sets in the form of a list. This reference is used
+	 * to synchronize the selected entries in the tree and 
+	 * the table.
+	 */
+    private DataSetFileListView listView;
+    
 	/**
 	 * A generated serial version ID.
 	 */

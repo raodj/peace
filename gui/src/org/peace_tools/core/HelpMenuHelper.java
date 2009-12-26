@@ -36,12 +36,17 @@ package org.peace_tools.core;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.AbstractButton;
 import javax.swing.Box;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JTable;
 import javax.swing.JToolBar;
+import javax.swing.JTree;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TreeSelectionListener;
 
 import org.peace_tools.generic.Utilities;
 
@@ -57,7 +62,8 @@ import org.peace_tools.generic.Utilities;
  * class also provides a  createHelpMenu() method that actually creates
  * the "Help" menu.
  */
-public class HelpMenuHelper implements ActionListener {
+public class HelpMenuHelper extends AbstractMenuHelper 
+implements ActionListener {
 	/**
 	 * The constructor. This class is an action listener that responds to the
 	 * user clicking on various menu items. Since this is only an action listener
@@ -67,7 +73,7 @@ public class HelpMenuHelper implements ActionListener {
 	 * top-level menu bar. This reference is saved in this class for future use.
 	 */
 	public HelpMenuHelper(MainFrame mainFrame) {
-		this.mainFrame = mainFrame;
+		super(HelperType.HELP_MENU, mainFrame);
 	}
 
 	/**
@@ -86,74 +92,28 @@ public class HelpMenuHelper implements ActionListener {
 		// Create the actual menu.
 		JMenu helpMenu = new JMenu("Help");
 	    // First create and add the new file creation menu options.
-		JMenuItem item = 
-			Utilities.createMenuItem(Utilities.MENU_ITEM, "Help Contents",
-				"Open the main help and documentation page on PEACE website",
-				"HelpContents", this, "images/24x24/HelpContents.png", null, true, false);
-		helpMenu.add(item);
-		item = Utilities.createMenuItem(Utilities.MENU_ITEM, "User Tutorials",
-					"Open PEACE web site with tutorials on using and working with PEACE",
-					"HelpTutorials", this, "images/24x24/Help.png", 
-					null, true, false);
-		helpMenu.add(item);
-		item = Utilities.createMenuItem(Utilities.MENU_ITEM, 
-				"Related Publications",
-				"Browse the list of publications and presentations on PEACE",
-				"HelpPubs", this, "images/24x24/Papers.png", null, true, false);
-		helpMenu.add(item);
+		helpMenu.add(getMenuItem(ActionType.SHOW_HELP_CONTENTS, true));
+		helpMenu.add(getMenuItem(ActionType.SHOW_USER_TUTORIALS, true));
+		helpMenu.add(getMenuItem(ActionType.SHOW_PAPERS, true));
+		helpMenu.addSeparator();
+		
+		//----------------------------------------------------------
+		helpMenu.add(getMenuItem(ActionType.SHOW_EMAIL, true));
+		helpMenu.add(getMenuItem(ActionType.SHOW_UPDATES, true));
 		helpMenu.addSeparator();
 		//----------------------------------------------------------
-		item = Utilities.createMenuItem(Utilities.MENU_ITEM, 
-				"Contact via Email",
-				"Launches your default mail tool to send email to PEACE developers",
-				"HelpEmail", this, "images/24x24/Email.png", null, true, false);
-		helpMenu.add(item);
-		item = Utilities.createMenuItem(Utilities.MENU_ITEM, 
-				"Software Updates",
-				"Navigates directly to the downloads page on PEACE website",
-				"HelpUpdates", this, "images/24x24/Updates.png", null, true, false);
-		helpMenu.add(item);
+		helpMenu.add(getMenuItem(ActionType.SHOW_PROGRAMMER_DOCS, true));
+		helpMenu.add(getMenuItem(ActionType.SHOW_NOTES, true));
+		helpMenu.add(getMenuItem(ActionType.SHOW_BUGS, true));
 		helpMenu.addSeparator();
 		//----------------------------------------------------------
-		item = Utilities.createMenuItem(Utilities.MENU_ITEM, 
-				"Programmer Documentation",
-				"Opens PEACE web site with technical documentation about PEACE",
-				"HelpProgDoc", this, "images/24x24/ProgDoc.png", 
-				null, true, false);
-		helpMenu.add(item);
-		item = Utilities.createMenuItem(Utilities.MENU_ITEM, 
-				"Release Notes",
-				"Opens PEACE web site with information about current release",
-				"HelpNotes", this, "images/24x24/ReleaseNotes.png", 
-				null, true, false);
-		helpMenu.add(item);
-		item = Utilities.createMenuItem(Utilities.MENU_ITEM, 
-				"Report Bugs & Issues",
-				"Opens PEACE web site with forms to log bugs and issues with PEACE",
-				"HelpBug", this, "images/24x24/Bug.png", null, true, false);
-		helpMenu.add(item);
-		helpMenu.addSeparator();
-		//----------------------------------------------------------
-		item = Utilities.createMenuItem(Utilities.MENU_ITEM, 
-				"Welcome & Quick Start",
-				"The initial welcome screen with quick start guide about PEACE",
-				"Welcome", this, "images/24x24/WelcomeSrc.png", 
-				null, true, false);
-		helpMenu.add(item);
-		item = Utilities.createMenuItem(Utilities.MENU_ITEM, 
-				"About PEACE",
-				"Credits and copyright information about the PEACE software system",
-				"About", this, "images/24x24/PEACE.png", null, true, false);
-		helpMenu.add(item);
+		helpMenu.add(getMenuItem(ActionType.SHOW_QUICK_START, true));
+		helpMenu.add(getMenuItem(ActionType.SHOW_ABOUT_DIALOG, true));
 		
 		if (toolbar != null) {
 			toolbar.add(Box.createHorizontalStrut(5));
-			toolbar.add(Utilities.createToolButton("images/24x24/WelcomeSrc.png", 
-					null, "Welcome", this, 
-					"Show welcome message & quick start guide", true));
-			toolbar.add(Utilities.createToolButton("images/24x24/Help.png", 
-					null, "HelpContents", this, 
-					"Launch online PEACE via your default browser", true));
+			toolbar.add(getTool(ActionType.SHOW_QUICK_START, true));
+			toolbar.add(getTool(ActionType.SHOW_HELP_CONTENTS, true));	
 		}
 		return helpMenu;
 	}
@@ -163,12 +123,8 @@ public class HelpMenuHelper implements ActionListener {
 		// These URLs are listed in the same order as the action commands
 		// to see look up and cross reference.
 		String HelpURLs[] = {"contents.html", "tutorials.html",
-				"papers.html", "updates.html", "progdocs.html", 
-				"release_notes.html", "bugreport.html", "contact.html"};
-		// The action commands.
-		String ActionCmds[] = {"HelpContents", "HelpTutorials", 
-				"HelpPubs", "HelpUpdates", "HelpProgDoc",
-				"HelpNotes", "HelpBug", "HelpEmail", "Welcome", "About"};
+				"papers.html", "contact.html", "updates.html", "progdocs.html", 
+				"release_notes.html", "bugreport.html"};
 		// Map action command to index ids
 		int index;
 		final String cmd = event.getActionCommand();
@@ -204,6 +160,133 @@ public class HelpMenuHelper implements ActionListener {
 		}
 	}
 
+	@Override
+	public ActionListener getActionListener() {
+		return this;
+	}
+
+	@Override
+	public ListSelectionListener getListSelectionListener(JTable table) {
+		return null;
+	}
+
+	@Override
+	public JMenuItem getMenuItem(ActionType actionType, boolean mainMenu) {
+		int index = actionType.ordinal() - ActionType.SHOW_HELP_CONTENTS.ordinal();
+		if ((index < 0) || (index >= MenuTitles.length)) {
+			// Unsupported option
+			return null;
+		}
+		// Setup icon path depending on menu type
+		final String IconPath = "images/" + (mainMenu ? "24x24/" : "16x16/") 
+			+ IconNames[index] + ".png";
+		// Create and return the main menu item
+		return Utilities.createMenuItem(Utilities.MENU_ITEM, MenuTitles[index],
+				(mainMenu ? MenuSubTitles[index] : null),
+				ActionCmds[index], this, IconPath, 
+				null, true, false);
+	}
+	
+	@Override
+	public AbstractButton getTool(ActionType actionType, boolean mainToolBar) {
+		int index = actionType.ordinal() - ActionType.SHOW_HELP_CONTENTS.ordinal();
+		if ((index < 0) || (index >= MenuTitles.length)) {
+			// Unsupported option
+			return null;
+		}
+		// Setup icon path depending on menu type
+		final String IconPath = "images/" + (mainToolBar ? "24x24/" : "16x16/") 
+			+ IconNames[index] + ".png";
+
+		return Utilities.createToolButton(IconPath, null, ActionCmds[index], this, 
+				MenuSubTitles[index], true);
+	}
+
+	@Override
+	public TreeSelectionListener getTreeSelectionListener(JTree tree) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	/**
+	 * The strings for each menu title created by this helper. The list of
+	 * values are organized in the same order as the ordinal values of 
+	 * the ActionType enumeration. Preserving the order is important.
+	 */
+	private static final String MenuTitles[] = {
+		"Help Contents", 
+		"User Tutorials",
+		"Related Publications",
+		"Contact via Email",
+		"Software Updates",
+		"Programmer Documentation",
+		"Release Notes",
+		"Report Bugs & Issues",
+		"Welcome & Quick Start Guide",
+		"About PEACE"
+	};
+	
+	/**
+	 * The icon file names for each menu title created by this helper. 
+	 * The list of values are organized in the same order as the ordinal 
+	 * values of the ActionType enumeration. Preserving the order is
+	 * important. Note that a prefix directory (such as: images/16x16)
+	 * and a suffix extension (.png) is added when tools or menu items
+	 * are created.
+	 */
+	private static final String IconNames[] = {
+		"HelpContents", 
+		"Help",
+		"Papers",
+		"Email",
+		"Updates",
+		"ProgDoc",
+		"ReleaseNotes",
+		"Bug",
+		"WelcomeSrc",
+		"PEACE"
+	};
+	
+	/**
+	 * The strings for the action commands generated by the various menu items
+	 * in the help menu. The list of values are organized in the same order as
+	 * the ordinal values of the ActionType enumeration. Preserving the order 
+	 * is important.
+	 */
+	private static final String ActionCmds[] = {
+		"HelpContents", 
+		"HelpTutorials",
+		"HelpPubs",
+		"HelpEmail",
+		"HelpUpdates",
+		"HelpProgDoc",
+		"HelpNotes",
+		"HelpBug",
+		"Welcome",
+		"About"
+	};
+	
+	/**
+	 * The various sub menu titles that are used in the main menu. The
+	 * sub menu titles are used to provide the user with a bit more 
+	 * verbose description on the action that will be performed by a given
+	 * menu item. The list of values are organized in the same order as 
+	 *  the ordinal values of the ActionType enumeration. Preserving the 
+	 *  order is important.
+	 */
+	private static final String MenuSubTitles[] = {
+		"Open the main help and documentation page on PEACE website",
+		"Open PEACE web site with tutorials on using and working with PEACE",
+		"Browse the list of publications and presentations on PEACE",
+		"Launches your default mail tool to send email to PEACE developers",
+		"Navigates directly to the downloads page on PEACE website",
+		"Opens PEACE web site with technical documentation about PEACE",
+		"Opens PEACE web site with information about current release",
+		"Opens PEACE web site with forms to log bugs and issues with PEACE",
+		"The initial welcome screen with quick start guide about PEACE",
+		"Credits and copyright information about the PEACE software system"
+	};
+	
 	/**
 	 * This message is displayed when the default system browser could
 	 * not be launched to display help.
@@ -213,11 +296,4 @@ public class HelpMenuHelper implements ActionListener {
 		"Possibly your install of PEACE is incomplete or corrupted.<br>" +
 		"You will need to reinstall a recent copy of PEACE to resolve this issue." +
 		"</html>";
-	
-	/**
-	 * Convenient reference to the main frame class that logically owns
-	 * this menu in its JMenuBar. This value is set in the constructor
-	 * and is never changed.
-	 */
-	private final MainFrame mainFrame;
 }

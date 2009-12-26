@@ -154,7 +154,7 @@ function runCmdLine {
 # print its exist status as well.
 function checkStatus {
 	pid=`cat job_id.pid`
-	ps $pid > /dev/null 2> /dev/null
+	ps -p $pid -o "user,pid" | grep $USER > /dev/null 2> /dev/null
 	if [ $? -eq 0 ]; then
 		echo "running"
 	    # Dummy exist status for output consistency
@@ -185,18 +185,82 @@ function showProgress {
 	return 0
 }
 
+# Function to abort a job submitted via PBS
+function abortJobViaPBS {
+	# First check status of the job on PBS
+	jobID=`cat job_id.qsub`
+	qstat $jobID > /dev/null 2> /dev/null
+	if [ $? -ne 0 ]; then
+		# OK, the job is not running. Bail out.
+		echo "Job is not running" 1>&2
+		return 1
+	if
+	# OK, double check to ensure the job belongs to
+	# the user.
+	qstat $jobID | grep $USER > /dev/null 2> /dev/null
+	if [ $? -ne 0 ]; then
+		echo "Wierd. Are you trying to delete this job" 1>&2
+		echo "after a long time? The PBS job does not " 1>&2
+		echo "belong to you anymore. Cannot delete it." 1>&2
+		return 2
+	fi
+
+	# OK, the job belongs to the user. delete it.
+	qdel $jobID
+	if [ $? -ne 0 ]; then
+		echo "Unable to abort the job"
+		return 3
+	fi
+	
+	# Everything went well
+	return 0
+}
+
+# Kill a job that was started up without PBS, that is
+# as a regular process.
+function abortJob {
+	pid=`cat job_id.pid`
+	ps -p $pid -o "user,pid" | grep $USER > /dev/null 2> /dev/null
+	if [ $? -ne 0 ]; then
+		# Process is not running.
+		echo "Job is not running" 1>&2
+		return 1
+	fi
+	# Double check the job is actually a PEACE
+	# job and not some stray one
+	ps -p $pid -o "comm" | grep -i "peace" > /dev/null 2> /dev/null
+	if [ $? -ne 0 ]; then
+		echo "A process with the expected PID is running." 1>&2
+		echo "But it is not a PEACE process. Wierd."       1>&2
+		echo "To play it safe, the job was not aborted."   1>&2
+		return 2
+	fi
+
+	# OK, kill the task
+	kill -9 $pid
+	if [ $? -ne 0 ] then
+		echo "Unable to kill process with PID $pid" 1>&2
+		return 3
+	fi
+	
+	# The job was killed successfully
+	return 0
+}
+
 #------------------------------------------------------------------------
 #-------------------------------[ main ]---------------------------------
 # Check and ensure we have exactly two command line arguments.
 # The first one is the name of the script itself.
-# The second argument must be "start", "status", or "output"
+# The second argument must be "start", "status", "output", "scripts"
 if [ $# -ne 1 ]; then
-	echo "Usage: jobRunner.sh [start|status|output]"
+	echo "Usage: jobRunner.sh [start|status|output|scripts|abort]"
 	exit 1
 fi
 
-if [[ "$1" != "start" && "$1" != "status" && "$1" != "output" ]]; then
-	echo "Usage: jobRunner.sh [start|status|output]"
+if [[ "$1" != "start" && "$1" != "status" && "$1" != "output" && \
+	  "$1" != "scripts" && "$1" != "abort" && "$1" != "jobs"  && \
+	  "$1" != "allJobs" ]]; then
+	echo "Usage: jobRunner.sh [start|status|output|scripts|jobs|allJobs]"
 	exit 1
 fi
 
@@ -229,9 +293,62 @@ elif [ "$1" == "status" ]; then
 	fi
 	# Return with exit status of last run command
 	exit $?
-else
+elif [ "$1" == "output" ]; then
 	# Echo the final results on standard out and standard error
-	exit 3
+	cat *.o*
+	if [ $? -eq 0 ]; then
+		cat *.e* 1>&2
+	fi
+	exit $?
+elif [ "$1" == "abort" ]; then
+	# Try to abort the job dependin on how it was
+	# submitted.
+	if [ -f job_id.qsub ]; then
+		abortJobViaPBS
+	else
+		abortJob
+	fi
+	# Return with exit status of last run command
+	exit $?
+else
+	# Echo files used and the scripts to run the jobs.
+	echo "List of files in $PWD:"
+	ls -l
+	echo "---------------------------------------------------------------"
+	# Echo the contents of the generated script file
+	genScript=`ls -1 *.sh | grep -v "jobRunner.sh"`
+	echo "Contents of generated script $PWD/$genScript:"
+	cat $genScript
+	echo "---------------------------------------------------------------"
+
+	# Display job_id.qsub file if it exists
+	if [ -f job_id.qsub ]; then
+		echo "Contents of PBS job ID in $PWD/job_id.qsub:"
+		cat job_id.qsub
+		echo "---------------------------------------------------------------"
+	fi
+
+	# Display job_id.pid file if it exists
+	if [ -f job_id.pid ]; then
+		echo "Contents of process PID file $PWD/job_id.pid:"
+		cat job_id.pid
+		echo "---------------------------------------------------------------"
+	fi
+
+	# Display progress information if we have any
+	if [ -f progress.dat ]; then
+		echo "Contents of progress data file in $PWD/progress.dat:"
+		cat progress.dat
+		echo "---------------------------------------------------------------"
+	fi
+	# Display exit status if file exists
+	if [ -f exit_status ]; then
+		echo "Exit status in file $PWD/exit_status:"
+		cat exit_status
+		echo "---------------------------------------------------------------"
+	fi
+	
+	exit $?
 fi
 
 # end of script
