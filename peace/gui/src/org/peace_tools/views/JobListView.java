@@ -35,15 +35,12 @@ package org.peace_tools.views;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 import javax.swing.Box;
 import javax.swing.Icon;
 import javax.swing.JComponent;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JProgressBar;
@@ -54,14 +51,11 @@ import javax.swing.ListSelectionModel;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
-import org.peace_tools.core.DeleteDialog;
-import org.peace_tools.core.JobMonitor;
+import org.peace_tools.core.AbstractMenuHelper;
 import org.peace_tools.core.MainFrame;
 import org.peace_tools.data.JobListTableModel;
 import org.peace_tools.generic.Utilities;
@@ -74,8 +68,7 @@ import org.peace_tools.workspace.JobBase;
  *  JobListTableModel class that provides the Job data from the
  *  work space in a form that is easily displayed in a table.
  */
-public class JobListView extends JPanel 
-	implements ActionListener, ListSelectionListener {
+public class JobListView extends JPanel {
 	/**
 	 * The default constructor. 
 	 * 
@@ -105,9 +98,6 @@ public class JobListView extends JPanel
 				return super.getCellRenderer(row, column);
 			}
 		};
-		// Set the selection model for this table.
-		jobTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		jobTable.getSelectionModel().addListSelectionListener(this);
 		// Ensure rows are not too small as our icons are 16x16
 		// 19 is visual magic
 		jobTable.setRowHeight(Math.max(19, jobTable.getRowHeight()));
@@ -133,26 +123,24 @@ public class JobListView extends JPanel
         // Create the toolbar at the top of the job list
         toolbar = new JToolBar();
         toolbar.setFloatable(false);
-        toolbar.add(Utilities.createToolButton("images/16x16/StartJobMonitor.png", 
-        		null, "startMonitor", null, 
-        		"Start a job monitor (daemon thread) for selected job", false));
-        toolbar.add(Utilities.createToolButton("images/16x16/StopJobMonitor.png",
-        		null, "stopMonitor", null, 
-        		"Stop the job monitor (daemon thread) for this job", false));
+        AbstractMenuHelper helper = mainFrame.getMenuHelper(AbstractMenuHelper.HelperType.JOB_MENU);
+        toolbar.add(helper.getTool(AbstractMenuHelper.ActionType.START_JOB_MONITOR, false));
+        toolbar.add(helper.getTool(AbstractMenuHelper.ActionType.STOP_JOB_MONITOR, false));
         toolbar.add(Box.createHorizontalStrut(5));
-        toolbar.add(Utilities.createToolButton("images/16x16/DefaultView.png",
-        		null, "view", null, 
-        		"Show outputs from the job", false));
+        toolbar.add(helper.getTool(AbstractMenuHelper.ActionType.SHOW_JOB_DETAILS, false));
         toolbar.add(Box.createHorizontalStrut(5));
-        toolbar.add(Utilities.createToolButton("images/16x16/Delete.png",
-        		null, "delete", null, 
-        		"Delete the selected job entry", false));
+        toolbar.add(helper.getTool(AbstractMenuHelper.ActionType.REMOVE_JOB, false));
         // Add tool bar to the north
         add(toolbar, BorderLayout.NORTH);
         // Finally create pop up menu for various job options
         createPopupMenu();
         // Add a mouse handler to trigger popups
         addMouseAdapter(jobTable);
+		// Set the selection model for this table.
+		jobTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		jobTable.getSelectionModel().addListSelectionListener(helper.getListSelectionListener(jobTable));
+		// Also setup the helper as a model listener as well.
+		model.addTableModelListener(helper);
 	}
 	
 	/**
@@ -165,32 +153,24 @@ public class JobListView extends JPanel
 	 */
 	private void createPopupMenu() {
 		popupMenu = new JPopupMenu();
-		popupMenu.add(Utilities.createMenuItem(Utilities.MENU_ITEM, 
-				"Start job monitor (daemon thread)", "startMonitor", this, 
-				"images/16x16/StartJobMonitor.png", null, true, false));
-		popupMenu.add(Utilities.createMenuItem(Utilities.MENU_ITEM, 
-				"Stop job monitor (daemon thread)", "stopMonitor", this, 
-				"images/16x16/StopJobMonitor.png", null, true, false));
+		// Add various menu options to the main menu. 
+		AbstractMenuHelper helper = mainFrame.getMenuHelper(AbstractMenuHelper.HelperType.JOB_MENU);
+		popupMenu.add(helper.getMenuItem(AbstractMenuHelper.ActionType.COMPUTE_MST, false));
+		popupMenu.add(helper.getMenuItem(AbstractMenuHelper.ActionType.COMPUTE_CLUSTERS, false));
 		popupMenu.addSeparator();
-		//--------------------------------------------------
-		popupMenu.add(Utilities.createMenuItem(Utilities.MENU_ITEM, 
-				"Show outputs from the job", "view", this, 
-				"images/16x16/DefaultView.png", null, true, false));
-		popupMenu.add(Utilities.createMenuItem(Utilities.MENU_ITEM, 
-				"Show all jobs on server", "jobListAll", this, 
-				"images/16x16/ServerInfo.png", null, true, false));
-		popupMenu.add(Utilities.createMenuItem(Utilities.MENU_ITEM, 
-				"Show my jobs on server", "jobList", this, 
-				null, null, true, false));
+		// Context sensitive job operation menu items.
+		popupMenu.add(helper.getMenuItem(AbstractMenuHelper.ActionType.START_JOB_MONITOR, false));
+		popupMenu.add(helper.getMenuItem(AbstractMenuHelper.ActionType.STOP_JOB_MONITOR, false));
 		popupMenu.addSeparator();
-		//--------------------------------------------------
-		popupMenu.add(Utilities.createMenuItem(Utilities.MENU_ITEM, 
-				"Abort the job on server", "abort", this, 
-				"images/16x16/JobError.png", null, true, false));
-		popupMenu.add(Utilities.createMenuItem(Utilities.MENU_ITEM, 
-				"Remove entry from Workspace", "delete", this, 
-				"images/16x16/Delete.png", null, true, false));
-
+		
+		popupMenu.add(helper.getMenuItem(AbstractMenuHelper.ActionType.SHOW_JOB_DETAILS, false));
+		popupMenu.add(helper.getMenuItem(AbstractMenuHelper.ActionType.ABORT_JOB, false));
+		popupMenu.add(helper.getMenuItem(AbstractMenuHelper.ActionType.REMOVE_JOB, false));
+		popupMenu.addSeparator();
+		
+		// Finally create the server entries in the menu.
+		popupMenu.add(helper.getMenuItem(AbstractMenuHelper.ActionType.SHOW_JOBS_ON_SERVER, false));
+		popupMenu.add(helper.getMenuItem(AbstractMenuHelper.ActionType.SHOW_MY_JOBS_ON_SERVER, false));
 	}
 	
 	/**
@@ -238,66 +218,14 @@ public class JobListView extends JPanel
 	 */
 	public void handlePopup(MouseEvent me) {
 		int row = jobTable.rowAtPoint(me.getPoint());
-		// Get the file at the given row and column.
-		Job job = model.getJob(row);
-		if (job == null) {
-			return;
+		jobTable.clearSelection();
+		if (model.getJob(row) != null) {
+	        // Select the table entry
+			jobTable.setRowSelectionInterval(row, row);
 		}
-        // Select the table entry
-		jobTable.setRowSelectionInterval(row, row);
-        // Now enable/disable popup menu items based on the item
-        // First set the ability to start/stop the job monitor.
-		final boolean haveMonitor = job.getMonitor() != null;
-		final boolean haveServer = !"<n/a>".equals(jobTable.getValueAt(row, 3));
-		popupMenu.getComponent(0).setEnabled(haveMonitor ? false : (!job.isDone() && haveServer));
-		popupMenu.getComponent(1).setEnabled(haveMonitor);
-		// Enable outputs only if job is done running.
-		popupMenu.getComponent(3).setEnabled(job.isDone());
-		// Enable options to list jobs on server only if server is valid.
-		popupMenu.getComponent(4).setEnabled(haveServer);
-		popupMenu.getComponent(5).setEnabled(haveServer);
-		// Enable aborting running jobs.
-		popupMenu.getComponent(7).setEnabled(haveServer && JobBase.JobStatusType.RUNNING.equals(job.getStatus()));
-		// Let user delete jobs only if they are done.
-		popupMenu.getComponent(8).setEnabled(job.isDone() || !haveServer);
-        // Show pop-up menu.
+        // JobMenuHelper enables/disables popup menu items based 
+		// on the item selected.
         popupMenu.show(jobTable, me.getX(), me.getY());
-	}
-	
-	/**
-	 * The selection listener/handler for the job table.
-	 * 
-	 * This method is invoked by the core Swing classes whenever the
-	 * user selects a specific entry in the job list table. This
-	 * method essentially enables/disables various tool bar buttons
-	 * based on the option selected.
-	 * 
-	 * @param event The selection event associated with this method.
-	 * Currently, this method ignores event and directly uses the 
-	 * selected row in the table.
-	 */
-	@Override
-	public void valueChanged(ListSelectionEvent event) {
-		// By default disable all the tools.
-		toolbar.getComponent(0).setEnabled(false);
-		toolbar.getComponent(1).setEnabled(false);
-		toolbar.getComponent(3).setEnabled(false);
-		toolbar.getComponent(5).setEnabled(false);
-		// See if we have a valid job entry selected
-		final int row = jobTable.getSelectedRow();
-		Job job = model.getJob(row);
-		if (job == null) {
-			// Nothing else to be done.
-			return;
-		}
-		// Check if the job has a monitor/server and setup other tools
-		final boolean haveMonitor = job.getMonitor() != null;
-		final boolean haveServer  = !"<n/a>".equals(jobTable.getValueAt(row, 3));
-		// Setup the start/stop monitor
-		toolbar.getComponent(0).setEnabled(haveMonitor ? false : (!job.isDone() && haveServer));
-		toolbar.getComponent(1).setEnabled(haveMonitor);
-		toolbar.getComponent(3).setEnabled(true);
-		toolbar.getComponent(5).setEnabled(job.isDone() || !haveServer);
 	}
 
 	/**
@@ -318,34 +246,6 @@ public class JobListView extends JPanel
 		Job job = model.getJob(row);
 		if (job == null) {
 			return;
-		}
-	}
-
-	@Override
-	public void actionPerformed(ActionEvent event) {
-		// Handle various action commands from popup menus or from the
-		// tool bar associated with the jobs tab.
-		final String cmd = event.getActionCommand();
-		final Job    job = model.getJob(jobTable.getSelectedRow());
-		if (job == null) {
-			// Huh! no job is really selected. can't perform action
-			return;
-		}
-		if ("startMonitor".equals(cmd)) {
-			boolean result = JobMonitor.create(job, mainFrame);
-			String msg = "Job monitoring thread was " + 
-						 (result ? "" : "not ") + "started.";
-			JOptionPane.showMessageDialog(this, msg, "Job Monitor", 
-					result ? JOptionPane.INFORMATION_MESSAGE : JOptionPane.WARNING_MESSAGE);
-		} else if ("stopMonitor".equals(cmd)) {
-			// Try and interrupt the job monitor thread. But no guarantee
-			// that the thread is in a position to actually stop.
-			JobMonitor.interrupt(job);
-		} else if ("delete".equals(cmd)) {
-			// Use the delete dialog to delete the job entry and 
-			// remove associated files.
-			DeleteDialog delDiag = new DeleteDialog(mainFrame, job);
-			delDiag.setVisible(true);
 		}
 	}
 	

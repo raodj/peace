@@ -167,10 +167,19 @@ public class DataSetFileListView extends JPanel {
 		// Get the file at the given row and column.
 		Object entry = tableModel.getEntry(row);
 		if (entry == null) {
+			row = -1;
+			fileTable.clearSelection();
+		} else {
+			// Select the table entry
+			fileTable.setRowSelectionInterval(row, row);
+		}
+		// Update cross reference if set.
+		if (treeView != null) {
+			treeView.setSelectedEntry(entry);
+        }
+		if (entry == null) {
 			return;
 		}
-        // Select the table entry
-		fileTable.setRowSelectionInterval(row, row);
         // Now enable/disable popup menu items based on the item
         // selected in the list.
         popupMenu.updateItems(entry, false);
@@ -198,6 +207,44 @@ public class DataSetFileListView extends JPanel {
 			return;
 		}
         mainFrame.getViewFactory().createView(entry, false, false);
+	}
+	
+	/**
+	 * Method to select entry in the data set table view 
+	 * 
+	 * This is a helper method that is primarily used by the
+	 * DataSetTreeView to update the selected entry when when 
+	 * the user clicks on a given entry.
+	 * 
+	 * @param entry The entry to be selected. If this value is null
+	 * or if the entry could not be found then selections are cleared.
+	 */
+	public void setSelectedEntry(Object entry) {
+		int row = (entry != null) ? tableModel.getRow(entry) : -1;
+		if (row == fileTable.getSelectedRow()) {
+			// The entry is already selected. Do nothing.
+			return;
+		}
+		if (row == -1) {
+			// No real selection.
+			fileTable.clearSelection();
+		} else {
+			fileTable.setRowSelectionInterval(row, row);
+		}
+	}
+	
+	/**
+	 * Set the reference to the data set tree view to be synchronized 
+	 * with this table.
+	 * 
+	 * This method is used by the ViewFactory to setup cross reference
+	 * between the tree view and the data set file list view.
+	 * 
+	 * @param treeView The tree view whose selected entry is to be 
+	 * synchronized with that of this table.
+	 */
+	public void setDataSetTreeView(DataSetTreeView treeView) {
+		this.treeView = treeView;
 	}
 	
 	/**
@@ -300,9 +347,16 @@ public class DataSetFileListView extends JPanel {
 	private final ServerNameStatusRenderer FileNameRenderer = new ServerNameStatusRenderer();
 
 	/**
+	 * The actual tree view that provides a graphical view of the
+	 * data sets in the form of a tree. This reference is used
+	 * to synchronize the selected entries in the tree and 
+	 * this tabular view.
+	 */
+    private DataSetTreeView treeView;
+    
+	/**
 	 * A generated serial version ID for serialization (more
 	 * realistically to keep the compiler happy). 
 	 */
 	private static final long serialVersionUID = 80617431851108817L;
-
 }

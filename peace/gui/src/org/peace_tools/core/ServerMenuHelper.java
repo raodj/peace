@@ -36,13 +36,21 @@ package org.peace_tools.core;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
+import javax.swing.AbstractButton;
 import javax.swing.Box;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
+import javax.swing.JTable;
 import javax.swing.JToolBar;
+import javax.swing.JTree;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+import javax.swing.event.TreeSelectionListener;
 
 import org.peace_tools.core.server.ServerWizard;
+import org.peace_tools.data.ServerListTableModel;
 import org.peace_tools.generic.Utilities;
+import org.peace_tools.workspace.Server;
 
 /**
  * The server menu helper for the application.
@@ -56,7 +64,8 @@ import org.peace_tools.generic.Utilities;
  * class also provides a  createServerMenu() method that actually creates
  * the "Server" menu.
  */
-public class ServerMenuHelper implements ActionListener {
+public class ServerMenuHelper extends AbstractMenuHelper
+implements ActionListener, ListSelectionListener {
 	/**
 	 * The constructor. This class is an action listener that responds to the
 	 * user clicking on various menu items. Since this is only an action listener
@@ -66,7 +75,7 @@ public class ServerMenuHelper implements ActionListener {
 	 * top-level menu bar. This reference is saved in this class for future use.
 	 */
 	public ServerMenuHelper(MainFrame mainFrame) {
-		this.mainFrame = mainFrame;
+		super(HelperType.SERVER_MENU, mainFrame);
 	}
 
 	/**
@@ -85,37 +94,115 @@ public class ServerMenuHelper implements ActionListener {
 		// Create the actual menu.
 		JMenu serverMenu = new JMenu("Server  ");
 	    // First create and add the new file creation menu options.
-		JMenuItem item = 
-			Utilities.createMenuItem(Utilities.MENU_ITEM, "Add New Server",
-					"Launch wizard to add a new server and install PEACE runtime on server.",
-					"AddServer", this, "images/24x24/ServerAdd.png", 
-					null, true, false);
-		serverMenu.add(item);
-		item = Utilities.createMenuItem(Utilities.MENU_ITEM, "Remove Server Entry",
-					"Uninstall PEACE runtime and remove an existing server entry from he workspace.", 
-					"RemoveServer", this, "images/24x24/ServerDelete.png", 
-					null, true, false);
-		serverMenu.add(item);
+		serverMenu.add(getMenuItem(ActionType.ADD_SERVER, true));
+		serverMenu.addSeparator();
+		serverMenu.add(getMenuItem(ActionType.SHOW_MY_JOBS, true));
+		serverMenu.add(getMenuItem(ActionType.SHOW_ALL_JOBS, true));
+		serverMenu.add(getMenuItem(ActionType.CONNECTION_TEST, true));
 		
 		serverMenu.addSeparator();
-		item = Utilities.createMenuItem(Utilities.MENU_ITEM, 
-				"View All Servers",
-				"A tabular view of all the servers currently configured in this workspace",
-				"ViewServers", this, "images/24x24/Server.png", null, true, false);
-		serverMenu.add(item);
+		serverMenu.add(getMenuItem(ActionType.REMOVE_SERVER, true));
 		
 		// Add tool bar entry to add a server entry.
 		if (toolbar != null) {
 			// Add some of the tools that we anticipate users to work
 			// with frequently to the tool bar.
 			toolbar.add(Box.createHorizontalStrut(5));
-			toolbar.add(Utilities.createToolButton("images/24x24/ServerAdd.png", 
-					null, "AddServer", this,
-					"Launch wizard to add a new server and install " +
-					"PEACE runtime on server.", true));
+			toolbar.add(getTool(ActionType.ADD_SERVER, true));
 		}
 		
 		return serverMenu;
+	}
+	
+	@Override
+	public ActionListener getActionListener() {
+		return this;
+	}
+
+	@Override
+	public ListSelectionListener getListSelectionListener(JTable table) {
+		this.table = table;
+		return this;
+	}
+
+    /**
+     * The selection listener/handler for a table.
+     * 
+     * This method is invoked by the core Swing classes whenever the
+     * user selects a specific entry in a list or table. This
+     * method essentially enables/disables various tool bar buttons
+     * and menu items based on the current job selection.
+     * 
+     * @note Currently we only handle JTable and not JList.
+     * 
+     * @param event The selection event associated with this method.
+     * This event is not really used.
+     */
+	@Override
+	public void valueChanged(ListSelectionEvent event) {
+		if (event.getValueIsAdjusting()) {
+			return;
+		}
+		assert ( table != null );
+		if (!(table.getModel() instanceof ServerListTableModel)) {
+			// The table model is not really compatible.
+			return;
+		}
+		ServerListTableModel model = (ServerListTableModel) table.getModel();
+		final int row           = table.getSelectedRow();
+		// A couple of flags to help make checks below easier
+		server = model.getServer(row);
+
+		setEnabled("RemoveServer",  server != null); 
+		setEnabled("ShowMyJobs",    server != null);
+		setEnabled("ServerInfo",    server != null);
+		setEnabled("ServerConnect", server != null);
+	}
+	
+	@Override
+	public JMenuItem getMenuItem(ActionType actionType, boolean mainMenu) {
+		int index = actionType.ordinal() - ActionType.ADD_SERVER.ordinal();
+		if ((index < 0) || (index >= MenuTitles.length)) {
+			// Unsupported option
+			return null;
+		}
+		// Setup icon path depending on menu type
+		final String IconPath = "images/" + (mainMenu ? "24x24/" : "16x16/") 
+			+ IconNames[index] + ".png";
+		// Create and return the main menu item
+		JMenuItem item =
+			Utilities.createMenuItem(Utilities.MENU_ITEM, MenuTitles[index],
+				(mainMenu ? MenuSubTitles[index] : null),
+				ActionCmds[index], this, IconPath, 
+				null, true, false);
+		if (index > 0) {
+			// Track context sensitive entries
+			contextItemList.add(item);
+			Utilities.setEnabled(item, false);
+		}
+		return item;
+	}
+	
+	@Override
+	public AbstractButton getTool(ActionType actionType, boolean mainToolBar) {
+		int index = actionType.ordinal() - ActionType.ADD_SERVER.ordinal();
+		if ((index < 0) || (index >= MenuTitles.length)) {
+			// Unsupported option
+			return null;
+		}
+		// Setup icon path depending on menu type
+		final String IconPath = "images/" + (mainToolBar ? "24x24/" : "16x16/") 
+			+ IconNames[index] + ".png";
+
+		AbstractButton item =
+			Utilities.createToolButton(IconPath, null, ActionCmds[index], this, 
+				MenuSubTitles[index], true);
+		if (index > 0) {
+			// Track context sensitive entries
+			contextItemList.add(item);
+			item.setEnabled(false);
+		}
+		return item;
 	}
 	
     /** Add a new server entry.
@@ -135,16 +222,128 @@ public class ServerMenuHelper implements ActionListener {
 
 	@Override
 	public void actionPerformed(ActionEvent event) {
-		String command = event.getActionCommand();
-		if ("AddServer".equals(command)) {
+		String cmd = event.getActionCommand();
+		if ("AddServer".equals(cmd)) {
 			addServer();
+		} else if ("RemoveServer".equals(cmd)) {
+			// Use helper method to verify and delete entry.
+			deleteServer();
+		} else if ("ShowMyJobs".equals(cmd)) {
+			// List just the user's jobs on the server.
+			mainFrame.getViewFactory().createView(server, server.getUserID());
+		} else if ("ServerInfo".equals(cmd)) {
+			// List all jobs on the server.
+			mainFrame.getViewFactory().createView(server, null);
+		} else if ("ServerConnect".equals(cmd)) {
+			// Test connection.
 		}
 	}
 
 	/**
-	 * Convenient reference to the main frame class that logically owns
-	 * this menu in its JMenuBar. This value is set in the constructor
-	 * and is never changed.
+	 * Helper method to setup dialog to display jobs/processes on
+	 * a given server.
+	 * 
+	 * This method is a helper method that is used by both JobMenuHelper
+	 * and ServerMenuHelper to display jobs/processes running on a
+	 * given server.
+	 * 
+	 * @param server The server whose jobs are to be listed.
+	 * @param allJobs If this flag is true then all the jobs running/
+	 * scheduled on the server are displayed rather than just 
 	 */
-	private final MainFrame mainFrame;
+	public void showJobs(Server server, boolean allJobs) {
+		
+	}
+	
+	/**
+	 * Helper method to verify and delete server entry.
+	 * 
+	 * This is a helper method that was introduced to keep the code
+	 * clutter in the actionPerformed() method to a minimum. This
+	 * method uses the DeleteDialog helper dialog to actually 
+	 * delete the server entry.
+	 * 
+	 * @note Deleting the server entry from the work space will
+	 * cause the GUI to automatically reflect the changes.
+	 */
+	private void deleteServer() {
+		if (server == null) {
+			return;
+		}
+		// Delete the entry via the delete dialog.
+		DeleteDialog delDialog = new DeleteDialog(mainFrame, server);
+		delDialog.setVisible(true);
+	}
+	
+	@Override
+	public TreeSelectionListener getTreeSelectionListener(JTree tree) {
+		return null;
+	}
+	
+	/**
+	 * The currently selected server entry (if any). This value is
+	 * updated by the list selection listener whenever a valid
+	 * server entry is selected. If a valid server entry is not selected
+	 * then this entry is set to null.
+	 */
+	private Server server;
+	
+	/**
+	 * The strings for each menu title created by this helper. The list of
+	 * values are organized in the same order as the ordinal values of 
+	 * the ActionType enumeration. Preserving the order is important.
+	 */
+	private static final String MenuTitles[] = {
+		"Add New Server", 
+		"Remove Server Entry",
+		"Show your jobs on server",
+		"Show all jobs on server",
+		"Test server connection"
+	};
+	
+	/**
+	 * The icon file names for each menu title created by this helper. 
+	 * The list of values are organized in the same order as the ordinal 
+	 * values of the ActionType enumeration. Preserving the order is
+	 * important. Note that a prefix directory (such as: images/16x16)
+	 * and a suffix extension (.png) is added when tools or menu items
+	 * are created.
+	 */
+	private static final String IconNames[] = {
+		"ServerAdd", 
+		"ServerDelete",
+		"ServerMyJobs",
+		"ServerInfo",
+		"ServerConnect"
+	};
+	
+	/**
+	 * The strings for the action commands generated by the various menu items
+	 * in the help menu. The list of values are organized in the same order as
+	 * the ordinal values of the ActionType enumeration. Preserving the order 
+	 * is important.
+	 */
+	private static final String ActionCmds[] = {
+		"AddServer", 
+		"RemoveServer",
+		"ShowMyJobs",
+		"ServerInfo",
+		"ServerConnect"
+	};
+	
+	/**
+	 * The various sub menu titles that are used in the main menu. The
+	 * sub menu titles are used to provide the user with a bit more 
+	 * verbose description on the action that will be performed by a given
+	 * menu item. The list of values are organized in the same order as 
+	 *  the ordinal values of the ActionType enumeration. Preserving the 
+	 *  order is important.
+	 */
+	private static final String MenuSubTitles[] = {
+		"Launch wizard to add a new server and install PEACE runtime on server.", 
+		"Uninstall PEACE runtime and remove an existing server entry from he workspace.",
+		"Show just my jobs that are running or queued on the server",
+		"Show all the jobs that are running or queued on the server",
+		"Try connecting to the server to ensure communication is operational"
+	};
 }

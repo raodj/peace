@@ -255,6 +255,42 @@ public class DataSetTreeModel implements TreeModel, WorkspaceListener {
 		assert("Not implemented" == null);
 	}
 
+	/**
+	 * This is a helper method to determine path to a given entry.
+	 * 
+	 * This method can be used to obtain the path within the 
+	 * data set for a given data set entry. This is 
+	 *  
+	 * @param entry The entry for which the tree path is required.
+	 * 
+	 * @return The complete path to the specified entry. If the
+	 * specified path could not be determined then this method
+	 * returns null.
+	 */
+	public TreePath getPath(Object entry) {
+		if (entry instanceof Workspace) {
+			// This is the root entry. Simple case.
+			return new TreePath(entry);
+		}
+		if ((entry instanceof DataSet) && 
+			(getIndexOfChild(getRoot(), entry) != -1)) {
+			// This data set is a valid entry.
+			return new TreePath(new Object[]{getRoot(), entry});
+		}
+		if (entry instanceof MSTData) {
+			// Return the path to the MST entry
+			MSTData mst = (MSTData) entry;
+			return new TreePath(new Object[]{getRoot(), mst.getDataSet(), mst});
+		}
+		if (entry instanceof MSTClusterData) {
+			// Return the path to the MST entry
+			MSTClusterData cls = (MSTClusterData) entry;
+			return new TreePath(new Object[]{getRoot(), cls.getDataSet(), cls});
+		}
+		// Can't figure out the path
+		return null;
+	}
+	
     /**
      * The only event raised by this model is TreeStructureChanged with the
      * appropriate entry to be  

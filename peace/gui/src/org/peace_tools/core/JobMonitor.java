@@ -239,6 +239,7 @@ public class JobMonitor implements Runnable {
 		// The progress information must have the following 2 lines:
 		// estsAnalyzed, totalEstCount
 		// running | done
+		// exit_status
 		String progInfo[] = outputs[0].trim().split("\n");
 		if (progInfo.length < 3) {
 			// Invalid progress information.

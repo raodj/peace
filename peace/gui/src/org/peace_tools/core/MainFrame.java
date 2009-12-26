@@ -34,7 +34,6 @@
 package org.peace_tools.core;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Desktop;
 import java.awt.Dialog;
@@ -43,6 +42,7 @@ import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.net.URI;
+import java.util.HashMap;
 
 import javax.swing.JDialog;
 import javax.swing.JFrame;
@@ -55,6 +55,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 
+import org.peace_tools.core.AbstractMenuHelper.HelperType;
 import org.peace_tools.generic.CustomBorder;
 import org.peace_tools.generic.ProgrammerLog;
 import org.peace_tools.generic.UserLog;
@@ -108,9 +109,9 @@ public class MainFrame extends JFrame implements ActionListener {
 		centerPane = new DnDTabbedPane();
 		centerPane.setPermanent(true);
 		centerPane.setPreferredSize(getPreferredSize());
-		centerPane.setBackground(new Color(200, 200, 255));
 		// Create our desktop and add it to the main frame.
 		desktop = new JPanel(new BorderLayout(0, 0));
+		desktop.setBorder(new EmptyBorder(2, 2, 2, 2));
 		desktop.add(centerPane);
 		// Add the permanent tab to our frame. This must be done
 		// before splitting the centerPane below.
@@ -129,10 +130,17 @@ public class MainFrame extends JFrame implements ActionListener {
 		// First create the various menu action listeners so that
 		// they can be cross registered as needed.
 		FileMenuHelper   fm  = new FileMenuHelper(this);
-		ServerMenuHelper smh = new ServerMenuHelper(this);
 		JobMenuHelper    jmh = new JobMenuHelper(this);
+		ServerMenuHelper smh = new ServerMenuHelper(this);
 		ViewMenuHelper   vm  = new ViewMenuHelper(this);
 		HelpMenuHelper   hm  = new HelpMenuHelper(this);
+		// Save references for quick look up.
+		menuHelpers.put(HelperType.FILE_MENU, fm);
+		menuHelpers.put(HelperType.JOB_MENU, jmh);
+		menuHelpers.put(HelperType.SERVER_MENU, smh);
+		menuHelpers.put(HelperType.VIEW_MENU, vm);
+		menuHelpers.put(HelperType.HELP_MENU, hm);
+		
 		// Next create tool bar and the main menu using various
 		// helpers.
 		toolbar  = new JToolBar();
@@ -141,15 +149,13 @@ public class MainFrame extends JFrame implements ActionListener {
 				new EmptyBorder(2, 6, 2, 6)));
 		// Create all the menu items.
 		JMenuBar mainmenu = new JMenuBar();
-		mainmenu.add(fm.createFileMenu(toolbar));
-		// Set up the file menu as a window action listener as well.
-		addWindowListener(fm);
+		mainmenu.add(fm.createFileMenu(toolbar, jmh));
 		// Create the Server menu.
 		mainmenu.add(smh.createServerMenu(toolbar));
 		// The job menu goes next
-		mainmenu.add(jmh.createJobMenu(toolbar, fm, vm));
+		mainmenu.add(jmh.createJobMenu(toolbar, vm));
 		// Create view menu next
-		mainmenu.add(vm.createViewMenu(toolbar));
+		mainmenu.add(vm.createViewMenu(toolbar, hm));
 		// Create the help menu and set it up
 		mainmenu.add(hm.createHelpMenu(toolbar));
 		// Setup the main menu and tool bar appropriately
@@ -407,6 +413,32 @@ public class MainFrame extends JFrame implements ActionListener {
 	 */
 	protected static ThreadGroup getWorkerThreads() { return workerThreads; }
 
+
+	/**
+	 * Obtain a menu helper for a given helper type.
+	 * 
+	 * This method can be used to obtain a menu helper for a given
+	 * type of action to be performed.
+	 * 
+	 * @param helperType The class (or category) of operation for 
+	 * which the menu helper object is desired.
+	 * 
+	 * @return The menu helper object for the specified category. If
+	 * the helper object is not found, then this method returns null.
+	 */
+	public AbstractMenuHelper getMenuHelper(HelperType helperType) {
+		return menuHelpers.get(helperType);
+	}
+
+	/**
+	 * The list of menu helpers associated with this main frame.
+	 * This hash map is used to maintain and rapidly access various
+	 * menu helpers associated with the main frame. The list is 
+	 * populated in the createMenus() method.
+	 */
+	private final HashMap<AbstractMenuHelper.HelperType, AbstractMenuHelper>
+		menuHelpers = new HashMap<AbstractMenuHelper.HelperType, AbstractMenuHelper>();
+	
 	/**
 	 * A reference to the toolbar associated with this main frame. The
 	 * tool bar may be visible or invisible at any given time.
@@ -420,7 +452,7 @@ public class MainFrame extends JFrame implements ActionListener {
 	 * be asynchronously monitored and updated by the JobWizard.
 	 */
 	private static transient final ThreadGroup workerThreads 
-	= new ThreadGroup("JobStatusUpdateThreads");
+		= new ThreadGroup("JobStatusUpdateThreads");
 
 	/**
 	 * This message is displayed by the main frame when a job being

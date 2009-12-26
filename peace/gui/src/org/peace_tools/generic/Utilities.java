@@ -230,8 +230,9 @@ public class Utilities {
 	 *            either case the "_" will be stripped out of the option! The
 	 *            string cannot be "null"
 	 * 
-	 * @param subTitle A sub title string to be used for this menu item. This
-	 * string cannot be null.
+	 * @param subTitle A sub title string to be used for this menu item. If this
+	 * string is null then this method calls the overloaded method that does not
+	 * take a subTitle as parameter.
 	 * 
 	 * @param command
 	 *            The string representing the action command that will be
@@ -263,6 +264,12 @@ public class Utilities {
 			String subTitle, String command, ActionListener al, 
 			String iconFileName, KeyStroke shortCut, boolean enable, 
 			boolean auxFlag) {
+		// Check to ensure we have a valid subTitle to work with
+		if (subTitle == null) {
+			// Use the overloaded method to create default menu item.
+			return createMenuItem(itemKind, itemTitle, command, al, iconFileName, 
+					shortCut, enable, auxFlag);
+		}
 		// Create the menu item with all the given data.
 		JMenuItem menuItem = null;
 		Icon icon = null;
@@ -1046,6 +1053,10 @@ public class Utilities {
 	public static JPanel collapsedMessage(String message, String details) {
 		JPanel container = new JPanel(new BorderLayout(5, 5));
 		JLabel info      = new JLabel(message);
+		Dimension maxSize= info.getPreferredSize();
+		maxSize.width     = Math.max(550, maxSize.width);
+		info.setMinimumSize(maxSize);
+		info.setPreferredSize(maxSize);
 		container.add(info, BorderLayout.CENTER);
 		// Use the preferred message dimension to setup the
 		// dimensions of the collapsible panel.
@@ -1053,9 +1064,9 @@ public class Utilities {
 		final JScrollPane jsp = new JScrollPane(msg);
 		jsp.setVisible(true);
 		// Setup the maximum scroll pane size so that it looks good.
-		Dimension maxSize = info.getPreferredSize();
-		maxSize.height    = 100;
-		maxSize.width     = Math.max(550, maxSize.width);
+		maxSize        = info.getPreferredSize();
+		maxSize.height = 100;
+		maxSize.width  = Math.max(550, maxSize.width);
 		jsp.setPreferredSize(maxSize);
 		jsp.setMaximumSize(maxSize);
 		jsp.setMinimumSize(maxSize);

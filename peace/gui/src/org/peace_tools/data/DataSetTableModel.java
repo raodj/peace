@@ -152,6 +152,27 @@ public class DataSetTableModel extends AbstractTableModel implements WorkspaceLi
 	}
 	
 	/**
+	 * Obtain the row for a given entry in this list.
+	 * 
+	 * This method can be used to determine the row where the given
+	 * entry occurs in this table model.  
+	 * 
+	 * @param entry The entry whose rows is to be determined.
+	 * 
+	 * @return The row where the entry was found on this table. If
+	 * the entry was not found, then this method returns -1.
+	 */
+	public int getRow(Object entry) {
+		final int RowCount = getRowCount();
+		for(int row = 0; (row < RowCount); row++) {
+			if (this.getEntry(row) == entry) {
+				return row;
+			}
+		}
+		return -1;
+	}
+	
+	/**
 	 * Obtain the value to be displayed at a given row and column.
 	 * 
 	 * @return The object to be displayed at a given row and column.

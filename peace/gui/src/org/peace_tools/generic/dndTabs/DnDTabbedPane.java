@@ -240,7 +240,7 @@ public class DnDTabbedPane extends JTabbedPane {
 
 		// Determine the width/height that the new split pane should 
 		// allocate to the new component based on our current area.
-		Dimension currArea = parent.getSize();
+		Dimension currArea = getSize();
 		if ((currArea.width == 0) || (currArea.height == 0)) {
 			// If current size is zero or not set then use the preferred size
 			// currArea = parent.getPreferredSize();
@@ -253,7 +253,7 @@ public class DnDTabbedPane extends JTabbedPane {
 		prefHeight     = (prefHeight == 0) ? size : prefHeight;
 		
 		JSplitPane jsp = setSplitWindow(parent, location, this, newPane, 
-				prefWidth, prefHeight); 
+				prefWidth, prefHeight, currArea); 
  		// Setup initial dimension and gravity
 		jsp.setResizeWeight(gravity);
 
@@ -284,17 +284,20 @@ public class DnDTabbedPane extends JTabbedPane {
 	 * vertical split.
 	 * @param prefHeight The preferred height of window1 if the location requires a 
 	 * horizontal split.
+	 * @param area The allocated area for the tabs so that the area is appropriately
+	 * split between the two parts.
 	 * @return The newly created split window for further customization.
 	 */
 	public static JSplitPane setSplitWindow(Container parent, Location location,
-			Component window1, Component window2, int prefWidth, int prefHeight) {
+			Component window1, Component window2, int prefWidth, int prefHeight,
+			Dimension area) {
 		// First create a JSplitPane with suitable orientation.
 		int orientation = JSplitPane.HORIZONTAL_SPLIT;
 		if (location.equals(Location.TOP) || location.equals(Location.BOTTOM)) {
 			orientation = JSplitPane.VERTICAL_SPLIT;
 		}
 		JSplitPane jsp = new JSplitPane(orientation);
-		jsp.setMinimumSize(new Dimension(60, 60));
+		jsp.setMinimumSize(new Dimension(100, 100));
 		jsp.setDividerSize(2);
 		// The next 5 lines of code attempt to remove an annoying
 		// border around the divider in the split pane. Currently,
@@ -305,6 +308,14 @@ public class DnDTabbedPane extends JTabbedPane {
 		if (ui instanceof BasicSplitPaneUI) {
 			BasicSplitPaneUI basicUI = (BasicSplitPaneUI) ui;
 			basicUI.getDivider().setBorder(null);
+		}
+		// Setup the prefWidth and prefHeight values based on location
+		if ((area != null) && ((area.width > 0) || (area.height > 0)) && 
+			(location.equals(Location.BOTTOM) || location.equals(Location.RIGHT))) {
+			// Adjust prefWidth and prefHeight to correctly set the
+			// divider; but don't let them get to small
+			prefWidth  = Math.max(area.width - prefWidth, 100);
+			prefHeight = Math.max(area.height - prefHeight, 100);
 		}
 		// Add the two windows to the split pane.
 		if (orientation == JSplitPane.HORIZONTAL_SPLIT) {
@@ -369,6 +380,8 @@ public class DnDTabbedPane extends JTabbedPane {
 	public void removeTab(Component componentRemoved) {
 		// Remove the tab from ourselves.
 		remove(componentRemoved);
+		// Tag the component as not being visible any more
+		componentRemoved.setVisible(false);
 		// Do we have any tabs left or is it permanent?
 		if ((getTabCount() > 0) || (isPermanent())) {
 			// Yes. we do. Good. nothing further to do.

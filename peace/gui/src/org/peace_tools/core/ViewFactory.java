@@ -68,14 +68,18 @@ import org.peace_tools.views.ClusterTreeTableView;
 import org.peace_tools.views.DataSetFileListView;
 import org.peace_tools.views.DataSetTreeView;
 import org.peace_tools.views.GenericHTMLView;
+import org.peace_tools.views.JobDetailsView;
 import org.peace_tools.views.JobListView;
 import org.peace_tools.views.MSTFileView;
 import org.peace_tools.views.ProgrammerLogPane;
+import org.peace_tools.views.ServerJobsView;
 import org.peace_tools.views.ServerListView;
 import org.peace_tools.views.UserLogPane;
 import org.peace_tools.workspace.DataSet;
+import org.peace_tools.workspace.Job;
 import org.peace_tools.workspace.MSTClusterData;
 import org.peace_tools.workspace.MSTData;
+import org.peace_tools.workspace.Server;
 
 /**
  * A factory to help with creation of views.
@@ -147,6 +151,7 @@ public abstract class ViewFactory implements DnDTabListener {
 		if (staticView.isVisible()) {
 			// The view is already visible. Simply emphasize it.
 			this.emphasize(staticView);
+			return;
 		}
 		// Make the view visible and restore its position.
 		DnDTabPos tabPos = staticViewPos.get(view);
@@ -171,7 +176,7 @@ public abstract class ViewFactory implements DnDTabListener {
 		DnDTabbedPane logArea = 
 			centerPane.createSplitPane("User Logs", 
 					Utilities.getIcon("images/16x16/UserLog.png"), ulp, 
-					DnDTabbedPane.Location.BOTTOM, 0.7, 500);
+					DnDTabbedPane.Location.BOTTOM, 0.8, 500);
 		// Add the programmer log behind the user pane.
 		logArea.createSplitPane("Programmer Logs",
 				Utilities.getIcon("images/16x16/ProgLog.png"), plp, 
@@ -192,18 +197,18 @@ public abstract class ViewFactory implements DnDTabListener {
 		// Create the hierarchical data set view and add it to the left
 		// of the center pane.
 		DataSetTreeView dstv = new DataSetTreeView(mainFrame);
-		// Wrap the tree view in a scroll pane to let it scroll.
-		JScrollPane jsp = new JScrollPane(dstv);
-		jsp.setBorder(null);
 		DnDTabbedPane leftPane = 
 			centerPane.createSplitPane("Hierarchy", 
-					Utilities.getIcon("images/16x16/DataSet.png"), jsp,
+					Utilities.getIcon("images/16x16/DataSet.png"), dstv,
 					DnDTabbedPane.Location.LEFT, 0.2, 200);
 		// Add the FileListView
 		DataSetFileListView dsflv = new DataSetFileListView(mainFrame);
 		leftPane.createSplitPane("File List", 
 				Utilities.getIcon("images/16x16/FileView.png"), dsflv, 
 				DnDTabbedPane.Location.CENTER);
+		// Setup cross reference between data set file and tree view 
+		dstv.setTableView(dsflv);
+		dsflv.setDataSetTreeView(dstv);
 		// Create and add job list to the bottom of the hierarchy
 		JobListView jlv = new JobListView(mainFrame);
 		DnDTabbedPane leftBotPane = 
@@ -215,6 +220,7 @@ public abstract class ViewFactory implements DnDTabListener {
 		leftBotPane.createSplitPane("Servers",
 				Utilities.getIcon("images/16x16/Server.png"),
 				slv, DnDTabbedPane.Location.BOTTOM, 0.5, 200);
+
 		// Save all the views we created for future references
 		staticViews.put(ViewType.DATASET_TREE, dstv);
 		staticViews.put(ViewType.DATASET_FILE, dsflv);
@@ -349,6 +355,56 @@ public abstract class ViewFactory implements DnDTabListener {
 		});
 		// Start the view creation in background.
 		creator.start();
+	}
+
+	/**
+	 * Method to create a graph type of view for a given entry.
+	 * 
+	 * This method performs the actual loading process via  a
+	 * background thread so that the GUI does not become unresponsive
+	 * as the data is loaded.
+	 * 
+	 */
+	public void createView(Job job, Server server) {
+		String viewPath = job.getPath() + "/" + job.getJobID();
+		String viewSignature = viewPath + "_" + ViewType.DEFAULT_VIEW;
+		if (views.get(viewSignature) != null) {
+			// The view already exists. Nothing further to be done.
+			emphasize(views.get(viewSignature).get(0));
+			return;
+		}
+		// Create a new view.
+		JobDetailsView jdv = new JobDetailsView(job, server);
+		addView(jdv, viewPath, ViewType.DEFAULT_VIEW);
+	}
+	
+	/**
+	 * Method to create a server job list view.
+	 * 
+	 * This method performs the actual task of creating a server 
+	 * job list view. This method is used from the ServerMenuHelper. 
+	 * 
+	 * @param server The server whose jobs/processes are to be listed.
+	 * 
+	 * @param userID The ID of the user whose jobs are to be listed.
+	 * This parameter is optional and can be null.	 
+	 */
+	public void createView(Server server, String userID) {
+		String srvrInfo = server.getName() + "/" + 
+			server.getInstallPath();
+		if (userID != null) {
+			srvrInfo += "_" + userID;
+		}
+		srvrInfo += "/Job List";
+		String viewSignature =  srvrInfo + "_" + ViewType.DEFAULT_VIEW;
+		if (views.get(viewSignature) != null) {
+			// The view already exists. Nothing further to be done.
+			emphasize(views.get(viewSignature).get(0));
+			return;
+		}
+		// Create a new view.
+		ServerJobsView sjv = new ServerJobsView(server, userID);
+		addView(sjv, srvrInfo, ViewType.DEFAULT_VIEW);
 	}
 
 	/**
@@ -647,6 +703,8 @@ public abstract class ViewFactory implements DnDTabListener {
 		Utilities.getIcon("images/16x16/MST.png"),
 		Utilities.getIcon("images/16x16/Cluster.png"),
 		Utilities.getIcon("images/16x16/ClusterSummary.png"),
-		Utilities.getIcon("images/16x16/HTML.png")
+		Utilities.getIcon("images/16x16/HTML.png"),
+		Utilities.getIcon("images/16x16/TextView.png"),
+		Utilities.getIcon("images/16x16/DefaultView.png")
 	};
 }
