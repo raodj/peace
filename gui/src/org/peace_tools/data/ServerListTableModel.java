@@ -140,7 +140,7 @@ public class ServerListTableModel extends AbstractTableModel implements Workspac
 	 */
 	public Server getServer(int row) {
 		Workspace ws = Workspace.get();
-		if ((row < 0) || (ws.getServerList().getServers().size() < row)) {
+		if ((row < 0) || (ws.getServerList().getServers().size() <= row)) {
 			return null;
 		}
 		// Obtain the server object whose data is to be returned

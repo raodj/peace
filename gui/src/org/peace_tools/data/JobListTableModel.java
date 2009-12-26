@@ -101,7 +101,7 @@ public class JobListTableModel extends AbstractTableModel implements WorkspaceLi
 	 */
 	public Job getJob(int row) {
 		Workspace ws = Workspace.get();
-		if ((row < 0) || (ws.getJobList().getJobs().size() < row)) {
+		if ((row < 0) || (ws.getJobList().getJobs().size() <= row)) {
 			return null;
 		}
 		// Obtain the job object whose data is to be returned
@@ -117,7 +117,7 @@ public class JobListTableModel extends AbstractTableModel implements WorkspaceLi
 	@Override
 	public Object getValueAt(int row, int column) {
 		Workspace ws = Workspace.get();
-		if ((row < 0) || (ws.getJobList().getJobs().size() < row)) {
+		if ((row < 0) || (ws.getJobList().getJobs().size() <= row)) {
 			return null;
 		}
 		// Obtain the job object whose data is to be returned
