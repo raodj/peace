@@ -40,7 +40,12 @@
 
 #ifndef _WINDOWS
 
+// The following compile guard is needed so that the hash map can be
+// used for a test when running configure (because when configure is
+// running, there is no config.h)
+#ifdef REGULAR_COMPILE
 #include "config.h"
+#endif
 
 #ifdef HAVE_TR1_UNORDERED_MAP
 

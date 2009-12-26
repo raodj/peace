@@ -251,10 +251,14 @@ public class Job extends JobBase {
 		Workspace.get().fireWorkspaceChanged(we);
 		// Update status of any job summaries in the data set
 		MSTData mst = Workspace.get().getMSTData(jobID);
-		mst.updateJobSummary(this);
-		// Check and update the cluster file as needed
-		MSTClusterData cluster = mst.getDataSet().getClusterData(jobID);
-		cluster.updateJobSummary(this);
+		if (mst != null) {
+			mst.updateJobSummary(this);
+			// Check and update the cluster file as needed
+			MSTClusterData cluster = mst.getDataSet().getClusterData(jobID);
+			if (cluster != null) {
+				cluster.updateJobSummary(this);
+			}
+		}
 	}
 	
 	/**
