@@ -395,7 +395,7 @@ public class PEACEInstaller extends SwingWorker<Void, Void> implements DocumentL
 	 * a command, then make the last entry null.
 	 */
 	private static final String WindowsInstallFiles[] = 
-		{"License.txt", "ReadMe.txt", "peace.exe", "listJobs.bat", null};
+		{"License.txt", "ReadMe.txt", "peace.exe", "launcher.exe", "listJobs.bat", null};
 	
 	/**
 	 * This is the server entry that is being currently installed via 

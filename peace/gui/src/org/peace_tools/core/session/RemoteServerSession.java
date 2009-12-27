@@ -765,6 +765,9 @@ implements ServerHostKeyVerifier {
 			sftp = new SFTPv3Client(connection);
 			SFTPv3FileAttributes attribs = sftp.lstat(path);
 			if (attribs != null) {
+				String logEntry = String.format("SFTP gave %s as attributes for %s\n", 
+						Integer.toOctalString(attribs.uid), path);
+				ProgrammerLog.log(logEntry);
 				// Translate SFTP file attributes to FileInfo style
 				// attributes.
 				int attributes = 0;
@@ -778,14 +781,17 @@ implements ServerHostKeyVerifier {
 						attribs.size.longValue(), attributes);
 			} else {
 				// The file does not exist? Create a dummy info.
+				ProgrammerLog.log("SFTP says " + path + 
+						" does not exit (but no exception).\n");
 				info = new FileInfo(path, -1, -1, 0);
 			}
 		} catch (SFTPException exp) {
 			if (exp.getMessage().startsWith("No such file")) {
 				// This is an expected exception if file does not exist
+				ProgrammerLog.log("SFTP says " + path + " does not exit.\n");
 				info = new FileInfo(path, -1, -1, 0);
 			} else {
-				// Unexcepted exception
+				// Unexpected exception
 				throw exp;
 			}
 		} finally {
@@ -793,6 +799,8 @@ implements ServerHostKeyVerifier {
 				sftp.close();
 			}
 		}
+		// Log to track translation.
+		ProgrammerLog.log("FileInfo for " + path + " = " + info + "\n");
 		// Return file information to caller.
 		return info;
 	}

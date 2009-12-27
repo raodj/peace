@@ -177,6 +177,14 @@ public class FileInfo {
 	 */
 	public long getLastModified() { return lastModified; }
 
+	@Override
+	public String toString() {
+		return "FileInfo for " + path + 
+			": last modified: " + lastModified +
+			", size: " + size + 
+			", attributes 0x" + 
+			Integer.toHexString(attributes);
+	}
 	
 	/**
 	 * The absolute path to the file referenced by this file attribute.

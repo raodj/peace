@@ -61,8 +61,8 @@ REM ---------------------------------------------------------------------
         call :scripts
         goto end
     )
-    if "%1" == "runPeace" (
-        call :runPeace
+    if "%1" == "abort" (
+        call :abort
         goto end
     )
 :showUsage
@@ -82,8 +82,7 @@ REM ---------------------------------------------------------------------
     )
 
     REM check if job is done and print exit code
-    findstr /C:"End time: " job.stdout 1> nul 2> nul
-    if %ERRORLEVEL% EQU 0 (
+    if exist exit_status (
        REM command is done running
        echo done
        type exit_status

@@ -330,14 +330,17 @@ implements Runnable {
 		ServerSession.OSType os = server.getOSType();
 		String cmdLineParams    = wizard.toCmdLine(getServerESTFile());
 		String exePath          = srvr.getInstallPath();
+		String launcherPath     = exePath;
 		String jobRunnerPath    = null;
 		String jobRunnerFile    = null;
 		if (ServerSession.OSType.WINDOWS.equals(os)) {
 			exePath += "/peace.exe";
+			launcherPath += "/launcher.exe";
 			jobRunnerPath = "installFiles/windows/";
 			jobRunnerFile = "jobRunner.bat";
 		} else {
 			exePath +=  "/peace/src/peace";
+			launcherPath  = "";
 			jobRunnerPath = "installFiles/linux/";
 			jobRunnerFile = "jobRunner.sh";
 		}
@@ -354,6 +357,7 @@ implements Runnable {
 		runnerScript = runnerScript.replace("%workDir%", jobPath);
 		runnerScript = runnerScript.replace("%workDrive%", drive);
 		runnerScript = runnerScript.replace("%peace%", exePath);
+		runnerScript = runnerScript.replace("%launcher%", launcherPath);
 		runnerScript = runnerScript.replace("%cmdLine%", cmdLineParams);
 		runnerScript = runnerScript.replace("%nodes%", "" + job.getNodes());
 		runnerScript = runnerScript.replace("%cpusPerNode%", "" + job.getCPUsPerNode());
