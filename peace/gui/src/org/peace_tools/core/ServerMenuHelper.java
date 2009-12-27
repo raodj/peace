@@ -156,7 +156,7 @@ implements ActionListener, ListSelectionListener {
 		setEnabled("RemoveServer",  server != null); 
 		setEnabled("ShowMyJobs",    server != null);
 		setEnabled("ServerInfo",    server != null);
-		setEnabled("ServerConnect", server != null);
+		setEnabled("ServerConnect", ((server != null) && server.isRemote()));
 	}
 	
 	@Override
@@ -236,23 +236,10 @@ implements ActionListener, ListSelectionListener {
 			mainFrame.getViewFactory().createView(server, null);
 		} else if ("ServerConnect".equals(cmd)) {
 			// Test connection.
+			ServerConnectionTester sct = 
+				new ServerConnectionTester(mainFrame, server);
+			sct.start();
 		}
-	}
-
-	/**
-	 * Helper method to setup dialog to display jobs/processes on
-	 * a given server.
-	 * 
-	 * This method is a helper method that is used by both JobMenuHelper
-	 * and ServerMenuHelper to display jobs/processes running on a
-	 * given server.
-	 * 
-	 * @param server The server whose jobs are to be listed.
-	 * @param allJobs If this flag is true then all the jobs running/
-	 * scheduled on the server are displayed rather than just 
-	 */
-	public void showJobs(Server server, boolean allJobs) {
-		
 	}
 	
 	/**

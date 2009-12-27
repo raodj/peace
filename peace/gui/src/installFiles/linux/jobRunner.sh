@@ -194,7 +194,7 @@ function abortJobViaPBS {
 		# OK, the job is not running. Bail out.
 		echo "Job is not running" 1>&2
 		return 1
-	if
+	fi
 	# OK, double check to ensure the job belongs to
 	# the user.
 	qstat $jobID | grep $USER > /dev/null 2> /dev/null
@@ -238,7 +238,7 @@ function abortJob {
 
 	# OK, kill the task
 	kill -9 $pid
-	if [ $? -ne 0 ] then
+	if [ $? -ne 0 ]; then
 		echo "Unable to kill process with PID $pid" 1>&2
 		return 3
 	fi

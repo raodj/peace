@@ -351,6 +351,10 @@ implements ActionListener, Runnable {
 		// If local host is selected stuff name of host as server name.
 		if (serverTypes.getSelectedIndex() == 0) {
 			hostName.setText("localhost");
+			userName.setText(System.getProperty("user.name"));
+		} else {
+			hostName.setText(server.getName());
+			userName.setText(server.getUserID());
 		}
 	}
 	

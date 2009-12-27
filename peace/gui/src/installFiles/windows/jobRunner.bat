@@ -46,7 +46,7 @@ REM ---------------------------------------------------------------------
     %workDrive%
     
     if "%1" == "start" (
-        start jobRunner.bat runPeace
+        start %launcher% %peace% %cmdLine%
         goto end
     ) 
     if "%1" == "status" (
@@ -55,8 +55,9 @@ REM ---------------------------------------------------------------------
     ) 
     if "%1" == "output" (
         call :output
-		goto end
-	if "%1" == "scripts" (
+	goto end
+    )
+    if "%1" == "scripts" (
         call :scripts
         goto end
     )
@@ -65,20 +66,12 @@ REM ---------------------------------------------------------------------
         goto end
     )
 :showUsage
-    echo Usage: jobRunner.bat [start|status|output]
+    echo Usage: jobRunner.bat [start|status|output|scripts|abort]
     exit 1
 
 :end
     REM all went well
     exit 0
-
-REM --- Sub routine to start PEACE with a given set of parameters ---
-:runPeace
-    echo Start time: %TIME% > job.stdout
-    start /wait %peace% %cmdLine%  1>> job.stdout 2> job.stderr
-    echo %ERRORLEVEL% > exit_status
-    echo End time: %TIME%  >> job.stdout
-    goto :EOF
 
 :status
     REM First display progress information
@@ -109,25 +102,59 @@ REM --- Sub routine to start PEACE with a given set of parameters ---
 
 :scripts
     REM dump out script information
-	REM Echo files used and the scripts to run the job.
-	echo List of files in %CD%:
-	dir
-	echo ---------------------------------------------------------------
-	
-	REM Display progress information if we have any
-	if exist progress.dat (
-	   echo Contents of progress data file in %CD%\progress.dat:
-       type progress.dat
-       echo ---------------------------------------------------------------
-	)
+    REM Echo files used and the scripts to run the job.
 
-	REM Display exit status if file exists
-	if exist exit_status (
-	   echo Contents of progress data file in %CD%\exit_status:
-       type exit_status
-       echo ---------------------------------------------------------------
-	)
+    echo List of files in %CD%:
+    dir
+    echo ---------------------------------------------------------------
+	
+    REM Display progress information if we have any
+    if exist progress.dat (
+	echo Contents of progress data file in %CD%\progress.dat:
+	type progress.dat
+	echo ---------------------------------------------------------------
+    )
+
+    REM Display exit status if file exists
+    if exist exit_status (
+	echo Contents of progress data file in %CD%\exit_status:
+	type exit_status
+	echo ---------------------------------------------------------------
+    )
 	
     goto :EOF
-	
+
+:abort
+    if not exist job_id.pid (
+	echo Unable to determine PID of PEACE process 1>&2
+	exit 10
+    )
+    REM Read PID into variable.
+    set PID=-1
+    FOR /F %%A IN ('type job_id.pid') DO set PID=%%A
+
+    REM validate PID
+    IF %PID% EQU -1 (
+	echo Unable to determine PID of PEACE process 1>&2
+	exit 11
+    )
+
+    REM Ensure this PID is sane and valid and there is a peace 
+    REM process running under this PID
+    tasklist /FI "UserName eq %USERNAME%" /FI "PID eq %PID%" /FI "ImageName eq peace.exe" | FINDSTR "peace.exe"
+    IF %ERRORLEVEL% NEQ 0 (
+	echo The process for this job is no longer running and the 1>&2
+	echo job cannot be aborted. 1>&2
+	exit 12
+    )
+    REM OK, kill the PEACE process..
+    TASKKILL /PID %PID% 
+    IF %ERRORLEVEL% NEQ 0 (
+	echo Unable to kill process with PID %PID% 1>&2
+        echo Unable to abort PEACE job 1>&2
+	exit 13
+    )
+    goto :EOF
+
+
 REM end of file

@@ -173,6 +173,12 @@ public class JobMenuHelper extends AbstractMenuHelper
 		} else if ("abortJob".equals(cmd)) {
 			// Use helper method to keep this method streamlined
 			abortJob(job);
+		} else if ("showJobsOnServer".equals(cmd)) {
+			Server server = Workspace.get().getServerList().getServer(job.getServerID());
+			mainFrame.getViewFactory().createView(server, null);
+		} else if ("showMyJobsOnServer".equals(cmd)) {
+			Server server = Workspace.get().getServerList().getServer(job.getServerID());
+			mainFrame.getViewFactory().createView(server, server.getUserID());
 		}
 	}
 
@@ -390,10 +396,10 @@ public class JobMenuHelper extends AbstractMenuHelper
 		AbstractButton tool = null;
 		if (ActionType.COMPUTE_MST.equals(actionType)) {
 			return Utilities.createToolButton(IconPath + "NewMST.png", null,
- 					"NewMST", this, MenuSubTitles[0], true);
+ 					"NewMST", this, MenuSubTitles[0], false);
 		} else if (ActionType.COMPUTE_CLUSTERS.equals(actionType)) {
 			return Utilities.createToolButton(IconPath + "NewCluster.png", null,
-					"NewClusters", this, MenuSubTitles[1], true);
+					"NewCluster", this, MenuSubTitles[1], true);
 		} else if (ActionType.START_JOB_MONITOR.equals(actionType)) {
 			tool = Utilities.createToolButton(IconPath + "StartJobMonitor.png", null,					
 					"startMonitor", this, MenuSubTitles[2], false);
