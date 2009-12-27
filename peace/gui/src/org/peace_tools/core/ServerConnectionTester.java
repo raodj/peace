@@ -83,13 +83,23 @@ public class ServerConnectionTester implements ActionListener, Runnable {
 			session.setPurpose(String.format(PURPOSE_MSG, server.getName()));
 			// Establish the connection.
 			session.connect();
-			// OK! connection succeeded.
+			// OK! connection succeeded. Run a simple command
+			String outputs[] = {"", ""};
+			int exitCode = session.exec("set", outputs);
+			if (exitCode != 0) {
+				throw new Exception("Connection was established to " +
+						server.getName() + "\nbut could not even run a simple " +
+						"set command to determine enviornment.\nThis is a problem " +
+						"with the server!");
+			}
+			// So far so good. Wind down the connection
 			session.disconnect();
 			// Update the status of the server
 			server.setStatus(Server.ServerStatusType.GOOD);
-			// Let the user know about the success.
+			// Let the user know about the success along with environment
 			String info = "Successfully connected to " + server.getName();
-			JOptionPane.showMessageDialog(dialog, info, 
+			JPanel fullInfo = Utilities.collapsedMessage(info, outputs[0]);
+			JOptionPane.showMessageDialog(dialog, fullInfo, 
 					"Connection successful", JOptionPane.INFORMATION_MESSAGE);
 		} catch (Exception exp) {
 			progressBar.setIndeterminate(false);

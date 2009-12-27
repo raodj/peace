@@ -33,23 +33,25 @@
 #
 #---------------------------------------------------------------------
 
-echo "Starting site-specifing configure and compilation"
+echo "Starting site-specific configure and compilation"
 echo "Default install path is $PWD"
 
 # Unzip the tar file to get all the source files
 echo "Unzipping peace.tar.gz..."
 tar zxf peace.tar.gz
 if [ $? -ne 0 ]; then
-   echo "Unzipping failed. This machine is not configured correctly" 1>&2
-   echo "or your enviroment is broken. This is not a PEACE problem." 1>&2
-   echo "Aborting install" 1>&2
+   echo "---------------------[ Error ]-------------------------"
+   echo "Unzipping failed. This machine is not configured correctly"
+   echo "or your environment is broken. This is not a PEACE problem."
+   echo "Aborting install"
    exit 1
 fi
 
 # Change directory
 cd peace
 if [ $? -ne 0 ]; then
-   echo "Directory change failed!" 1>&2
+   echo "---------------------[ Error ]-------------------------"
+   echo "Directory change failed!"
    exit 2
 fi
 
@@ -57,11 +59,12 @@ echo "-----------------------------------------------------"
 echo "Creating build system using autoconf..."
 autoreconf -i -v 2>&1
 if [ $? -ne 0 ]; then
-   echo "Autoreconf failed to complete correctly. This indicates that" 1>&2
-   echo "your version of autoconf is too old. You need atleast version" 1>&2
-   echo "1.9 of autoconf. You need to upgrade autoconf or contact your" 1>&2
-   echo "system adminstrator. This is not an issue with PEACE." 1>&2
-   echo "Aborting install" 1>&2
+   echo "-----------------------[ Error ]-----------------------------"
+   echo "Autoreconf failed to complete correctly. This indicates that" 
+   echo "your version of autoconf is too old. You need at least version"
+   echo "1.9 of autoconf. You need to upgrade autoconf or contact your"
+   echo "system administrator. This is not an issue with PEACE."
+   echo "Aborting install"
    exit 3
 fi
 
@@ -78,13 +81,14 @@ echo "-----------------------------------------------------"
 echo "Configuring build system"
 ./configure $useMpi
 if [ $? -ne 0 ]; then
-   echo "Configure failed. This indicates that some of the software"    1>&2
-   echo "required by PEACE could not be found on this machine. Refer"   1>&2
-   echo "to the error logs above to install the necessary tools. If"    1>&2
-   echo "you are on a cluster enviroment check with your adminstartor"  1>&2
-   echo "to load suitable modules by default so the necessary software" 1>&2
-   echo "is available by default. This is not a PEACE issue."           1>&2
-   echo "Aborting install" 1>&2
+   echo "-----------------------[ Error ]-----------------------------"
+   echo "Configure failed. This indicates that some of the software"    
+   echo "required by PEACE could not be found on this machine. Refer"   
+   echo "to the error logs above to install the necessary tools. If"    
+   echo "you are on a cluster environment check with your administrator"  
+   echo "to load suitable modules by default so the necessary software" 
+   echo "is available by default. This is not a PEACE issue."           
+   echo "Aborting install"
    exit 4
 fi
 
@@ -103,15 +107,16 @@ fi
 
 make -j$cores 2>&1
 if [ $? -ne 0 ]; then
-   echo "Build Failed. This indicates that there is some unforeseen" 1>&2
-   echo "incompatibility between PEACE and the software installed  " 1>&2
-   echo "on this machine. If you would like to have this issue     " 1>&2
-   echo "resolved, please email the complete output to developers. " 1>&2
+   echo "-----------------------[ Error ]-----------------------------"
+   echo "Build Failed. This indicates that there is some unforeseen" 
+   echo "incompatibility between PEACE and the software installed  " 
+   echo "on this machine. If you would like to have this issue     " 
+   echo "resolved, please email the complete output to developers. " 
    # Simply dump config.log to make life easier.
-   echo "------------ contents of config.log -------------------"    1>&2
-   cat config.log 1>&2
-   echo "------------ contents of config.log -------------------"    1>&2
-   echo "Aborting install" 1>&2
+   echo "------------ contents of config.log -------------------"
+   cat config.log
+   echo "-------------------------------------------------------"
+   echo "Aborting install"
    exit 5
 fi
 
@@ -119,30 +124,33 @@ echo "-----------------------------------------------------"
 echo "Verifying operational status of PEACE"
 # ./src/peace --options
 if [ $? -ne 0 ]; then
-   echo "PEACE executable is not operating as expected. This is some" 1>&2
-   echo "unforeseen situation. Most likely this is not a PEACE issue" 1>&2
-   echo "Aborting install" 1>&2   
+   echo "-----------------------[ Error ]-----------------------------"
+   echo "PEACE executable is not operating as expected. This is some"
+   echo "unforeseen situation. Most likely this is not a PEACE issue"
+   echo "Aborting install"
    exit 6
 fi
 
 echo "PEACE built successfully."
 
 echo "-----------------------------------------------------"
-echo "Creating data directoies."
+echo "Creating data directories."
 mkdir estData
 if [ $? -ne 0 ]; then
-   echo "Shared EST data directory could not be created. This is some" 1>&2
-   echo "unforeseen situation. Most likely this is not a PEACE issue"  1>&2
-   echo "Aborting install" 1>&2   
+   echo "-----------------------[ Error ]-----------------------------"
+   echo "Shared EST data directory could not be created. This is some" 
+   echo "unforeseen situation. Most likely this is not a PEACE issue"  
+   echo "Aborting install"
    exit 7
 fi
 
 echo "Creating directory for job entries"
 mkdir jobs
 if [ $? -ne 0 ]; then
-   echo "Jobs directory could not be created. This is some unforeseen" 1>&2
-   echo "situation. This is not  PEACE issue."                         1>&2
-   echo "Aborting install" 1>&2
+   echo "-----------------------[ Error ]-----------------------------"
+   echo "Jobs directory could not be created. This is some unforeseen" 
+   echo "situation. This is not  PEACE issue."                         
+   echo "Aborting install"
    exit 8
 fi
 

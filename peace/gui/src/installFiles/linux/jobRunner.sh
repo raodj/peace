@@ -257,10 +257,10 @@ if [ $# -ne 1 ]; then
 	exit 1
 fi
 
-if [[ "$1" != "start" && "$1" != "status" && "$1" != "output" && \
-	  "$1" != "scripts" && "$1" != "abort" && "$1" != "jobs"  && \
-	  "$1" != "allJobs" ]]; then
-	echo "Usage: jobRunner.sh [start|status|output|scripts|jobs|allJobs]"
+if [[ "$1" != "start" && "$1" != "status"  && "$1" != "output" && \
+	  "$1" != "error" && "$1" != "scripts" && "$1" != "abort"  && \
+	  "$1" != "jobs"  && "$1" != "allJobs" ]]; then
+	echo "Usage: jobRunner.sh [start|status|output|error|scripts|jobs|allJobs]"
 	exit 1
 fi
 
@@ -294,11 +294,12 @@ elif [ "$1" == "status" ]; then
 	# Return with exit status of last run command
 	exit $?
 elif [ "$1" == "output" ]; then
-	# Echo the final results on standard out and standard error
+	# Echo the final results on standard out
 	cat *.o*
-	if [ $? -eq 0 ]; then
-		cat *.e* 1>&2
-	fi
+	exit $?
+elif [ "$1" == "error" ]; then
+	# Echo file with stderr data
+	cat *.e* 1>&2
 	exit $?
 elif [ "$1" == "abort" ]; then
 	# Try to abort the job dependin on how it was

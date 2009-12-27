@@ -80,17 +80,19 @@ public class JobDetailsView extends DetailView {
 			// Connect to the server.
 			session.connect();
 			progressBar.setValue(1);
-			// Obtain stdout and stderr information first.
+			// Obtain stdout information first.
 			String[] streams = {"", ""};
 			final String script = job.getPath() + "/jobRunner";
 			runCommand(session, script, "output", streams);
 			// Tick progress
 			progressBar.setValue(2);
 			// Add outputs to the appropriate styled document.
-			updateDocument(outputs[1], DocTitles[1], streams[0], "stdout");
+			updateDocument(outputs[1], DocTitles[1], streams[0], "stdout");			
+			// Next obtain stderr information.
+			runCommand(session, script, "error", streams);
 			progressBar.setValue(3);
 			// Add error info to the appropriate styled document.
-			updateDocument(outputs[2], DocTitles[2], streams[1], "stderr");
+			updateDocument(outputs[2], DocTitles[2], streams[0], "stderr");
 			progressBar.setValue(4);
 			// Next get script information.
 			runCommand(session, script, "scripts", streams);
