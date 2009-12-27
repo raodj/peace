@@ -57,6 +57,10 @@ REM ---------------------------------------------------------------------
         call :output
 	goto end
     )
+    if "%1" == "error" (
+        call :error
+	goto end
+    )
     if "%1" == "scripts" (
         call :scripts
         goto end
@@ -66,7 +70,7 @@ REM ---------------------------------------------------------------------
         goto end
     )
 :showUsage
-    echo Usage: jobRunner.bat [start|status|output|scripts|abort]
+    echo Usage: jobRunner.bat [start|status|output|error|scripts|abort]
     exit 1
 
 :end
@@ -94,9 +98,13 @@ REM ---------------------------------------------------------------------
     goto :EOF
 
 :output
-    REM dump output to standard output
+    REM dump stdout to standard output
     type job.stdout
-    type job.stderr 1>&2
+    goto :EOF
+    
+:error
+	REM dump stderr to standard output
+    type job.stderr
     goto :EOF
 
 :scripts

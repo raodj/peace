@@ -89,6 +89,13 @@ public class ServerJobsView extends DetailView {
 			updateDocument(jobInfo, "Job/Process Information", 
 					streams[0], "stdout");
 			progressBar.setValue(3);
+			// Check for empty outputs and let user know things are fine.
+			if ((userID != null) && (streams[0].trim().isEmpty())) {
+				// Empty output for user jobs. This can happen if the
+				// user does not have any jobs pending.
+				updateDocument(jobInfo, "Job/Process Information", 
+						NO_JOB_INFO, "stdout");				
+			}
 			// Wind up the session.
 			session.disconnect();
 			progressBar.setValue(4);
@@ -146,6 +153,15 @@ public class ServerJobsView extends DetailView {
 		"or processes from server %s<br>" +
 		"because an error occured. Only partial information was<br>" +
 		"obtained. See details below for more information.<html>";
+	
+	/**
+	 * A simple message that is displayed to the user if there is
+	 * no job information available.
+	 */
+	private static final String NO_JOB_INFO = "\nIt appears that none" +
+			"of your jobs/process are currently\n" +
+			"running on this server. Therefore there is no job/process\n" +
+			"information to display at this time.";
 	
 	/**
 	 * A generated serialization UID to keep compiler happy.

@@ -240,6 +240,14 @@ implements Runnable, ActionListener {
 					JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
+		// Check to ensure that the install path does not have spaces in it.
+		if (instPath.contains(" ")) {
+			// Spaces cause issues with scripts and batch files. So we
+			// avoid using it.
+			JOptionPane.showMessageDialog(this, NO_SPACE_MSG,
+					"Spaces in install path", JOptionPane.ERROR_MESSAGE);
+			return false;
+		}
 		// Check if the path specified is absolute windows or Linux path.
 		// We need a more reliable check than this..
 		boolean absPath = ((":\\".equals(instPath.substring(1, 3)) || 
@@ -535,7 +543,18 @@ implements Runnable, ActionListener {
 		"You may still procceed further with the default non-MPI based C++<br>" +
 		"compiler. <i>However, PEACE will not run in parallel mode.</i><br><br>" +
 		"Do you wish to proceed with default C++ compiler (if available)?</html>";
-		
+
+	/**
+	 * A simple message that is displayed to the user to indicate
+	 * we don't accept spaces in installation path.
+	 */
+	private static final String NO_SPACE_MSG = "<html>" + 
+		"The installation path has spaces in it. Spaces cause<br>" +
+		"several compatibility problems and are hard to work around.<br>" +
+		"Consequently, in the current version of PEACE spaces cannot<br>" +
+		"be present in the installation path.<br><br>" +
+		"<b>Please choose a path without spaces in it.<b></html>";
+	
 	/**
 	 * A serialization UID to keep the compiler happy.
 	 */
