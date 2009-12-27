@@ -82,7 +82,26 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	// Extract the PEACE executable path and parameters from the first
 	// Search for the word peace.exe in the command line parameter
 	std::tstring cmdLine(lpCmdLine);
-	int index = cmdLine.find(_T("peace.exe"));
+	size_t index = cmdLine.find(_T("launcher.exe"));
+	if (index != std::string::npos) {
+	    // This is first call in 2-level indirection to try
+	    // and free up the console streams. This method launches
+	    // the launcher that actually launches peace.exe
+	    std::tstring exePath = cmdLine.substr(0, index + 12);
+	    std::tstring launcherParams = cmdLine.substr(index + 12);
+	    DWORD pid = 0;
+	    HANDLE childProcess = createProcess(exePath.c_str(), launcherParams.c_str(), 
+    		NULL, NULL, NULL, pid);
+	    // Don't wait for process to finish. Simply return with suitable
+	    // exit code.
+	    int exitCode = (childProcess != NULL) ? 0 : 4;
+	    if (childProcess != NULL) {
+		CloseHandle(childProcess);
+	    }
+	    return exitCode;
+	}
+	
+	index = cmdLine.find(_T("peace.exe"));
 	std::tstring exePath = cmdLine.substr(0, index + 9);
 	std::tstring peaceParams = cmdLine.substr(index + 9);
 
@@ -146,17 +165,29 @@ createProcess(const TCHAR *appName, const TCHAR* arguments,
     startupInfo.wShowWindow = SW_SHOWMINIMIZED;
     startupInfo.dwFlags     = STARTF_USESHOWWINDOW;
 
+    BOOL inheritHandles = FALSE;
+    DWORD creationFlags = NORMAL_PRIORITY_CLASS;
+ 
     if ((stdOut != NULL) || (stdErr != NULL)) {
         startupInfo.dwFlags    |= STARTF_USESTDHANDLES;
 	startupInfo.hStdOutput  = stdOut;
 	startupInfo.hStdError   = stdErr;
 	startupInfo.hStdInput   = INVALID_HANDLE_VALUE;
+	inheritHandles          = TRUE;
+    } else {
+	// Since we don't have I/O streams let child
+	// run as a detached process.
+	creationFlags  |= DETACHED_PROCESS |
+	    CREATE_NEW_PROCESS_GROUP;
+
     }
 
     // Create process and note result.
     TCHAR *argCopy = _tcsdup(arguments);
-    bool retVal = CreateProcess(appName, argCopy, NULL, NULL, TRUE,  
-                                NORMAL_PRIORITY_CLASS, 
+    bool retVal = CreateProcess(appName, argCopy, 
+				NULL, NULL, // process & thread security
+				inheritHandles,  
+                                creationFlags, 
                                 NULL,       // Environment
                                 directory,  // CWD
                                 &startupInfo,
