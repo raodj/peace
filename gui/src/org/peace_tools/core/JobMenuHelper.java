@@ -247,7 +247,7 @@ public class JobMenuHelper extends AbstractMenuHelper
 			monitor.setProgress(3);
 			int exitCode = session.exec(remoteCmd, streams);
 			monitor.setProgress(4);
-			ProgrammerLog.log("Exit code: '" + exitCode); 
+			ProgrammerLog.log("Exit code: " + exitCode + "\n"); 
 			if (exitCode != 0) {
 				throw new IOException("The job runner script terminated" +
 						"with exit code: " + exitCode + ".\n" +
