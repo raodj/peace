@@ -77,6 +77,7 @@ implements ActionListener, Runnable {
 		// Save reference to the server for later use
 		this.server = server;
 		// Setup the panels
+		this.setOpaque(false);
 		setLayout(new BorderLayout(0, 0));
 		add(createTopPanel(idTitle, idValue), BorderLayout.NORTH);
 	}
@@ -203,8 +204,10 @@ implements ActionListener, Runnable {
 			style.addAttribute(StyleConstants.FontFamily, Font.MONOSPACED);
 			style = sc.addStyle("stderr", null);
 			style.addAttribute(StyleConstants.Foreground, Color.red);
+			style.addAttribute(StyleConstants.FontFamily, Font.MONOSPACED);
 			style = sc.addStyle("scripts", null);
-			style.addAttribute(StyleConstants.Foreground, Color.orange);
+			style.addAttribute(StyleConstants.Foreground, Color.green.darker());
+			style.addAttribute(StyleConstants.FontFamily, Font.MONOSPACED);
 			style = sc.addStyle("info", null);
 			style.addAttribute(StyleConstants.Foreground, Color.black);
 			style = sc.addStyle("title", null);
@@ -239,7 +242,7 @@ implements ActionListener, Runnable {
 		// Create our document with a suitable style context.
 		createStyles();
 		// Create the tabs
-		JTabbedPane tabPane = new JTabbedPane(JTabbedPane.BOTTOM);
+		JTabbedPane tabPane = new JTabbedPane(JTabbedPane.TOP);
 		// Create the documents and add tabs
 		for(int i = 0; (i < outputs.length); i++) {
 			outputs[i] = new DefaultStyledDocument(sc);
@@ -318,6 +321,7 @@ implements ActionListener, Runnable {
 		progressBar.setMinimumSize(size);
 		progressBar.setBorder(BorderFactory.createEmptyBorder(1, 20, 1, 20));
 		progressBar.setStringPainted(true);
+		progressBar.setOpaque(false);
 		
 		JLabel tsLabel = new JLabel("  Last update: ");
 		Date logTime = new Date();
@@ -349,10 +353,14 @@ implements ActionListener, Runnable {
 		
 		// Create a top-panel with the two rows
 		JPanel topPanel = new JPanel(new BorderLayout(2, 3));
-		topPanel.setOpaque(false);
 		topPanel.setBorder(BorderFactory.createEmptyBorder(2, 6, 2, 6));
 		topPanel.add(firstRow,  BorderLayout.NORTH);
 		topPanel.add(secondRow, BorderLayout.SOUTH);
+		// Make the panels opaque to make them blend in with the tab
+		topPanel.setOpaque(false);
+		firstRow.setOpaque(false);
+		secondRow.setOpaque(false);
+		
 		return topPanel;
 	}
 
@@ -388,4 +396,11 @@ implements ActionListener, Runnable {
 	 * created the first time createOutputDocs()  method is called
 	 */
 	private static StyleContext sc = null;
+	
+	/**
+	 * A generated serialization UID just to keep the Java compiler
+	 * happy. 
+	 */
+	private static final long serialVersionUID = 6192661377313095929L;
+
 }
