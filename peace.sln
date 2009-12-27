@@ -8,6 +8,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "peace", "peace.vcproj", "{2
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "peace_library", "peace_library.vcproj", "{B19A9162-87B7-4972-9261-4BF7FEF3C464}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "launcher", "tools\launcher\launcher.vcproj", "{8736F263-C500-4FBC-B6E7-B5FB68140570}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -22,6 +24,10 @@ Global
 		{B19A9162-87B7-4972-9261-4BF7FEF3C464}.Debug|Win32.Build.0 = Debug|Win32
 		{B19A9162-87B7-4972-9261-4BF7FEF3C464}.Release|Win32.ActiveCfg = Release|Win32
 		{B19A9162-87B7-4972-9261-4BF7FEF3C464}.Release|Win32.Build.0 = Release|Win32
+		{8736F263-C500-4FBC-B6E7-B5FB68140570}.Debug|Win32.ActiveCfg = Debug|Win32
+		{8736F263-C500-4FBC-B6E7-B5FB68140570}.Debug|Win32.Build.0 = Debug|Win32
+		{8736F263-C500-4FBC-B6E7-B5FB68140570}.Release|Win32.ActiveCfg = Release|Win32
+		{8736F263-C500-4FBC-B6E7-B5FB68140570}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
