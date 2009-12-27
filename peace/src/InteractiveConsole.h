@@ -34,7 +34,9 @@
 //
 //---------------------------------------------------------------------
 
+#ifndef _WINDOWS
 #include "config.h"
+#endif
 
 #include <vector>
 #include <string>
