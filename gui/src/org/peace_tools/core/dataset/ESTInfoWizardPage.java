@@ -38,6 +38,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 
 import javax.swing.Box;
 import javax.swing.JButton;
@@ -53,6 +54,7 @@ import javax.swing.ProgressMonitorInputStream;
 import javax.swing.SwingUtilities;
 import javax.swing.border.EmptyBorder;
 
+import org.peace_tools.data.DataStore;
 import org.peace_tools.data.ESTList;
 import org.peace_tools.generic.GenericWizardPage;
 import org.peace_tools.generic.Utilities;
@@ -248,9 +250,16 @@ implements Runnable, ActionListener {
 			String estFileName = dataSet.getPath();
 			// Before we proceed further, we verify that the specified
 			// FASTA file has valid content.
-			FileInputStream fis = new FileInputStream(estFileName);
+			File file = new File(estFileName);
+			if (!file.exists()) {
+				throw new IOException("File " + estFileName + " was not found.");
+			}
+			// Check to ensure we have sufficient memory
+			DataStore.get().memoryCheck(file, wizard);
+			// Create input stream to read the file.
+			FileInputStream fis = new FileInputStream(file);
 			// Create a progress monitor in case the FASTA file is large
-			String msg = "Verifying FASTA File: " + estFileName;
+			String msg = "Verifying FASTA File: " + file.getName();
 			ProgressMonitorInputStream pmis =
 				new ProgressMonitorInputStream(this, msg, fis);
 			pmis.getProgressMonitor().setNote("Please wait...");
