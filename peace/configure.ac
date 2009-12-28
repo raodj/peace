@@ -213,7 +213,7 @@ AC_DEFUN([AC_CHECK_GCC_VERSION],
 	if test $majorVer -lt 4; then
 	   good="no"
 	elif test $majorVer -eq 4; then
-		 if test $minorVer -lt 1 && $patchLevel -eq 0; then
+		 if test $minorVer -lt 1 && test $patchLevel -eq 0; then
 	   	 	good="no"
 		 fi
 		 # Add checks for buggy gcc 4.1+ versions here
