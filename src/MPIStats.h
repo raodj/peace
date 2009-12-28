@@ -38,7 +38,7 @@
 #include <string>
 
 // Include our non-native MPI header to enable/diable MPI usage.
-#include "MPI.h"
+#include "MPIHelper.h"
 
 /** A non-instantiable wrapper class to track MPI-related statistics.
 
@@ -92,7 +92,7 @@ public:
         objective as shown in the code fragement below:</p>
 
         \code
-        #include "MPI.h"
+        #include "MPIHelper.h"
 
         void someMethod() {
             TRACK_IDLE_TIME(MPI_SEND(b, 1, MPI_TYPE_INT, rank, tag));
@@ -217,7 +217,7 @@ private:
 
     \code
 
-    #include "MPI.h"
+    #include "MPIHelper.h"
 
     void someMethod() {
         MPI::Status statusInfo;
@@ -260,7 +260,7 @@ private:
 
     \code
 
-    #include "MPI.h"
+    #include "MPIHelper.h"
 
     void someMethod() {
         // ... some code goes here ..
@@ -302,7 +302,7 @@ private:
 
     \code
 
-    #include "MPI.h"
+    #include "MPIHelper.h"
 
     void someMethod() {
         // ... some code goes here ..
@@ -337,7 +337,7 @@ private:
 
     \code
 
-    #include "MPI.h"
+    #include "MPIHelper.h"
 
     void someMethod() {
         // ... some code goes here ..
@@ -371,7 +371,7 @@ private:
 
     \code
 
-    #include "MPI.h"
+    #include "MPIHelper.h"
 
     void someMethod() {
         // ... some code goes here ..
@@ -406,7 +406,7 @@ private:
 
     \code
 
-    #include "MPI.h"
+    #include "MPIHelper.h"
 
     void someMethod() {
         // ... some code goes here ..

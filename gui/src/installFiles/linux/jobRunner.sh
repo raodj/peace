@@ -176,7 +176,13 @@ function checkStatus {
 function showProgress {
 	# Check and print progress information if file is available.
 	if [ -f progress.dat ]; then
-		cat progress.dat
+		# Ensure we really have progress
+		lines=`wc -l progress.dat | cut -d' ' -f1`
+		if [ lines -gt 0 ]; then
+			cat progress.dat
+		else
+			echo "-1, -1"
+		fi
 	else
 		# Print invalid progress as we don't know progress.
 		echo "-1,-1"

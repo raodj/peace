@@ -29,7 +29,7 @@
 #include "ESTAnalyzer.h"
 #include "HeuristicFactory.h"
 #include "HeuristicChain.h"
-#include "MPI.h"
+#include "MPIHelper.h"
 #include "InteractiveConsole.h"
 
 #include <string>

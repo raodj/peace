@@ -276,7 +276,7 @@ AC_DEFUN([AC_CHECK_HASHMAP],
      AC_LANG_CONFTEST()
      
      AC_LINK_IFELSE(
-     [AC_LANG_PROGRAM([[#include "src/HashMap.h"]],[[const HashMap<int, int> map; map.find(1)]])],
+     [AC_LANG_PROGRAM([[#include "src/HashMap.h"]],[[const StringIntMap map; map.find("1")]])],
 	 [AC_MSG_RESULT([yes])],
      [AC_MSG_RESULT([no])
   	  AC_MSG_ERROR([
@@ -301,7 +301,7 @@ AC_DEFUN([AC_CHECK_TR1_HASHMAP],
      AC_LANG_CONFTEST()
      
      AC_LINK_IFELSE(
-	     [AC_LANG_PROGRAM([[#include <tr1/unordered_map>]],[[const std::tr1::unordered_map<int, int> map; map.find(1)]])],
+	     [AC_LANG_PROGRAM([[#include <tr1/unordered_map>],[#include <string>]],[[const std::tr1::unordered_map<const char*, int> map; map.find("1")]])],
 	 [
 	     AC_MSG_RESULT([yes])
 	     AC_CHECK_HEADERS([tr1/unordered_map])		
