@@ -206,14 +206,14 @@ AC_DEFUN([AC_CHECK_GCC_VERSION],
 	version=`g++ --version 2>&1 | head -1 | cut -d' ' -f3`
 	majorVer=`echo $version | cut -d'.' -f1`
 	minorVer=`echo $version | cut -d'.' -f2`
-	pathLevel=`echo $version| cut -d'.' -f3`
+	patchLevel=`echo $version| cut -d'.' -f3`
 
 	good="yes"
     # Check to ensure gcc is at least 4.1
 	if test $majorVer -lt 4; then
 	   good="no"
 	elif test $majorVer -eq 4; then
-		 if test $minorVer -lt 1; then
+		 if test $minorVer -lt 1 && $patchLevel -eq 0; then
 	   	 	good="no"
 		 fi
 		 # Add checks for buggy gcc 4.1+ versions here
@@ -231,7 +231,7 @@ AC_DEFUN([AC_CHECK_GCC_VERSION],
 	  gcc module by default.
 	 ])
 	else
-	    AC_MSG_RESULT([yes])
+	    AC_MSG_RESULT([yes, $version])
 	fi
 ])
 
@@ -276,7 +276,7 @@ AC_DEFUN([AC_CHECK_HASHMAP],
      AC_LANG_CONFTEST()
      
      AC_LINK_IFELSE(
-     [AC_LANG_PROGRAM([[#include "src/HashMap.h"]],[[HashMap<int, int> map; map[1]=1]])],
+     [AC_LANG_PROGRAM([[#include "src/HashMap.h"]],[[const HashMap<int, int> map; map.find(1)]])],
 	 [AC_MSG_RESULT([yes])],
      [AC_MSG_RESULT([no])
   	  AC_MSG_ERROR([
@@ -291,6 +291,23 @@ AC_DEFUN([AC_CHECK_HASHMAP],
 	  ])
 	 ]
 	 )
+])
+
+# A custom helper to check to ensure hash map is operational
+AC_DEFUN([AC_CHECK_TR1_HASHMAP],
+[
+     AC_MSG_CHECKING([whether tr1/unordered_map is available and operational])
+     AC_LANG([C++])
+     AC_LANG_CONFTEST()
+     
+     AC_LINK_IFELSE(
+	     [AC_LANG_PROGRAM([[#include <tr1/unordered_map>]],[[const std::tr1::unordered_map<int, int> map; map.find(1)]])],
+	 [
+	     AC_MSG_RESULT([yes])
+	     AC_CHECK_HEADERS([tr1/unordered_map])		
+	 ],
+     [AC_MSG_RESULT([no])
+	 ])
 ])
 
 # Checks for programs.
@@ -336,11 +353,12 @@ AC_C_INLINE
 AC_TYPE_SIZE_T
 AC_HEADER_TIME
 AC_C_VOLATILE
+AC_CHECK_TR1_HASHMAP
 
 # checks for the version of hash map is available in c++ land
 AC_LANG_PUSH([C])
 AC_LANG([C++])
-AC_CHECK_HEADERS([tr1/unordered_map ext/hash_map hash_map])
+AC_CHECK_HEADERS([ext/hash_map hash_map])
 AC_LANG_POP([C++])
 # Check to ensure hash map is operational
 AC_CHECK_HASHMAP
