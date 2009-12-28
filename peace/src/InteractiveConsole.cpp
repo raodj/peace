@@ -26,7 +26,7 @@
 #include "Utilities.h"
 #include "ESTAnalyzer.h"
 #include "EST.h"
-#include "MPI.h"
+#include "MPIHelper.h"
 
 #include <algorithm>
 #include <stdio.h>

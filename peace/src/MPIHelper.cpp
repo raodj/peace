@@ -1,5 +1,5 @@
-#ifndef MPI_CPP
-#define MPI_CPP
+#ifndef MPI_HELPER_CPP
+#define MPI_HELPER_CPP
 
 //---------------------------------------------------------------------------
 //
@@ -22,7 +22,7 @@
 //
 //---------------------------------------------------------------------------
 
-#include "MPI.h"
+#include "MPIHelper.h"
 #include <cstring>
 
 #ifndef HAVE_LIBMPI

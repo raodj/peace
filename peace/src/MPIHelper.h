@@ -1,5 +1,5 @@
-#ifndef MPI_H
-#define MPI_H
+#ifndef MPI_HELPER_H
+#define MPI_HELPER_H
 
 //--------------------------------------------------------------------
 //
@@ -34,7 +34,7 @@
 //
 //---------------------------------------------------------------------
 
-/** \file MPI.h
+/** \file MPIHelper.h
 
     \brief File and macros to enable conditional compilation of MPI
     code so that PEACE can be built with and without MPI.
@@ -74,7 +74,7 @@
 
     \code
 
-    #include "MPI.h"
+    #include "MPIHelper.h"
 
     void someMethod() {
         // ... some code goes here ..
@@ -108,7 +108,7 @@
 
     \code
 
-    #include "MPI.h"
+    #include "MPIHelper.h"
 
     void someMethod() {
         // ... some code goes here ..
@@ -151,7 +151,7 @@
 
     \code
 
-    #include "MPI.h"
+    #include "MPIHelper.h"
 
     void someMethod() {
         // ... some code goes here ..
@@ -188,7 +188,7 @@ public:
 
     \code
 
-    #include "MPI.h"
+    #include "MPIHelper.h"
 
     void someMethod() {
         // ... some code goes here ..
@@ -220,7 +220,7 @@ public:
 
     \code
 
-    #include "MPI.h"
+    #include "MPIHelper.h"
 
     void someMethod() {
         // ... some code goes here ..
@@ -252,7 +252,7 @@ public:
 
     \code
 
-    #include "MPI.h"
+    #include "MPIHelper.h"
 
     int main(int argc, char *argv[]) {
         // ... some code goes here ..
@@ -282,7 +282,7 @@ public:
 
     \code
 
-    #include "MPI.h"
+    #include "MPIHelper.h"
 
     int main(int argc, char *argv[]) {
         // ... some code goes here ..
@@ -313,7 +313,7 @@ public:
 
     \code
 
-    #include "MPI.h"
+    #include "MPIHelper.h"
 
     int main(int argc, char *argv[]) {
         // ... some code goes here ..
@@ -343,7 +343,7 @@ extern double MPI_WTIME();
 
     \code
 
-    #include "MPI.h"
+    #include "MPIHelper.h"
 
     int main(int argc, char *argv[]) {
         // ... some code goes here ..

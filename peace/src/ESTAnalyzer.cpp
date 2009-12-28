@@ -24,7 +24,7 @@
 
 #include "ESTAnalyzer.h"
 #include "EST.h"
-#include "MPI.h"
+#include "MPIHelper.h"
 
 // Get rid of magic numbers
 #define NO_ERROR 0

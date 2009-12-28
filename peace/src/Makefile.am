@@ -112,8 +112,8 @@ TransCacheEntry.h\
 TransCacheEntry.cpp\
 TransMSTClusterMaker.cpp\
 TransMSTClusterMaker.h\
-MPI.h \
-MPI.cpp
+MPIHelper.h \
+MPIHelper.cpp
 
 peace_SOURCES = \
 main.cpp\
