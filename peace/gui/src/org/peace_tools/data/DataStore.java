@@ -34,11 +34,17 @@ package org.peace_tools.data;
 //---------------------------------------------------------------------
 
 import java.awt.Component;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.WeakHashMap;
 
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.ProgressMonitorInputStream;
+
+import org.peace_tools.generic.Utilities;
 
 /**
  * A helper class to load and maintain data files.
@@ -62,6 +68,51 @@ public class DataStore {
 	 * @return The globally unique singleton instance of the data store.
 	 */
 	public static DataStore get() { return dataStore; }
+	
+	/**
+	 * Helper method to ensure there is sufficient memory to load data.
+	 * 
+	 * This is a helper method that is called just before data files
+	 * are loaded to ensure that sufficient memory is available to 
+	 * load large files. If not, an warning message is displayed to
+	 * the user along with information on how to increase memory.
+	 * 
+	 * @param fileToBeLoaded The file that is going to be loaded into
+	 * memory.
+	 * 
+	 * @param parent The parent component based on which any warning
+	 * dialog boxes are to be displayed.
+	 */
+	public void memoryCheck(File fileToBeLoaded, Component parent) throws Exception {
+		Runtime rt = Runtime.getRuntime();
+		float maxMemory      = rt.maxMemory();
+		float reservedMemory = rt.totalMemory();
+		float availMemory    = maxMemory - reservedMemory;
+		
+		if (availMemory >= fileToBeLoaded.length() * 2.0f) {
+			// Sufficient memory is available (we think).
+			return;
+		}
+		final float TO_MEGS = 1024 * 1024;
+		// Warn the user that sufficient memory is not available.
+		final String WarnMsg = String.format(LOW_MEMORY_MSG, 
+				fileToBeLoaded.getName(), fileToBeLoaded.length() / TO_MEGS,
+				fileToBeLoaded.length() * 2.0f / TO_MEGS);
+		final String MemUse = String.format(MEM_USAGE, 
+				availMemory / TO_MEGS, reservedMemory / TO_MEGS,
+				maxMemory / TO_MEGS);
+		// Create a suitable collapsed pane to display message
+		JPanel message = Utilities.collapsedMessage(WarnMsg, MemUse);
+		int choice = JOptionPane.showConfirmDialog(parent, message,
+				"Low memory warning", JOptionPane.YES_NO_OPTION, 
+				JOptionPane.WARNING_MESSAGE);
+		if (choice == JOptionPane.NO_OPTION) {
+			throw new Exception("User decided to stop file load due to " +
+					"low memory situation.");
+		}
+		// Try to free up some memory if possible.
+		System.gc();
+	}
 	
 	/**
 	 * Method to load/get a given FASTA file.
@@ -96,7 +147,13 @@ public class DataStore {
 			}
 		}
 		// The entry was not found. It must be loaded. So do it now.
-		InputStream fis = new FileInputStream(fileName);
+		File file = new File(fileName);
+		if (!file.exists()) {
+			throw new IOException("The file " + fileName + " was not found.");
+		}
+		// Do a memory check to ensure we have sufficient memory
+		memoryCheck(file, parent);
+		InputStream fis = new FileInputStream(file);
 		// Wrap the input stream in progress monitor if requested.
 		if (parent != null) {
 			fis = new ProgressMonitorInputStream(parent, 
@@ -225,6 +282,33 @@ public class DataStore {
 	 */
 	private final WeakHashMap<String, Object> cache;
 	
+	/**
+	 * Message to be displayed to the user to indicate that
+	 * there is a low memory situation when loading a file.
+	 * This message is formatted (to fill in missing
+	 * information) by the memoryCheck() method.
+	 */
+	private static final String LOW_MEMORY_MSG = "<html>" +
+		"Your Java VM is running low on memory and may not be able to open the<br>" +
+		"file: %s (size=%.1f MB). Memory safety threshold: %.1f MB<br>" +
+		"See details below for current memory usage statistics.<br>" +
+		"You can proceed with opening the file (<i>but may experience problems</i>)<br>" +
+		"or try closing open files to freeup some memory and then open this file.<br><br>" +
+		"The best solution would be to exit PEACE and restart it with a larger heap<br>" +
+		"as shown in the command line below (set suitable heap value instead of 2G):<br>" +
+		"<b>java -Xmx2G -jar peace.jar<br>" +
+		"</html>";
+
+	/**
+	 * Memory statistics to be displayed to the user after 
+	 * formatting (to fill in the necessary information). This
+	 * string is used in the memoryCheck() method.
+	 */
+	private static final String MEM_USAGE =  
+		"Free memory available: %.1f MB\n" +
+		"Current memory used: %.1f MB\n" +
+		"Maximum memory available to Java: %.1f MB";
+
 	/**
 	 * The globally unique singleton instance of this class that is
 	 * shared by all the other classes that require data files to
