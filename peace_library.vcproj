@@ -216,7 +216,7 @@
 				>
 			</File>
 			<File
-				RelativePath="src\MPI.cpp"
+				RelativePath=".\src\MPIHelper.cpp"
 				>
 			</File>
 			<File
@@ -378,7 +378,7 @@
 				>
 			</File>
 			<File
-				RelativePath="src\MPI.h"
+				RelativePath=".\src\MPIHelper.h"
 				>
 			</File>
 			<File
