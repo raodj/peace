@@ -13,8 +13,8 @@
 
 
 
-          PEACE: Parallel EST Analyzer and Clustering Engine
-
+          PEACE: Parallel Environment for Assembly and Clustering
+		  		 of gene Expressions.
 
 ------------------------------------------------------------------------
     _            _     _                     
@@ -23,7 +23,7 @@
  /_/ \_\  \_,_|  \__| |_||_| \___/ |_|   /__/
                                              
 
- Dhananjai M. Rao   raodm@muohio.edu 
+ Dhananjai M. Rao   raodm@muohio.edu
  James C. Moler	    molerjc@muohio.edu
 
 ------------------------------------------------------------------------

@@ -255,7 +255,7 @@ public class AnalyzerWizardPage extends GenericWizardPage {
 		"Two Pass D2 (Fastest)", 
 		"D2 Optimized (similar to wcd)", 
 		"D2 Standard",
-		"CLU (similarity metric"
+		"CLU (similarity metric)"
 	};
 	
 	/**
