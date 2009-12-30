@@ -122,9 +122,10 @@ implements ActionListener {
 	public void actionPerformed(ActionEvent event) {
 		// These URLs are listed in the same order as the action commands
 		// to see look up and cross reference.
-		String HelpURLs[] = {"contents.html", "tutorials.html",
-				"papers.html", "contact.html", "updates.html", "progdocs.html", 
-				"release_notes.html", "bugreport.html"};
+		String HelpURLs[] = {"documentation.html", "documentation.html#tutorials",
+				"documentation.html#papers", "researchers.html", "downloads.html", 
+				"documentation.html#programmer", 
+				"documentation.html#notes", "bugreport.html"};
 		// Map action command to index ids
 		int index;
 		final String cmd = event.getActionCommand();
