@@ -177,8 +177,8 @@ function showProgress {
 	# Check and print progress information if file is available.
 	if [ -f progress.dat ]; then
 		# Ensure we really have progress
-		lines=`wc -l progress.dat | cut -d' ' -f1`
-		if [ lines -gt 0 ]; then
+		grep ',' progress.dat > /dev/null
+		if [ $? -eq 0 ]; then
 			cat progress.dat
 		else
 			echo "-1, -1"
@@ -205,9 +205,9 @@ function abortJobViaPBS {
 	# the user.
 	qstat $jobID | grep $USER > /dev/null 2> /dev/null
 	if [ $? -ne 0 ]; then
-		echo "Wierd. Are you trying to delete this job" 1>&2
+		echo "Wierd. Are you trying to abort this job" 1>&2
 		echo "after a long time? The PBS job does not " 1>&2
-		echo "belong to you anymore. Cannot delete it." 1>&2
+		echo "belong to you anymore. Cannot kill it." 1>&2
 		return 2
 	fi
 
