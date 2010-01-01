@@ -92,8 +92,8 @@ public class MSTNode {
 	/**
 	 * Determine if this node is the root node.
 	 * 
-	 * @note This method is meaningful only after a complete MST has been
-	 * built.
+	 * <p><b>Note:</b>  This method is meaningful only after a 
+	 * complete MST has been built.</p>
 	 * 
 	 * @return This method returns true if the parent of this node is
 	 * null, indicating this is a root node.
@@ -103,8 +103,8 @@ public class MSTNode {
 	/**
 	 * Determine if this node is a leaf node that has no child nodes.
 	 * 
-	 * @note This method is meaningful only after a complete MST has been
-	 * built.
+	 * <p><b>Note:</b>  This method is meaningful only after a 
+	 * complete MST has been  built.</p>
 	 * 
 	 * @return This method returns true if this node has no children.
 	 */

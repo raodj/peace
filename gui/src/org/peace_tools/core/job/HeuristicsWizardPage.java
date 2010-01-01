@@ -125,9 +125,6 @@ implements ActionListener {
 	/**
 	 * This is a helper method that is used to create the necessary
 	 * information regarding the u/v heuristic.
-	 * 
-	 * @param subPanel The sub-panel to which the text controls are
-	 * to be added. 
 	 */
 	private JPanel createUvPanels() {
 		// First create enable/disable checkbox with nice border.

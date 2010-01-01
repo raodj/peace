@@ -276,8 +276,9 @@ public class MSTClusterData {
     /**
      * Set the data set that this object logically belongs to. 
      * 
-     * @note This method is used by the DataSet. Use DataSet::add()
-     * method to add a MSTClusterData object to a data set.
+     * <p><b>Note:</b>  This method is used by the DataSet. Use 
+     * {@link DataSet#add(MSTClusterData)} method to add a 
+     * {@link MSTClusterData} object to a data set.<p>
      * 
      * @param dataSet The data set to which this object has been added.
      */

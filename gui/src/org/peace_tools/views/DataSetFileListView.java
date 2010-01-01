@@ -126,7 +126,7 @@ public class DataSetFileListView extends JPanel {
 	 * adapter simply delegates the actual operations to other methods 
 	 * in this class.
 	 * 
-	 * @param list The list object to which the mouse adapter is to be
+	 * @param tree The tree object to which the mouse adapter is to be
 	 * added.
 	 */
 	private void addMouseAdapter(JComponent tree) {

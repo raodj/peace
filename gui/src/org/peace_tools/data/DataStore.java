@@ -34,6 +34,7 @@ package org.peace_tools.data;
 //---------------------------------------------------------------------
 
 import java.awt.Component;
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -57,9 +58,9 @@ import org.peace_tools.generic.Utilities;
  * not used (at least for some time) then it will be automatically
  * garbage collected and needs to be reloaded.
  *
- * @note This class is not meant to be directly instantiated to
- * preserve singleton property. Use the static get() method to
- * obtain a reference to the globally unique instance of this class.
+ * <p><b>Note:</b>  This class is not meant to be directly instantiated
+ * to preserve singleton property. Use the static get() method to
+ * obtain a reference to the globally unique instance of this class.</p>
  */
 public class DataStore {
 	/**
@@ -154,6 +155,8 @@ public class DataStore {
 		// Do a memory check to ensure we have sufficient memory
 		memoryCheck(file, parent);
 		InputStream fis = new FileInputStream(file);
+		// Wrap input stream in a buffered stream to make IO faster
+		fis = new BufferedInputStream(fis, 32768);
 		// Wrap the input stream in progress monitor if requested.
 		if (parent != null) {
 			fis = new ProgressMonitorInputStream(parent, 
@@ -202,6 +205,8 @@ public class DataStore {
 		}
 		// The entry was not found. It must be loaded. So do it now.
 		InputStream fis = new FileInputStream(fileName);
+		// Wrap input stream in a buffered stream to make IO faster
+		fis = new BufferedInputStream(fis, 32768);
 		// Wrap the input stream in progress monitor if requested.
 		if (parent != null) {
 			fis = new ProgressMonitorInputStream(parent, 
@@ -250,6 +255,8 @@ public class DataStore {
 		}
 		// The entry was not found. It must be loaded. So do it now.
 		InputStream fis = new FileInputStream(fileName);
+		// Wrap input stream in a buffered stream to make IO faster
+		fis = new BufferedInputStream(fis, 32768);
 		// Wrap the input stream in progress monitor if requested.
 		if (parent != null) {
 			fis = new ProgressMonitorInputStream(parent, 

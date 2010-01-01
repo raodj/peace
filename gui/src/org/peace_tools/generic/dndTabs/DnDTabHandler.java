@@ -317,8 +317,8 @@ public class DnDTabHandler implements DragSourceListener, DragGestureListener,
 	 * (typically the mouse pointer positions) is with respect to the
 	 * DnDTabbedPane that owns this handler.
 	 * 
-	 * @note The return value from this method is meaningful only when the mouse
-	 *       pointer is within the bounds of the owning tabbed pane.
+	 * <p><b>Note:</b> The return value from this method is meaningful only when the mouse
+	 *       pointer is within the bounds of the owning tabbed pane.</p>
 	 * 
 	 * @param x
 	 *            The x-coordinate to test.

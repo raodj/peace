@@ -57,7 +57,8 @@ import org.peace_tools.workspace.Server;
  * the commands on a remote machine via a secure shell (SSH) 
  * protocol.
  * 
- *  @see LocalServerSession, RemoteServerSession
+ *  @see LocalServerSession
+ *  @see RemoteServerSession
  */
 public abstract class ServerSession {
 	/**
@@ -99,11 +100,11 @@ public abstract class ServerSession {
 	 * commands and copy operations can be performed without requiring
 	 * to connect and disconnect from the session. </p>
 	 * 
-	 * @note The process of establishing a connection can be a 
+	 * <p><b>Note:</b>  The process of establishing a connection can be a 
 	 * time consuming task. In some cases incorrect host names can
 	 * cause long connection times (until the connection times out
 	 * which can be in minutes). Consequently, it is best to call
-	 * this method from a separate daemon thread.
+	 * this method from a separate daemon thread.</p>
 	 * 
 	 * @throws IOException This method throws IO exceptions in 
 	 * the case of errors. If an error occurs, then a connection
@@ -120,10 +121,10 @@ public abstract class ServerSession {
 	 * connected has no side effects (and derived session classes
 	 * do no special operations if a connection does not exist).
 	 * 
-	 * @note Disconnecting from a server that may be performing a 
+	 * <p><b>Note:</b>  Disconnecting from a server that may be performing a 
 	 * long running operation may have undesired side effects of 
 	 * the commands aborting and possibly leaving data files in
-	 * an inconsistent state.
+	 * an inconsistent state.</p>
 	 */
 	public abstract void disconnect();
 	
@@ -142,8 +143,8 @@ public abstract class ServerSession {
 	 * Consequently, it should be used only for jobs that
 	 * run for a short period of time.
 	 * 
-	 * @note The connection to the remote server must have
-	 * been established successfully via a call to connect method.
+	 * <p><b>Note:</b>  The connection to the remote server must have
+	 * been established successfully via a call to connect method.</p>
 	 * 
 	 * @param command The command line to be executed. This
 	 * command must be compatible with the target machine's 
@@ -172,8 +173,8 @@ public abstract class ServerSession {
 	 * method uses styles named "stdout", "stderr", and 
 	 * "warning" (if available in the given output document)
 	 * 
-	 * @note The connection to the remote server must have
-	 * been established successfully via a call to connect method.
+	 * <p><b>Note:</b>  The connection to the remote server must have
+	 * been established successfully via a call to connect method.</p>
 	 * 
 	 * @param command The command line to be executed. This
 	 * command must be compatible with the target machine's 
@@ -198,9 +199,9 @@ public abstract class ServerSession {
 	 * This method can be used to determine the type of the OS that
 	 * this session is connected to. 
 	 * 
-	 * @note The session must be connected prior to this call. 
+	 * <p><b>Note:</b>  The session must be connected prior to this call. 
 	 * Implementations must try to make this method as quick as
-	 * possible, by caching the OS type, if necessary.
+	 * possible, by caching the OS type, if necessary.</p>
 	 * 
 	 * @return The type of OS this session is associated with.
 	 * 
@@ -213,9 +214,9 @@ public abstract class ServerSession {
 	 * Copy given data from an input stream to a given file on the
 	 * server.
 	 *
-	 * @note The connection to the server must have already been 
+	 * <p><b>Note:</b>  The connection to the server must have already been 
 	 * successfully established via a call to the connect method 
-	 * before invoking this method.
+	 * before invoking this method.</p>
 	 * 
 	 * @param srcData The source stream that provides the data to
 	 * be copied.
@@ -239,8 +240,8 @@ public abstract class ServerSession {
 	/**
 	 * Copy file from a remote machine to a given output stream.
 	 *
-	 * @note  The connection to the remote host must have already
-	 * been established before invoking this method.
+	 * <p><b>Note:</b>   The connection to the remote host must have already
+	 * been established before invoking this method.</p>
 	 * 
 	 * @param destData The destination stream to which the data is
 	 * to be written.
@@ -266,9 +267,9 @@ public abstract class ServerSession {
 	 * This method must be used to create a directory entry on the
 	 * server.
 	 * 
-	 * @note The connection to the server must have already been 
+	 * <p><b>Note:</b>  The connection to the server must have already been 
 	 * successfully established via a call to the connect method 
-	 * before invoking this method.
+	 * before invoking this method.</p>
 	 * 
 	 * @param directory The fully path to the directory to be created.
 	 * 
@@ -284,9 +285,9 @@ public abstract class ServerSession {
 	 * server. Note that the directory must be empty in order for
 	 * this operation to succeed.
 	 * 
-	 * @note The connection to the server must have already been 
+	 * <p><b>Note:</b>  The connection to the server must have already been 
 	 * successfully established via a call to the connect method 
-	 * before invoking this method.
+	 * before invoking this method.</p>
 	 * 
 	 * @param directory The fully path to the directory to be deleted.
 	 * 
@@ -298,9 +299,9 @@ public abstract class ServerSession {
 	/**
 	 * Obtain information about a given path on the server.
 	 * 
-	 * @note This method uses SFTP to copy the data. The connection
+	 * <p><b>Note:</b>  This method uses SFTP to copy the data. The connection
 	 * to the remote host must have already been established before
-	 * invoking this method.
+	 * invoking this method.</p>
 	 * 
 	 * @param path The path (absolute or relative to home directory)
 	 * of the file whose meta data is to be retrieved.

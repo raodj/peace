@@ -55,7 +55,7 @@ public class ServerList {
 	 * Server entry this method uses the Server.createServer method to
 	 * create suitable Server entries.
 	 * 
-	 * @param serverListNode The DOM element to be used for creating the 
+	 * @param serverNode The DOM element to be used for creating the 
 	 * server list and to be used for creating the Server entries.
 	 * 
 	 * @return The newly created ServerList entry based on the DOM data.

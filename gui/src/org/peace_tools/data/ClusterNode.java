@@ -87,8 +87,8 @@ public class ClusterNode {
 	/**
 	 * Determine if this cluster node is the root cluster.
 	 * 
-	 * @note This method is meaningful only after a complete cluster hierarchy
-	 * has been built.
+	 * <p><b>Note:</b>  This method is meaningful only after a 
+	 * complete cluster hierarchy has been built.</p>
 	 * 
 	 * @return This method returns true if the parent of this cluster is
 	 * null, indicating this is a root cluster.
@@ -99,8 +99,8 @@ public class ClusterNode {
 	 * Determine if this cluster is a leaf cluster that has no child clusters
 	 * or EST entries.
 	 * 
-	 * @note This method is meaningful only after a complete cluster hierarchy
-	 * has been built.
+	 * <p><b>Note:</b>  This method is meaningful only after a complete
+	 * cluster hierarchy has been built.</p>
 	 * 
 	 * @return This method returns true if this cluster has no children.
 	 */
@@ -117,8 +117,8 @@ public class ClusterNode {
 	/**
 	 * Obtain the EST id associated with an EST node.
 	 * 
-	 * @note The return value from this method is meangiful only if the
-	 * isESTNode() method returns true.
+	 * <p><b>Note:</b>  The return value from this method is meaningful 
+	 * only if the {@link #isESTNode()} method returns true.</p>
 	 *  
 	 * @return The ID (typically the index of the EST) of the EST 
 	 * associated with this cluster node.
@@ -128,8 +128,8 @@ public class ClusterNode {
 	/**
 	 * Obtain the cluster id associated with an EST node.
 	 * 
-	 * @note The return value from this method is meangiful only if the
-	 * isESTNode() method returns false.
+	 * <p><b>Note:</b>  The return value from this method is meaningful
+	 * only if the {@link #isESTNode()} method returns false.</p>
 	 *  
 	 * @return The ID of this cluster node. 
 	 */
@@ -138,8 +138,8 @@ public class ClusterNode {
 	/**
 	 * Obtain the child nodes associated with this node.
 	 * 
-	 * @note This method returns null if the node does not have any
-	 * children.
+	 * <p><b>Note:</b>  This method returns null if the node does not 
+	 * have any children.</p>
 	 * 
 	 * @return This method must be used to obtain the child nodes 
 	 * associated with a given node. 
@@ -156,9 +156,9 @@ public class ClusterNode {
 	 * a given entry. The value is the number of ESTs in this cluster
 	 * that are associated with this EST.
 	 * 
-	 * @note The return value from this method may be null if a suitable
+	 * <p><b>Note:</b>  The return value from this method may be null if a suitable
 	 * classifier is not available for this cluster or if a classifier
-	 * has not been computed.
+	 * has not been computed.</p>
 	 * 
 	 * @return A hash map containing the classification information for
 	 * the ESTs. 

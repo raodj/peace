@@ -238,10 +238,6 @@ implements Runnable, ActionListener {
 	 * load the EST data. If the data is loaded successfully this 
 	 * method returns true. This method was primarily introduced to
 	 * keep the code more readable.
-	 * 
-	 * @param estFileName The full path to the FASTA file to be verified.
-	 * @return This method returns true if the specified file is valid.
-	 * @throws Exception Throws exceptions on errors.
 	 */
 	@Override
 	public void run() {

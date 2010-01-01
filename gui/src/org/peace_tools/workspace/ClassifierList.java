@@ -55,7 +55,7 @@ public class ClassifierList {
 	 * DBClassifier entry this method uses the DBClassifier.create method to
 	 * create suitable entries.
 	 * 
-	 * @param classifierListNode The DOM element to be used for creating the 
+	 * @param dbClassListNode The DOM element to be used for creating the 
 	 * list and to be used for creating the DBClassifier entries.
 	 * 
 	 * @return The newly created ClassifierList entry based on the DOM data.
@@ -114,21 +114,21 @@ public class ClassifierList {
 	}
 	
 	/**
-	 * Obtain reference to a <b>clone</b> of list of classifiers. 
+	 * Obtain reference to a <b>clone</b> of list of classifiers.
 	 * 
 	 * This method must be used to obtain the list of classifiers currently
-	 * configured for this work space. This method makes a copy of the 
+	 * configured for this work space. This method makes a copy of the
 	 * classifiers and returns the copy. Consequently, the actual classifier
-	 * list cannot be directly modified. Instead, the set() method must be
-	 * used to actually udpate the list of entries.
-	 *
-	 * @note The list of classifiers returned by this method is a clone and
-	 * modifying them does not modify the classifiers in this class.
+	 * list cannot be directly modified. Instead, the set() method must be used
+	 * to actually udpate the list of entries.
 	 * 
-	 * @param classifierID The generated work space wide unique classifier ID. 
-	 * Note that checks are case sensitive. 
+	 * <p>
+	 * <b>Note:</b> The list of classifiers returned by this method is a clone
+	 * and modifying them does not modify the classifiers in this class.
+	 * </p>
 	 * 
-	 * @return A copy of the list of classifiers associated with this work space.
+	 * @return A copy of the list of classifiers associated with this work
+	 *         space.
 	 */
 	public ArrayList<DBClassifier> getClassifiers() {
 		return new ArrayList<DBClassifier>(classifiers);

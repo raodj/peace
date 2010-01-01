@@ -59,8 +59,8 @@ import java.util.Map;
  * instance of this class. On the other the convenient, static log() 
  * method can be used to directly cut log entries. 
  * 
- * @note Logs for user (that would be pertinent for the user to view and
- * take action) must be generated in the UserLog.
+ * <p><b>Note:</b>Logs for user (that would be pertinent for the user to view and
+ * take action) must be generated in the UserLog.</p>
  */
 public class ProgrammerLog extends Log {
 	/** Obtain reference to the globally unique instance of the

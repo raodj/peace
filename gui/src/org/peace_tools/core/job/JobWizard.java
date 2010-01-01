@@ -59,8 +59,8 @@ import org.peace_tools.workspace.Workspace;
  * page performs a specific task required to create/configure
  * a complete job to be run on a server.
  *  
- *  @note In order to create a job, there must be at least one
- *  data set and one server entry in the work space. 
+ * <p><b>Note:</b> In order to create a job, there must be at least one
+ * data set and one server entry in the work space.</p> 
  */
 public class JobWizard extends WizardDialog {
 	/**
@@ -307,8 +307,8 @@ public class JobWizard extends WizardDialog {
 	 * This method can be used to obtain the information needed to
 	 * run PEACE with all the necessary command line parameters.
 	 * 
-	 * @note The command line arguments does not include the executable
-	 * path.
+	 * <p><b>Note:</b>The command line arguments does not include the executable
+	 * path.</p>
 	 * 
 	 * @param estFile The path to the est file to be used when generating
 	 * the command line.

@@ -64,10 +64,10 @@ import org.peace_tools.generic.Utilities;
  * class also provides a  createFileMenu() method that actually creates
  * the file menu.
  * 
- * @note This class adds a WindowAdapter so that it can intercept and
+ * <p><b>Note:</b>  This class adds a WindowAdapter so that it can intercept and
  * process window closing event. This window closing event is generated 
  * either when the user clicks the close button (typically at the top-right
- * corner) or chooses the "Quit" option
+ * corner) or chooses the "Quit" option.</p>
  */
 public class FileMenuHelper extends AbstractMenuHelper implements ActionListener {
 	/**

@@ -72,8 +72,8 @@ import org.peace_tools.workspace.Server;
  * directory for installing PEACE does not exist on the remote 
  * machine. 
  * 
- * @note This page does the same operation for both local and remote
- * servers.
+ * <p><b>Note:</b>  This page does the same operation for both local 
+ * and remote servers.</p>
  */
 public class ServerInfoWizardPage extends GenericWizardPage 
 implements Runnable, ActionListener {
@@ -295,7 +295,7 @@ implements Runnable, ActionListener {
 	 * remote server using the credentials supplied by the user and validating
 	 * the install directory to ensure it does not exist.
 	 * 
-	 * @note The process of connecting to the remote machine is performed from a
+	 * <p><b>Note:</b>  The process of connecting to the remote machine is performed from a
 	 *       separate thread because of the way Ganymede SSH has been
 	 *       implemented. The call backs provided by Ganymede do not occur on
 	 *       the Swing's EventDispatch thread (but from an generic thread).
@@ -304,7 +304,7 @@ implements Runnable, ActionListener {
 	 *       hangs) if the main EventDispatch thread is blocked. Consequently,
 	 *       the connection is performed from a separate thread. When this
 	 *       thread completes, it posts the necessary information back to the
-	 *       main EventDispatch thread for updates.
+	 *       main EventDispatch thread for updates.</p>
 	 */
 	public void run() {
 		// Common exception to be reported to GUI (if any)

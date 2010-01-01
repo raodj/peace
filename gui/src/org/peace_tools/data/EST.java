@@ -56,10 +56,6 @@ public class EST {
      * 
      * @param sequence The actual sequence of base pairs associated with this
      * EST.  The sequence information can be null.
-     * 
-     * @param offset The offset of in the FASTA file from where 
-     * this EST was read.  This information can be used to conditionally 
-     * and rapidly load EST's from a file.
      */
 	EST(int id, String info, String sequence) {
 		this.id           = id;
@@ -137,8 +133,8 @@ public class EST {
 	 * end of an EST sequence and the beginning of the other by checking to
 	 * see if the next character to be read is a ">" sign.
 	 * 
-	 * @note This method updates only the info and sequence information 
-	 * associated with this EST and not its id value.
+	 * <p><b>Note:</b>  This method updates only the info and sequence 
+	 * information associated with this EST and not its id value.</p>
 	 * 
 	 * @param is The input stream from where the EST is to be read.
 	 */

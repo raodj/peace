@@ -89,8 +89,8 @@ public class ClusterSummaryView extends JPanel
 	 * @param clusterFile The data model to be used to display the 
 	 * clusters from a given cluster file.
 	 * 
-	 * @param ests The set of ESTs that contain information about each 
-	 * EST in the clusters.
+	 * @param estList The set of ESTs that contain information about 
+	 * each EST in the clusters.
 	 */
 	public ClusterSummaryView(MainFrame frame, ClusterFile clusterFile, ESTList estList) {
 		super(new BorderLayout(0, 0));
@@ -492,9 +492,9 @@ public class ClusterSummaryView extends JPanel
 	 * computes the labels to be displayed in the graph and then
 	 * positions them within the graph pane.
 	 * 
-	 * @note The graph (a JPanel) does not have a layout manager.
-	 * Therefore the x and y locations of the labels are completely
-	 * under our control.
+	 * <p><b>Note:</b>  The graph (a JPanel) does not have a layout
+	 * manager. Therefore the x and y locations of the labels are 
+	 * completely under our control.</p>
 	 */
 	private void setupAxisLabels() {
 		// First clear out all the old labels from the graph
@@ -518,9 +518,10 @@ public class ClusterSummaryView extends JPanel
 	 * method to setup the labels on the x-axis. This method was
 	 * introduced to streamline the code a bit better. 
 	 * 
-	 * @note This method must be called only after the addYAxisLabels()
-	 * method has been called. This is needed to ensure that the area 
-	 * of the graph has been suitably updated.
+	 * <p><b>Note:</b>  This method must be called only after the 
+	 * {@link #addYAxisLabels(Rectangle)} method has been called. This 
+	 * is needed to ensure that the area of the graph has been 
+	 * suitably updated.</p>
 	 * 
 	 * @param area The area of the graph to be used for creating the 
 	 * labels.
@@ -548,9 +549,10 @@ public class ClusterSummaryView extends JPanel
 	 * method to setup the labels on the y-axis. This method was
 	 * introduced to streamline the code a bit better. 
 	 * 
-	 * @note This method must be called before the addXAxisLabels()
-	 * method. This method sets up the graph area appropriately for
-	 * the addXAxisLabels() method. 
+	 * <p><b>Note:</b>  This method must be called before the 
+	 * {@link #addXAxisLabels(Rectangle)} method. This method sets up
+	 * the graph area appropriately for the 
+	 * {@link #addXAxisLabels(Rectangle)} method. </p>
 	 * 
 	 * @param area The area of the graph to be used for creating the 
 	 * labels.

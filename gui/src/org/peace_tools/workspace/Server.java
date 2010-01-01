@@ -202,15 +202,17 @@ public class Server {
 	public String getName() { return name; }
 
 	/**
-	 * Change the server's domain name (or IP address). Changing the name
-	 * is meaningful only for remote entries. For local server (the 
-	 * same machine), the name is always null. 
+	 * Change the server's domain name (or IP address). Changing the name is
+	 * meaningful only for remote entries. For local server (the same machine),
+	 * the name is always null.
 	 * 
-	 * @note Changing the server name does not impact any connections that
-	 * may be currently open for this server. Note that this method is 
-	 * overriden in the LocalServer class to ignore server name changes.
+	 * <p>
+	 * <b>Note:</b> Changing the server name does not impact any connections
+	 * that may be currently open for this server. Note that this method is
+	 * overridden in the LocalServer class to ignore server name changes.
+	 * </p>
 	 * 
-	 * @param name The new domain name (or IP address) to be set for
+	 * @param name The new domain name (or IP address) to be set for 
 	 * this server entry.
 	 */
 	public void setName(String name) { this.name = name; }
@@ -249,7 +251,8 @@ public class Server {
 	/**
 	 * Set the user ID to be used for this server entry.  
 	 * 
-	 * @note Calling this method on a local server entry has no effect.
+	 * <p><b>Note:</b>  Calling this method on a local server entry 
+	 * has no effect.</p>
 	 * 
 	 * @param userID The new user ID to be used for logging onto the
 	 * remote server.

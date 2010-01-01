@@ -103,8 +103,8 @@ public class AboutDialog extends JDialog {
      * data and images for each one into arrays. The data is used to
      * create the list and the images are suitably rendered.
      * 
-     * @note This method adds images for authors in the AuthorImage
-     * array list.
+     * <p><b>Note:</b>  This method adds images for authors in the AuthorImage
+     * array list.</p>
      * 
      * @return The list of strings containing the author info.
      * 

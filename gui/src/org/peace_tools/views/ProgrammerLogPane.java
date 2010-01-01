@@ -49,11 +49,6 @@ public class ProgrammerLogPane extends LogPane {
 	/**
 	 * A constructor for the ProgrammerLogPane. It sets up the JTextArea 
 	 * the log is written to.
-	 * 
-	 * @param logLevel
-	 *            The Log level to display in the JTextArea
-	 * @param name
-	 *            The name of the file to also log to
 	 */
 	public ProgrammerLogPane() {
 		// The base class sets up the core panel and the tool bar at top.

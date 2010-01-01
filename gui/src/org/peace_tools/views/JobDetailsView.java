@@ -141,15 +141,17 @@ public class JobDetailsView extends DetailView {
 	/**
 	 * Helper method to populate first tab in job details.
 	 * 
-	 * This method is called from the constructor to populate the
-	 * basic information about a job entry in the job tab. The
-	 * necessary information is directly obtained from the work
-	 * space information. This method was primarily introduced 
-	 * to streamline the code in the constructor.
+	 * This method is called from the constructor to populate the basic
+	 * information about a job entry in the job tab. The necessary information
+	 * is directly obtained from the work space information. This method was
+	 * primarily introduced to streamline the code in the constructor.
 	 * 
-	 * @note This method assumes that createOutputDocs() method
-	 * has already been called to create the tabs where the 
-	 * information is to be displayed.
+	 * <p>
+	 * <b>Note:</b> This method assumes that
+	 * {@link #createOutputDocs(DefaultStyledDocument[], String[])} method has
+	 * already been called to create the tabs where the information is to be
+	 * displayed.
+	 * </p>
 	 */
 	private void setJobOverview() {
 		try {

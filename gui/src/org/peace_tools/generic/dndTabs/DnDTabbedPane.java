@@ -86,11 +86,11 @@ public class DnDTabbedPane extends JTabbedPane {
 	 * The listeners are added via the addListener() method or removed
 	 * via the removeListener() method.
 	 * 
-	 * @note The list of listeners is static so that all DnDTabbedPane
+	 * <p><b>Note:</b> The list of listeners is static so that all DnDTabbedPane
 	 * objects, including those created dynamically when the user 
 	 * drags and drops tabs, will use this list of listeners. This is
 	 * a bit non-standard implementation but appears to be the best
-	 * given the dynamic nature of creation of DnDTabbedPanes
+	 * given the dynamic nature of creation of DnDTabbedPanes</p>
 	 */
 	private static final ArrayList<DnDTabListener> listeners
 		= new ArrayList<DnDTabListener>();
@@ -111,9 +111,6 @@ public class DnDTabbedPane extends JTabbedPane {
 	 * The default constructor. This constructor creates an empty TabbedPane
 	 * with a default tab placement of JTabbedPane.TOP. It also creates a new
 	 * DnD handler for this tabbed pane.
-	 * 
-	 * @param parent The parent tab from where some of the properties
-	 * (such as listeners) are to be inherited by this new tab.
 	 */
 	public DnDTabbedPane() {
 		super(TOP, SCROLL_TAB_LAYOUT);
@@ -413,7 +410,7 @@ public class DnDTabbedPane extends JTabbedPane {
 	 * component has been removed from the tab. This method notifies
 	 * all registered listeners that the component has been removed.
 	 * 
-	 * @param The component that has been removed.
+	 * @param comp The component that has been removed.
 	 */
 	protected static void notifyListeners(Component comp) {
 		for(DnDTabListener listener: listeners) {
@@ -424,9 +421,9 @@ public class DnDTabbedPane extends JTabbedPane {
 	/**
 	 * Add a listener to be notified when a tab in this panel is deleted.
 	 * 
-	 * @note The listener is not recursively propagated to all associated 
+	 * <p><b>Note:</b>The listener is not recursively propagated to all associated 
 	 * tabs. However, the listener is inherited by any new DnDTabbedPane
-	 * that may be created from this pane due to user dragging tabs.
+	 * that may be created from this pane due to user dragging tabs.</p>
 	 * 
 	 * @param listener The listener to be added.
 	 */
@@ -437,8 +434,8 @@ public class DnDTabbedPane extends JTabbedPane {
 	/**
 	 * Remove a listener to be notified from this tab.
 	 * 
-	 * @note The listener is not recursively removed from all associated
-	 * tabs. 
+	 * <p><b>Note:</b> The listener is not recursively removed from all associated
+	 * tabs. </p>
 	 * 
 	 * @param listener The listener to be removed from the set of 
 	 * listeners to be notified.
@@ -468,8 +465,6 @@ public class DnDTabbedPane extends JTabbedPane {
 	 * to provide visual cues to the user. This method is currently 
 	 * used only by the TabDnDHandler.
 	 * 
-	 * @return The dock cue to be set for this tab. If a dock cue is
-	 * set to null then a cue is not drawn by this tab. 
 	 */
 	public void setDockCue(Location cue) {
 		dockCue = cue;

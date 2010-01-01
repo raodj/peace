@@ -291,8 +291,9 @@ public class JobMonitor implements Runnable {
 	 * method sets up the instance variable session once a valid
 	 * connection to the local/remote server is established. 
 	 * 
-	 * @note If a valid session could not be established this method
-	 * will simply sleep for 5 minutes before returning control.
+	 * <p><b>Note:</b>  If a valid session could not be established 
+	 * this method will simply sleep for 5 minutes before returning
+	 * control.</p>
 	 * 
 	 * @return This method returns false if the calling outer loop
 	 * must stop because the user interrupted or canceled the session.

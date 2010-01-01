@@ -242,7 +242,7 @@ public class DataSet {
 	 * a DOM tree element passed in. This method assumes that the element
 	 * passed in corresponds to the parent Workspace node in the DOM tree.
 	 * 
-	 * @param dataset The DOM element corresponding to the "Workspace"
+	 * @param workspace The DOM element corresponding to the "Workspace"
 	 * node that contains this entry.
 	 */
 	public final void marshall(Element workspace) {
@@ -300,8 +300,8 @@ public class DataSet {
 	 * data set. The MST data must have been generated for the EST
 	 * file associated with this data set.
 	 *  
-	 * @note This method reports the newly added MSTData entry to
-	 * all workspace listeners by firing a suitable event.
+	 * <p><b>Note:</b> This method reports the newly added MSTData entry to
+	 * all workspace listeners by firing a suitable event.</p>
 	 * 
 	 * @param mstData The new MSTData entry to be added to this 
 	 * data set.
@@ -321,8 +321,8 @@ public class DataSet {
 	 * Remove an existing Minimum Spanning Tree (MST) data file from 
 	 * this data set.
 	 *  
-	 * @note This method reports the removed MSTData entry to
-	 * all workspace listeners by firing a suitable event.
+	 * <p><b>Note:</b> This method reports the removed MSTData entry to
+	 * all workspace listeners by firing a suitable event.</p>
 	 * 
 	 * @param mstData The MSTData entry to be removed from this data set. 
 	 */
@@ -341,10 +341,10 @@ public class DataSet {
 	 * data set. The MST data must have been generated for the EST
 	 * file associated with this data set.
 	 *  
-	 * @note This method reports the newly added entry to
-	 * all workspace listeners by firing a suitable event.
+	 * <p><b>Note:</b> This method reports the newly added entry to
+	 * all workspace listeners by firing a suitable event.</p>
 	 * 
-	 * @param mstData The new clustering entry to be added to this 
+	 * @param cluster The new clustering entry to be added to this 
 	 * data set.
 	 */
 	public synchronized void add(MSTClusterData cluster) {
@@ -362,10 +362,10 @@ public class DataSet {
 	 * Remove an existing MST-based clustering data file from 
 	 * this data set.
 	 *  
-	 * @note This method reports the removed cluster entry to
-	 * all work space listeners by firing a suitable event.
+	 * <p><b>Note:</b> This method reports the removed cluster entry 
+	 * to all work space listeners by firing a suitable event.</p>
 	 * 
-	 * @param mstData The cluster entry to be removed from this 
+	 * @param cluster The cluster entry to be removed from this 
 	 * data set. 
 	 */
 	public synchronized void remove(MSTClusterData cluster) {

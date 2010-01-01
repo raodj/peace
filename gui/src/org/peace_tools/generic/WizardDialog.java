@@ -474,19 +474,20 @@ public class WizardDialog extends JDialog implements ActionListener {
 	/**
 	 * Helper method invoked when user clicks cancel button.
 	 * 
-	 * This is a helper method that derived classes can override.
-	 * This method is invoked when the user clicks the cancel
-	 * button in the wizard. This method is used to display a 
-	 * confirmation dialog to ensure that the user really wants to
-	 * exit out of the wizard.
+	 * This is a helper method that derived classes can override. This method is
+	 * invoked when the user clicks the cancel button in the wizard. This method
+	 * is used to display a confirmation dialog to ensure that the user really
+	 * wants to exit out of the wizard.
 	 * 
-	 * @note Derived classes that override this method must call
-	 * the base class if the user wishes to quit so that any 
-	 * worker threads associated with this wizard are interrupted
-	 * and deleted (and they don't simply hang around).
+	 * <p>
+	 * <b>Note:</b>Derived classes that override this method must call the base
+	 * class if the user wishes to quit so that any worker threads associated
+	 * with this wizard are interrupted and deleted (and they don't simply hang
+	 * around).
+	 * </p>
 	 * 
-	 * @return This method always returns true to indicate the user
-	 * wants to quit.
+	 * @return This method always returns true to indicate the user wants to
+	 *         quit.
 	 */
 	protected synchronized boolean cancel() {
 		// Interrupt any worker threads currently working.
@@ -505,7 +506,7 @@ public class WizardDialog extends JDialog implements ActionListener {
 	 * its operations. This method can be used to trigger other
 	 * operations after the wizard is done. 
 	 * 
-	 * @note The default method does absolutely nothing.
+	 * <p><b>Note:</b>  The default method does absolutely nothing.</p>
 	 *
 	 * @param success This flag is true if the wizard completed
 	 * successfully and the user clicks the finish button. Otherwise
@@ -617,9 +618,9 @@ public class WizardDialog extends JDialog implements ActionListener {
 	
 	/** Obtain the page pane to which wizard pages must be added.
 	 * 
-	 *  @note The number of pages in this component and the currently
+	 *  <p><b>Note:</b>The number of pages in this component and the currently
 	 *  visible page determine the behavior or the buttons displayed
-	 *  by this wizard.
+	 *  by this wizard.</p>
 	 *  
 	 * @return The page pane which contains all the pages of this wizard. 
 	 */

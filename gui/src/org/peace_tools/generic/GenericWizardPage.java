@@ -50,8 +50,8 @@ import javax.swing.JPanel;
  *  a component. It does not perform any other operation and readily
  *  lets the user switch the wizard page to the next page.
  *  
- *  @note This page uses a BorderLayout by default. You can add any 
- *  component to this page or even change the defaut layout. 
+ *  <p><b>Note:</b>This page uses a BorderLayout by default. You can add any 
+ *  component to this page or even change the default layout.</p> 
  */
 public class GenericWizardPage extends JPanel implements WizardPage {
 	/**

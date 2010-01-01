@@ -132,11 +132,11 @@ implements ServerHostKeyVerifier {
 	 * 
 	 * </ol>
 	 * 
-	 * @note The process of establishing a connection can be a 
+	 * <p><b>Note:</b>  The process of establishing a connection can be a 
 	 * time consuming task. In some cases incorrect host names can
 	 * cause long connection times (until the connection times out
 	 * which can be in minutes). Consequently, it is best to call
-	 * this method from a separate <b>daemon</b> thread.
+	 * this method from a separate <b>daemon</b> thread.</p>
 	 * 
 	 * @throws IOException This method throws IO exceptions in 
 	 * the case of errors. If an error occurs, then a connection
@@ -282,8 +282,8 @@ implements ServerHostKeyVerifier {
 	 * Consequently, it should be used only for jobs that
 	 * run for a short period of time.
 	 * 
-	 * @note The connection to the remote server must have
-	 * been established successfully via a call to connect method.
+	 * <p><b>Note:</b>  The connection to the remote server must have
+	 * been established successfully via a call to connect method.</p>
 	 * 
 	 * @param command The command line to be executed. This
 	 * command must be compatible with the target machine's 
@@ -342,8 +342,8 @@ implements ServerHostKeyVerifier {
 	 * method uses styles named "stdout", "stderr", and 
 	 * "warning" (if available in the given output document)
 	 * 
-	 * @note The connection to the remote server must have
-	 * been established successfully via a call to connect method.
+	 * <p><b>Note:</b>  The connection to the remote server must have
+	 * been established successfully via a call to connect method.<p>
 	 * 
 	 * @param command The command line to be executed. This
 	 * command must be compatible with the target machine's 
@@ -480,9 +480,9 @@ implements ServerHostKeyVerifier {
 	 * a new entry to both the in-memory knownHosts list and to the
 	 * persistent file containing the list of known hosts.
 	 * 
-	 * @note This method checks to ensure that the host being added
+	 * <p><b>Note:</b>  This method checks to ensure that the host being added
 	 * is indeed unique. This method consumes any exceptions generated
-	 * by Ganymede (but logs it in the programmer log).
+	 * by Ganymede (but logs it in the programmer log).</p>
 	 * 
 	 * @param hostname The host name to be added to the list.
 	 * @param port The port associated with the remote connection. 
@@ -520,13 +520,15 @@ implements ServerHostKeyVerifier {
 
 	/**
 	 * This is a helper method that is invoked just before a remote session
-	 * establishes connection with a server. This method attempts to load
-	 * the list of known servers from the "KnownHosts" file. This file is
-	 * stored in the main PEACE folder in user's home directory.
+	 * establishes connection with a server. This method attempts to load the
+	 * list of known servers from the "KnownHosts" file. This file is stored in
+	 * the main PEACE folder in user's home directory.
 	 * 
-	 * @note This method loads the known hosts file only once, the first
+	 * <p>
+	 * <b>Note:</b> This method loads the known hosts file only once, the first
 	 * time it is called in the GUI process. Subsequent calls to this method
-	 * simply return. Therefore calling this method frequently is OK. 
+	 * simply return. Therefore calling this method frequently is OK.
+	 * </p>
 	 */
 	private void loadKnownHosts() {
 		synchronized(knownHostsLock) {
@@ -571,7 +573,8 @@ implements ServerHostKeyVerifier {
 	 * This method can be used to determine the type of the OS that
 	 * this session is connected to. 
 	 * 
-	 * @note The session must be connected prior to this call.
+	 * <p><b>Note:</b>  The session must be connected prior to this
+	 * call.</p>
 	 * 
 	 * @return The type of OS this session is associated with.
 	 * 
@@ -608,9 +611,9 @@ implements ServerHostKeyVerifier {
 	 * Copy given data from an input stream to a given file on the
 	 * remote machine.
 	 *
-	 * @note This method uses SFTP to copy the data. The connection
-	 * to the remote host must have already been established before
-	 * invoking this method.
+	 * <p><b>Note:</b>  This method uses SFTP to copy the data. The 
+	 * connection to the remote host must have already been 
+	 * established before invoking this method.</p>
 	 * 
 	 * @param srcData The source stream that provides the data to
 	 * be copied.
@@ -669,9 +672,9 @@ implements ServerHostKeyVerifier {
 	/**
 	 * Copy file from a remote machine to a given output stream.
 	 *
-	 * @note This method uses SFTP to copy the data. The connection
+	 * <p><b>Note:</b>  This method uses SFTP to copy the data. The connection
 	 * to the remote host must have already been established before
-	 * invoking this method.
+	 * invoking this method.</p>
 	 * 
 	 * @param destData The destination stream to which the data is
 	 * to be written.
@@ -742,9 +745,9 @@ implements ServerHostKeyVerifier {
 	/**
 	 * Obtain information about a given path on the remote machine.
 	 * 
-	 * @note This method uses SFTP to copy the data. The connection
-	 * to the remote host must have already been established before
-	 * invoking this method.
+	 * <p><b>Note:</b>  This method uses SFTP to copy the data. The 
+	 * connection to the remote host must have already been 
+	 * established before invoking this method.</p>
 	 * 
 	 * @param path The path (absolute or relative to home directory)
 	 * of the file whose meta data is to be retrieved.
@@ -811,9 +814,9 @@ implements ServerHostKeyVerifier {
 	 * This method must be used to create a directory entry on the
 	 * server.
 	 * 
-	 * @note The connection to the server must have already been 
-	 * successfully established via a call to the connect method 
-	 * before invoking this method.
+	 * <p><b>Note:</b>  The connection to the server must have already 
+	 * been successfully established via a call to the connect method 
+	 * before invoking this method.</p>
 	 * 
 	 * @param directory The fully path to the directory to be created.
 	 * 
@@ -843,9 +846,9 @@ implements ServerHostKeyVerifier {
 	 * This method must be used to delete a directory entry on the
 	 * server. The directory must be empty.
 	 * 
-	 * @note The connection to the server must have already been 
-	 * successfully established via a call to the connect method 
-	 * before invoking this method.
+	 * <p><b>Note:</b>  The connection to the server must have already 
+	 * been successfully established via a call to the connect method 
+	 * before invoking this method.</p>
 	 * 
 	 * @param directory The fully path to the directory to be deleted.
 	 * 

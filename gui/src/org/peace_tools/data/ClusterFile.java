@@ -64,8 +64,8 @@ import org.peace_tools.workspace.Workspace;
  * is organized using the MVC (Model-View-Controller) design pattern.
  * This class constitutes the "model" as in the MVC terminology.
  * 
- * @note In order to create a valid ClusterFile use the loadCluster() 
- * static method in this class.
+ * <p><b>Note:</b>  In order to create a valid ClusterFile use the 
+ * {@link #loadCluster(File)} static method in this class.</p>
  */
 public class ClusterFile {
 	/**
@@ -211,8 +211,8 @@ public class ClusterFile {
 	 * so that the GUI does not appear to be hanging while classifications are
 	 * computed.
 	 * 
-	 * @note This method assumes that the classifications for the ESTs
-	 * in the estList have already been computed.
+	 * <p><b>Note:</b>  This method assumes that the classifications 
+	 * for the ESTs in the estList have already been computed.</p>
 	 * 
 	 * @param estList The list of ESTs associated with this cluster file to
 	 * be used to classify the ESTs.

@@ -82,10 +82,10 @@ public class CustomBorder extends AbstractBorder {
 	}
 	
 	/**
-	 * 
 	 * Paints the border for the specified component with the
 	 * specified position and size.
-	 * @param c the component for which this border is being painted
+	 * 
+	 * @param comp the component for which this border is being painted
 	 * @param g the paint graphics
 	 * @param x the x position of the painted border
 	 * @param y the y position of the painted border

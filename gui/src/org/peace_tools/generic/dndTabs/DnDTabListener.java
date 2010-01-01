@@ -43,9 +43,9 @@ import java.awt.Component;
  * in that when added to a DnDTabbedPane the listener is automatically
  * duplicated in other DnDTabPanes that are created. 
  * 
- * @note It is best to set a listener on the top-level DnDTabPane
+ * <p><b>Note:</b> It is best to set a listener on the top-level DnDTabPane
  * in the system and have it propagate to all the underlying 
- * DnDTabPanes.
+ * DnDTabPanes.</p>
  */
 public interface DnDTabListener {
 	/**
