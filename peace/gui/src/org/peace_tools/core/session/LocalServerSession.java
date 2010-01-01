@@ -116,8 +116,8 @@ public class LocalServerSession extends ServerSession {
 	 * Consequently, it should be used only for jobs that
 	 * run for a short period of time.
 	 * 
-	 * @note The connection to the remote server must have
-	 * been established successfully via a call to connect method.
+	 * <p><b>Note:</b>  The connection to the remote server must have
+	 * been established successfully via a call to connect method.</p>
 	 * 
 	 * @param command The command line to be executed. This
 	 * command must be compatible with the target machine's 
@@ -175,9 +175,9 @@ public class LocalServerSession extends ServerSession {
 	 * method uses styles named "stdout", "stderr", and 
 	 * "warning" (if available in the given output document)
 	 * 
-	 * @note This method waits for the process to complete before
+	 * <p><b>Note:</b>  This method waits for the process to complete before
 	 * returning control. Consequently, this method must be called
-	 * from a separate thread if the GUI should not block.
+	 * from a separate thread if the GUI should not block.<p>
 	 * 
 	 * @param command The command line to be executed. This
 	 * command must be compatible with the target machine's 
@@ -364,9 +364,9 @@ public class LocalServerSession extends ServerSession {
 	 * This method must be used to delete a directory entry on the
 	 * server. The directory must be empty.
 	 * 
-	 * @note The connection to the server must have already been 
+	 * <p><b>Note:</b>The connection to the server must have already been 
 	 * successfully established via a call to the connect method 
-	 * before invoking this method.
+	 * before invoking this method.</p>
 	 * 
 	 * @param directory The fully path to the directory to be deleted.
 	 * 

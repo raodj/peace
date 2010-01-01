@@ -53,9 +53,9 @@ import org.peace_tools.workspace.WorkspaceListener;
  * JTable. In addition, this class also acts to monitor and update data
  * set views.
  * 
- * @note This table model currently provides the following information
+ * <p><b>Note:</b>  This table model currently provides the following information
  * for each job: JobID, Server, Monitor, CPUs, Status. The monitor column
- * indicates the status of the background job monitoring thread.
+ * indicates the status of the background job monitoring thread.</p>
  */
 public class JobListTableModel extends AbstractTableModel implements WorkspaceListener {
 	/**
@@ -82,9 +82,6 @@ public class JobListTableModel extends AbstractTableModel implements WorkspaceLi
 	/**
 	 * Method to return the number of rows to be displayed in the 
 	 * Job table.
-	 * 
-	 * @param This method returns the number of jobs currently in
-	 * this workspace.
 	 */
 	@Override
 	public int getRowCount() {

@@ -110,12 +110,12 @@ public class WorkspaceEvent extends EventObject {
 
 	/**
 	 * Constructor to create an event that can be used to report change in the
-	 * status of a mst data file.
+	 * status of a MST data file.
 	 * 
-	 * @param mstFile The MST data file that has been inserted, deleted, or updated.
+	 * @param mst The MST data file that has been inserted, deleted, or updated.
 	 *  
 	 * @param operation The type of operation (insert, delete, or update) that
-	 * has already occured to the MST data.
+	 * has already occurred to the MST data.
 	 */
 	public WorkspaceEvent(MSTData mst, WorkspaceEvent.Operation operation) {
 		super(mst);
@@ -125,13 +125,13 @@ public class WorkspaceEvent extends EventObject {
 
 	/**
 	 * Constructor to create an event that can be used to report change in the
-	 * status of a mst cluster data file.
+	 * status of a MST cluster data file.
 	 * 
-	 * @param mstFile The MST cluster data file that has been inserted, 
+	 * @param clusters The MST cluster data file that has been inserted, 
 	 * deleted, or updated.
 	 *  
 	 * @param operation The type of operation (insert, delete, or update) that
-	 * has already occured to the MST cluster data.
+	 * has already occurred to the MST cluster data.
 	 */
 	public WorkspaceEvent(MSTClusterData clusters, WorkspaceEvent.Operation operation) {
 		super(clusters);
@@ -143,7 +143,7 @@ public class WorkspaceEvent extends EventObject {
 	 * Constructor to create an event that can be used to report change in the
 	 * status of a job entry.
 	 * 
-	 * @param mstFile The job entry that has been inserted, deleted, or 
+	 * @param job The job entry that has been inserted, deleted, or 
 	 * updated.
 	 *  
 	 * @param operation The type of operation (insert, delete, or update) that
@@ -159,7 +159,7 @@ public class WorkspaceEvent extends EventObject {
 	 * Constructor to create an event that can be used to report change in the
 	 * status of a server entry.
 	 * 
-	 * @param mstFile The server entry that has been inserted, deleted, or 
+	 * @param server The server entry that has been inserted, deleted, or 
 	 * updated.
 	 *  
 	 * @param operation The type of operation (insert, delete, or update) that
@@ -189,8 +189,8 @@ public class WorkspaceEvent extends EventObject {
 	 * Determine the type of entry regarding which a status change is being
 	 * reported.
 	 * 
-	 * @note The entry type determines the data type of the source object included
-	 * in the event as indicated in the enmeration definition(s).
+	 * <p><b>Note:</b>  The entry type determines the data type of the source object included
+	 * in the event as indicated in the enumeration definition(s).</p>
 	 * 
 	 * @return One of the predefined enumerations identifying the type of entity
 	 * that this event pertains to.

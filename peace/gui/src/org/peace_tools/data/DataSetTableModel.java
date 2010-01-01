@@ -72,9 +72,6 @@ public class DataSetTableModel extends AbstractTableModel implements WorkspaceLi
 	 * Method to return the number of rows to be displayed in the 
 	 * table. This method counts the number of files in the various
 	 * data sets and returns that number.
-	 * 
-	 * @param This method returns the number of servers currently in
-	 * this work space.
 	 */
 	@Override
 	public int getRowCount() {
@@ -221,7 +218,7 @@ public class DataSetTableModel extends AbstractTableModel implements WorkspaceLi
 	 * Obtain the class that describes the data type of a given 
 	 * column.
 	 * 
-	 * @param int column The zero-based index of the column of the
+	 * @param column The zero-based index of the column of the
 	 * table for which class is required.
 	 */
 	@Override
@@ -255,8 +252,8 @@ public class DataSetTableModel extends AbstractTableModel implements WorkspaceLi
 	 * interface to intercept events notifying changes in the work
 	 * space. This method in-turn fires table changed events.
 	 * 
-	 * @note This method simply fires a table data changed event
-	 * indicating that all the cells in the model have changed.
+	 * <p><b>Note:</b>  This method simply fires a table data changed 
+	 * event indicating that all the cells in the model have changed.</p>
 	 */
 	@Override
 	public void workspaceChanged(WorkspaceEvent event) {

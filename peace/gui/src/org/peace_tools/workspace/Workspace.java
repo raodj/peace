@@ -89,7 +89,8 @@ public class Workspace {
 	 * one is available. If a workspace has not been created, then this
 	 * method returns null.
 	 * 
-	 *  @see useWorkspace, createWorkspace
+	 * @see Workspace#useWorkspace(String)
+	 * @see Workspace#createDefault(String)
 	 */
 	public static Workspace get() {
 		return workspace;

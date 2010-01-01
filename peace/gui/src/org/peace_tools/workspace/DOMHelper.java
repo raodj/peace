@@ -59,13 +59,14 @@ public class DOMHelper {
 	 * root document and if the element is found, it returns the value of the
 	 * child element as a String. 
 	 * 
-	 * @note This method does not recursively search child elements. Only the
-	 * immediate underlying child elements are searched.
+	 * <p><b>Note:</b> This method does not recursively search child elements.
+	 * Only the immediate underlying child elements are searched.</p>
 	 * 
-	 * @param domDOC The root of the DOM document tree whose immediate underlying
+	 * @param domDoc The root of the DOM document tree whose immediate underlying
 	 * child elements are to be searched.
 	 * @param elementName The name of the element whose value is to be converted
 	 * to an integer and returned.
+	 * 
 	 * @return The value of the element. If the element was not found, then this
 	 * method will raise an exception. So prior to calling this method
 	 * check to ensure the element exists via a call to DOMHelper.hasElement() 
@@ -82,8 +83,9 @@ public class DOMHelper {
 	 * element and if the element is found, it returns the value of the
 	 * child element as a string. 
 	 * 
-	 * @note This method does not recursively search its child elements. Only the
-	 * immediate underlying child elements are searched.
+	 * <p><b>Note:</b>  This method does not recursively search its 
+	 * child elements. Only the immediate underlying child elements
+	 * are searched.</p>
 	 * 
 	 * @param parent The parent element whose immediate child elements are to 
 	 * be searched.
@@ -106,14 +108,17 @@ public class DOMHelper {
 	 * element and if the element is found, it returns the value of the
 	 * child element as a string. 
 	 * 
-	 * @note This method does not recursively search its child elements. Only the
-	 * immediate underlying child elements are searched.
+	 * <p><b>Note:</b> This method does not recursively search its child elements. Only the
+	 * immediate underlying child elements are searched.</p>
 	 * 
 	 * @param parent The parent element whose immediate child elements are to 
 	 * be searched.
+	 * 
 	 * @param elementName The name of the element whose value is to be converted
 	 * to an integer and returned.
+	 * 
 	 * @param canBeNull This flag indicates that the data can be null.
+	 * 
 	 * @return The value of the element. If the element was not found, then this
 	 * method will raise an exception. So prior to calling this method
 	 * check to ensure the element exists via a call to DOMHelper.hasElement() 
@@ -132,8 +137,8 @@ public class DOMHelper {
 	 * child element as a String. No interpretations are performed on the String
 	 * value returned by this method.
 	 * 
-	 * @note This method does not recursively search the list of nodes. It
-	 * only checks the given list of nodes.
+	 * <p><b>Note:</b>  This method does not recursively search the list of nodes. It
+	 * only checks the given list of nodes.</p>
 	 * 
 	 * @param nodes The list of nodes to be searched.
 	 * @param elementName The name of the element whose value is to be returned
@@ -174,8 +179,8 @@ public class DOMHelper {
 	 * child element as an integer. This method assumes that the value of the
 	 * element is expected to be an integer and it has passed validation.
 	 * 
-	 * @note This method does not recursively search its child elements. Only the
-	 * immediate underlying child elements are searched.
+	 * <p><b>Note:</b>  This method does not recursively search its child elements. Only the
+	 * immediate underlying child elements are searched.</p>
 	 * 
 	 * @param parent The parent element whose immediate child elements are to 
 	 * be searched.
@@ -199,7 +204,9 @@ public class DOMHelper {
 	 * underlying child element is present within a DOM document.
 	 * 
 	 * @param parent The DOM element within which to search.
-	 * @param childName The name of element to be located and returned.
+	 * 
+	 * @param elementName The name of element to be located and returned.
+	 * 
 	 * @return This method returns true if the DOM element exists. Otherwise
 	 * this method returns false.
 	 */
@@ -254,20 +261,25 @@ public class DOMHelper {
 	}
 	
 	/**
-	 * Helper method to search within a given list of nodes to locate a
-	 * given element.
+	 * Helper method to search within a given list of nodes to locate a given
+	 * element.
 	 * 
 	 * This method is an internal helper method that is called from other
-	 * overloaded getElement() methods to locate, test, and return the
-	 * element corresponding to a given element name.
+	 * overloaded getElement() methods to locate, test, and return the element
+	 * corresponding to a given element name.
 	 * 
-	 * @note This method does not search recursively within the list of nodes.
-	 * Only the immediately underlying child elements are searched for a match.
-	 *
-	 * @param nodes The list of DOM nodes in which to search for a given element.
-	 * @param elementName The name of element to search for.
+	 * <p>
+	 * <b>Note:</b> This method does not search recursively within the list of
+	 * nodes. Only the immediately underlying child elements are searched for a
+	 * match.
+	 * </p>
+	 * 
+	 * @param nodes
+	 *            The list of DOM nodes in which to search for a given element.
+	 * @param elementName
+	 *            The name of element to search for.
 	 * @return The element node within the list of DOM nodes. If the element is
-	 * not found, this method returns null. 
+	 *         not found, this method returns null.
 	 */
 	private static Element getElement(NodeList nodes, String elementName) {
 		if ((nodes == null) || (nodes.getLength() < 1)) {

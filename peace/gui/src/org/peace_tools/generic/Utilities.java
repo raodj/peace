@@ -378,9 +378,9 @@ public class Utilities {
 	 * introduces colors into the menu items to make them appear
 	 * enabled/disabled.
 	 * 
-	 * @note Calling this method with menu items whose text is not
+	 * <p><b>Note:</b>Calling this method with menu items whose text is not
 	 * HTML causes no side effects. So it is safe to call this method
-	 * with any menu item.
+	 * with any menu item.</p>
 	 * 
 	 * @param menuItem The menu item that must be enabled or disabled.
 	 * @param enabled If this parameter is true, then the menu item is
@@ -402,11 +402,12 @@ public class Utilities {
 	 * This method introduces colors into the HTML text to make them 
 	 * appear enabled/disabled.
 	 * 
-	 * @note Calling this method with text that is not HTML causes no 
-	 * side effects. So it is safe to call this method with any text
+	 * <p><b>Note:</b>Calling this method with text that is not HTML causes no 
+	 * side effects. So it is safe to call this method with any text.</p>
 	 *  
 	 * @param text The message whose text is to be modified to make
 	 * it appear enabled to disabled.
+	 * 
 	 * @param enabled If this parameter is true, then the text is
 	 * updated to appear enabled. Otherwise it is set to appear disabled.
 	 * @return The modified string. If the original message wasn't HTML
@@ -525,8 +526,6 @@ public class Utilities {
 	 * @param fillContentArea If this parameter is true, then filling 
 	 * of the content area is enabled when the mouse rolls over a 
 	 * button.
-	 * 
-	 * @see {#link JButton.setContentAreaFilled}
 	 */
 	public static void makeToolBarButton(JButton button, 
 			final boolean fillContentArea) {

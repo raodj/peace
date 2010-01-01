@@ -45,8 +45,8 @@ import org.peace_tools.workspace.Server;
  * this class is to provide a single point for instantiating suitable
  * server session. 
  * 
- * @note This class is not meant to be instantiated. Instead directly use
- * the static methods in this class.
+ * <p><b>Note:</b>  This class is not meant to be instantiated. 
+ * Instead directly use the static methods in this class.</p>
  */
 public class SessionFactory {
 	/**

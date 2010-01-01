@@ -54,7 +54,7 @@ public class DBClassifier {
 	 * DBClassifier entry. This method is typically  used to create a suitable
 	 * entry when loading a Work space into the GUI.
 	 * 
-	 * @param dbNode The DOM element to be used for creating the classifier
+	 * @param jobNode The DOM element to be used for creating the classifier
 	 * entry and populating with the needed data.
 	 * 
 	 * @return The newly created classifier entry based on the DOM data.
@@ -133,8 +133,8 @@ public class DBClassifier {
 	 * This method must be used to set the regular expression to be
 	 * associated with this classifier entry.
 	 * 
-	 * @note This method resets the pattern associated with this
-	 * classifier.
+	 * <p><b>Note:</b> This method resets the pattern associated with 
+	 * this classifier.</p>
 	 * 
 	 * @param regExp The regular expression to be set for this
 	 * entry. It is assumed that the regular expression is valid

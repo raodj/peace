@@ -52,19 +52,16 @@ import org.peace_tools.generic.Utilities;
  * extends the common features provided by the LogPane base class to display log
  * entries in a more user-friendly form.
  * 
- * @note Logs for programming aids and debugging (that would be pertinent for a
- *       programmer to view and understand) must be generated in the free form
- *       ProgrammerLog and not in the UserLog.
+ * <p>
+ * <b>Note:</b> Logs for programming aids and debugging (that would be
+ * pertinent for a programmer to view and understand) must be generated in the
+ * free form ProgrammerLog and not in the UserLog.
+ * </p>
  */
 public class UserLogPane extends LogPane {
 	/**
 	 * A constructor for the LogPane. It sets up the JTextArea the log is
 	 * written to.
-	 * 
-	 * @param logLevel
-	 *            The Log level to display in the JTextArea
-	 * @param name
-	 *            The name of the file to also log to
 	 */
 	public UserLogPane() {
 		// The base class sets up the core panel and the tool bar at top.

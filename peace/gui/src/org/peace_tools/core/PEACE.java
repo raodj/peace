@@ -143,8 +143,6 @@ public class PEACE {
 	 * frame that does rest of the normal operational tasks.</li>
 	 * 
 	 * </ol>
-	 * 
-	 * @param args
 	 */
 	private PEACE() {
 		// Turn off metal's use of bold fonts

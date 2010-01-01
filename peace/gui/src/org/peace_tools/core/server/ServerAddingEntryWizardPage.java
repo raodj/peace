@@ -58,8 +58,8 @@ import org.peace_tools.workspace.Server;
  * takes a while and the user can proceed with other operations 
  * rather than waiting for the installation to complete.
  * 
- * @note This page does the same operation for both local and remote
- * servers.
+ * <p><b>Note:</b>  This page does the same operation for both local 
+ * and remote servers.</p>
  */
 public class ServerAddingEntryWizardPage extends GenericWizardPage { 
 	/**

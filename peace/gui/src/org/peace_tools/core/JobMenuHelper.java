@@ -288,7 +288,7 @@ public class JobMenuHelper extends AbstractMenuHelper
      * method essentially enables/disables various tool bar buttons
      * and menu items based on the current job selection.
      * 
-     * @note Currently we only handle JTable and not JList.
+     * <p><b>Note:</b>  Currently we only handle JTable and not JList.</p>
      * 
      * @param event The selection event associated with this method.
      * This event is not really used for any major information. So

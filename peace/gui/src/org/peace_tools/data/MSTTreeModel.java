@@ -43,10 +43,11 @@ import javax.swing.tree.TreePath;
 /**
  * A bridge class between a MST and a JTree.
  * 
- * This class serves as a bridge between the in-memory representation of a
- * MST (represented by a recursively defined {@link #MSTNode} set of classes).
- * This class enables reusing the data set hierarchy maintained by
- * the MSTNode object to display it in a JTree.
+ * This class serves as a bridge between the in-memory representation of a MST
+ * (represented by a recursively defined
+ * {@link org.peace_tools.data.MSTNode} set of classes). This class enables
+ * reusing the data set hierarchy maintained by the
+ * {@link org.peace_tools.data.MSTNode} object to display it in a JTree.
  */
 public class MSTTreeModel implements TreeModel {
 	/**

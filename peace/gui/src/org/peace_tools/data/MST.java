@@ -60,8 +60,8 @@ import org.peace_tools.generic.Pair;
  * is organized using the MVC (Model-View-Controller) design pattern.
  * This class constitutes the "model" as in the MVC terminology.
  * 
- * @note In order to create a valid MST use the loadMST() static
- * method.
+ * <p><b>Note:</b>  In order to create a valid MST use the 
+ * {@link #loadMST(File)} static method.</p>
  */
 public class MST {
 	/**

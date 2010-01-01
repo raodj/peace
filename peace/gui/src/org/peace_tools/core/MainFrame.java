@@ -87,12 +87,8 @@ public class MainFrame extends JFrame implements ActionListener {
 	 * The constructor uses the data in the current workspace to setup
 	 * the various panels and components. 
 	 * 
-	 *  @note Prior to creating the main frame ensure that a valid
-	 *  operational work space has been created.
-	 *  
-	 *  @param firstLaunch If this flag is true, that indicates that
-	 *  PEACE GUI is being launched for the first time. In this case,
-	 *  display the "Welcome" view to the user.
+	 *  <p><b>Note:</b>  Prior to creating the main frame ensure that 
+	 *  a valid operational work space has been created.</p>
 	 */
 	public MainFrame() {
 		super();
@@ -365,8 +361,8 @@ public class MainFrame extends JFrame implements ActionListener {
 	 * checking job status and creating a job thread if a job needs to be
 	 * monitored.
 	 * 
-	 * @note Invoking this method twice will cause unnecessary monitoring
-	 * threads to start up. So avoid duplicate calls.
+	 * <p><b>Note:</b>  Invoking this method twice will cause unnecessary
+	 * monitoring threads to start up. So avoid duplicate calls.</p>
 	 */
 	public void createJobThreads() {
 		JobList jobList = Workspace.get().getJobList();

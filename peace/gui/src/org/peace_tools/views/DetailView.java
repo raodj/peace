@@ -91,8 +91,8 @@ implements ActionListener, Runnable {
 	 * obtaining and populating job information from the remote
 	 * server.
 	 * 
-	 * @note The derived class must implement the Runnable.run()
-	 * method.
+	 * <p><b>Note:</b>  The derived class must implement the 
+	 * Runnable.run() method.</p>
 	 * 
 	 * @param arg0 The action event associated with a button
 	 * click. This event is not really used. So you can call this
@@ -230,7 +230,7 @@ implements ActionListener, Runnable {
 	 * @param outputs The array that must contain the various styled
 	 * documents to be created by this method.
 	 * 
-	 * @param Tabnames The titles for the various tabs to be created
+	 * @param TabNames The titles for the various tabs to be created
 	 * by this method. The number of titles must match the list of
 	 * outputs -- that is, outputs.length == TabNames.length.
 	 * 

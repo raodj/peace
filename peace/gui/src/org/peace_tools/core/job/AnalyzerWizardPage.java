@@ -135,9 +135,6 @@ public class AnalyzerWizardPage extends GenericWizardPage {
 	 * with suitable labels to the supplied sub-panel. This method
 	 * was introduced to keep the code clutter to a minimum in the
 	 * constructor.
-	 * 
-	 * @param subPanel The sub-panel to which the text controls are
-	 * to be added. 
 	 */
 	private JPanel createCachePanels() {
 		// Create the frame size spinner.

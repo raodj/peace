@@ -317,8 +317,8 @@ public class Job extends JobBase {
 	/**
 	 * Obtain the current progress information status for this job.
 	 * 
-	 * @note The progress information returned may be -1, -1 if the
-	 * progress information is not known.
+	 * <p><b>Note:</b>  The progress information returned may be -1, -1 
+	 * if the progress information is not known.</p>
 	 * 
 	 * @return The progress information for the job. The first 
 	 * entry is the number of ESTs analyzed thus far and the second

@@ -102,8 +102,8 @@ public interface WizardPage {
 	 * wizard page to update the information displayed by it
 	 * or enable/disable some of the buttons in the parent
 	 * 
-	 * @note This method must call wizardDialog.setButtonStatus()
-	 * with suitable parameters.
+	 * <p><b>Note:</b>  This method must call {@link WizardDialog#setButtonStatus(int, int, int)}
+	 * with suitable parameters.</p>
 	 * 
 	 * @param dialog The wizard dialog that is invoking this method.
 	 * 

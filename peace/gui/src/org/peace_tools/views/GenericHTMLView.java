@@ -117,7 +117,7 @@ public class GenericHTMLView extends JPanel implements HyperlinkListener {
 	 * the events and performs appropriate operations to handle special
 	 * hyper links that translate to main menu options in PEACE.
 	 * 
-	 * @param event The hyper link event to be processed by this method.
+	 * @param hlEvent The hyper link event to be processed by this method.
 	 */
 	@Override
 	public void hyperlinkUpdate(HyperlinkEvent hlEvent) {

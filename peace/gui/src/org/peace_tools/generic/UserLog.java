@@ -39,27 +39,30 @@ import javax.swing.table.DefaultTableModel;
 /**
  * Top-level logging class for creating user logs.
  * 
- * <p>The UserLog provides a convenient mechanism the GUI system to log relevant
+ * <p>
+ * The UserLog provides a convenient mechanism the GUI system to log relevant
  * information at various levels of severity. This log is essentially used to
- * provide the user with useful information. Note that this class is a 
- * centralized class for merely recording the logs (and not viewing/seeing)
- * the logs. The logs are viewed/shown by the UserLogPane which constitutes
- * the "View" as in the Model-View-Controller (MVC) pattern. This class 
- * represents the "Model" in the MVC pattern while the top-level frame that
- * contains the UserLogPane serves as the controller. </p>
+ * provide the user with useful information. Note that this class is a
+ * centralized class for merely recording the logs (and not viewing/seeing) the
+ * logs. The logs are viewed/shown by the UserLogPane which constitutes the
+ * "View" as in the Model-View-Controller (MVC) pattern. This class represents
+ * the "Model" in the MVC pattern while the top-level frame that contains the
+ * UserLogPane serves as the controller.
+ * </p>
  * 
  * Since the UserLog serves as an centralized location for cutting logs
- * relevant/useful to the user, there is only one unique instance of this
- * class in the GUI system. In order to enforce this property, this class
- * has been designed as a Singleton pattern -- that is, this class cannot
- * be directly instantiated. Instead the getLog() static method must be 
- * used to refer to the globally unique instance of this class. On the
- * other the convenient, static log() method can be used to directly
- * cut log entries. 
+ * relevant/useful to the user, there is only one unique instance of this class
+ * in the GUI system. In order to enforce this property, this class has been
+ * designed as a Singleton pattern -- that is, this class cannot be directly
+ * instantiated. Instead the getLog() static method must be used to refer to the
+ * globally unique instance of this class. On the other the convenient, static
+ * log() method can be used to directly cut log entries.
  * 
- * @note Logs for programming aids and debugging (that would be pertinent for a
- *       programmer to view and understand) must be generated in the free form
- *       ProgrammerLog and not in the UserLog.
+ * <p>
+ * <b>Note:</b>Logs for programming aids and debugging (that would be pertinent
+ * for a programmer to view and understand) must be generated in the free form
+ * ProgrammerLog and not in the UserLog.
+ * </p>
  */
 public class UserLog extends Log {
 	/** Obtain reference to the globally unique instance of the UserLog.

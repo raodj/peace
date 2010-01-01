@@ -51,8 +51,8 @@ import org.peace_tools.workspace.WorkspaceListener;
  * JTable. In addition, this class also acts to monitor and update data
  * set views.
  * 
- * @note This table model currently provides the following information
- * for each server: Host Name, Status.
+ * <p><b>Note:</b>  This table model currently provides the following 
+ * information for each server: Host Name, Status.</p>
  */
 public class ServerListTableModel extends AbstractTableModel implements WorkspaceListener {
 	/**
@@ -80,7 +80,7 @@ public class ServerListTableModel extends AbstractTableModel implements Workspac
 	 * Method to return the number of rows to be displayed in the 
 	 * Server table.
 	 * 
-	 * @param This method returns the number of servers currently in
+	 * @return This method returns the number of servers currently in
 	 * this workspace.
 	 */
 	@Override

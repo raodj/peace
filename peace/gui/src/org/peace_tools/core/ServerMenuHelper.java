@@ -133,7 +133,7 @@ implements ActionListener, ListSelectionListener {
      * method essentially enables/disables various tool bar buttons
      * and menu items based on the current job selection.
      * 
-     * @note Currently we only handle JTable and not JList.
+     * <p><b>Note:</b>  Currently we only handle JTable and not JList.</p>
      * 
      * @param event The selection event associated with this method.
      * This event is not really used.
@@ -250,8 +250,8 @@ implements ActionListener, ListSelectionListener {
 	 * method uses the DeleteDialog helper dialog to actually 
 	 * delete the server entry.
 	 * 
-	 * @note Deleting the server entry from the work space will
-	 * cause the GUI to automatically reflect the changes.
+	 * <p><b>Note:</b>  Deleting the server entry from the work space 
+	 * will cause the GUI to automatically reflect the changes.</p>
 	 */
 	private void deleteServer() {
 		if (server == null) {

@@ -163,7 +163,7 @@ public abstract class Log {
 	 * objects in the listeners list and invokes the logChanged() API
 	 * method to dispatch notifications. 
 	 * 
-	 * @param logsChanged This parameter is true if log entries were added
+	 * @param logChanged This parameter is true if log entries were added
 	 * or removed from the logs. Typically this is the common scenario for
 	 * the call back to occur.
 	 * 
@@ -247,7 +247,8 @@ public abstract class Log {
 	 * This method can be used to set a file to which the user logs are to be
 	 * written for future reference.
 	 * 
-	 * @note This method closes the existing log if one is open already.
+	 * <p><b>Note:</b>This method closes the existing log if one is 
+	 * open already.</p>
 	 * 
 	 * @param file
 	 *            The name of the file to which the user logs are to be written
@@ -341,7 +342,7 @@ public abstract class Log {
 	 * enumeration value. This method is used by the UserLog to combine log
 	 * entries together to store information in a more compact form.
 	 * 
-	 * @param level A single character level code to be translated to 
+	 * @param code A single character level code to be translated to 
 	 * corresponding log level.
 	 * 
 	 * @return The log level enumeration representing the single character

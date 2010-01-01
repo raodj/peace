@@ -306,8 +306,8 @@ public abstract class ViewFactory implements DnDTabListener {
 	 * background thread so that the GUI does not become unresponsive
 	 * as the data is loaded.
 	 * 
-	 * @param wsEntry The entry object that provides the necessary
-	 * view 
+	 * @param cluster The MSTClusterDAta object for which a graphical
+	 * summary view is to be created and added to the viewing area.
 	 */
 	public void createSummaryView(final MSTClusterData cluster) {
 		final String dataFileName = cluster.getPath();
@@ -451,9 +451,11 @@ public abstract class ViewFactory implements DnDTabListener {
 	 * 
 	 * @param wsEntry The work space entry for which a view must be
 	 * created (if one does not exist).
+	 * 
 	 * @param duplicate If this flag is true, then a duplicate view is created
 	 * even if a view already exists.
-	 * @param text If this flag is true, then a textual view of the data is
+	 * 
+	 * @param textView If this flag is true, then a textual view of the data is
 	 * created.
 	 */
 	public void createView(Object wsEntry, boolean duplicate, final boolean textView) {
@@ -490,15 +492,19 @@ public abstract class ViewFactory implements DnDTabListener {
 	 * 
 	 * @param dataFileName The full path to the data file that is to be
 	 * loaded and displayed in the specified view.
+	 * 
 	 * @param estFileName An optional EST (FASTA) file that is associated
 	 * with the data file. The EST file name is typically used to obtain
 	 * additional information to be displayed to the user.
+	 * 
 	 * @param viewType The type of view to be created. This value must be
 	 * from one of the predefined enumerations. Note that the view type and
-	 * the type of file must be coordinated with each other. 
+	 * the type of file must be coordinated with each other.
+	 *  
 	 * @param duplicate If this flag is true, then a duplicate view is created
 	 * even if a view already exists.
-	 * @param text If this flag is true, then a textual view of the data is
+	 * 
+	 * @param textView If this flag is true, then a textual view of the data is
 	 * created.
 	 */
 	public void createView(String dataFileName, String estFileName, ViewType viewType,
@@ -625,7 +631,8 @@ public abstract class ViewFactory implements DnDTabListener {
 	 * views hash map. This method is called from the DnDTabbedPane
 	 * 
 	 * 
-	 * @param ce The component event to be processed.
+	 * @param component The component to be removed from the set of
+	 * views managed by this factory..
 	 */
 	@Override
 	public void tabDeleted(Component component) {

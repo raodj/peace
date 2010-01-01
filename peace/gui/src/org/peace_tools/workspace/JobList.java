@@ -161,9 +161,9 @@ public class JobList {
 	 * and fires a WorkspaceEvent indicating the removal of the
 	 * job entry to all listeners.
 	 * 
-	 * @note This method does not delete any of the files associated
+	 * <p><b>Note:</b>  This method does not delete any of the files associated
 	 * with the job. It simply removes the job entry from the work
-	 * space.
+	 * space.</p>
 	 * 
 	 * @param job The job entry to be removed from the job list.
 	 */
