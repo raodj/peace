@@ -40,7 +40,7 @@
 #define NO_ERROR           0
 #define ERROR_NO_HEURISTIC 1
 
-/** \def std::vector<int, TransCacheEntry> MetricCacheMap
+/** \typedef std::vector<int, TransCacheEntry> MetricCacheMap
 
     \brief A shortcut to refer to a vector of TransCacheEntry objects.
 
@@ -55,7 +55,7 @@ typedef std::vector<TransCacheEntry*> MetricCacheMap;
 /** A Minimum Spanning Tree (MST) based parallel cluster maker that
     uses conditional-transitivity relations to accelerate clustering.
 
-    This class aims to enhance the performance (without \i
+    This class aims to enhance the performance (without \em
     signficiantly impacting quality of clusters) of the standard
     MSTClusterMaker by minimizing the number of the heavy weight
     analysis (such as: d2 or clu) performed for building the MST.
@@ -196,13 +196,13 @@ protected:
         the MST and for which the adjacent neighbors need to be
         determined.
         
-        \param[out] smList If this pointer is not NULL, then this
+        \param[out] metricList If this pointer is not NULL, then this
         vector is populated with the set of metrics that were computed
         for estIdx <b>only on the owner process</b>.  This list
         contains the metrics collated from all the processes
         participating in the distributed computing process. Currently,
         this feature is used by TransMSTClusterMaker to obtain the
-        list of metrics computed.        
+        list of metrics computed.
     */
     virtual void populateCache(const int estIdx, SMList* metricList = NULL);
     
@@ -214,7 +214,7 @@ protected:
         friend of this class, an object can be instantiated via the
         ClusterMakerFactory::create() method.
 
-        \param[inout] analyzer The EST analyzer to be used for
+        \param[in,out] analyzer The EST analyzer to be used for
         obtaining similarity metrics between two ESTs.  This parameter
         is simply passed onto the base class.
         
@@ -233,23 +233,19 @@ protected:
                          const std::string& outputFile);
 
     /** Helper method to remove invalid metrics from a given list of
-	values.
-
-	This is a helper method that is invoked from populateCache()
-	method to remove invalid/unwanted entries from a given list of
-	metrics. This method iterates over the entries in \c list and
-	removes all entires that have their metric set to a value that
-	is worse than badMetric value.
-
-	\param[in] list The list of metrics that need to be
-	pruned.
-
-	\param[out] entries The list of entries that are better than
-	badMetric.
-
-	\param[in] badMetric The metric that defines the threshold and
-	all entries that have an equal or worse value than badMetric
-	are removed from the list.
+		values.
+		
+		This is a helper method that is invoked from populateCache()
+		method to remove invalid/unwanted entries from a given list of
+		metrics. This method iterates over the entries in \c list and
+		removes all entires that have their metric set to a value that
+		is worse than badMetric value.
+		
+		\param[in] list The list of metrics that need to be
+		pruned.
+		
+		\param[out] entries The list of entries that are better than
+		badMetric.
     */
     void pruneMetricEntries(const SMList& list, SMList& entries);
 

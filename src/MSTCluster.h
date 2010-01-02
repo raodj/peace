@@ -95,7 +95,7 @@ private:
 	static int clusterIDSequence;
 };
 
-/** \func operator<<
+/** \fn std::ostream& operator<<(std::ostream&, const MSTCluster&)
 
     Insertion operator to stream MSTCluster information to a given
     output stream.  This method provides a convenient mechanism to

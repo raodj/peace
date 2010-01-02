@@ -81,10 +81,10 @@ public:
         forget to call the corresponding base class implementation to
         display common options.
         
-        \param[inout] argc The number of command line arguments to be
+        \param[in,out] argc The number of command line arguments to be
         processed.
         
-        \param[inout] argc The array of command line arguments.
+        \param[in,out] argv The array of command line arguments.
         
         \return This method returns \c true if the command line
         arguments were successfully processed.  Otherwise this method
@@ -212,9 +212,9 @@ protected:
         derived Heuristic classes must be instantiated via the
         HeuristicFactory API methods.
 
-        \param[in] name The human readable name for this heuristic.
-        This name is used when generating errors, warnings, and other
-        output messages for this heuristic.
+        \param[in] heuristicName The human readable name for this
+        heuristic.  This name is used when generating errors,
+        warnings, and other output messages for this heuristic.
     */
     Heuristic(const std::string& heuristicName);
 

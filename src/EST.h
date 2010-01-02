@@ -130,11 +130,11 @@ public:
         the information to create either a fully populated or
         partially populated EST.
 
-        \param[inout] fastaFile The FASTA file from where the EST data
+        \param[in,out] fastaFile The FASTA file from where the EST data
         is to be currently loaded.  If this pointer is NULL then this
         method perform no action and returns immediately with NULL.
 
-        \param[inout] lineNum A line number counter to be updated to
+        \param[in,out] lineNum A line number counter to be updated to
         provide the user with a more meaningful error message.
         
         \note At the end of this method the fastaFile's file pointer
@@ -288,7 +288,7 @@ public:
 	this EST was originally loaded) to load the information from
 	the file.
 
-	\param[inout] fastaFile The file from where the EST
+	\param[in,out] fastaFile The file from where the EST
 	information is to be loaded.  If the file changes during EST
 	analysis the behavior of this method is undefined.
 
@@ -305,7 +305,7 @@ public:
         associated with this EST is lost (and deleted if necessary by
         auto_ptr) before the new value is set.
 
-        \param[inout] src The new custom data to be set for this EST.
+        \param[in,out] src The new custom data to be set for this EST.
         After this call, this EST owns the data referred by src.
     */
     void setCustomData(std::auto_ptr<ESTCustomData>& src) { customData = src; }
@@ -317,7 +317,7 @@ public:
         associated with this EST is lost (and deleted if necessary by
         auto_ptr) before the new value is set.
 
-        \param[inout] src The new custom data to be set for this EST.
+        \param[in,out] src The new custom data to be set for this EST.
         After this call, this EST owns the data referred by src.
     */    
     void setCustomData(ESTCustomData* src)
@@ -376,13 +376,13 @@ public:
     };
 
     /** Helper method to read a line from a given file.
-
-	This is a helper method that can be used to read a long line
-	from a given file.
-
-	\param[in] The file from where the line is to be read.
-
-	\return The string read from the file.
+		
+		This is a helper method that can be used to read a long line
+		from a given file.
+		
+		\param[in] fp The file from where the line is to be read.
+		
+		\return The string read from the file.
     */
     static std::string getLine(FILE *fp);
     

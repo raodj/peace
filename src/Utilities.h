@@ -92,7 +92,9 @@ operator<<(std::ostream& os, const std::string& str) {
 
 #endif // _WINDOWS
 
-/** \def UNREFERENCED_PARAMETER Workaround warning C4100 in VS 2005
+#if !defined(_WINDOWS) && !defined(ICC) && !defined(GCC)
+
+/** \def UNREFERENCED_PARAMETER(param) Workaround warning C4100 in VS 2005
     and remark #869 in icc.
 
     This macro is a simple work around to supress the C4100 warning
@@ -101,8 +103,6 @@ operator<<(std::ostream& os, const std::string& str) {
     under gcc (4.2) and therefore on Linux/gcc this macro resolves to
     nothing.
 */
-#if !defined(_WINDOWS) && !defined(ICC) && !defined(GCC)
-
 #ifndef UNREFERENCED_PARAMETER
 #define UNREFERENCED_PARAMETER(param) param
 #endif
@@ -111,53 +111,59 @@ operator<<(std::ostream& os, const std::string& str) {
 #define UNREFERENCED_PARAMETER(param)
 #endif
 
+#ifdef _WINDOWS
 /** \def fmax Macro to return the maximum of 2 values.
 
     This macro provides a replacement for the fmax() function
 	defined in math.h under Linux.  However, VS 2005 does not
 	have this method and this macro serves as a replacement.
 */
-#ifdef _WINDOWS
 #define fmax(x, y) ((x < y) ? y : x)
 #endif
 
+#ifdef _WINDOWS
 /** \def fmin Macro to return the minimum of 2 values.
 
     This macro provides a replacement for the fmin() function
 	defined in math.h under Linux.  However, VS 2005 does not
 	have this method and this macro serves as a replacement.
 */
-#ifdef _WINDOWS
 #define fmin(x, y) ((x < y) ? x : y)
 #endif
 
-/** \def vsnprintf_s Macro to define vsnprintf_s if not defined.
+#if (!defined(_WINDOWS) && !defined(vsnprintf_s))
+/** \def vsnprintf_s(buffer, bufsize, count, format, argptr)
+
+	\brief Macro to define vsnprintf_s if not defined.
 
     This macro provides a replacement for the vsnprintf_s function
 	defined in Windows but is absent in Unix/Linux. This macro 
     simply defines vsnprintf_s as vsnprinf in Unix and Linux.
 */
-#if (!defined(_WINDOWS) && !defined(vsnprintf_s))
 #define vsnprintf_s(buffer, bufSize, count, format, argptr) vsnprintf(buffer, count, format, argptr)
 #endif
 
-/** \def _fileno Macro to define _fileno if not defined.
+#if (!defined(_WINDOWS) && !defined(_fileno))
+/** \def _fileno
+
+	\brief Macro to define _fileno if not defined.
 
     This macro provides a replacement for the \c _fileno function
 	defined in Windows but is absent in Unix/Linux. This macro 
     simply defines \c _fileno as \c fileno in Unix and Linux.
 */
-#if (!defined(_WINDOWS) && !defined(_fileno))
 #define _fileno fileno
 #endif
 
-/** \def ctime_s Macro to define ctime_s if not defined.
+#if (!defined(_WINDOWS) && !defined(ctime_s))
+/** \def ctime_s(buffer, size, time)
+
+	\brief Macro to define ctime_s if not defined.
 
     This macro provides a replacement for the \c ctime_s function
 	defined in Windows but is absent in Unix/Linux. This macro 
     simply defines \c ctime_s as \c ctime_r in Unix and Linux.
 */
-#if (!defined(_WINDOWS) && !defined(ctime_s))
 #define ctime_s(buffer, size, time) ctime_r(time, buffer);
 #endif
 

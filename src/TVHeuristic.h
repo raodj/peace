@@ -48,17 +48,17 @@
     <ol>
 
     <li>Assume we are given two ESTs to analyze, say e<sub>i</sub> and
-    e<sub>j</sub> and a threshold \i t.</li>
+    e<sub>j</sub> and a threshold \em t.</li>
 
-    <li>Consider all \i v words appearing in e<sub>i</sub>.</li>
+    <li>Consider all \em v words appearing in e<sub>i</sub>.</li>
 
-    <li>At least \i t of these \i v words must appear in \i j so that
-    they do not overlap (their starting positions must be at least \i
-    v base pairs different) and are at least 100 base pairs of each
-    other.</li>
+    <li>At least \em t of these \em v words must appear in \em j so
+    that they do not overlap (their starting positions must be at
+    least \em v base pairs different) and are at least 100 base pairs
+    of each other.</li>
 
-    <li>If there are at least \i t \i v words the huristic passes. If
-    not, the pair need not be considered further.</li>
+    <li>If there are at least \em t \em v words the huristic
+    passes. If not, the pair need not be considered further.</li>
     
     </ol>
 */
@@ -91,12 +91,12 @@ public:
         \note This method calls the corresponding base class
         implementation to display common options.
         
-        \param[inout] argc The number of command line arguments to be
+        \param[in,out] argc The number of command line arguments to be
         processed.  When arguments are processed/consumed this
         parameter is changed to reflect the number of arguments
         processed.
         
-        \param[inout] argc The array of command line arguments to be
+        \param[in,out] argv The array of command line arguments to be
         processed. When arguments are processed/consumed, the consumed
         arguments are removed from this array.
         

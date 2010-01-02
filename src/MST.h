@@ -69,6 +69,10 @@ public:
         be initially reserved.  Reserving space reduces the number of
         times the MST has to reallocate memory as nodes are added to
         it.
+
+		\param[in] haveAlignmentMetric If this value is \c true, then
+		that indicates that this MST also includes additional
+		alignment information with each node in the MST.
     */
     MST(const int maxNodes, const bool haveAlignmentMetric);
 
@@ -81,11 +85,11 @@ public:
 
     /** Determine if nodes in this MST have alignment metric values.
 
-	This method can be used to determine if the nodes in this MST
-	have alignment information saved for each node.
-
-	\return This method returns \c true if the nodes in this MST
-	have alignment metric.
+        This method can be used to determine if the nodes in this MST
+        have alignment information saved for each node.
+        
+        \return This method returns \c true if the nodes in this MST
+        have alignment metric.
     */
     inline bool hasAlignmentMetric() const { return haveAlignmentMetric; }
     
@@ -96,20 +100,20 @@ public:
         to -1).  This method performs no special checks to verify the
         integrity of the data.
         
-        \param[in] parentIndex The index of the parent EST for
-        this Node.  If a parent does not exist, then this value
-        should be -1.
+        \param[in] parentIdx The index of the parent EST for this
+        Node.  If a parent does not exist, then this value should be
+        -1.
         
-        \param[in] estIndex The index of the EST.  This value must
-        be the index of the corresponding EST in the list of ESTs
+        \param[in] estIdx The index of the EST.  This value must be
+        the index of the corresponding EST in the list of ESTs
         returned by EST::getESTList() method.
         
-        \param[in] similarityMetric The similarity metric between
-        this EST and its parent EST.
-
-	\param[in] alignmentInfo Additional alignment information
-	between the parentIdx and the estIdx to be stored in this
-	node.
+        \param[in] similarity The similarity metric between this EST
+        and its parent EST.
+        
+        \param[in] alignmentInfo Additional alignment information
+        between the parentIdx and the estIdx to be stored in this
+        node.
     */
     void addNode(const int parentIdx, const int estIdx,
                  const float similarity, const int alignmentInfo);
@@ -188,7 +192,7 @@ private:
     bool haveAlignmentMetric;
 };
 
-/** \func operator<<
+/** \fn std::ostream& operator<<(std::ostream&, const MST&)
 
     Insertion operator to stream MST information to a given output
     stream.  This method provides a convenient mechanism to dump the

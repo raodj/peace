@@ -81,10 +81,10 @@ public:
         forget to call the corresponding base class implementation to
         display common options.
         
-        \param[inout] argc The number of command line arguments to be
+        \param[in,out] argc The number of command line arguments to be
         processed.
 
-        \param[inout] argc The array of command line arguments.
+        \param[in,out] argv The array of command line arguments.
 
         \return This method returns \c true if the command line
         arguments were successfully processed.  Otherwise this method
@@ -374,23 +374,23 @@ protected:
         derived ESTAnalyzer classes must be instantiated via the
         ESTAnalyzerFactor API methods.
 
-        \param[in] name The human readable name for this EST analyzer.
-        This name is used when generating errors, warnings, and other
-        output messages for this analyzer.
-
-	\param[in] refESTidx The reference EST's index in a given
-	multi-FASTA file.  Index values start with 0 (zero).  The
-	refESTidx is supplied as a global argument that is processed
-	in the main() method.  This value is simply copied to the
-	refESTidx member in this class.
-
-	\param[in] outputFileName The file name to which output must
-	be written.  If a valid output file is not specified, then
-	results are written to standard output.  The outputFileName is
-	simply copied to the outputFileName member object.
+        \param[in] analyzerName The human readable name for this EST
+        analyzer.  This name is used when generating errors, warnings,
+        and other output messages for this analyzer.
+		
+		\param[in] refESTidx The reference EST's index in a given
+		multi-FASTA file.  Index values start with 0 (zero).  The
+		refESTidx is supplied as a global argument that is processed
+		in the main() method.  This value is simply copied to the
+		refESTidx member in this class.
+		
+		\param[in] outputFileName The file name to which output must
+		be written.  If a valid output file is not specified, then
+		results are written to standard output.  The outputFileName is
+        simply copied to the outputFileName member object.
     */
     ESTAnalyzer(const std::string& analyzerName, const int refESTidx,
-		const std::string& outputFileName);
+                const std::string& outputFileName);
 
     /** Analyze and compute a similarity or distance metric between
 	a given EST and the reference EST using the heavy weight metric

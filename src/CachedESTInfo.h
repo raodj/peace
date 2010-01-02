@@ -62,8 +62,8 @@ public:
         the instance variables to corresponding values specified by
         the parameters.
 
-        \param[in] refESTidx The zero-based index of the EST that was
-        used as the reference EST which which EST at index \c
+        \param[in] refESTidxValue The zero-based index of the EST that
+        was used as the reference EST which which EST at index \c
         estIdxValue was compared/analyzed to generate the \c
         metricValue.
         

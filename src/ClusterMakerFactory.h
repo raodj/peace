@@ -49,16 +49,16 @@ public:
         suitably instantiate an cluster maker.  If the name is not
         valid, then this method returns NULL.
 
-	\param[in] name The name of the cluster maker to be
+		\param[in] name The name of the cluster maker to be
         instantiated.
-	
-	\param[inout] analyzer The EST analyzer to be used by this
-        ClusterMaker for generating similarity metrics between two
-        given ESTs. If this parameter is NULL, this method prints an
-        error message and returns NULL.
-	
-        \param[in] refESTidx The reference EST index value to be used
-        when instantiating a cluster maker.  Index values start from 0
+		
+		\param[in,out] analyzer The EST analyzer to be used by this
+		ClusterMaker for generating similarity metrics between two
+		given ESTs. If this parameter is NULL, this method prints an
+		error message and returns NULL.
+		
+		\param[in] refESTidx The reference EST index value to be used
+		when instantiating a cluster maker.  Index values start from 0
         (zero).  If this value is negative then this method returns
         NULL.
 
@@ -67,9 +67,9 @@ public:
         is the empty string (""), then the output is written to
         standard output.
     */
-  static ClusterMaker* create(const char* name, ESTAnalyzer *analyzer,
-				const int refESTidx,
-                                const std::string& outputFileName);
+    static ClusterMaker* create(const char* name, ESTAnalyzer *analyzer,
+								const int refESTidx,
+								const std::string& outputFileName);
 
     /** Method to display the list of cluster makers available.
 

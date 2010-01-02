@@ -106,10 +106,10 @@ public:
         corresponding base class implementation to display additional
         options.
         
-        \param[inout] argc The number of command line arguments to be
+        \param[in,out] argc The number of command line arguments to be
         processed.
 
-        \param[inout] argc The array of command line arguments.
+        \param[in,out] argv The array of command line arguments.
 
         \return This method returns \c true if the command line
         arguments were successfully processed.  Otherwise this method
@@ -169,7 +169,7 @@ public:
         
         This method is used to perform the core tasks of comparing all
         ESTs to one another for full analysis of ESTs.  This is an
-        additional feature of PEACE that is \i not used for clustering
+        additional feature of PEACE that is \em not used for clustering
         but just doing an offline analysis.  Currently, this method
         merely calls the corresponding base class implementation that
         performs all the necessary operations.
@@ -272,10 +272,13 @@ protected:
     /** Helper method to create a word table.
         
         Creates a "word table" mapping integer indices to integer
-	hashes of words, in effect translating the sequence from a
-	sequence of characters to a sequence of n-words (where n =
-	wordSize).
+		hashes of words, in effect translating the sequence from a
+		sequence of characters to a sequence of n-words (where n =
+		wordSize).
 
+		\param encoder The encoder class to be used for building the
+		word table.
+		
         \param[out] wordTable The word table to be populated with with
         hash values.
 
@@ -353,7 +356,7 @@ protected:
     /** Instance variable to store the number of bits to be shifted to
         create hash values.
 
-        <p>This instance variable is set to the value of 2 * (\i
+        <p>This instance variable is set to the value of 2 * (\em
         wordSize - 1) (in the \c initialize method) to reflect the
         number of bits that need to be shifted in order to build the
         hash values for common words (including the values stored in

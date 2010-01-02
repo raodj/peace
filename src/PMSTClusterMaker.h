@@ -100,10 +100,10 @@ public:
         \note This method consumes its custom command line arguments
         first and then call's the base class's parseArguments() method.
         
-        \param[inout] argc The number of command line arguments to be
+        \param[in,out] argc The number of command line arguments to be
         processed.
 
-        \param[inout] argc The array of command line arguments.
+        \param[in,out] argv The array of command line arguments.
 
         \return This method returns \c true if the command line
         arguments were successfully processed.  Otherwise this method
@@ -151,10 +151,10 @@ protected:
         This value is initialized to 1.0. This value is ultimately
         used in the MSTCluster::calculateThreshold() method to compute
         the threshold using the formula: </p>
+        
+        <i> threshold = mean + (stDev * percentile); </i>
 
-	<i> threshold = mean + (stDev * percentile); </li>
-
-	<p> The value is changed by the parseArguments() method if the
+        <p> The value is changed by the parseArguments() method if the
         user has specified the --percentile option to override the
         default. </p>
     */
@@ -348,7 +348,7 @@ protected:
         <ol>
 
         <li>Each process computes a subset of the EST similarity
-        metric in the range \i k*Rank < otherEstIdx < (\i k+1)*Rank,
+        metric in the range \em k*Rank < otherEstIdx < (\em k+1)*Rank,
         where k=estList.size() / MPI::COMM_WORLD.Get_size(), and Rank
         is the MPI rank of this process. </li>
 
@@ -367,7 +367,7 @@ protected:
         the MST and for which the adjacent neighbors need to be
         determined.
 
-        \param[out] smList If this pointer is not NULL, then this
+        \param[out] metricList If this pointer is not NULL, then this
         vector is populated with the set of metrics that were computed
         for estIdx <b>only on the owner process</b>.  This list
         contains the metrics collated from all the processes
@@ -396,7 +396,7 @@ protected:
         <li>It then collects requests to repopulate specific caches
         from all the workers.</li>
 
-        <il>It then adds the newly created est to the list of caches
+        <li>It then adds the newly created est to the list of caches
         to be repopulated and broadcasts request to repopulate caches
         to each worker and participates in cache repopulation task by
         calling the populateCache() method.</li>
@@ -415,8 +415,8 @@ protected:
     int managerUpdateCaches(int estIdx, const bool refreshEST = true);
 
     /** Helper method in \b Manager process to collaboratively compute
-	the next EST to be added to the MST.
-
+        the next EST to be added to the MST.
+        
         This is a helper method that is used only in the Manager
         process to perform the following tasks using the newly added
         estIdx value:
@@ -434,20 +434,20 @@ protected:
 
         </ol>
 
-        \param[out] srcESTidx The source EST index from where the
+        \param[out] parentESTidx The source EST index from where the
         similarity metric is being measured.  The srcESTidx is already
         present in the MST.
 
-        \param[out] destESTidx The destination EST index that is the
+        \param[out] estToAdd The destination EST index that is the
         best choice to be added to the MST (based on the local
         information).
 
         \param[out] similarity The similarity metric between the
         srcESTidx and the destESTidx.
 
-	\param[out] alignmentData The alignment information between
-	the two ESTs represented by their index values in parentESTidx
-	and estToAdd.
+        \param[out] alignmentData The alignment information between
+        the two ESTs represented by their index values in parentESTidx
+        and estToAdd.
     */
     void computeNextESTidx(int& parentESTidx, int& estToAdd,
 			   float &similarity, int& alignmentData) const;
@@ -480,7 +480,7 @@ protected:
         This method was introduced to keep the math and logic clutter
         involved in computing the list of owned ESTs out of the
         methods that use the information.  This method returns the
-        range, such that: \c startIndex <= \i ownedESTidx < \c
+        range, such that: \c startIndex <= \em ownedESTidx < \c
         endIndex.
 
         
@@ -634,7 +634,7 @@ protected:
         friend of this class, an object can be instantiated via the
         ClusterMakerFactory::create() method.
 
-        \param[inout] analyzer The EST analyzer to be used for
+        \param[in,out] analyzer The EST analyzer to be used for
         obtaining similarity metrics between two ESTs.  This parameter
         is simply passed onto the base class.
         

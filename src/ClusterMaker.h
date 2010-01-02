@@ -82,10 +82,10 @@ public:
         forget to call the corresponding base class implementation to
         display common options.
         
-        \param[inout] argc The number of command line arguments to be
+        \param[in,out] argc The number of command line arguments to be
         processed.
 
-        \param[inout] argc The array of command line arguments.
+        \param[in,out] argv The array of command line arguments.
 
         \return This method returns \c true if the command line
         arguments were successfully processed.  Otherwise this method
@@ -122,7 +122,7 @@ protected:
         maker.  This name is used when generating errors, warnings,
         and other output messages for this object.
 
-        \param[inout] analyzer The EST analyzer to be used by this
+        \param[in,out] analyzer The EST analyzer to be used by this
         ClusterMaker for generating similarity metrics between two
         given ESTs.
 

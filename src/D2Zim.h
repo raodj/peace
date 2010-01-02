@@ -103,10 +103,10 @@ public:
         corresponding base class implementation to display common
         options.
         
-        \param[inout] argc The number of command line arguments to be
+        \param[in,out] argc The number of command line arguments to be
         processed.
 
-        \param[inout] argc The array of command line arguments.
+        \param[in,out] argv The array of command line arguments.
 
         \return This method returns \c true if the command line
         arguments were successfully processed.  Otherwise this method
@@ -163,10 +163,10 @@ public:
         
         This method is used to perform the core tasks of comparing all
         ESTs to one another for full analysis of ESTs.  This is an
-        additional feature of PEACE that is \i not used for clustering
-        but just doing an offline analysis.  Currently, this method
-        merely calls the corresponding base class implementation that
-        performs all the necessary operations.
+        additional feature of PEACE that is \em not used for
+        clustering but just doing an offline analysis.  Currently,
+        this method merely calls the corresponding base class
+        implementation that performs all the necessary operations.
 
 	\return This method returns zero if all the processing
         proceeded successfully. On errors this method returns a
