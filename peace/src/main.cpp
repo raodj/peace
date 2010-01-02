@@ -1,26 +1,38 @@
 #ifndef MAIN_CPP
 #define MAIN_CPP
 
-//---------------------------------------------------------------------------
+//--------------------------------------------------------------------
 //
-// Copyright (c) Miami University, Oxford, OHIO.
-// All rights reserved.
-//
-// Miami University (MU) makes no representations or warranties about
-// the suitability of the software, either express or implied,
-// including but not limited to the implied warranties of
-// merchantability, fitness for a particular purpose, or
-// non-infringement.  MU shall not be liable for any damages suffered
-// by licensee as a result of using, result of using, modifying or
-// distributing this software or its derivatives.
+// This file is part of PEACE.
+// 
+// PEACE is free software: you can redistribute it and/or modify it
+// under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// PEACE is distributed in the hope that it will be useful, but
+// WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with PEACE.  If not, see <http://www.gnu.org/licenses/>.
+// 
+// Miami University makes no representations or warranties about the
+// suitability of the software, either express or implied, including
+// but not limited to the implied warranties of merchantability,
+// fitness for a particular purpose, or non-infringement.  Miami
+// University shall not be liable for any damages suffered by licensee
+// as a result of using, result of using, modifying or distributing
+// this software or its derivatives.
 //
 // By using or copying this Software, Licensee agrees to abide by the
 // intellectual property laws, and all other applicable laws of the
-// U.S., and the terms of this license.
+// U.S., and the terms of GNU General Public License (version 3).
 //
-// Authors: Dhananjai M. Rao       raodm@muohio.edu
+// Authors:   Dhananjai M. Rao          raodm@muohio.edu
 //
-//---------------------------------------------------------------------------
+//---------------------------------------------------------------------
 
 #include "arg_parser.h"
 #include "ClusterMakerFactory.h"
@@ -35,7 +47,7 @@
 #include <string>
 #include <sstream>
 
-/** \func showUsage
+/** \fn void showUsage(arg_parser& ap, ESTAnalyzer *analyzer, ClusterMaker *cMaker, HeuristicChain *hChain)
 
     A simple helper method to show usage and clean up the temporarily
     created EST analyzer and cluster Maker objects.
@@ -43,16 +55,19 @@
     \note This method is meant to be in local scope rather than global
     scope.
 
-    \param[in,out] ap The argument parser to be used for displaying
+    \param[in] ap The argument parser to be used for displaying
     common global options.
     
-    \param[in,out] analyzer The EST analyzer (if any) that was created
+    \param[in] analyzer The EST analyzer (if any) that was created
     and must now be deleted after showing usage.  If this pointer is
     NULL, then this parameter is ignored.
 
-    \param[in,out] cMaker The cluster Maker (if any) that was created
+    \param[in] cMaker The cluster Maker (if any) that was created
     and must now be deleted after showing usage.  If this pointer is
     NULL, then this parameter is ignored.
+
+    \param[in] hChain The chain of heuristics that are currently
+    defined for this run.
 */
 static void showUsage(arg_parser& ap,
                       ESTAnalyzer *analyzer, ClusterMaker *cMaker,
@@ -83,7 +98,9 @@ static void showUsage(arg_parser& ap,
     }
 }
 
-/** \func main
+/** \fn int main(int argc, char *argv[])
+
+    \brief The main function that launches all the activites.
 
     <p> The global main method for the ESTAnalyzer software. The main
     method performs the task of identifying and creating a specific

@@ -91,10 +91,10 @@ struct StringHasher  {
     }
 };
 
-/** \typedef A hash_map<std::string, int>
+/** \typedef hash_map<std::string, int, StringHasher> StringIntMap
 
-    A typedef for a hash map whose key is std::string and contains
-    integers.
+	\brief A typedef for a hash map whose key is std::string and
+    contains integers.
     
     The following typedef provides a short cut for using a hash map
     whose key is a std::string and contains integers.

@@ -69,7 +69,7 @@ public:
         parameter \c heuristicStr and instantiates suitable heuristics
         via the HeuristicFactory.
 
-        \param[in] heuristticStr A string containing the list of
+        \param[in] heuristicStr A string containing the list of
         heuristics to be created in this chain. This string is
         typically specified by the user as a command line parameter.
         If this parameter is \c NULL, then this method performs no

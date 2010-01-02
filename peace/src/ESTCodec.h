@@ -245,13 +245,13 @@ private:
     /** A hash map that holds tables to aid in translating a given
 	word to its reverse complement.
 
-	<p>Converting a given encoded word (some fixed \i n number of
+	<p>Converting a given encoded word (some fixed \em n number of
 	base pairs, with each base pair encoded into 2-bits) to its
 	reverse complement (that is, given the encoded sequence for \c
 	attcggct it must be converted to the encoded sequence for \c
 	agccgaat) needs to be computed as a part of EST analysis
-	algorithms and heuristics. In order to enable rapid
-	translation pre-populated tabes are used.</p>
+	algorithms and heuristics. In order to enable rapid translation
+	pre-populated tabes are used.</p>
 
 	<p>However, the reverse-complement translation tables need to
 	have entries corresponding to the size of words to be

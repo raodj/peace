@@ -234,12 +234,9 @@ public:
         sorting.  Once sorting has been completed, this method ensures
         that the list is no longer than the specified cacheSize.
  
-        \param[inout] list The SMList to be sorted based on the
+        \param[in,out] list The SMList to be sorted based on the
         (similarity or distance) metric associated with each
         CachedESTInfo entry in the list.
-
-	\param[in] cacheSize The maximum size of this list after it
-	has been sorted.
     */
     void preprocess(SMList& list);
 
@@ -250,7 +247,7 @@ protected:
         method to remove all entries corresponding to the given
         estIdx.
 
-        \param[inout] list The SMList whose entries needs to be
+        \param[in,out] list The SMList whose entries needs to be
         pruned.
 
         \param[in] estIdx The index of the EST whose entries must be

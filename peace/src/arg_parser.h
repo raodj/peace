@@ -104,7 +104,7 @@ public:
   
   // The int is the number of args (argc), the char ** is argv, and
   // the bool is whether to complain and exit on error or not...
-  bool check_args(int &, char **, bool = true );
+  bool check_args(int &argc, char *argv[], bool caxoe = true );
 
   static void set_global_args(int argc, const char* const argv[]);
   static std::string get_global_args() { return global_args; }

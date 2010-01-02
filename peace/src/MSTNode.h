@@ -113,7 +113,7 @@ public:
         node to a given output stream (or file).  The data is written
         in the following comma format:
 
-        <parentESTidx>, <ESTidx>, <metric>
+        <pre>parentESTidx, ESTidx, metric</pre>
 
         \param[out] os The output stream to which the data is to be
         written.
@@ -150,9 +150,9 @@ public:
         The data read is assumed to be in the the following comma
         separated format:
 
-        <parentESTidx>, <ESTidx>, <metric>
+        <pre>parentESTidx, ESTidx, metric</pre>
 
-        \param[inout] is The input stream from which the data is to be
+        \param[in,out] is The input stream from which the data is to be
         written.
 
         \param[out] node The node that must be populated with the data
@@ -225,7 +225,7 @@ public:
     int alignmentMetric;
 };
 
-/** \func operator<<
+/** \fn std::ostream& operator<<(std::ostream&, const MSTNode&)
 
     Insertion operator to stream MSTNode information to a given output
     stream.  This method provides a convenient mechanism to dump

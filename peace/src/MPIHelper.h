@@ -126,12 +126,12 @@
 #define MPI_GET_SIZE() 1
 #endif
 
+#ifndef HAVE_LIBMPI
 /** \def MPI_ANY_SOURCE
 
     \brief If MPI is not available, this macro defines a dummy
     MPI_ANY_SOURCE.
 */
-#ifndef HAVE_LIBMPI
 #define MPI_ANY_SOURCE -1
 #endif
 

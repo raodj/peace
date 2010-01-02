@@ -102,10 +102,10 @@ public:
         forget to call the corresponding base class implementation to
         display common options.
         
-        \param[inout] argc The number of command line arguments to be
+        \param[in,out] argc The number of command line arguments to be
         processed.
         
-        \param[inout] argc The array of command line arguments.
+        \param[in,out] argv The array of command line arguments.
         
         \return This method returns \c true if the command line
         arguments were successfully processed.  Otherwise this method
@@ -163,9 +163,9 @@ protected:
         This name is used when generating errors, warnings, and other
         output messages for this heuristic.
 
-	\param[in] outptuFileName The output file to which any
-	analysis information is to be written. Currently this
-	parameter is unused.
+		\param[in] outputFileName The output file to which any
+		analysis information is to be written. Currently this
+		parameter is unused.
     */
     NewUVHeuristic(const std::string& name, const std::string& outputFileName);
     
@@ -228,8 +228,8 @@ protected:
     */
     bool bestMatchIsRC;
 
-    /** Instance variable to maintain the \i v parameter for the
-	<i>u/v</i> heuristic.
+    /** Instance variable to maintain the \em v parameter for the
+		<i>u/v</i> heuristic.
 
     */
     static int v;
@@ -243,7 +243,7 @@ protected:
     /** Instance variable to store the number of bits to be shifted to
         create hash values.
 
-        <p>This instance variable is set to the value of 2 * (\i v -
+        <p>This instance variable is set to the value of 2 * (\em v -
         1) (in the \c initialize method) to reflect the number of bits
         that need to be shifted in order to build the hash values for
         common words (including the values stored in \c s1WordMap and

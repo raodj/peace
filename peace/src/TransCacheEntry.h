@@ -37,7 +37,7 @@
 #include "HashMap.h"
 #include "MSTCache.h"
 
-/** \def HashMap<int, CachedESTInfo> TransCacheMap
+/** \typedef HashMap<int, CachedESTInfo> TransCacheMap
 
     \brief A shortcut to refer to a hash map of CachedESTInfo.
 
@@ -68,7 +68,7 @@ typedef HashMap<int, CachedESTInfo> TransCacheMap;
     with various entries in the peerInfo hash map.</li>
 
     <li>peerInfo hash map contains CachedESTInfo objects corresponding
-    to other ESTs with which estIdx could \i potentially have
+    to other ESTs with which estIdx could \em potentially have
     conditional-transivity relationships.  However, the applicability
     of transitivity is established only when the need arises. </li>
 
@@ -129,8 +129,8 @@ public:
         \param[in] startIndex The index of the EST starting from which
         the owner process is responsible for computing metrics.
         
-        \param[in] startIndex The index of the last EST before which
-        the owner process is responsible for computing metrics.       
+        \param[in] endIndex The index of the last EST before which the
+        owner process is responsible for computing metrics.
     */
     void addEntries(const CachedESTInfo& reference, const SMList& metrics,
                     const int startIndex, const int endIndex);

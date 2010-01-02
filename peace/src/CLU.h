@@ -113,10 +113,10 @@ public:
         forget to call the corresponding base class implementation to
         display common options.
         
-        \param[inout] argc The number of command line arguments to be
+        \param[in,out] argc The number of command line arguments to be
         processed.
 
-        \param[inout] argc The array of command line arguments.
+        \param[in,out] argv The array of command line arguments.
 
         \return This method returns \c true if the command line
         arguments were successfully processed.  Otherwise this method
@@ -199,7 +199,7 @@ protected:
         the log.  This method overrides the default implementation in
         the base class to perform its own custom operation.
         
-        \param[out] The log to which the EST is to be dumped.
+        \param[out] log The log to which the EST is to be dumped.
 
         \param[in] est The EST to be dumped.  This parameter is never
         NULL.
@@ -220,7 +220,7 @@ protected:
         maps using the createCLUHashMap() method and pouplates the
         custom ESTCLUData object associated with the EST.
 
-        \param[inout] est Pointer to the EST whose reference and
+        \param[in,out] est Pointer to the EST whose reference and
         complement hash maps are to be built.
     */
     void buildHashMaps(EST *est);
@@ -249,7 +249,7 @@ protected:
 
         </ol>
 
-        \param[inout] table The hash table to be populated by this
+        \param[in,out] table The hash table to be populated by this
         method.
 
         \param[in] sequence The EST sequence to be used for populating
@@ -280,12 +280,12 @@ protected:
         
         </ul>
 
-        \param[inout] table The table of hash values to be filtered
+        \param[in,out] table The table of hash values to be filtered
         and normalized by this method.  This table must have been
         populated by a call to createCLUHashTable() method.
         
-        \param[in] The length of the EST sequence from which the
-        referenceHashMap has been generated.
+        \param[in] sequenceLength The length of the EST sequence from
+        which the referenceHashMap has been generated.
     */
     void filterHashMap(int *table, const int sequenceLength);
 

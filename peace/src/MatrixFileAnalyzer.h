@@ -49,7 +49,7 @@ class ResultLog;
     distance/similarity values from a given data file.  A matrix data
     file must have the following format:
 
-    \begincode
+    \code
 
     # Lines starting with '#' character are assumed to be comments and
     # they are ignored. The first non-comment line must be a number
@@ -108,10 +108,10 @@ public:
         corresponding base class implementation to display common
         options.
         
-        \param[inout] argc The number of command line arguments to be
+        \param[in,out] argc The number of command line arguments to be
         processed.
 
-        \param[inout] argc The array of command line arguments.
+        \param[in,out] argv The array of command line arguments.
 
         \return This method returns \c true if the command line
         arguments were successfully processed.  Otherwise this method
@@ -186,8 +186,6 @@ public:
 
         <li>It logs the similarity metric using suitable methods in
         the ESTAnalyzer base class.<li>
-
-        </ol>
 
         <li>If all the processing proceeds successfully, this method
         returns 0 (zero).
@@ -324,7 +322,7 @@ private:
         This method is a helper method that is used to load a given
         line from the file.
 
-        \param[inout] fp The file pointer from where the data is to be
+        \param[in,out] fp The file pointer from where the data is to be
         read.
 
         \return The line read from the file.  If EOF was reached then

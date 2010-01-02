@@ -45,33 +45,36 @@ public:
     /** The constructor.
 
         This constructor simply sets all the instance variables to
-	corresponding values specified by the parameters.
-
-        \param[in] startESTidx The zero-based index of the EST that
-	marks the beginning of this partition.
-          
-        \param[in] estCount The count of ESTs belonging to this partition.
+		corresponding values specified by the parameters.
+		
+        \param[in] startESTidxValue The zero-based index of the EST
+		that marks the beginning of this partition.
+		
+        \param[in] estCountValue The count of ESTs belonging to this
+        partition.
     */
     PartitionData(const int startESTidxValue, const int estCountValue) :
-      startESTidx(startESTidxValue), estCount(estCountValue),
-      ownedESTCount(estCountValue) {}
-
+        startESTidx(startESTidxValue), estCount(estCountValue),
+        ownedESTCount(estCountValue) {}
+    
     /** The constructor.
 
         This constructor simply sets all the instance variables to
-	corresponding values specified by the parameters.
+		corresponding values specified by the parameters.
 
-        \param[in] startESTidx The zero-based index of the EST that
-	marks the beginning of this partition.
-          
-        \param[in] estCount The count of ESTs belonging to this partition.
-
-	\param[in] ownedESTCount The count of ESTs owned by this partition.
+        \param[in] startESTidxValue The zero-based index of the EST
+        that marks the beginning of this partition.
+        
+        \param[in] estCountValue The count of ESTs belonging to this
+        partition.
+        
+        \param[in] ownedESTCountValue The count of ESTs owned by this
+        partition.
     */
     PartitionData(const int startESTidxValue, const int estCountValue,
-		      const int ownedESTCountValue) :
-	  startESTidx(startESTidxValue), estCount(estCountValue),
-	  ownedESTCount(ownedESTCountValue) {}
+                  const int ownedESTCountValue) :
+        startESTidx(startESTidxValue), estCount(estCountValue),
+        ownedESTCount(ownedESTCountValue) {}
     
     /** The destructor.
 

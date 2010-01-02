@@ -73,8 +73,8 @@ public:
     LessCachedESTInfo(const ESTAnalyzer *analyzer) :
         comparator(analyzer) {}
     
-    /** \fn operator()
-        
+    /** \fn operator()(const CachedESTInfo& estInfo1, const CachedESTInfo& estInfo2)
+
         \brief operator() for CachedESTInfo.
         
         The following operator provides a convenient mechanism for
@@ -147,9 +147,10 @@ public:
     GreaterCachedESTInfo(const ESTAnalyzer *analyzer) :
         comparator(analyzer) {}
     
-    /** \fn operator()
+    /** \fn operator()(const CachedESTInfo& estInfo1, const CachedESTInfo& estInfo2)
         
-        \brief operator() for CachedESTInfo.
+        \brief operator() for CachedESTInfo to compare two CachedESTInfo
+		objects.
         
         The following operator provides a convenient mechanism for
         comparing CachedESTInfo objects for sorting.  This

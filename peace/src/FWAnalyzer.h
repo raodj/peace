@@ -122,10 +122,10 @@ public:
         forget to call the corresponding base class implementation to
         display common options.
         
-        \param[inout] argc The number of command line arguments to be
+        \param[in,out] argc The number of command line arguments to be
         processed.
 
-        \param[inout] argc The array of command line arguments.
+        \param[in,out] argv The array of command line arguments.
 
         \return This method returns \c true if the command line
         arguments were successfully processed.  Otherwise this method
@@ -295,12 +295,12 @@ protected:
 
         This method is a helper method that dumps a given EST out to
         the log.
-
-        \param[out] The log to which the EST is to be dumped.
-
+		
+        \param[out] log The log to which the EST is to be dumped.
+		
         \param[in] est The EST to be dumped.  This parameter is never
         NULL.
-
+		
         \param[in] isReference If this flag is true, then this EST is
         the reference EST to be dumped out.
     */
@@ -343,24 +343,24 @@ protected:
         must be instantiated (via the ESTAnalyzerFactory::create())
         method and used.
 
-        \param[in] name The human readable name for this EST analyzer.
-        This name is used when generating errors, warnings, and other
-        output messages for this analyzer.  This value is simply
-        passed-on to the base class without any checks.
+        \param[in] analyzerName The human readable name for this EST
+        analyzer.  This name is used when generating errors, warnings,
+        and other output messages for this analyzer.  This value is
+        simply passed-on to the base class without any checks.
 
-	\param[in] refESTidx The reference EST index value to be used
-	when performing EST analysis.  This parameter should be >= 0.
-	This value is simply passed onto the base class.
-	
-	\param[in] outputFile The name of the output file to which the
-	EST analysis data is to be written.  This parameter is ignored
-	if this analyzer is used for clustering.  If this parameter is
-	the empty string then output is written to standard output.
-	This value is simply passed onto the base class.	
+		\param[in] refESTidx The reference EST index value to be used
+		when performing EST analysis.  This parameter should be >= 0.
+		This value is simply passed onto the base class.
+		
+		\param[in] outputFile The name of the output file to which the
+		EST analysis data is to be written.  This parameter is ignored
+		if this analyzer is used for clustering.  If this parameter is
+		the empty string then output is written to standard output.
+		This value is simply passed onto the base class.	
     */
     FWAnalyzer(const std::string& analyzerName, const int refESTidx,
-	       const std::string& outputFile);
-
+			   const std::string& outputFile);
+	
 private:   
     /** The set of common arguments for all FWAnalyzer instances.
 
