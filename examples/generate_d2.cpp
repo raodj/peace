@@ -1,3 +1,36 @@
+//--------------------------------------------------------------------
+//
+// This file is part of PEACE.
+// 
+// PEACE is free software: you can redistribute it and/or modify it
+// under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// PEACE is distributed in the hope that it will be useful, but
+// WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with PEACE.  If not, see <http://www.gnu.org/licenses/>.
+// 
+// Miami University makes no representations or warranties about the
+// suitability of the software, either express or implied, including
+// but not limited to the implied warranties of merchantability,
+// fitness for a particular purpose, or non-infringement.  Miami
+// University shall not be liable for any damages suffered by licensee
+// as a result of using, result of using, modifying or distributing
+// this software or its derivatives.
+//
+// By using or copying this Software, Licensee agrees to abide by the
+// intellectual property laws, and all other applicable laws of the
+// U.S., and the terms of GNU General Public License (version 3).
+//
+// Authors:   John Karro               karroje@muohio.edu
+//
+//---------------------------------------------------------------------
+
 #include <fstream>
 #include <string>
 #include <unistd.h>
@@ -32,7 +65,7 @@ string file = "all_zf_cdnas.reduced.fa";
 string output_file = "";
 
 double error_rate = 0.03;
-bool unix = false;
+bool unixCRLF = false;
 long seed = -1;
 bool help = false;
 bool header = true;
@@ -76,7 +109,7 @@ int main(int argc, char** argv) {
       case 'n' : max_overlap = atoi(optarg); assert(max_overlap > 0); break;
       case 'e' : error_rate = (double)atof(optarg); assert(error_rate >= 0); break;
       case 'i' : header = false; break;
-      case 'u' : unix = true; break;
+      case 'u' : unixCRLF = true; break;
       case 'f' : file = optarg; break;
       case 'r' : seed = atol(optarg); assert(seed >= 0); break;
       case 'o' : output_file = optarg; break;
@@ -206,7 +239,7 @@ int main(int argc, char** argv) {
   int paramCount = sizeof(params) / sizeof(char*);
   d2->parseArguments(paramCount, params);
 
-  string eol = unix ? "\n" : "\r\n";
+  string eol = unixCRLF ? "\n" : "\r\n";
 
   d2->initialize();
   if (header) 
