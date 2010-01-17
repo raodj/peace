@@ -25,7 +25,7 @@ const int max_string_length = 100000;
 int segmentLength = 500;
 int min_overlap = 1;
 int max_overlap = 100;
-int num_trials = 1000;
+int num_trials = 10;
 int window_length = 100;
 int word_length = 6;
 string file = "all_zf_cdnas.reduced.fa";
@@ -35,6 +35,7 @@ double error_rate = 0.03;
 bool unix = false;
 long seed = -1;
 bool help = false;
+bool header = true;
 
 string add_errors(double error_rate, string& s) {
   for (string::iterator i=s.begin(); i != s.end(); i++) {
@@ -65,7 +66,7 @@ string make_id(int i) {
 
 int main(int argc, char** argv) {
   int c;
-  while ( (c = getopt(argc, argv, "r:o:f:s:w:x:t:m:n:e:uh")) != -1 ) {
+  while ( (c = getopt(argc, argv, "r:o:f:s:w:x:t:m:n:e:uhi")) != -1 ) {
       switch (c) {
       case 's' : segmentLength = atoi(optarg); break;
       case 'w' : window_length = atoi(optarg); break;
@@ -74,8 +75,9 @@ int main(int argc, char** argv) {
       case 'm' : min_overlap = atoi(optarg); assert(min_overlap > 0); break;
       case 'n' : max_overlap = atoi(optarg); assert(max_overlap > 0); break;
       case 'e' : error_rate = (double)atof(optarg); assert(error_rate >= 0); break;
-      case 'u' : unix = true;
-      case 'f' : file = optarg;
+      case 'i' : header = false; break;
+      case 'u' : unix = true; break;
+      case 'f' : file = optarg; break;
       case 'r' : seed = atol(optarg); assert(seed >= 0); break;
       case 'o' : output_file = optarg; break;
       case 'h' : help = true; break;
@@ -93,6 +95,7 @@ int main(int argc, char** argv) {
 \t-m: Minimum overlap to be checked (default = 1)\n\
 \t-n: Maximum overlap to to be checked (default = 100)\n\
 \t-e: Error rate (default = 0.01)\n\
+\t-i: Supress header\n\
 \t-u: End output with linux \\n instead of windows \\r\\n (default = false)\n\
 \t-f: File of genes (default = all_zf_cdnas.reduced.fa)\n\
 \t-r: Set RNG seed (default = time + pid)\n\
@@ -108,10 +111,10 @@ int main(int argc, char** argv) {
 
   ostream* out = output_file=="" ? &cout : new ofstream(output_file.c_str());
 
-  if (seed >= 0)
-    srand48(seed);
-  else 
+  if (seed < 0) {
     seed = (long) time(NULL) + getpid();
+  }
+  srand48(seed);
 
   char id_str[max_id_length];
   char s[max_string_length];
@@ -134,7 +137,7 @@ int main(int argc, char** argv) {
       int index = seqs.size()*drand48();
       string& seq = seqs[index];
       
-      int start1 = (int)((seq.length() - segmentLength + overlap)*drand48());
+      int start1 = (int)((seq.length() - 2*segmentLength + overlap)*drand48());
       int start2 = start1 + segmentLength - overlap;
 
       start_coords.push_back(start1);
@@ -206,18 +209,19 @@ int main(int argc, char** argv) {
   string eol = unix ? "\n" : "\r\n";
 
   d2->initialize();
-  *out << "s1\ts2\td2\toverlap" << eol;
+  if (header) 
+    *out << "overlap d2" << eol;
 
   for (int i=0; i < id_overlap; i += 2) {
       d2->setReferenceEST(i);
       const float metric = d2->analyze(i+1);
-      *out << start_coords[i] << "\t" << start_coords[i+1] << "\t" << metric << "\t" << start_coords[i] + segmentLength - start_coords[i+1] << eol;
+      *out << start_coords[i] + segmentLength - start_coords[i+1] << " " << metric << eol;
   }
 
   for (int i=id_overlap; i < id; i += 2) {
       d2->setReferenceEST(i);
       const float metric = d2->analyze(i+1);
-      *out << start_coords[i] << "\t" << start_coords[i+1] << "\t" << metric << "\t" << 0 << eol;
+      *out << 0 << " "  << metric << eol;
   }
 
   return 0;
