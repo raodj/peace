@@ -36,6 +36,7 @@
 
 #include "MSTNode.h"
 #include "EST.h"
+#include <cstdio>
 
 // The maximum size of a line that exists in a MSTFile
 #define MAX_LINE_SIZE 1024

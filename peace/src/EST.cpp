@@ -39,7 +39,8 @@
 #include <algorithm>
 #include <iostream>
 #include <cctype>
-#include <string.h>
+#include <cstring>
+#include <cstdio>
 
 // The shared static list of ESTs currently available.
 std::vector<EST*> EST::estList;

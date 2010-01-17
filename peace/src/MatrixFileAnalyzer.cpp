@@ -37,6 +37,7 @@
 #include "MatrixFileAnalyzer.h"
 #include "EST.h"
 
+#include <cstdio>
 #include <sstream>
 
 // The static instance variables for command line arguments.
