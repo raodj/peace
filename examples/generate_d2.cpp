@@ -226,13 +226,16 @@ int main(int argc, char** argv) {
 
 
   std::auto_ptr<ESTAnalyzer> d2(ESTAnalyzerFactory::create("d2", 0, ""));
+  char param0[]  = "generate_d2";   
   char param1[]  = "--frame";   
   char param2[]  = "--word";    
   char param3[]  = "--estFile", value3[] = "<none>";
 
 
-  char* params[] = {param1, frame, param2, word, // Set Window & Word size
-		    param3, value3};  // Last parameter is mandatory
+  char* params[] = {param0, // First param (although not used) is needed as
+                            // parser assumes it is exectuable name.
+                    param1, frame, param2, word, // Set Window & Word size
+                    param3, value3};  // Last parameter is mandatory
 
   //char* params[] = {param1, frame, param2, word, // Set Window & Word size
   //		    param3, value3};  // Last parameter is mandatory
