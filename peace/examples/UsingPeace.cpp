@@ -82,11 +82,13 @@ main(int argc, char* argv[]) {
     // Set some parameters. We need a temporary location to hold
     // constant strings (even though we don't mutate it as the API
     // requires mutable strings)
-    char param1[]  = "--frame",   value1[] = "100";
+    char param0[]  = "./UsingPeace";
+    char param1[]  = "--frame",   value1[] = "50";
     char param2[]  = "--word",    value2[] = "6";
     char param3[]  = "--estFile", value3[] = "<none>";
-    char* params[] = {param1, value1, param2, value2, // Set Window & Word size
-		      param3, value3};  // Last parameter is mandatory
+    char* params[] = {param0,  // First param is always executable name.
+                      param1, value1, param2, value2, // Set Window & Word size
+                      param3, value3};  // Last parameter is mandatory
     int paramCount = sizeof(params) / sizeof(char*);
     d2->parseArguments(paramCount, params);
 
