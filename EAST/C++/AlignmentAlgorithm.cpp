@@ -83,9 +83,12 @@ int AlignmentAlgorithm::getNWScore(const string& s1, const string& s2) {
 	    
 	    // See if the third term is the largest (NORTHWEST)
 	    northwest = alignMatrix[i - 1][j - 1]
-	      + (this->scoreMatrix)[base1][base2];
-	    
-	    alignMatrix[i][j] = north > west ? max(northwest, north) : max(northwest, west);
+	      + (this->scoreMatrix)[base1][base2];	   	    
+
+	    if (northwest >= north) 
+	      alignMatrix[i][j] = northwest >= west ? northwest : west;
+	    else 
+	      alignMatrix[i][j] = north >= west ? north : west;
 	  }
 	}
 	int score = alignMatrix[numOfRows][numOfCols];
