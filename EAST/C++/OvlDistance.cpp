@@ -1,5 +1,6 @@
 #include "OvlDistance.h"
-#include <math.h>
+#include <cstdlib>
+
 using namespace std;
 
 OvlDistance::OvlDistance() {

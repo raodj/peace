@@ -1,4 +1,5 @@
 #include "SixTuplesGeneration.h"
+#include <cstdlib>
 
 using namespace std;
 
