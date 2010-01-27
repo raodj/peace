@@ -40,11 +40,11 @@
 #include "EST.h"
 
 // default params
-int NewUVHeuristic::u           = 6;
-int NewUVHeuristic::v           = 8;
-int NewUVHeuristic::wordShift   = 8;
+int NewUVHeuristic::u           = 2;
+int NewUVHeuristic::v           = 6;
+int NewUVHeuristic::wordShift   = 6;
 int NewUVHeuristic::BitMask     = 0;
-int NewUVHeuristic::passes      = 3;
+int NewUVHeuristic::passes      = 1;
 
 // Instance variable to track number of bits to shift for building
 // hash values.  This is set to 2*(v-1) in initialize method.
@@ -163,7 +163,7 @@ NewUVHeuristic::setReferenceEST(const int estIdx) {
     // Fill in the word map. But first setup the table to quickly
     // generate reverse complement values.
     codec.setRevCompTable(v);
-    const int End = strlen(s1) - v;
+    const int End = strlen(s1);
     for (int i = v - 1; (i <= End); i++) {
         hash = encoder(hash, s1[i]);
         // Setup the word map for the regular word
