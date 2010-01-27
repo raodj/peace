@@ -3,7 +3,7 @@
 
 #include <string>
 #include <vector>
-//#include "IntMatrix.h"
+#include "Param.h"
 
 typedef int** intMatrix;
 intMatrix createIntMatrix(int n, int m);

@@ -1,5 +1,6 @@
 #include <math.h>
 #include <algorithm>
+#include <cstdlib>
 #include "AlignmentAlgorithm.h"
 using namespace std;
 
@@ -98,7 +99,8 @@ int AlignmentAlgorithm::getNWScore(const string& s1, const string& s2) {
 	delete [] encodedBases2;
 	return score;
 	 */
-	int		r, c, rows, cols, tmp, ins, del, sub, score;
+	int	r, c, rows, cols, tmp, ins, del, sub, score;
+	int band = BAND_WIDTH;
 	rows = s1.length();
 	cols = s2.length();
 	int encodedBases1[rows];
@@ -106,29 +108,37 @@ int AlignmentAlgorithm::getNWScore(const string& s1, const string& s2) {
 
 	if (rows < cols) {
 		// goes columnwise
-		int array[rows];
+		int array[rows+1];
 
 		// initiate first column
 		array[0] = 0;
-		for (r = 1; r < rows; r++) {
-			array[r] = array[r-1] + gapPenalty * r;
+		for (r = 1; r <= rows; r++) {
 			encodedBases1[r-1] = encodeBase(s1[r-1]);
+			array[r] = array[r-1] + gapPenalty * r;
 		}
-		for (r=1; r < cols; r++)
+		for (r=1; r <= cols; r++)
 			encodedBases2[r-1] = encodeBase(s2[r-1]);
 
 		// calculate the similarity matrix (keep current column only)
-		for (c = 1; c < cols; c++) {
+		for (c = 1; c <= cols; c++) {
 			// initiate first row (tmp hold values
 			// that will be later moved to the array)
 			tmp = array[0] + gapPenalty * c;
 			int base2 = encodedBases2[c-1];
-			for (r = 1; r < rows; r++)
+			int start = (c-band) > 1 ? (c-band) : 1;
+			int end = cols > (c+band) ? (c+band) : cols;
+			for (r = start; r < end; r++)
 			{
 				int base1 = encodedBases1[r-1];
-				ins = array[r] + gapPenalty;
 				sub = array[r-1] + (this->scoreMatrix)[base1][base2];
-				del = tmp + gapPenalty;
+				if (abs(c-r+1) <= band)
+					ins = array[r] + gapPenalty;
+				else
+					ins = 0;
+				if (abs(c-1-r) <= band)
+					del = tmp + gapPenalty;
+				else
+					del = 0;
 
 				// move the temp value to the array
 				array[r-1] = tmp;
@@ -150,27 +160,35 @@ int AlignmentAlgorithm::getNWScore(const string& s1, const string& s2) {
 
 		// initiate first row
 		array[0] = 0;
-		for (c = 1; c < cols; c++) {
-			array[c] = array[c-1] + gapPenalty * c;
+		for (c = 1; c <= cols; c++) {
 			encodedBases2[c-1] = encodeBase(s2[c-1]);
+			array[c] = array[c-1] + gapPenalty * c;
 		}
-		for (r=1; r < rows; r++)
+		for (r=1; r <= rows; r++)
 			encodedBases1[r-1] = encodeBase(s1[r-1]);
 
 		// calculate the similarity matrix (keep current row only)
-		for (r = 1; r < rows; r++)
+		for (r = 1; r <= rows; r++)
 		{
 			// initiate first column (tmp hold values
 			// that will be later moved to the array)
 			tmp = array[0] + gapPenalty * c;
 			int base1 = encodedBases1[r-1];
+			int start = (r-band) > 1 ? (r-band) : 1;
+			int end = cols > (r+band) ? (r+band) : cols;
 
-			for (c = 1; c < cols; c++)
+			for (c = start; c < end; c++)
 			{
 				int base2 = encodedBases2[c-1];
-				ins = tmp + gapPenalty;
 				sub = array[c-1] + (this->scoreMatrix)[base1][base2];
-				del = array[c] + gapPenalty;
+				if (abs(c-1-r) <= band)
+					ins = tmp + gapPenalty;
+				else
+					ins = 0;
+				if (abs(r-c+1) <= band)
+					del = array[c] + gapPenalty;
+				else
+					del = 0;
 
 				// move the temp value to the array
 				array[c-1] = tmp;
