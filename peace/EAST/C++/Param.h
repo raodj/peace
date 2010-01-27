@@ -33,4 +33,7 @@ const int NUMOFLEVELS=0;
 //The possible longest length of est. It's used in Reconstruction to reduce the length of strings doing local alignment
 const int COMPARISON_LENGTH=800;
 
+//the width of band which is used to speed up method "getNWScore".
+const int BAND_WIDTH=20;
+
 #endif
