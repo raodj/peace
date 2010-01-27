@@ -4,58 +4,59 @@
 using namespace std;
 
 AlignmentAlgorithm::AlignmentAlgorithm(int match, int mismatch, int gap) {
-	 intMatrix score = createIntMatrix(6,6);
-	 score[0][0] =  match;
-	 score[0][1] =  mismatch;
-	 score[0][2] =  mismatch;
-	 score[0][3] =  mismatch;
-	 score[0][4] =  mismatch;
-	 score[0][5] =  mismatch;
-	 score[1][0] =  mismatch;
-	 score[1][1] =  match;
-	 score[1][2] =  mismatch;
-	 score[1][3] =  mismatch;
-	 score[1][4] =  mismatch;
-	 score[1][5] =  mismatch;
-	 score[2][0] =  mismatch;
-	 score[2][1] =  mismatch;
-	 score[2][2] =  match;
-	 score[2][3] =  mismatch;
-	 score[2][4] =  mismatch;
-	 score[2][5] =  mismatch;
-	 score[3][0] =  mismatch;
-	 score[3][1] =  mismatch;
-	 score[3][2] =  mismatch;
-	 score[3][3] =  match;
-	 score[3][4] =  mismatch;
-	 score[3][5] =  mismatch;
-	 score[4][0] =  mismatch;
-	 score[4][1] =  mismatch;
-	 score[4][2] =  mismatch;
-	 score[4][3] =  mismatch;
-	 score[4][4] =  match;
-	 score[4][5] =  mismatch;
-	 score[5][0] =  mismatch;
-	 score[5][1] =  mismatch;
-	 score[5][2] =  mismatch;
-	 score[5][3] =  mismatch;
-	 score[5][4] =  mismatch;
-	 score[5][5] =  match;
+	intMatrix score = createIntMatrix(6,6);
+	score[0][0] =  match;
+	score[0][1] =  mismatch;
+	score[0][2] =  mismatch;
+	score[0][3] =  mismatch;
+	score[0][4] =  mismatch;
+	score[0][5] =  mismatch;
+	score[1][0] =  mismatch;
+	score[1][1] =  match;
+	score[1][2] =  mismatch;
+	score[1][3] =  mismatch;
+	score[1][4] =  mismatch;
+	score[1][5] =  mismatch;
+	score[2][0] =  mismatch;
+	score[2][1] =  mismatch;
+	score[2][2] =  match;
+	score[2][3] =  mismatch;
+	score[2][4] =  mismatch;
+	score[2][5] =  mismatch;
+	score[3][0] =  mismatch;
+	score[3][1] =  mismatch;
+	score[3][2] =  mismatch;
+	score[3][3] =  match;
+	score[3][4] =  mismatch;
+	score[3][5] =  mismatch;
+	score[4][0] =  mismatch;
+	score[4][1] =  mismatch;
+	score[4][2] =  mismatch;
+	score[4][3] =  mismatch;
+	score[4][4] =  match;
+	score[4][5] =  mismatch;
+	score[5][0] =  mismatch;
+	score[5][1] =  mismatch;
+	score[5][2] =  mismatch;
+	score[5][3] =  mismatch;
+	score[5][4] =  mismatch;
+	score[5][5] =  match;
 
-	 this->setScoringMatrix(score);
-	 this->setGapPenalty(gap);
+	this->setScoringMatrix(score);
+	this->setGapPenalty(gap);
 
 }
 
 AlignmentAlgorithm::~AlignmentAlgorithm() {
-  if (scoreMatrix != NULL)
-    deleteIntMatrix(scoreMatrix,6);
+	if (scoreMatrix != NULL)
+		deleteIntMatrix(scoreMatrix,6);
 }
 
 int AlignmentAlgorithm::getNWScore(const string& s1, const string& s2) {
+	/*
 	int numOfRows = s1.length();
 	int numOfCols = s2.length();
-	
+
 	intMatrix alignMatrix = createIntMatrix(numOfRows + 1, numOfCols + 1);
 
 	//initialize the matrix
@@ -72,22 +73,22 @@ int AlignmentAlgorithm::getNWScore(const string& s1, const string& s2) {
 	  base1 = encodeBase(s1[i-1]);
 	  // initiate first column
 	  alignMatrix[i][0] = gapPenalty * i;
-	  
+
 	  for (int j = 1; j <= numOfCols; j++) {
 	    // Initialize max to the first of the three terms (NORTH).
 	    base2 = encodedBases2[j - 1];
 	    north = alignMatrix[i - 1][j] + gapPenalty;
-	    
+
 	    // See if the second term is larger (WEST).
 	    west = alignMatrix[i][j - 1] + gapPenalty;
-	    
+
 	    // See if the third term is the largest (NORTHWEST)
 	    northwest = alignMatrix[i - 1][j - 1]
-	      + (this->scoreMatrix)[base1][base2];	   	    
+	      + (this->scoreMatrix)[base1][base2];
 
-	    if (northwest >= north) 
+	    if (northwest >= north)
 	      alignMatrix[i][j] = northwest >= west ? northwest : west;
-	    else 
+	    else
 	      alignMatrix[i][j] = north >= west ? north : west;
 	  }
 	}
@@ -95,6 +96,101 @@ int AlignmentAlgorithm::getNWScore(const string& s1, const string& s2) {
 
 	deleteIntMatrix(alignMatrix, numOfRows+1);
 	delete [] encodedBases2;
+	return score;
+	 */
+	int		r, c, rows, cols, tmp, ins, del, sub, score;
+	rows = s1.length();
+	cols = s2.length();
+	int* encodedBases1 = new int[rows];
+	int* encodedBases2 = new int[cols];
+
+	if (rows < cols) {
+		// goes columnwise
+		int* array = new int[rows];
+
+		// initiate first column
+		array[0] = 0;
+		for (r = 1; r < rows; r++) {
+			array[r] = array[r-1] + gapPenalty * r;
+			encodedBases1[r-1] = encodeBase(s1[r-1]);
+		}
+		for (r=1; r < cols; r++)
+			encodedBases2[r-1] = encodeBase(s2[r-1]);
+
+		// calculate the similarity matrix (keep current column only)
+		for (c = 1; c < cols; c++) {
+			// initiate first row (tmp hold values
+			// that will be later moved to the array)
+			tmp = array[0] + gapPenalty * c;
+			int base2 = encodedBases2[c-1];
+			for (r = 1; r < rows; r++)
+			{
+				int base1 = encodedBases1[r-1];
+				ins = array[r] + gapPenalty;
+				sub = array[r-1] + (this->scoreMatrix)[base1][base2];
+				del = tmp + gapPenalty;
+
+				// move the temp value to the array
+				array[r-1] = tmp;
+
+				// choose the greatest
+				if (sub >= ins)
+					tmp = sub >= del ? sub : del;
+				else
+					tmp = ins >= del ? ins : del;
+			}
+
+			// move the temp value to the array
+			array[rows - 1] = tmp;
+		}
+		score = array[rows - 1];
+		delete[] array;
+	} else {
+		// goes rowwise
+		int* array = new int[cols];
+
+		// initiate first row
+		array[0] = 0;
+		for (c = 1; c < cols; c++) {
+			array[c] = array[c-1] + gapPenalty * c;
+			encodedBases2[c-1] = encodeBase(s2[c-1]);
+		}
+		for (r=1; r < rows; r++)
+			encodedBases1[r-1] = encodeBase(s1[r-1]);
+
+		// calculate the similarity matrix (keep current row only)
+		for (r = 1; r < rows; r++)
+		{
+			// initiate first column (tmp hold values
+			// that will be later moved to the array)
+			tmp = array[0] + gapPenalty * c;
+			int base1 = encodedBases1[r-1];
+
+			for (c = 1; c < cols; c++)
+			{
+				int base2 = encodedBases2[c-1];
+				ins = tmp + gapPenalty;
+				sub = array[c-1] + (this->scoreMatrix)[base1][base2];
+				del = array[c] + gapPenalty;
+
+				// move the temp value to the array
+				array[c-1] = tmp;
+
+				// choose the greatest
+				if (sub >= ins)
+					tmp = sub >= del ? sub : del;
+				else
+					tmp = ins >= del ? ins : del;
+			}
+
+			// move the temp value to the array
+			array[cols - 1] = tmp;
+		}
+		score = array[cols - 1];
+		delete[] array;
+	}
+	delete[] encodedBases1;
+	delete[] encodedBases2;
 	return score;
 }
 
@@ -146,7 +242,7 @@ AlignResult AlignmentAlgorithm::getNWAlignment(const std::string& s1,
 
 			// See if the third term is the largest (NORTHWEST)
 			int northwest = alignMatrix[i - 1][j - 1]
-					+ (this->scoreMatrix)[base1][base2];
+			                                   + (this->scoreMatrix)[base1][base2];
 			if (max <= northwest) {
 				max = northwest;
 				flag = 3;
@@ -237,7 +333,7 @@ int AlignmentAlgorithm::getSWScore(const string& s1, const string& s2) {
 
 			// See if the third term is the largest (NORTHWEST)
 			int northwest = alignMatrix[i - 1][j - 1]
-					+ (this->scoreMatrix)[base1][base2];
+			                                   + (this->scoreMatrix)[base1][base2];
 			if (innerMax <= northwest) {
 				innerMax = northwest;
 			}
@@ -270,7 +366,7 @@ AlignResult AlignmentAlgorithm::getSWAlignment(const std::string& s1,
 	for (int i = 1; i <= numOfCols; i++) {
 		alignMatrix[0][i] = 0;
 		trace[0][i] = 0; //start point
-	    encodedBases2[i-1] = encodeBase(s2[i-1]);
+		encodedBases2[i-1] = encodeBase(s2[i-1]);
 	}
 
 	int maxScore = 0;
@@ -279,44 +375,44 @@ AlignResult AlignmentAlgorithm::getSWAlignment(const std::string& s1,
 
 	//build the matrix row by row
 	for (int i = 1; i <= numOfRows; i++) {
-	  int base1 = encodeBase(s1[i - 1]);
-	  alignMatrix[i][0] = 0;
-	  trace[i][0] = 0; //start point
-	  
-	  for (int j = 1; j <= numOfCols; j++) {
-	    int flag = 1;
-	    // Initialize max to the first of the three terms (NORTH).
-	    int base2 = encodedBases2[j - 1];
-	    int max = alignMatrix[i - 1][j] + this->gapPenalty;
-	    
-	    // See if the second term is larger (WEST).
-	    int west = alignMatrix[i][j - 1] + this->gapPenalty;
-	    if (max <= west) {
-	      max = west;
-	      flag = 2;
-	    }
-	    
-	    // See if the third term is the largest (NORTHWEST)
-	    int northwest = alignMatrix[i - 1][j - 1]
-	      + (this->scoreMatrix)[base1][base2];
-	    if (max <= northwest) {
-	      max = northwest;
-	      flag = 3;
-	    }
-	    
-	    if (max <= 0) {
-	      alignMatrix[i][j] = 0;
-	      trace[i][j] = 0; //start point
-	    } else {
-	      alignMatrix[i][j] = max;
-	      trace[i][j] = flag;
-	    }
-	    if (max > maxScore) {
-	      maxScore = max;
-	      maxRow = i;
-	      maxCol = j;
-	    }
-	  }
+		int base1 = encodeBase(s1[i - 1]);
+		alignMatrix[i][0] = 0;
+		trace[i][0] = 0; //start point
+
+		for (int j = 1; j <= numOfCols; j++) {
+			int flag = 1;
+			// Initialize max to the first of the three terms (NORTH).
+			int base2 = encodedBases2[j - 1];
+			int max = alignMatrix[i - 1][j] + this->gapPenalty;
+
+			// See if the second term is larger (WEST).
+			int west = alignMatrix[i][j - 1] + this->gapPenalty;
+			if (max <= west) {
+				max = west;
+				flag = 2;
+			}
+
+			// See if the third term is the largest (NORTHWEST)
+			int northwest = alignMatrix[i - 1][j - 1]
+			                                   + (this->scoreMatrix)[base1][base2];
+			if (max <= northwest) {
+				max = northwest;
+				flag = 3;
+			}
+
+			if (max <= 0) {
+				alignMatrix[i][j] = 0;
+				trace[i][j] = 0; //start point
+			} else {
+				alignMatrix[i][j] = max;
+				trace[i][j] = flag;
+			}
+			if (max > maxScore) {
+				maxScore = max;
+				maxRow = i;
+				maxCol = j;
+			}
+		}
 	}
 
 	result.score = alignMatrix[maxRow][maxCol];
@@ -363,18 +459,18 @@ AlignResult AlignmentAlgorithm::getSWAlignment(const std::string& s1,
 }
 
 intMatrix createIntMatrix(int n, int m) {
-  int** p = new int*[n];
-  int** p2;
-  int i;
-  for (i=0, p2=p; i < n; i++, p2++) {
-    *p2  = new int[m];
-  }
-  return p;
+	int** p = new int*[n];
+	int** p2;
+	int i;
+	for (i=0, p2=p; i < n; i++, p2++) {
+		*p2  = new int[m];
+	}
+	return p;
 }
 void deleteIntMatrix(int** p, int n) {
-  int** p2;
-  int i;
-  for (i=0, p2=p; i < n; i++, p2++)
-    delete [] *p2;
-  delete [] p;
+	int** p2;
+	int i;
+	for (i=0, p2=p; i < n; i++, p2++)
+		delete [] *p2;
+	delete [] p;
 }
