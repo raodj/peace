@@ -101,12 +101,12 @@ int AlignmentAlgorithm::getNWScore(const string& s1, const string& s2) {
 	int		r, c, rows, cols, tmp, ins, del, sub, score;
 	rows = s1.length();
 	cols = s2.length();
-	int* encodedBases1 = new int[rows];
-	int* encodedBases2 = new int[cols];
+	int encodedBases1[rows];
+	int encodedBases2[cols];
 
 	if (rows < cols) {
 		// goes columnwise
-		int* array = new int[rows];
+		int array[rows];
 
 		// initiate first column
 		array[0] = 0;
@@ -144,10 +144,9 @@ int AlignmentAlgorithm::getNWScore(const string& s1, const string& s2) {
 			array[rows - 1] = tmp;
 		}
 		score = array[rows - 1];
-		delete[] array;
 	} else {
 		// goes rowwise
-		int* array = new int[cols];
+		int array[cols];
 
 		// initiate first row
 		array[0] = 0;
@@ -187,10 +186,7 @@ int AlignmentAlgorithm::getNWScore(const string& s1, const string& s2) {
 			array[cols - 1] = tmp;
 		}
 		score = array[cols - 1];
-		delete[] array;
 	}
-	delete[] encodedBases1;
-	delete[] encodedBases2;
 	return score;
 }
 
@@ -355,14 +351,16 @@ AlignResult AlignmentAlgorithm::getSWAlignment(const std::string& s1,
 	//calculate the alignment score and record the traceback path
 	int numOfRows = s1.length();
 	int numOfCols = s2.length();
-	intMatrix trace = createIntMatrix(numOfRows + 1, numOfCols + 1);
+	//intMatrix trace = createIntMatrix(numOfRows + 1, numOfCols + 1);
+	int trace[numOfRows + 1][numOfCols + 1];
 	trace[0][0] = 0;
 
-	intMatrix alignMatrix = createIntMatrix(numOfRows + 1, numOfCols + 1);
-
+	//intMatrix alignMatrix = createIntMatrix(numOfRows + 1, numOfCols + 1);
+	int alignMatrix[numOfRows + 1][numOfCols + 1];
 	//initialize the matrix
 	alignMatrix[0][0] = 0;
-	int* encodedBases2 = new int[numOfCols];
+	//int* encodedBases2 = new int[numOfCols];
+	int encodedBases2[numOfCols];
 	for (int i = 1; i <= numOfCols; i++) {
 		alignMatrix[0][i] = 0;
 		trace[0][i] = 0; //start point
@@ -451,9 +449,9 @@ AlignResult AlignmentAlgorithm::getSWAlignment(const std::string& s1,
 	result.str1 = tStr1;
 	result.str2 = tStr2;
 
-	deleteIntMatrix(trace, numOfRows+1);
-	deleteIntMatrix(alignMatrix, numOfRows+1);
-	delete [] encodedBases2;
+	//deleteIntMatrix(trace, numOfRows+1);
+	//deleteIntMatrix(alignMatrix, numOfRows+1);
+	//delete [] encodedBases2;
 
 	return result;
 }
