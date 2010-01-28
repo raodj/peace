@@ -28,10 +28,10 @@ bool operator< (const StartPos& k1, const StartPos& k2) {
 }
 
 LeftEnd::LeftEnd(int idx, int n, string s) {
-	 index = idx;
-	 lenOfSeq = s.length();
-	 numOfUsedNodes = n;
-	 seq = s;
+	index = idx;
+	lenOfSeq = s.length();
+	numOfUsedNodes = n;
+	seq = s;
 }
 
 bool operator< (const LeftEnd& k1, const LeftEnd& k2) {
@@ -77,55 +77,55 @@ void Reconstruction::printConsensus() {
 	/*
 	 * print consensus sequences
 	 */
-	 ofstream outFile1;
-	 outFile1.open(consensusFileName.c_str(),ios::trunc);
+	ofstream outFile1;
+	outFile1.open(consensusFileName.c_str(),ios::trunc);
 
-	 vector<string> consensus = reconstruct();
-	 int index = 1;
-	 for (int i=0; i<consensus.size(); i++) {
-		 string str = consensus[i];
-		 size_t found = str.find('\n');
+	vector<string> consensus = reconstruct();
+	int index = 1;
+	for (int i=0; i<consensus.size(); i++) {
+		string str = consensus[i];
+		size_t found = str.find('\n');
 
-		 if (found != string::npos) { //there is "\n" in the sequence
-			 outFile1 << ">contig " << (index++) << endl;
+		if (found != string::npos) { //there is "\n" in the sequence
+			outFile1 << ">contig " << (index++) << endl;
 
-			 int start = 0;
-			 while (found != string::npos) {
-				 outFile1 << str.substr(start, (int)found-start) << endl;
-				 start = found + 1;
-				 found = str.find('\n', found+1);
-			 }
-			 outFile1 << str.substr(start) << endl;
-		 } else {
-			 outFile1 << ">contig " << (index++) << endl;
-			 outFile1 << consensus[i] << endl;
-		 }
-	 }
-	 outFile1.close();
+			int start = 0;
+			while (found != string::npos) {
+				outFile1 << str.substr(start, (int)found-start) << endl;
+				start = found + 1;
+				found = str.find('\n', found+1);
+			}
+			outFile1 << str.substr(start) << endl;
+		} else {
+			outFile1 << ">contig " << (index++) << endl;
+			outFile1 << consensus[i] << endl;
+		}
+	}
+	outFile1.close();
 
 
-	 /*
-	  * print singletons and numOfUsedESTs
-	  */
-	 ofstream outFile2;
-	 outFile2.open(singletonFileName.c_str(),ios::trunc);
+	/*
+	 * print singletons and numOfUsedESTs
+	 */
+	ofstream outFile2;
+	outFile2.open(singletonFileName.c_str(),ios::trunc);
 
-	 int num = 0;
-	 for (int i=0; i<usedNodes.size(); i++) {
-		 if (usedNodes[i] == 0) {	//singleton
-			 outFile2 << g->getCommentOfNode(i) << "\n";
-			 outFile2 << g->getSeqOfNode(i) << "\n";
-		 } else {
-			 num++;
-		 }
-	 }
-	 outFile2.close();
+	int num = 0;
+	for (int i=0; i<usedNodes.size(); i++) {
+		if (usedNodes[i] == 0) {	//singleton
+			outFile2 << g->getCommentOfNode(i) << "\n";
+			outFile2 << g->getSeqOfNode(i) << "\n";
+		} else {
+			num++;
+		}
+	}
+	outFile2.close();
 
-	 ofstream outFile3;
-	 outFile3.open(numOfUsedESTsFileName.c_str(),ios::trunc);
-	 outFile3 << ">number of used ESTs by EAST\n";
-	 outFile3 << num;
-	 outFile3.close();
+	ofstream outFile3;
+	outFile3.open(numOfUsedESTsFileName.c_str(),ios::trunc);
+	outFile3 << ">number of used ESTs by EAST\n";
+	outFile3 << num;
+	outFile3.close();
 }
 
 /*
@@ -250,13 +250,13 @@ string Reconstruction::getInfoOfLeftEnd(int leftEnd, vector<vector<int> >& dGrap
 }
 
 /*
-* This method is designed to group left ends into independent sets. All the dependent left ends (include one by one) are put
-* into one group.
-* In each group, we find the left end with the longest length and the one which will use the most number of ESTs to reconstruct,
-* and combine them together to form a consensus by calling the function "processLeftEndsWithInclusion".
+ * This method is designed to group left ends into independent sets. All the dependent left ends (include one by one) are put
+ * into one group.
+ * In each group, we find the left end with the longest length and the one which will use the most number of ESTs to reconstruct,
+ * and combine them together to form a consensus by calling the function "processLeftEndsWithInclusion".
 
-* @return all the consensus sequences.
-*/
+ * @return all the consensus sequences.
+ */
 vector<string>Reconstruction::processLeftEnds() {
 	vector<string> allOutputContigs;	//store all the generated sequences
 
@@ -304,7 +304,7 @@ vector<string>Reconstruction::processLeftEnds() {
 		}
 	}
 	return allOutputContigs;
- }
+}
 
 /*
  * This method is called by "processLeftEnds".
@@ -314,41 +314,45 @@ vector<string>Reconstruction::processLeftEnds() {
  * form a new one and return it.
  */
 string Reconstruction::processLeftEndsWithInclusion(vector<LeftEnd>& includeStrs) {
-	 if (includeStrs.size() == 0) {
-		 return "";
-	 } else if (includeStrs.size() == 1) {
-		 vector<vector<int> > dGraph = genDGraph();
-		 string s = getInfoOfLeftEnd(includeStrs[0].index, dGraph, 1);
-		 return s;
-	 } else {
-		 int maxLen = 0; //the maximal length of the first EST.
-		 int idxMaxLen = 0;
-		 int maxNumNodes = 0;
-		 int idxMaxNumNodes = 0;
+	if (includeStrs.size() == 0) {
+		return "";
+	} else if (includeStrs.size() == 1) {
+		vector<vector<int> > dGraph = genDGraph();
+		string s = getInfoOfLeftEnd(includeStrs[0].index, dGraph, 1);
+		return s;
+	} else {
+		int maxLen = 0; //the maximal length of the first EST.
+		int idxMaxLen = 0;
+		int maxNumNodes = 0;
+		int idxMaxNumNodes = 0;
 
-		 for (int i=0; i<includeStrs.size(); i++) {
-			 int tLen = includeStrs[i].lenOfSeq;
-			 if (tLen > maxLen) {
-				 maxLen = tLen;
-				 idxMaxLen = i;
-			 }
+		for (int i=0; i<includeStrs.size(); i++) {
+			int tLen = includeStrs[i].lenOfSeq;
+			if (tLen > maxLen) {
+				maxLen = tLen;
+				idxMaxLen = i;
+			}
 
-			 int num = includeStrs[i].numOfUsedNodes;
-			 if (num > maxNumNodes) {
-				 maxNumNodes = num;
-				 idxMaxNumNodes = i;
-			 }
-		 }
+			int num = includeStrs[i].numOfUsedNodes;
+			if (num > maxNumNodes) {
+				maxNumNodes = num;
+				idxMaxNumNodes = i;
+			}
+		}
 
-		 string s1 = includeStrs[idxMaxLen].seq;
-		 usedNodes[includeStrs[idxMaxLen].index] = 1;	//mark that the node is used.
-		 vector<vector<int> > dGraph = genDGraph();
-		 string s2 = getInfoOfLeftEnd(includeStrs[idxMaxNumNodes].index, dGraph, 1);
+		string s1 = includeStrs[idxMaxLen].seq;
+		usedNodes[includeStrs[idxMaxLen].index] = 1;	//mark that the node is used.
+		vector<vector<int> > dGraph = genDGraph();
+		string s2 = getInfoOfLeftEnd(includeStrs[idxMaxNumNodes].index, dGraph, 1);
 
-		 AlignResult strs = alignment.getLocalAlignment(s1, s2);
-		 int offset = s1.find(replace(strs.str1, "-", ""));
-		 return (s1.substr(0, offset) + s2);
-	 }
+		string tmpConsensus = s2;
+		if (tmpConsensus.length() > s1.length()) {
+			tmpConsensus = s2.substr(0, s1.size());
+		}
+		AlignResult strs = alignment.getLocalAlignment(s1, tmpConsensus);
+		int offset = s1.find(replace(strs.str1, "-", ""));
+		return (s1.substr(0, offset) + s2);
+	}
 }
 
 /*
