@@ -393,7 +393,8 @@ vector<string> Reconstruction::reconstructSeq(vector<StartPos>& a) {
 		if (tmpConsensus.length() > comparisonLen) {
 			tmpConsensus = tConsensus.substr(tConsensus.size()-comparisonLen+1);
 		}
-		AlignResult strs = alignment.getLocalAlignment(tmpConsensus, curSeq);
+		//AlignResult strs = alignment.getLocalAlignment(tmpConsensus, curSeq);
+		AlignResult strs = alignment.getBoundedLocalAlignment(tmpConsensus, curSeq);
 		tConsensus = replace(tConsensus, replace(strs.str1, "-", ""), strs.str1);
 		int offset = (int)tConsensus.find(strs.str1);
 

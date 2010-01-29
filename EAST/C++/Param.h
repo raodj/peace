@@ -34,6 +34,9 @@ const int NUMOFLEVELS=0;
 const int COMPARISON_LENGTH=800;
 
 //the width of band which is used to speed up method "getNWScore".
-const int BAND_WIDTH=20;
+const int BAND_WIDTH_NW=20;
+
+//the width of band which is used to speed up method "getSWAlignment".
+const int BAND_WIDTH_SW=20;
 
 #endif

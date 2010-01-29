@@ -45,6 +45,7 @@ public:
 	AlignResult getNWAlignment(const std::string& s1, const std::string& s2);
 	int getSWScore(const std::string& s1, const std::string& s2);
 	AlignResult getSWAlignment(const std::string& s1, const std::string& s2);
+	AlignResult getBoundedSWAlignment(const std::string& horizontal, const std::string& vertical);
 	std::vector<int> encodeString(const std::string& s1);
 };
 

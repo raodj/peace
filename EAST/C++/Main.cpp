@@ -2,6 +2,7 @@
 #include <string>
 #include "ESTAssembly.h"
 #include "Param.h"
+#include "AlignmentAlgorithm.h"
 using namespace std;
 
 int main(int argc, char* argv[]) {
@@ -24,6 +25,7 @@ int main(int argc, char* argv[]) {
 		NUMOFUSEDEST = argv[5];
 	}
 
+
 	ESTAssembly assemble(ESTFILE, MSTFILE);
 	assemble.assemble(CONSENSUSFILE, SINGLETONFILE, NUMOFUSEDEST);
 	int nCall = assemble.rec->alignment.numCall;
@@ -34,6 +36,7 @@ int main(int argc, char* argv[]) {
 	cout << "used time for SW alignment: " << uTime << endl;
 	cout << "number of calls for NW score: " << nCall2 << endl;
 	cout << "used time for NW score: " << uTime2 << endl;
+
 }
 
 
