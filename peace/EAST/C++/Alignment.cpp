@@ -68,3 +68,18 @@ AlignResult Alignment::getLocalAlignment(string s1, string s2) {
 	return ret;
 }
 
+/*
+ * Use Bounded Smith-Waterman algorithm to get local alignment. This method is used to speed up.
+ * @param s1, s2
+ * @return string[], [0] and [1] are the two aligned sequences, [2] is the pairwise alignment.
+ */
+AlignResult Alignment::getBoundedLocalAlignment(string s1, string s2) {
+	//return alignAlgo->getBoundedSWAlignment(s1, s2);
+	this->numCall++;
+	time_t start,end;
+	start = time(NULL);
+	AlignResult ret = alignAlgo->getBoundedSWAlignment(s1, s2);
+	end = time(NULL);
+	usedTime += end - start;
+	return ret;
+}

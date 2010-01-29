@@ -1,6 +1,7 @@
 #include <math.h>
 #include <algorithm>
 #include <cstdlib>
+#include <iostream>
 #include "AlignmentAlgorithm.h"
 using namespace std;
 
@@ -100,7 +101,7 @@ int AlignmentAlgorithm::getNWScore(const string& s1, const string& s2) {
 	return score;
 	 */
 	int	r, c, rows, cols, tmp, ins, del, sub, score;
-	int band = BAND_WIDTH;
+	int band = BAND_WIDTH_NW;
 	rows = s1.length();
 	cols = s2.length();
 	int encodedBases1[rows];
@@ -474,6 +475,183 @@ AlignResult AlignmentAlgorithm::getSWAlignment(const std::string& s1,
 	return result;
 }
 
+AlignResult AlignmentAlgorithm::getBoundedSWAlignment(const std::string& horizontal,
+		const std::string& vertical) {
+	AlignResult result;
+
+	//calculate the alignment score and record the traceback path
+	int numOfRows = vertical.length();
+	int numOfCols = horizontal.length();
+	//intMatrix trace = createIntMatrix(numOfRows + 1, numOfCols + 1);
+	int trace[numOfRows + 1][numOfCols + 1];
+	trace[0][0] = 0;
+
+	int alignMatrix[numOfRows + 1][numOfCols + 1];
+	//initialize the matrix
+	alignMatrix[0][0] = 0;
+	int encodedBaseH[numOfCols];
+	for (int i = 1; i <= numOfCols; i++) {
+		alignMatrix[0][i] = 0;
+		trace[0][i] = 0; //start point
+		encodedBaseH[i-1] = encodeBase(horizontal[i-1]);
+	}
+
+	int maxScore = 0;
+	int maxRow = 0;
+	int maxCol = 0;
+
+	//build the matrix row by row until row 50 and then look for the starting point of bounded algorithm in the first 50 rows.
+	int tmpRowEnd = numOfRows>50? 50 : numOfRows;
+	for (int i = 1; i <= tmpRowEnd; i++) {
+		int base1 = encodeBase(vertical[i - 1]);
+		alignMatrix[i][0] = 0;
+		trace[i][0] = 0; //start point
+
+		for (int j = 1; j <= numOfCols; j++) {
+			int flag = 1;
+			// Initialize max to the first of the three terms (NORTH).
+			int base2 = encodedBaseH[j - 1];
+			int max = alignMatrix[i - 1][j] + this->gapPenalty;
+
+			// See if the second term is larger (WEST).
+			int west = alignMatrix[i][j - 1] + this->gapPenalty;
+			if (max <= west) {
+				max = west;
+				flag = 2;
+			}
+
+			// See if the third term is the largest (NORTHWEST)
+			int northwest = alignMatrix[i - 1][j - 1]
+			                                   + (this->scoreMatrix)[base1][base2];
+			if (max <= northwest) {
+				max = northwest;
+				flag = 3;
+			}
+
+			if (max <= 0) {
+				alignMatrix[i][j] = 0;
+				trace[i][j] = 0; //start point
+			} else {
+				alignMatrix[i][j] = max;
+				trace[i][j] = flag;
+			}
+			if (max > maxScore) {
+				maxScore = max;
+				maxRow = i;
+				maxCol = j;
+			}
+		}
+	}
+
+	//check trace to decide where to start bounded algorithm
+	int boundRow = 0;
+	int boundCol = 0;
+	int bounded = 0;
+	int band = BAND_WIDTH_SW;
+	for (int i=0; i<=tmpRowEnd-band; i++) {
+		for (int j=0; j<=numOfCols-band; j++) {
+			if (alignMatrix[i][j] == 0) {
+				int northwestNum = 0;
+				for (int k=1; k<=band; k++)
+					northwestNum = trace[i+k][j+k]==3 ? (northwestNum+1): northwestNum;
+
+				if (northwestNum >= band-2) {
+					bounded = 1;
+					boundRow = i;
+					boundCol = j;
+					break;
+				}
+			}
+		}
+		if (bounded == 1) break;
+	}
+
+	//build the matrix row by row
+	int tmpStart = boundCol+1;
+	for (int i = boundRow+1; i <= numOfRows; i++) {
+		int base1 = encodeBase(vertical[i - 1]);
+
+		int tmpI = i + boundCol;
+		int start = (tmpI-band) > tmpStart ? (tmpI-band) : tmpStart;
+		int end = numOfCols > (tmpI+band) ? (tmpI+band) : numOfCols;
+		for (int j = start; j <= end; j++) {
+			int base2 = encodedBaseH[j - 1];
+			int flag = 3;
+			// Initialize max to the first of the three terms (NORTHWEST).
+			int max = alignMatrix[i - 1][j - 1]
+		                                   + (this->scoreMatrix)[base1][base2];
+
+			// See if the second term is larger (WEST).
+			if (abs(tmpI-j+1) <= band) {
+				int west = alignMatrix[i][j - 1] + this->gapPenalty;
+				if (max <= west) {
+					max = west;
+					flag = 2;
+				}
+			}
+
+			// See if the third term is the largest (NORTH)
+			if (abs(tmpI-1-j) <= band) {
+				int north = alignMatrix[i - 1][j] + this->gapPenalty;
+				if (max <= north) {
+					max = north;
+					flag = 1;
+				}
+			}
+
+			if (max <= 0) {
+				alignMatrix[i][j] = 0;
+				trace[i][j] = 0; //start point
+			} else {
+				alignMatrix[i][j] = max;
+				trace[i][j] = flag;
+			}
+			if (max > maxScore) {
+				maxScore = max;
+				maxRow = i;
+				maxCol = j;
+			}
+		}
+	}
+
+	result.score = alignMatrix[maxRow][maxCol];
+
+	//trace back and get the alignment strings
+	string tStr1;
+	string tStr2;
+	int row = maxRow;
+	int col = maxCol;
+	int flag = trace[row][col];
+	while (flag != 0) {
+		switch (flag) {
+		case 1: //i-1, j, north
+			tStr1.append(1, vertical[row-1]);
+			tStr2.append(1, '-');
+			row = row - 1;
+			break;
+		case 2: //i, j-1, west
+			tStr1.append(1, '-');
+			tStr2.append(1, horizontal[col-1]);
+			col = col - 1;
+			break;
+		case 3: //i-1, j-1, northwest
+			tStr1.append(1, vertical[row-1]);
+			tStr2.append(1, horizontal[col-1]);
+			row = row - 1;
+			col = col - 1;
+			break;
+		}
+		flag = trace[row][col];
+	}
+
+	//set str1 and str2 in result, they are reverse of tStr1 and tStr2
+	reverse(tStr1.begin(), tStr1.end());
+	reverse(tStr2.begin(), tStr2.end());
+	result.str1 = tStr2; //result.str1 for the first parameter "horizontal"
+	result.str2 = tStr1; //result.str2 for the second parameter "vertical"
+	return result;
+}
+
 intMatrix createIntMatrix(int n, int m) {
 	int** p = new int*[n];
 	int** p2;
@@ -490,3 +668,5 @@ void deleteIntMatrix(int** p, int n) {
 		delete [] *p2;
 	delete [] p;
 }
+
+
