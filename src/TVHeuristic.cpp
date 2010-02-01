@@ -39,9 +39,9 @@
 #include "EST.h"
 
 // Define the static parameters
-int TVHeuristic::t = 65;
+int TVHeuristic::t = 18;
 
-int TVHeuristic::windowLen = 100;
+int TVHeuristic::windowLen = 50;
 
 // The set of arguments for this class.  Note that some of the base
 // class static instance variables are reused here so that the values

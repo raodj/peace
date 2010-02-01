@@ -40,11 +40,11 @@
 #include "EST.h"
 
 // default params
-int NewUVHeuristic::u           = 2;
+int NewUVHeuristic::u           = 4;
 int NewUVHeuristic::v           = 6;
-int NewUVHeuristic::wordShift   = 6;
+int NewUVHeuristic::wordShift   = 4;
 int NewUVHeuristic::BitMask     = 0;
-int NewUVHeuristic::passes      = 1;
+int NewUVHeuristic::passes      = 2;
 
 // Instance variable to track number of bits to shift for building
 // hash values.  This is set to 2*(v-1) in initialize method.
