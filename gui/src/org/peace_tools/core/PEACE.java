@@ -115,6 +115,8 @@ public class PEACE {
 									vf.createView("installFiles/welcome.html", null,
 											ViewFactory.ViewType.HTML_VIEW, false, false);
 								}
+								// First check all the server status.
+								mf.checkAllServerStatus();
 								// Create job threads for all jobs that need them.
 								mf.createJobThreads();
 							}

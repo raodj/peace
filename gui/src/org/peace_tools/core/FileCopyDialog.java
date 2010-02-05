@@ -49,6 +49,7 @@ import javax.swing.border.EmptyBorder;
 
 import org.peace_tools.core.session.ServerSession;
 import org.peace_tools.core.session.SessionFactory;
+import org.peace_tools.generic.ProgrammerLog;
 import org.peace_tools.generic.Utilities;
 import org.peace_tools.workspace.Job;
 import org.peace_tools.workspace.JobBase;
@@ -76,11 +77,12 @@ public class FileCopyDialog extends JDialog implements Runnable {
 	 * @param parent The parent window to which this wizard dialog logically
 	 * belongs.
 	 */
-	public FileCopyDialog(Frame parent, Job job) {
+	public FileCopyDialog(MainFrame parent, Job job) {
 		// Initialize the JDialog
 		super(parent, "", true);
-		// Save reference to the job
-		this.job = job;
+		// Save references
+		this.mainFrame = parent;
+		this.job       = job;
 		// Obtain and save the MSTData and ClusterDataEntries that
 		// contain the name of the destination file for this job.
 		Workspace workspace    = Workspace.get();
@@ -185,7 +187,9 @@ public class FileCopyDialog extends JDialog implements Runnable {
 				progressInfo.setText("Transferring: " + destFile.getName());
 				// Create an output stream.
 				FileOutputStream fos = new FileOutputStream(targetFileNames[i]);
+				ProgrammerLog.log("Starting transfer of " + destFile.getName() + "\n");
 				session.copy(fos, job.getPath(), destFile.getName(), progressBar);
+				ProgrammerLog.log("Done transferring " + destFile.getName() + "\n");
 				// Close the destination file.
 				fos.close();
 				// Update the success status.
@@ -193,7 +197,11 @@ public class FileCopyDialog extends JDialog implements Runnable {
 			}
 			// Set status of the job to success
 			job.setStatus(JobBase.JobStatusType.SUCCESS);
+			ProgrammerLog.log("Flagged status of job " + job.getJobID() + " to 'success'.\n");
+			// Save the updated work space information
+			mainFrame.saveDelayedWorkspace();
 		} catch (Exception e) {
+			ProgrammerLog.log(e);
 			String errMsg = "<html>Error copying the following file to the GUI<br>" +
 					"File: " + targetFileNames[i] + "<br>" +
 					"<b>You may retry the copy operation again.<b></html>";
@@ -253,6 +261,12 @@ public class FileCopyDialog extends JDialog implements Runnable {
 	 * This list is populated in the constructor.
 	 */
 	private String[] targetFileNames;
+	
+	/**
+	 * A convenient reference to the main frame that logically owns
+	 * this dialog.
+	 */
+	private final MainFrame mainFrame;
 	
 	/**
 	 * A serialization constant (to keep the compiler happy)

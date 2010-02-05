@@ -65,6 +65,7 @@ import org.peace_tools.workspace.Job;
 import org.peace_tools.workspace.JobBase;
 import org.peace_tools.workspace.JobList;
 import org.peace_tools.workspace.Server;
+import org.peace_tools.workspace.ServerList;
 import org.peace_tools.workspace.Workspace;
 
 public class MainFrame extends JFrame implements ActionListener {
@@ -376,6 +377,39 @@ public class MainFrame extends JFrame implements ActionListener {
 	}
 
 	/**
+	 * Method to ensure status of servers are as expected right after start up.
+	 * 
+	 * <p>This method is typically invoked from PEACE.launchMainFrame() method after
+	 * the main frame has been created. This method performs the task of checking
+	 * to ensure that the status of all the server entries in the workspace are
+	 * in a consistent state --- that is, the status is not INSTALLING or
+	 * UNINSTALLING.  If the status is as expected, this method displays a suitable
+	 * warning to the user and updates the server status.</p>
+	 * 
+	 * <p>This check is needed in cases where the user starts an install or uninstall
+	 * but intentionally kills the GUI due some other issue (such as network connection
+	 * failures etc). The status needs to be updated so that the entry can be deleted
+	 * from the work space.</p>
+	 */
+	public void checkAllServerStatus() {
+		ServerList serverList = Workspace.get().getServerList();
+		for(Server server: serverList.getServers()) {
+			if ((server.getStatus().equals(Server.ServerStatusType.INSTALLING)) ||
+				(server.getStatus().equals(Server.ServerStatusType.UNINSTALLING))) {
+				// Seems like user aborted during an install/un-install. Report message 
+				// and update status
+				String msg = String.format(SERVER_IN_BAD_STATUS, server.getName());
+				JOptionPane.showMessageDialog(this, msg, "Invalid server entry found",
+						JOptionPane.WARNING_MESSAGE);
+				// Update the server status.
+				boolean installFlag = server.getStatus().equals(Server.ServerStatusType.INSTALLING);
+				server.setStatus(installFlag ? Server.ServerStatusType.INSTALL_FAILED : 
+					Server.ServerStatusType.UNINSTALL_FAILED);
+			}
+		}
+	}
+	
+	/**
 	 * The default view factory that is used to create all the
 	 * views associated with this main frame.
 	 */
@@ -494,6 +528,17 @@ public class MainFrame extends JFrame implements ActionListener {
 	"You may view the help web site directly from your system browser by<br>" +
 	"navigating to the appropriate help section from http://www.peace-tools.org/" +
 	"</html>";
+
+	/**
+	 * This message is displayed by the main frame when a server entry
+	 * is in an unexpected state on start up. This message is formatted 
+	 * with suitable values before it is displayed to the user.
+	 */
+	private static final String SERVER_IN_BAD_STATUS = "<html>" +
+	"The server <b>%1$s</b> is in an unexpected state.<br>" +
+	"This can occur if PEACE GUI was closed during installation or uninstallation.<br>"+
+	"The status of this server entry will be updated and you may delete this entry<br>"+
+	"from this workspace.</html>";
 
 	/**
 	 * A generated serial version ID.
