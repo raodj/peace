@@ -187,8 +187,8 @@ public class DataSetTreeView extends JPanel implements ActionListener {
 	private void handleDoubleClick(MouseEvent me) {
 		assert (me.getClickCount() == 2);
 		// First get the node corresponding to the location of mouse
-        TreePath path = dataSetTree.getPathForLocation(me.getX(), me.getY());
-        if (path == null) {
+        TreePath path = dataSetTree.getSelectionPath();
+        if ((path == null) || (path.getPathCount() < 2)){
         	// There were no nodes at the click point. Nothing to do
         	return;
         }
