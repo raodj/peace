@@ -32,7 +32,6 @@
 //---------------------------------------------------------------------
 
 #include <fstream>
-#include <string>
 #include <unistd.h>
 
 #include "ClusterMakerFactory.h"
@@ -45,12 +44,12 @@
 #include "Heuristic.h"
 #include "EST.h"
 
+#include "generate_d2.h"
+
 #include <unistd.h>
 #include <assert.h>
 
 #include <time.h>
-
-using namespace std;
 
 const int max_id_length = 1000;
 const int max_string_length = 100000;
@@ -73,7 +72,7 @@ bool header = true;
 string add_errors(double error_rate, string& s) {
   for (string::iterator i=s.begin(); i != s.end(); i++) {
     if (drand48() < error_rate) {
-      int shift = ((int)3*drand48()) + 1;
+      int shift = (int)(((int)3*drand48()) + 1);
       for (int j=0; j < shift; j++) {
 	switch (*i) {
 	case 'A' : *i = 'C'; break;
@@ -167,7 +166,7 @@ int main(int argc, char** argv) {
   // Generate the overlapping sequences
   for (int overlap=min_overlap; overlap <= max_overlap; overlap++) {
     for (int i=0; i < num_trials; i++) {
-      int index = seqs.size()*drand48();
+      int index = (int)(seqs.size()*drand48());
       string& seq = seqs[index];
       
       int start1 = (int)((seq.length() - 2*segmentLength + overlap)*drand48());
@@ -195,8 +194,8 @@ int main(int argc, char** argv) {
     int index1, index2;
     
     do {
-      index1 = seqs.size()*drand48();
-      index2 = seqs.size()*drand48();
+      index1 = (int)(seqs.size()*drand48());
+      index2 = (int)(seqs.size()*drand48());
     } while (index1 == index2);
 
     string seq1 = seqs[index1];

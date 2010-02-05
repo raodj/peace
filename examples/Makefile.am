@@ -50,6 +50,7 @@ generate_d2_LDFLAGS = -L../src
 generate_d2_LDADD = $(STDCPP) -lpeace
 
 generate_d2_SOURCES = \
+generate_d2.h \
 generate_d2.cpp
 
 # end of Makefile.am
