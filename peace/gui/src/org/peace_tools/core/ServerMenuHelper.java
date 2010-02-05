@@ -327,8 +327,8 @@ implements ActionListener, ListSelectionListener {
 	 *  order is important.
 	 */
 	private static final String MenuSubTitles[] = {
-		"Launch wizard to add a new server and install PEACE runtime on server.", 
-		"Uninstall PEACE runtime and remove an existing server entry from he workspace.",
+		"Launch wizard to add a new server and install PEACE runtime on server", 
+		"Uninstall PEACE runtime and remove an existing server entry from the workspace",
 		"Show just my jobs that are running or queued on the server",
 		"Show all the jobs that are running or queued on the server",
 		"Try connecting to the server to ensure communication is operational"
