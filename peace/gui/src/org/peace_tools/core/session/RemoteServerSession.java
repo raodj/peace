@@ -128,7 +128,7 @@ implements ServerHostKeyVerifier {
 	 * 
 	 * <li>It then authenticates with the user by providing the
 	 * user name and password stored in the Server object supplied
-	 * when this class was insantiated.</li>
+	 * when this class was instantiated.</li>
 	 * 
 	 * </ol>
 	 * 
@@ -768,17 +768,17 @@ implements ServerHostKeyVerifier {
 			sftp = new SFTPv3Client(connection);
 			SFTPv3FileAttributes attribs = sftp.lstat(path);
 			if (attribs != null) {
-				String logEntry = String.format("SFTP gave %s as attributes for %s\n", 
-						Integer.toOctalString(attribs.uid), path);
+				String logEntry = String.format("SFTP gave 0x%s as attributes for %s\n", 
+						Integer.toHexString(attribs.permissions), path);
 				ProgrammerLog.log(logEntry);
 				// Translate SFTP file attributes to FileInfo style
 				// attributes.
 				int attributes = 0;
 				attributes |= (attribs.isDirectory()   ? FileInfo.DIR_ATTRIB  : 0);
 				attributes |= (attribs.isRegularFile() ? FileInfo.FILE_ATTRIB : 0);
-				attributes |= ((attribs.uid & 00400) != 0) ? FileInfo.READ_ATTRIB : 0;
-				attributes |= ((attribs.uid & 00200) != 0) ? FileInfo.WRITE_ATTRIB : 0;
-				attributes |= ((attribs.uid & 00100) != 0) ? FileInfo.EXEC_ATTRIB : 0;
+				attributes |= ((attribs.permissions & 00400) != 0) ? FileInfo.READ_ATTRIB  : 0;
+				attributes |= ((attribs.permissions & 00200) != 0) ? FileInfo.WRITE_ATTRIB : 0;
+				attributes |= ((attribs.permissions & 00100) != 0) ? FileInfo.EXEC_ATTRIB  : 0;
 				// Now create the file info object.
 				info = new FileInfo(path, attribs.atime.longValue() * 1000L, 
 						attribs.size.longValue(), attributes);
