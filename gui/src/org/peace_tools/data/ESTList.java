@@ -33,6 +33,7 @@
 
 package org.peace_tools.data;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -102,6 +103,7 @@ public class ESTList {
 	public static ESTList loadESTs(File fastaFile) throws IOException {
 		// Create a new input stream to read ESTs
 		InputStream is = new FileInputStream(fastaFile);
+		is = new BufferedInputStream(is);
 		// Use the helper method to load the data.
 		return loadESTs(fastaFile.getAbsolutePath(), is);
 	}
@@ -128,7 +130,7 @@ public class ESTList {
 		ESTList list = new ESTList(fileName);
 		// Get the ests from the list for handy reference
 		ArrayList<EST> ests = list.getESTs();
-		// Wrap input stream into pushback stream to load FASTA data
+		// Wrap input stream into push back stream to load FASTA data
 		PushbackInputStream fasta = new PushbackInputStream(is);
 		// Load ESTS...
 		while (fasta.available() > 0) {
@@ -188,8 +190,8 @@ public class ESTList {
 	 */
 	public double[] computeStatistics() {
 		// Compute the basic sequence length statistics.
-		int minLen = Integer.MAX_VALUE, maxLen  = 0;
-		int lenSum = 0, lenSqSum= 0;
+		int  minLen = Integer.MAX_VALUE, maxLen  = 0;
+		long lenSum = 0, lenSqSum= 0;
 		
 		for(int idx = 0; (idx < ests.size()); idx++) {
 			String seq = ests.get(idx).getSequence();

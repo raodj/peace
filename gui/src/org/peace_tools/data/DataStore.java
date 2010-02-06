@@ -45,6 +45,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.ProgressMonitorInputStream;
 
+import org.peace_tools.generic.ProgrammerLog;
 import org.peace_tools.generic.Utilities;
 
 /**
@@ -90,7 +91,11 @@ public class DataStore {
 		float reservedMemory = rt.totalMemory();
 		float availMemory    = maxMemory - reservedMemory;
 		
-		if (availMemory >= fileToBeLoaded.length() * 2.0f) {
+		// Log the information we are checking for troubleshooting.
+		ProgrammerLog.log(String.format(MEM_USAGE_LOG, maxMemory, reservedMemory, 
+				availMemory, fileToBeLoaded.length()));
+		// Do the memory check.
+		if (availMemory >= fileToBeLoaded.length() * 5.0f) {
 			// Sufficient memory is available (we think).
 			return;
 		}
@@ -98,7 +103,7 @@ public class DataStore {
 		// Warn the user that sufficient memory is not available.
 		final String WarnMsg = String.format(LOW_MEMORY_MSG, 
 				fileToBeLoaded.getName(), fileToBeLoaded.length() / TO_MEGS,
-				fileToBeLoaded.length() * 2.0f / TO_MEGS);
+				fileToBeLoaded.length() * 5.0f / TO_MEGS);
 		final String MemUse = String.format(MEM_USAGE, 
 				availMemory / TO_MEGS, reservedMemory / TO_MEGS,
 				maxMemory / TO_MEGS);
@@ -297,7 +302,7 @@ public class DataStore {
 	 */
 	private static final String LOW_MEMORY_MSG = "<html>" +
 		"Your Java VM is running low on memory and may not be able to open the<br>" +
-		"file: %s (size=%.1f MB). Memory safety threshold: %.1f MB<br>" +
+		"file: %s (size=%.1f MB). Conservative memory safety threshold: %.1f MB<br>" +
 		"See details below for current memory usage statistics.<br>" +
 		"You can proceed with opening the file (<i>but may experience problems</i>)<br>" +
 		"or try closing open files to freeup some memory and then open this file.<br><br>" +
@@ -316,6 +321,14 @@ public class DataStore {
 		"Current memory used: %.1f MB\n" +
 		"Maximum memory available to Java: %.1f MB";
 
+	/**
+	 * A simple log message that is cut just before the memory checks are performed
+	 * by the memoryCheck() method in this class. This string is filled-in and 
+	 * logged in the programmer log.
+	 */
+	private static final String MEM_USAGE_LOG = 
+		"memCheck: maxMemory: %f, reservedMemory: %f, availMemory: %f, fileSize: %d\n";
+	
 	/**
 	 * The globally unique singleton instance of this class that is
 	 * shared by all the other classes that require data files to
