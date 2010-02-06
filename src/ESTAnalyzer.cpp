@@ -138,6 +138,8 @@ ESTAnalyzer::loadFASTAFile(const char *fileName, const bool unpopulate) {
     }
     // Track line number in file being processed.
     int lineNum = 1;
+    // Track number of ESTs filtered out of the file
+    int filteredCount = 0;
     // Repeatedly read EST's from the file.
     while (!feof(fastaFile)) {
         EST *est = EST::create(fastaFile, lineNum);
@@ -147,12 +149,20 @@ ESTAnalyzer::loadFASTAFile(const char *fileName, const bool unpopulate) {
             std::cerr << analyzerName << ": Error loading EST from "
                       << fileName << " at line: " << lineNum << std::endl;
             return false;
+        } else if (est->getID() == -1) {
+            filteredCount++;
         }
         if (unpopulate) {
             est->unpopulate();
         }
     }
     // All the EST's were succesfully read.
+    if (filteredCount > 0) {
+        // Report on ESTs filtered out
+        std::cerr << analyzerName << ": " << filteredCount << " sequences "
+                  << "with length less than 50 nt were filtered out of "
+                  << "the data set." << std::endl;
+    }
     fclose(fastaFile);
     return true;
 }
