@@ -72,6 +72,7 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableColumnModel;
 
 import org.peace_tools.core.MainFrame;
+import org.peace_tools.generic.HelpHandler;
 import org.peace_tools.generic.Utilities;
 import org.peace_tools.workspace.ClassifierList;
 import org.peace_tools.workspace.DBClassifier;
@@ -277,7 +278,7 @@ public class DBClassifierEditor extends JDialog
 			table.setRowSelectionInterval(0, 0);
 			break;
 		case 6: //help
-			mainFrame.showHelp("http://www.peace-tools.org/");
+			HelpHandler.showHelp(mainFrame, "http://www.peace-tools.org/downloads/manual.pdf#page=35");
 			break;
 		case 7: // ok
 		case 8: // apply

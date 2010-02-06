@@ -35,13 +35,11 @@ package org.peace_tools.core;
 
 import java.awt.BorderLayout;
 import java.awt.Cursor;
-import java.awt.Desktop;
 import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.net.URI;
 import java.util.HashMap;
 
 import javax.swing.JDialog;
@@ -316,44 +314,6 @@ public class MainFrame extends JFrame implements ActionListener {
 		return defaultViewFactory;
 	}
 
-	/** Displays a given URL.
-	 * 
-	 * This method is used when the user chooses to view one of
-	 * the selected help topics.  This method is actually invoked 
-	 * from various classes to display help. The help is actually
-	 * redirected to the PEACE web site.  Having users visit a web
-	 * site permits help content to be developed independently
-	 * and updated consistently.
-	 * 
-	 * @param url The complete web site URL that must be displayed in 
-	 * the default system browser.
-	 */
-	public void showHelp(String url) {
-		if (Desktop.isDesktopSupported() && 
-				(Desktop.getDesktop().isSupported(Desktop.Action.BROWSE))) {
-			// Desktop is supported with browse to launch browser
-			try {
-				Desktop.getDesktop().browse(new URI(url));
-			} catch (Exception e) {
-				// Log the exception
-				ProgrammerLog.log(e);
-				// Display error to the user.
-				UserLog.log(UserLog.LogLevel.ERROR, 
-						"PEACE", e.getMessage());
-				JPanel msg = Utilities.collapsedMessage(HELP_ERROR,
-						Utilities.toString(e));
-				JOptionPane.showMessageDialog(this, msg,
-						"Error Displaying Help", JOptionPane.ERROR_MESSAGE);
-			}
-		} else {
-			JOptionPane.showMessageDialog(this, 
-					"Your Java version does not provide the necessary features\n" +
-					"to launch the online help directly from PEACE GUI.\n" +
-					"You may view the requested help information via the URL:\n" +
-					url, "Java Feature Unavailable", JOptionPane.WARNING_MESSAGE);
-		}
-	}
-
 	/**
 	 * Method to create threads for all jobs whose status is to be monitored.
 	 * 
@@ -517,16 +477,6 @@ public class MainFrame extends JFrame implements ActionListener {
 	"The workspace file could not be saved. This is a serious issue.<br>" +
 	"Plese refer to the details to identify the root cause. You may try<br>" +
 	"to save the workspace via the menus." +
-	"</html>";
-
-	/**
-	 * This message is displayed when the default system browser could
-	 * not be launched to display help.
-	 */
-	private static final String HELP_ERROR = "<html>" +
-	"The default system browser could not be launched to display help.<br>" +
-	"You may view the help web site directly from your system browser by<br>" +
-	"navigating to the appropriate help section from http://www.peace-tools.org/" +
 	"</html>";
 
 	/**

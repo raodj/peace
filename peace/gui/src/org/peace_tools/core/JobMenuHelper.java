@@ -144,7 +144,7 @@ public class JobMenuHelper extends AbstractMenuHelper
 			 JobWizard jobWizard = 
 				 new JobWizard("Create New Clustering", mainFrame);
 			 Utilities.centerPanel(mainFrame, jobWizard);
-			 jobWizard.showWizard("http://www.peace-tools.org/");
+			 jobWizard.showWizard("http://www.peace-tools.org/downloads/manual.pdf#page=30");
 			 return;
 		}
 		// Rest of the menu options are context sensitive.

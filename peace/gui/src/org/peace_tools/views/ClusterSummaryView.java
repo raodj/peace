@@ -67,6 +67,7 @@ import org.peace_tools.core.MainFrame;
 import org.peace_tools.data.ClusterFile;
 import org.peace_tools.data.ClusterNode;
 import org.peace_tools.data.ESTList;
+import org.peace_tools.generic.HelpHandler;
 import org.peace_tools.generic.Pair;
 import org.peace_tools.generic.Utilities;
 import org.peace_tools.workspace.DBClassifier;
@@ -170,9 +171,16 @@ public class ClusterSummaryView extends JPanel
 		
 		// Finally create the help button with suitable tool tip
 		toolbar.add(Box.createHorizontalStrut(10));
-		toolbar.add(Utilities.createButton("images/16x16/Help.png", 
-				null, "Help", null, "Read about the cluster summary" +
-						" view and how to use it", true));
+		button = Utilities.createButton("images/16x16/Help.png", 
+						null, "Help", null, "Read about the cluster summary" +
+						" view and how to use it", true);
+		button.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				HelpHandler.showHelp(mainFrame, "http://www.peace-tools.org/downloads/manual.pdf#page=35");
+			}
+		});
+		toolbar.add(button);
 		
 		// Add tool bar to the main panel at the top
 		add(toolbar, BorderLayout.NORTH);

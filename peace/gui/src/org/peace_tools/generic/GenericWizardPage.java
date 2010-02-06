@@ -103,7 +103,7 @@ public class GenericWizardPage extends JPanel implements WizardPage {
 	}
 
 	/**
-	 * This method returns the title set for this web page. 
+	 * This method returns the title set for this wizard page. 
 	 * 
 	 * This method is invoked by the core wizard dialog whenever it
 	 * needs to display the title for this page.
@@ -112,7 +112,6 @@ public class GenericWizardPage extends JPanel implements WizardPage {
 	 */
 	@Override
 	public String getTitle() {
-		// TODO Auto-generated method stub
 		return title;
 	}
 

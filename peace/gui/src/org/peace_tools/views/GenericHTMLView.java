@@ -17,6 +17,7 @@ import javax.swing.text.EditorKit;
 import javax.swing.text.html.HTMLEditorKit;
 
 import org.peace_tools.core.MainFrame;
+import org.peace_tools.generic.HelpHandler;
 import org.peace_tools.generic.ProgrammerLog;
 import org.peace_tools.generic.Utilities;
 
@@ -128,7 +129,7 @@ public class GenericHTMLView extends JPanel implements HyperlinkListener {
 				triggerTool(targetURL.substring(2));
 			} else {
 				// This is a standard URL. Load it in default browser.
-				mainFrame.showHelp(targetURL);
+				HelpHandler.showHelp(mainFrame, targetURL);
 			}
 		}
 	}
