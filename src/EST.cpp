@@ -158,7 +158,7 @@ EST::create(FILE* fastaFile, int& lineNum) {
                        toupper);
         const char* const seqBP = sequence.c_str();
         size_t seqLen = strlen(seqBP);
-        if (seqLen >= 50) {
+        if (seqLen >= 50) { // Only accept ESTs of sufficient length
             // Compute new max EST length
             maxESTlen = std::max(maxESTlen, strlen(seqBP));
             // Create a new est with all the information.
@@ -169,7 +169,7 @@ EST::create(FILE* fastaFile, int& lineNum) {
             // Return newly created est back to the caller.
             return est;
         } else {
-            // Create a dummy EST
+            // Create a dummy EST to return to the analyzer
             EST *est = new EST(-1, headerLine.c_str(), seqBP, offset);
             return est;
         }

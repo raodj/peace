@@ -150,6 +150,7 @@ ESTAnalyzer::loadFASTAFile(const char *fileName, const bool unpopulate) {
                       << fileName << " at line: " << lineNum << std::endl;
             return false;
         } else if (est->getID() == -1) {
+            // A dummy EST to represent an EST filtered out of the dataset
             filteredCount++;
         }
         if (unpopulate) {
@@ -157,8 +158,7 @@ ESTAnalyzer::loadFASTAFile(const char *fileName, const bool unpopulate) {
         }
     }
     // All the EST's were succesfully read.
-    if (filteredCount > 0) {
-        // Report on ESTs filtered out
+    if (filteredCount > 0) { // Report on ESTs filtered out, if any
         std::cerr << analyzerName << ": " << filteredCount << " sequences "
                   << "with length less than 50 nt were filtered out of "
                   << "the data set." << std::endl;
