@@ -37,6 +37,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
 import java.awt.Cursor;
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -247,7 +248,7 @@ public abstract class ViewFactory implements DnDTabListener {
 		// Check and load the FASTA file
 		JComponent view = null;
 		ESTList ests = null;
-		if (estFileName != null) {
+		if ((estFileName != null) && (!ViewType.EST_FILE.equals(viewType))) {
 			ests = DataStore.get().getFASTA(estFileName, mainFrame);
 		}
 		// Check and load the data file depending on the view type
@@ -284,6 +285,9 @@ public abstract class ViewFactory implements DnDTabListener {
 	private JComponent createTextView(String fileName) throws Exception {
 		// Check and load the text file
 		InputStream fis = new FileInputStream(fileName);
+		fis             = new BufferedInputStream(fis);
+		// Do a memory check to ensure that we have sufficient memory left.
+		DataStore.get().memoryCheck(new File(fileName), mainFrame);
 		// Wrap the input stream in progress monitor
 		fis = new ProgressMonitorInputStream(mainFrame, 
 				"Please wait while the file is loaded...\n" +
