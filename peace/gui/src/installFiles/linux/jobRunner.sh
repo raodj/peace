@@ -300,13 +300,26 @@ elif [ "$1" == "status" ]; then
 	# Return with exit status of last run command
 	exit $?
 elif [ "$1" == "output" ]; then
-	# Echo the final results on standard out
-	cat *.o*
-	exit $?
+	# Echo the final results on standard out if files
+	# are ready.
+	ls *.o* > /dev/null 2> /dev/null
+	if [ $? -eq 0 ]; then
+		cat *.o*
+		exit $?
+	else
+		echo "Output data for this job is not yet available."
+		exit 0
+	fi
 elif [ "$1" == "error" ]; then
-	# Echo file with stderr data
-	cat *.e* 1>&2
-	exit $?
+	# Echo file with stderr data if files are ready
+	ls *.e* > /dev/null 2> /dev/null
+	if [ $? -eq 0 ]; then
+		cat *.e* 1>&2
+		exit $?
+	else
+		echo "Error data for this job is not yet available."
+		exit 0
+	fi
 elif [ "$1" == "abort" ]; then
 	# Try to abort the job dependin on how it was
 	# submitted.
