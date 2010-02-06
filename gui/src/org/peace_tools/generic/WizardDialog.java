@@ -604,6 +604,7 @@ public class WizardDialog extends JDialog implements ActionListener {
 			}
 		} else if ("help".equals(cmd)) {
 			// The user clicked the help button. Launch help.
+			HelpHandler.showHelp(getParent(), helpURL);
 		} else if ("finish".equals(cmd)) {
 			// The user clicked finish and the wizard is done.
 			checkChangePage(currentPage, currentPage + 1);

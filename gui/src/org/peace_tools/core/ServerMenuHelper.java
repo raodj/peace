@@ -217,7 +217,7 @@ implements ActionListener, ListSelectionListener {
 	 private void addServer() {
 		 ServerWizard sw = new ServerWizard("Add new server", mainFrame,
 				 mainFrame.getCenterPane());
-		 sw.showWizard(null);
+		 sw.showWizard("http://www.peace-tools.org/downloads/manual.pdf#page=25");
 	 }
 
 	@Override

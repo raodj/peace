@@ -48,6 +48,7 @@ import javax.swing.JTree;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TreeSelectionListener;
 
+import org.peace_tools.generic.HelpHandler;
 import org.peace_tools.generic.Utilities;
 
 /**
@@ -139,7 +140,7 @@ implements ActionListener {
 		if (index < HelpURLs.length) {
 			// This is online HTML page request. Use helper method to
 			// launch browser if possible.
-			mainFrame.showHelp("http://www.peace-tools.org/" + HelpURLs[index]);
+			HelpHandler.showHelp(mainFrame, "http://www.peace-tools.org/" + HelpURLs[index]);
 		} else if (index == ActionCmds.length - 2) {
 			// Show the welcome screen if it is not already there.
 			ViewFactory vf = mainFrame.getViewFactory();

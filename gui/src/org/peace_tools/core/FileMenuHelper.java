@@ -141,7 +141,7 @@ public class FileMenuHelper extends AbstractMenuHelper implements ActionListener
 			 DataSetWizard dsWizard = 
 				 new DataSetWizard("Create Data Set", mainFrame);
 			 Utilities.centerPanel(mainFrame, dsWizard);
-			 dsWizard.showWizard("http://www.peace-tools.org/");
+			 dsWizard.showWizard("http://www.peace-tools.org/downloads/manual.pdf#page=28");
 		 } else if ("Exit".equals(cmd) && (reallyQuit())) {
 			 System.exit(0);
 		 } else if ("Save".equals(cmd)) {

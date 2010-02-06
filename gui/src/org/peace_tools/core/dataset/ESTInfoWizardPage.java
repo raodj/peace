@@ -36,9 +36,11 @@ package org.peace_tools.core.dataset;
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 import javax.swing.Box;
 import javax.swing.JButton;
@@ -253,7 +255,9 @@ implements Runnable, ActionListener {
 			// Check to ensure we have sufficient memory
 			DataStore.get().memoryCheck(file, wizard);
 			// Create input stream to read the file.
-			FileInputStream fis = new FileInputStream(file);
+			InputStream fis = new FileInputStream(file);
+			// Wrap file input stream into a buffered stream to make loading faster
+			fis = new BufferedInputStream(fis);
 			// Create a progress monitor in case the FASTA file is large
 			String msg = "Verifying FASTA File: " + file.getName();
 			ProgressMonitorInputStream pmis =
