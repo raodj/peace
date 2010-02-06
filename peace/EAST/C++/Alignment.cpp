@@ -49,7 +49,11 @@ int Alignment::getDistance(string s1, string s2) {
  * @return int similarity score(>=0), if the value is less than 0, it's set to be zero.
  */
 int Alignment::getSimlarityScore(string s1, string s2) {
-	return alignAlgo->getNWScore(s1, s2);
+	if (USE_BOUNDED_SW == 0) { //use ordinary version
+		return alignAlgo->getNWScore(s1, s2);
+	} else { ////use bounded version
+		return alignAlgo->getBoundedNWScore(s1, s2);
+	}
 }
 
 /*

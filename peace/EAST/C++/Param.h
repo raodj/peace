@@ -36,7 +36,15 @@ const int COMPARISON_LENGTH=800;
 //the width of band which is used to speed up method "getNWScore".
 const int BAND_WIDTH_NW=20;
 
+//If use bounded version of Needleman-Wunsch algorithm to get NW score when getting overlap distance.
+//1-use, 0-not use. Use bounded version may reduce the precision.
+const int USE_BOUNDED_NW=1;
+
 //the width of band which is used to speed up method "getSWAlignment".
 const int BAND_WIDTH_SW=20;
+
+//If use bounded version of Smith-Waterman algorithm to get SW Alignment when doing reconstruction.
+//1-use, 0-not use. Use bounded version may reduce the precision.
+const int USE_BOUNDED_SW=1;
 
 #endif

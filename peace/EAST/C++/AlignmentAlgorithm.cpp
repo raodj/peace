@@ -100,6 +100,99 @@ int AlignmentAlgorithm::getNWScore(const string& s1, const string& s2) {
 	delete [] encodedBases2;
 	return score;
 	 */
+	int		r, c, rows, cols, tmp, ins, del, sub, score;
+	rows = s1.length();
+	cols = s2.length();
+	int encodedBases1[rows];
+	int encodedBases2[cols];
+
+	if (rows < cols) {
+		// goes columnwise
+		int array[rows];
+
+		// initiate first column
+		array[0] = 0;
+		for (r = 1; r < rows; r++) {
+			array[r] = array[r-1] + gapPenalty * r;
+			encodedBases1[r-1] = encodeBase(s1[r-1]);
+		}
+		for (r=1; r < cols; r++)
+			encodedBases2[r-1] = encodeBase(s2[r-1]);
+
+		// calculate the similarity matrix (keep current column only)
+		for (c = 1; c < cols; c++) {
+			// initiate first row (tmp hold values
+			// that will be later moved to the array)
+			tmp = array[0] + gapPenalty * c;
+			int base2 = encodedBases2[c-1];
+			for (r = 1; r < rows; r++)
+			{
+				int base1 = encodedBases1[r-1];
+				ins = array[r] + gapPenalty;
+				sub = array[r-1] + (this->scoreMatrix)[base1][base2];
+				del = tmp + gapPenalty;
+
+				// move the temp value to the array
+				array[r-1] = tmp;
+
+				// choose the greatest
+				if (sub >= ins)
+					tmp = sub >= del ? sub : del;
+				else
+					tmp = ins >= del ? ins : del;
+			}
+
+			// move the temp value to the array
+			array[rows - 1] = tmp;
+		}
+		score = array[rows - 1];
+	} else {
+		// goes rowwise
+		int array[cols];
+
+		// initiate first row
+		array[0] = 0;
+		for (c = 1; c < cols; c++) {
+			array[c] = array[c-1] + gapPenalty * c;
+			encodedBases2[c-1] = encodeBase(s2[c-1]);
+		}
+		for (r=1; r < rows; r++)
+			encodedBases1[r-1] = encodeBase(s1[r-1]);
+
+		// calculate the similarity matrix (keep current row only)
+		for (r = 1; r < rows; r++)
+		{
+			// initiate first column (tmp hold values
+			// that will be later moved to the array)
+			tmp = array[0] + gapPenalty * c;
+			int base1 = encodedBases1[r-1];
+
+			for (c = 1; c < cols; c++)
+			{
+				int base2 = encodedBases2[c-1];
+				ins = tmp + gapPenalty;
+				sub = array[c-1] + (this->scoreMatrix)[base1][base2];
+				del = array[c] + gapPenalty;
+
+				// move the temp value to the array
+				array[c-1] = tmp;
+
+				// choose the greatest
+				if (sub >= ins)
+					tmp = sub >= del ? sub : del;
+				else
+					tmp = ins >= del ? ins : del;
+			}
+
+			// move the temp value to the array
+			array[cols - 1] = tmp;
+		}
+		score = array[cols - 1];
+	}
+	return score;
+}
+
+int AlignmentAlgorithm::getBoundedNWScore(const string& s1, const string& s2) {
 	int	r, c, rows, cols, tmp, ins, del, sub, score;
 	int band = BAND_WIDTH_NW;
 	rows = s1.length();
