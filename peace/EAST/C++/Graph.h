@@ -17,6 +17,7 @@
 class Graph {
 public:
 	int numOfLevels;
+	int treeThreshold;
 	std::vector<Node> graphNodes;
 	OvlDistance ovl;
 	CalculatedOvlDistance calDist;

@@ -7,6 +7,7 @@ using namespace std;
 
 Graph::Graph(InclusionNodes* in) {
 	numOfLevels = NUMOFLEVELS;
+	treeThreshold = 130;
 	inc = in;
 }
 
@@ -24,9 +25,14 @@ vector<SixTuple*> Graph::handleInclusion() {
 			vector<int> ovlDis = calDist.searchDistance(i, index);
 
 			if ((ovlDis[1] == INT_MAX) && (ovlDis[0] == INT_MAX)) {
-				ovlDis = ovl.getOVLDistance(curSeq, comSeq);
-				//add to CalculatedOvlDistance
-				calDist.addDistance(i, index, ovlDis[1], ovlDis[0]);
+				if (abs((*it).weight) > treeThreshold) {
+					//add to CalculatedOvlDistance
+					calDist.addDistance(i, index, INT_MAX, 0);
+				} else {
+					ovlDis = ovl.getOVLDistance(curSeq, comSeq);
+					//add to CalculatedOvlDistance
+					calDist.addDistance(i, index, ovlDis[1], ovlDis[0]);
+				}
 			}
 
 			if (curSeq.length() <= comSeq.length()) {
@@ -77,10 +83,15 @@ vector<SixTuple*> Graph::get2CloseNodesFromMST() {
 
 			vector<int> ovlDis = calDist.searchDistance(curIdx, index);
 			if ((ovlDis[1] == INT_MAX) && (ovlDis[0] == INT_MAX)) {
-				ovlDis = ovl.getOVLDistance(graphNodes[curIdx].getNodeStr(),
-						graphNodes[index].getNodeStr());
-				//add to CalculatedOvlDistance
-				calDist.addDistance(curIdx, index, ovlDis[1], ovlDis[0]);
+				if (abs((*it).weight) > treeThreshold) {
+					//add to CalculatedOvlDistance
+					calDist.addDistance(curIdx, index, INT_MAX, 0);
+				} else {
+					ovlDis = ovl.getOVLDistance(graphNodes[curIdx].getNodeStr(),
+							graphNodes[index].getNodeStr());
+					//add to CalculatedOvlDistance
+					calDist.addDistance(curIdx, index, ovlDis[1], ovlDis[0]);
+				}
 			}
 
 			if (ovlDis[1] != INT_MAX) {	// there is overlap between them
@@ -164,10 +175,11 @@ SixTuple Graph::get2CloseNodesFromGrand(int index, const SixTuple sixTuple) {
 			partNodes.pop();
 			for (EdgeIterator it=mst[tmpIndex].begin(); it!=mst[tmpIndex].end(); it++) {
 				int tIndex = (*it).node;
-				tmpStack.push(tIndex);
-
-				if ((i != 0) && (tIndex != index)){ //Do not include parents and children because they have been processed.
-					allNodes.push(tIndex);
+				if (abs((*it).weight) <= treeThreshold) {
+					tmpStack.push(tIndex);
+					if ((i != 0) && (tIndex != index)){ //Do not include parents and children because they have been processed.
+						allNodes.push(tIndex);
+					}
 				}
 			}
 		}
@@ -422,10 +434,11 @@ vector<stack<int> > Graph::getNodesFromMST(vector<stack<int> > nodes) {
 
 		for (EdgeIterator it=mst[curIndex].begin(); it!=mst[curIndex].end(); it++) {
 			int index2 = (*it).node;
-
-			if (index2 != parentIndex) {
-				ret[0].push(index2);
-				ret[1].push(curIndex);
+			if (abs((*it).weight) <= treeThreshold) {
+				if (index2 != parentIndex) {
+					ret[0].push(index2);
+					ret[1].push(curIndex);
+				}
 			}
 		}
 	}
