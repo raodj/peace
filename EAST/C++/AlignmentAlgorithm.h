@@ -42,6 +42,7 @@ public:
 	inline void setScoringMatrix(const intMatrix& m) {scoreMatrix = m;}
 	inline void setGapPenalty(int gap) {gapPenalty = gap;}
 	int getNWScore(const std::string& s1, const std::string& s2);
+	int getBoundedNWScore(const std::string& s1, const std::string& s2);
 	AlignResult getNWAlignment(const std::string& s1, const std::string& s2);
 	int getSWScore(const std::string& s1, const std::string& s2);
 	AlignResult getSWAlignment(const std::string& s1, const std::string& s2);
