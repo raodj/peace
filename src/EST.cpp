@@ -47,6 +47,9 @@ std::vector<EST*> EST::estList;
 
 // The length of the longest EST we have
 size_t EST::maxESTlen = 0;
+
+// A "dummy" EST for returning in place of filtered-out ESTs
+EST* dummy = new EST(-1, "", "", 0);
         
 EST::EST(const int idValue, const char *information, const char* seq,
          const int fileOffset) : id(idValue), offset(fileOffset),
@@ -111,7 +114,7 @@ EST::create(const int id, const char *info,
 }
 
 EST*
-EST::create(FILE* fastaFile, int& lineNum) {
+EST::create(FILE* fastaFile, int& lineNum, const int minLength) {
     // Some basic validation on the fastFile first.
     if (feof(fastaFile) || ferror(fastaFile)) {
         // Can't read information from the fasta file.
@@ -158,7 +161,7 @@ EST::create(FILE* fastaFile, int& lineNum) {
                        toupper);
         const char* const seqBP = sequence.c_str();
         size_t seqLen = strlen(seqBP);
-        if (seqLen >= 50) { // Only accept ESTs of sufficient length
+        if (seqLen >= minLength) { // Only accept ESTs of sufficient length
             // Compute new max EST length
             maxESTlen = std::max(maxESTlen, strlen(seqBP));
             // Create a new est with all the information.
@@ -169,9 +172,8 @@ EST::create(FILE* fastaFile, int& lineNum) {
             // Return newly created est back to the caller.
             return est;
         } else {
-            // Create a dummy EST to return to the analyzer
-            EST *est = new EST(-1, headerLine.c_str(), seqBP, offset);
-            return est;
+            // Return a dummy EST to the caller.
+            return dummy;
         }
     }
 

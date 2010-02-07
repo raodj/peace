@@ -453,6 +453,16 @@ protected:
     */
     static char* estFileName;
 
+    /** The minimum length of a sequence required for Peace to cluster it.
+	
+        This member object is used to hold the minimum length of sequences
+	for the ESTAnalyzer to accept them.  This member is initialized
+	in the constructor and is never changed during the life time
+	of this class.  It is used in the process of loading data
+	from a FASTA file as a minimum length "cutoff" for sequence input.
+    */
+    static int estMinLength;
+
     /** Flag to indicate if output results must be in HTML format.
 
 	This member is initialized to false.  However, the value is
