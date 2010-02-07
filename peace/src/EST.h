@@ -136,12 +136,16 @@ public:
 
         \param[in,out] lineNum A line number counter to be updated to
         provide the user with a more meaningful error message.
+
+	\param[in] minLength The minimum length of EST data that
+	will be accepted and used for clustering.  Sequences shorter
+	than this length will not be loaded into memory.
         
         \note At the end of this method the fastaFile's file pointer
         will point at the beginning of the next EST (if any) in the
         file.
     */
-    static EST* create(FILE* fastaFile, int& lineNum);
+    static EST* create(FILE* fastaFile, int& lineNum, const int minLength);
 
     /** Obtain the list of ESTs.
 

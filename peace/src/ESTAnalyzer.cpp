@@ -45,13 +45,16 @@
 bool  ESTAnalyzer::readAhead      = false;
 char* ESTAnalyzer::estFileName    = NULL;
 bool  ESTAnalyzer::htmlLog        = false;
+int   ESTAnalyzer::estMinLength   = 50;
 
 // The common set of arguments for all EST analyzers
 arg_parser::arg_record ESTAnalyzer::commonArgsList[] = {
     {"--readAhead", "Use a read head thread to load next EST data (NYI)",
      &ESTAnalyzer::readAhead, arg_parser::BOOLEAN},
     {"--estFile", "Name of EST file (in FASTA format) to be processed",
-     &ESTAnalyzer::estFileName, arg_parser::STRING}, 
+     &ESTAnalyzer::estFileName, arg_parser::STRING},
+    {"--minLength", "Minimum length of sequences to be clustered",
+     &ESTAnalyzer::estMinLength, arg_parser::INTEGER},
     {"--html", "Generate analysis report in HTML format",
      &ESTAnalyzer::htmlLog, arg_parser::BOOLEAN},   
     {NULL, NULL, NULL, arg_parser::BOOLEAN}
@@ -142,14 +145,15 @@ ESTAnalyzer::loadFASTAFile(const char *fileName, const bool unpopulate) {
     int filteredCount = 0;
     // Repeatedly read EST's from the file.
     while (!feof(fastaFile)) {
-        EST *est = EST::create(fastaFile, lineNum);
+        EST *est = EST::create(fastaFile, lineNum, estMinLength);
         if ((est == NULL) && (!feof(fastaFile) || ferror(fastaFile))) {
             // An error occured when reading EST.
             fclose(fastaFile);
             std::cerr << analyzerName << ": Error loading EST from "
                       << fileName << " at line: " << lineNum << std::endl;
             return false;
-        } else if (est->getID() == -1) {
+        }
+        if (est->getID() == -1) {
             // A dummy EST to represent an EST filtered out of the dataset
             filteredCount++;
         }
