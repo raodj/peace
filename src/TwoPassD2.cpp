@@ -271,12 +271,11 @@ TwoPassD2::runD2Asymmetric(const int otherEST, int* s1MinScoreIdx,
         // Break out of this loop if we have found a potential match
         if (minScore <= threshold) {
             break;
-	}
+        }
         
         // Check every window in EST #2 against current window in EST
         // #1 by sliding EST #2 window to left.
-        for(s2Win = sq2End - wordSize; (s2Win > FirstWindowInSq2);
-            s2Win--) {
+        for(s2Win = sq2End - wordSize; (s2Win > FirstWindowInSq2); s2Win--) {
             // The word at s2Win - numWordsInWindow is moving in while
             // the word at s2Win is moving out as we move window
             // associated with EST #2 from right-to-left.
