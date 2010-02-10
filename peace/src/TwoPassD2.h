@@ -144,7 +144,7 @@ public:
         Interactive Console).
 
         \return This method returns the string "layeredD2" identifiying 
-	this analyzer.
+        this analyzer.
     */    
     virtual std::string getName() const { return "layeredD2"; }
     
@@ -178,11 +178,11 @@ public:
         merely calls the corresponding base class implementation that
         performs all the necessary operations.
 
-	\note This method was introduced to avoid the unnecessary
-	warning about partial overloading of virtual methods (warning
-	#654) in ICC.
+        \note This method was introduced to avoid the unnecessary
+        warning about partial overloading of virtual methods (warning
+        #654) in ICC.
 	
-	\return This method returns zero if all the processing
+        \return This method returns zero if all the processing
         proceeded successfully. On errors this method returns a
         non-zero value.
     */
@@ -306,28 +306,28 @@ protected:
     }
 
     /** Instance variable that maps an index in the reference sequence
-	(sequence s1) to the hash of a word.  This hash can then be used
-	as an index in the fdHashMap to get the frequency differential
-	for that word.
+        (sequence s1) to the hash of a word.  This hash can then be used
+        as an index in the fdHashMap to get the frequency differential
+        for that word.
 
-	The word table is created in the initialize() method and
-	filled in using the buildWordTable() method.  For the reference
-	EST, buildWordTable() is called in the setReferenceEST() method,
-	meaning it does not need to be rebuilt every time we analyze
-	a new comparison sequence.
+        The word table is created in the initialize() method and
+        filled in using the buildWordTable() method.  For the reference
+        EST, buildWordTable() is called in the setReferenceEST() method,
+        meaning it does not need to be rebuilt every time we analyze
+        a new comparison sequence.
     */
     int* s1WordTable;
 
     /** Instance variable that maps an index in the comparison sequence
-	(sequence s2) to the hash of a word.
+        (sequence s2) to the hash of a word.
 
         This hash is used as an index in the fdHashMap to get the
-	frequency differential for that word.
+        frequency differential for that word.
 
-	The word table is created in the initialize() method and
-	filled in using the buildWordTable() method.  For the comparison
-	EST, buildWordTable() must be called in the analyze() method because
-	a new comparison sequence is given every time analyze() is called.
+        The word table is created in the initialize() method and
+        filled in using the buildWordTable() method.  For the comparison
+        EST, buildWordTable() must be called in the analyze() method because
+        a new comparison sequence is given every time analyze() is called.
     */
     int* s2WordTable;
 
@@ -340,17 +340,17 @@ protected:
     int *delta;
     
     /** Parameter to define number of characters to shift the frame
-	on the reference sequence, when computing D2.
+        on the reference sequence, when computing D2.
 
-	This parameter is used to enable D2-asymmetric behavior.
-	The default value is 1, which means D2 symmetric: all frames
-	in both sequences will be compared.  Higher values mean that
-	the algorithm will shift by more than one character when
-	shifting the frame on the reference sequence, resulting in
-	fewer computations but a possible loss of accuracy from not
-	comparing every frame in both sequences.
+        This parameter is used to enable D2-asymmetric behavior.
+        The default value is 1, which means D2 symmetric: all frames
+        in both sequences will be compared.  Higher values mean that
+        the algorithm will shift by more than one character when
+        shifting the frame on the reference sequence, resulting in
+        fewer computations but a possible loss of accuracy from not
+        comparing every frame in both sequences.
 
-	\note Currently this value is not used.
+        \note Currently this value is not used.
     */
     static int frameShift;
     
@@ -385,15 +385,15 @@ protected:
     static int threshold;
 	
     /** The threshold score above which two ESTs are considered
-	sufficiently dissimilar that a more accurate symmetric
-	D2 pass would still not cluster the ESTs.
+        sufficiently dissimilar that a more accurate symmetric
+        D2 pass would still not cluster the ESTs.
 		
-	This instance variable tracks the threshold value to be used
-	to call the runD2Bounded method.  If the calculated D2 score
-	from the runD2Asymmetric method is above this threshold,
-	bounded D2 will not be run.  Currently, the default value is
-	130.  This value can be overridden by the user with the
-	"--maxThreshold" command line argument.
+        This instance variable tracks the threshold value to be used
+        to call the runD2Bounded method.  If the calculated D2 score
+        from the runD2Asymmetric method is above this threshold,
+        bounded D2 will not be run.  Currently, the default value is
+        130.  This value can be overridden by the user with the
+        "--maxThreshold" command line argument.
     */
     static int maxThreshold;
     
@@ -405,29 +405,29 @@ private:
         argument list is statically defined and shared by all
         instances of this class.
 
-	\note Use of static arguments and parameters makes D2 class
-	hierarchy not MT-safe.
+        \note Use of static arguments and parameters makes D2 class
+        hierarchy not MT-safe.
     */
     static arg_parser::arg_record argsList[];
 	
     /* The default constructor for this class.
        
-        The default constructor for this class.  The constructor is
-        made private so that this class cannot be directly
-        instantiated.  However, since the ESTAnalyzerFactory is a
-        friend of this class; therefore it can instantiate the D2
-        analyzer.  Accordingly, the ESTAnalyzerFactory::create()
-        method must be used to instantiate this class.
+       The default constructor for this class.  The constructor is
+       made private so that this class cannot be directly
+       instantiated.  However, since the ESTAnalyzerFactory is a
+       friend of this class; therefore it can instantiate the D2
+       analyzer.  Accordingly, the ESTAnalyzerFactory::create()
+       method must be used to instantiate this class.
 
-	\param[in] refESTidx The reference EST index value to be used
-	when performing EST analysis.  This parameter should be >= 0.
-	This value is simply passed onto the base class.
+       \param[in] refESTidx The reference EST index value to be used
+       when performing EST analysis.  This parameter should be >= 0.
+       This value is simply passed onto the base class.
         
-	\param[in] outputFile The name of the output file to which the
-	EST analysis data is to be written.  This parameter is ignored
-	if this analyzer is used for clustering.  If this parameter is
-	the empty string then output is written to standard output.
-	This value is simply passed onto the base class.
+       \param[in] outputFile The name of the output file to which the
+       EST analysis data is to be written.  This parameter is ignored
+       if this analyzer is used for clustering.  If this parameter is
+       the empty string then output is written to standard output.
+       This value is simply passed onto the base class.
     */
     TwoPassD2(const int refESTidx, const std::string& outputFileName);
 
@@ -466,87 +466,87 @@ private:
     int numWordsInWindow;
 
     /** Helper method to update the delta table as well as the
-	minimum score (if it has changed) when the window is shifted.
+        minimum score (if it has changed) when the window is shifted.
 		
-	For d2 asymmetric, the updateWindow method also has to keep
-	track of the location on each sequence where the minimum
-	score was found, which is the function of the variables
-	s1MinScoreIdx and s2MinScoreIdx.  The variables s1CurWindowIdx
-	and s2CurWindowIdx mark the start of the current window on each 
-	sequence.  All of these variables are numbers, corresponding to
-	indices of the word tables.
+        For d2 asymmetric, the updateWindow method also has to keep
+        track of the location on each sequence where the minimum
+        score was found, which is the function of the variables
+        s1MinScoreIdx and s2MinScoreIdx.  The variables s1CurWindowIdx
+        and s2CurWindowIdx mark the start of the current window on each 
+        sequence.  All of these variables are numbers, corresponding to
+        indices of the word tables.
     */
     inline void updateWindowAsym(const int wordIn, const int wordOut,
-				 int& score, int& minScore,
-				 const int s1CurWindowIdx,
-				 const int s2CurWindowIdx,
-				 int* s1MinScoreIdx, int* s2MinScoreIdx) {
-      // Update score and delta for word moving in
-      score -= (delta[wordIn] << 1) - 1;
-      delta[wordIn]--;
-      // Update score and delta for word moving out
-      score += (delta[wordOut] << 1) + 1;
-      delta[wordOut]++;
-      // Track the minimum score.
-      if (score < minScore) {
-	minScore = score;
-	// Update the indices for the new min score
-	*s1MinScoreIdx = s1CurWindowIdx;
-	*s2MinScoreIdx = s2CurWindowIdx;
-      }
+                                 int& score, int& minScore,
+                                 const int s1CurWindowIdx,
+                                 const int s2CurWindowIdx,
+                                 int* s1MinScoreIdx, int* s2MinScoreIdx) {
+        // Update score and delta for word moving in
+        score -= (delta[wordIn] << 1) - 1;
+        delta[wordIn]--;
+        // Update score and delta for word moving out
+        score += (delta[wordOut] << 1) + 1;
+        delta[wordOut]++;
+        // Track the minimum score.
+        if (score < minScore) {
+            minScore = score;
+            // Update the indices for the new min score
+            *s1MinScoreIdx = s1CurWindowIdx;
+            *s2MinScoreIdx = s2CurWindowIdx;
+        }
     }
     
     /** Helper method to update the delta table as well as the
-	minimum score (if it has changed) when the window is shifted.
-	This method is identical to the updateWindow method found in
-	D2.h (Peace's base D2 implementation).
+        minimum score (if it has changed) when the window is shifted.
+        This method is identical to the updateWindow method found in
+        D2.h (Peace's base D2 implementation).
     */
     inline void updateWindow(const int wordIn, const int wordOut,
                              int& score, int& minScore,
-			     const int windowDistance) {
-      // Update score and delta for word moving in
-      score -= (delta[wordIn] << 1) - 1;
-      delta[wordIn]--;
-      // Update score and delta for word moving out
-      score += (delta[wordOut] << 1) + 1;
-      delta[wordOut]++;
-      // Track the minimum score.
-      if (score < minScore) {
-	minScore = score;
-	alignmentMetric = windowDistance;
-      }
+                             const int windowDistance) {
+        // Update score and delta for word moving in
+        score -= (delta[wordIn] << 1) - 1;
+        delta[wordIn]--;
+        // Update score and delta for word moving out
+        score += (delta[wordOut] << 1) + 1;
+        delta[wordOut]++;
+        // Track the minimum score.
+        if (score < minScore) {
+            minScore = score;
+            alignmentMetric = windowDistance;
+        }
     }
 
     /** Method to run the D2 algorithm, asymmetric version.
-	This method runs D2 asymmetric on the two EST sequences
-	and finds the minimum D2 score.  Since this is D2 asymmetric,
-	the score is not guaranteed to be the true minimum.  Thus,
-	this method also finds the indices of the windows on each
-	sequence where the minimum D2 score was found.  The analyzer
-	will use these to compute appropriate bounds for the bounded
-	symmetric D2 function.
+        This method runs D2 asymmetric on the two EST sequences
+        and finds the minimum D2 score.  Since this is D2 asymmetric,
+        the score is not guaranteed to be the true minimum.  Thus,
+        this method also finds the indices of the windows on each
+        sequence where the minimum D2 score was found.  The analyzer
+        will use these to compute appropriate bounds for the bounded
+        symmetric D2 function.
     */
     float runD2Asymmetric(const int otherEST, int* s1MinScoreIdx,
-			  int* s2MinScoreIdx); 	
+                          int* s2MinScoreIdx); 	
 
     /** Method to run the D2 algorithm, symmetric version.
-	This method is essentially identical to the runD2 method
-	in the D2.cpp class (Peace's base D2 implementation) with
-	the exception that this method places bounds on each sequence.
-	It will not search beyond these bounds.  This saves a great
-	deal of computation time (though the asymptotic runtime
-	is unchanged) by avoiding unnecessary computations and only
-	searching in the area where the best match might be found.
+        This method is essentially identical to the runD2 method
+        in the D2.cpp class (Peace's base D2 implementation) with
+        the exception that this method places bounds on each sequence.
+        It will not search beyond these bounds.  This saves a great
+        deal of computation time (though the asymptotic runtime
+        is unchanged) by avoiding unnecessary computations and only
+        searching in the area where the best match might be found.
     */
     float runD2Bounded(const int otherEST, int sq1Start, int sq1End, 
-		       int sq2Start, int sq2End);
+                       int sq2Start, int sq2End);
 
     /** The hint key that is used to add hint for normal or
-	reverse-complement D2 computation.
+        reverse-complement D2 computation.
 
-	This hint key is used to set a hint in the \c hints hash
-	map. This string is defined as a constant to save compute time
-	in the core \c runHeuristics method.
+        This hint key is used to set a hint in the \c hints hash
+        map. This string is defined as a constant to save compute time
+        in the core \c runHeuristics method.
     */
     const std::string hintKey;
 };
