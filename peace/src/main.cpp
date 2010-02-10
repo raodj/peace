@@ -166,6 +166,7 @@ int applyFilters(ClusterMaker *clusterMaker, FilterChain *chain,
         EST::dumpESTList(outFile, true);
         outFile.close();
     }
+    return 0;
 }
 
 /** \fn int main(int argc, char *argv[])
