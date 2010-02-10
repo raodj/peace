@@ -325,7 +325,7 @@ protected:
         the EST into an artifically created cluster to help users
         identify such clusters.
     */
-    virtual int runFilter(const int otherEST) = 0;
+    virtual int runFilter(const int estIndex) = 0;
     
     /** The name of this filter.
         

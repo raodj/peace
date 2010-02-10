@@ -246,7 +246,20 @@ public:
         the internal list of EST's currently loaded.
     */
     static void deleteAllESTs();
-    
+
+	/** Delete and clear out the last EST in the list.
+
+		This method can be used to delete the last EST in the
+		list. This method rests the maximum EST length instance
+		variable as needed.  This method is typically used to remove
+		dummy ESTs that are added to the end of the list by some
+		filters.
+
+		\param[in] count The number of ESTs to be removed from the
+		list.
+	*/
+	static void deleteLastESTs(const int count);
+	
     /** Obtain the ID of this EST.
         
         \return The ID of the EST that was set when this EST was

@@ -121,7 +121,9 @@ LengthFilter.cpp \
 FilterFactory.h \
 FilterFactory.cpp \
 FilterChain.h \
-FilterChain.cpp
+FilterChain.cpp \
+LCFilter.h \
+LCFilter.cpp
 
 peace_SOURCES = \
 main.cpp\

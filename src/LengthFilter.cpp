@@ -54,7 +54,6 @@ LengthFilter::LengthFilter(ClusterMaker *clusterMaker) :
     clusterID = -1;
 }
 
-
 void
 LengthFilter::showArguments(std::ostream& os) {
     // Use a arg parser object to conveniently display common options.

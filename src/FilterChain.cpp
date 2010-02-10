@@ -205,6 +205,8 @@ FilterChain::getOwnedESTidx(int& startIndex, int& endIndex) {
 int
 FilterChain::applyFilters(ClusterMaker *clusterMaker) {
     ASSERT ( ptrInstance != NULL );
+    // Save original number of ESTs for sanity check below.
+    const int prevEstCount = EST::getESTCount();
     // First initialize all the filters.
     int resultCode;
     if ((resultCode = ptrInstance->initialize()) != 0) {
@@ -217,7 +219,9 @@ FilterChain::applyFilters(ClusterMaker *clusterMaker) {
     getOwnedESTidx(startIndex, endIndex);
     for(int estIdx = startIndex; (estIdx < endIndex); estIdx++) {
         // User helper method to apply the filters.
-        ptrInstance->applyFilters(estIdx);
+        if (!EST::getEST(estIdx)->hasBeenProcessed()) {
+            ptrInstance->applyFilters(estIdx);
+        }
     }
     // Now participate in global iterative broadcast chain. Possibly
     // this loop can be replaced by a MPI all-to-all broadcast that
@@ -227,6 +231,13 @@ FilterChain::applyFilters(ClusterMaker *clusterMaker) {
     }    
     // Finalize all the filters
     ptrInstance->finalize();
+    // Ensure numebr of ESTs are back to normal
+    if (prevEstCount != EST::getESTCount()) {
+        std::cerr << "The filters did not remove all the dummy ESTs they "
+                  << "added. This is a programming error. Aborting!\n";
+        resultCode = 2;
+    }
+    
     // All operations proceeded successfully
     return resultCode;
 }

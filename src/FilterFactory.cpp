@@ -36,6 +36,7 @@
 
 #include "FilterFactory.h"
 #include "LengthFilter.h"
+#include "LCFilter.h"
 #include "arg_parser.h"
 
 void
@@ -67,7 +68,7 @@ FilterFactory::create(const char* name, ClusterMaker *clusterMaker) {
     if (!strcmp("lengthFilter", name)) {
         return new LengthFilter(clusterMaker);
     } else if (!strcmp("lcFilter", name)) {
-        // return new LCFilter(clusterMaker);
+        return new LCFilter(clusterMaker);
     }
         
     // invalid filter name!
