@@ -99,7 +99,7 @@ struct StringHasher  {
     The following typedef provides a short cut for using a hash map
     whose key is a std::string and contains integers.
 */
-typedef HashMap<std::string, int, StringHasher> StringIntMap;
+typedef HashMap<std::string, int> StringIntMap;
 
 #else // Windows code path begins 
 

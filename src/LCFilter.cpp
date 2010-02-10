@@ -165,9 +165,6 @@ LCFilter::runFilter(const int estIdx) {
     for(size_t i = 0; (i < dummyESTList.size()); i++) {
         // Get comparison metric.
         float metric = analyzer->analyze(dummyESTList[i].first);
-        if (estIdx == 3) {
-            std::cout << "metric = " << metric << std::endl;
-        }
         // Check if the metric is good/bad
         if (analyzer->compareMetrics(metric, threshold)) {
             // Log for debugging.
