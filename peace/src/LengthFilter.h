@@ -140,7 +140,7 @@ protected:
         should be created via a suitable call to the FilterFactory API
         method(s).
         
-        \param[in] clusterMake The cluster maker class that is being
+        \param[in] clusterMaker The cluster maker class that is being
         used for analysis.  This parameter is simply passed onto the
         base class for its use. It is used the initialize method to
         create a dummy cluster for use by this filter.
@@ -218,7 +218,7 @@ private:
         
         \return Reference to this.
     */
-    Filter& operator=(const Filter& src);
+    LengthFilter& operator=(const LengthFilter& src);
 };
 
 #endif

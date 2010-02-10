@@ -188,6 +188,15 @@ EST::deleteAllESTs() {
 }
 
 void
+EST::deleteLastESTs(const int count) {
+    for(int i = 0; ((estList.size() > 0) && (i < count)); i++) {
+        // Remove the last entry
+        delete estList.back();
+        estList.pop_back();
+    }
+}
+
+void
 EST::dumpESTList(std::ostream& os) {
     const int EstCount = (int) estList.size();
     for(int id = 0; (id < EstCount); id++) {
@@ -195,7 +204,6 @@ EST::dumpESTList(std::ostream& os) {
         estList[id]->dumpEST(os);
     }
 }
-
 
 void
 EST::dumpESTList(std::ostream& os, const bool processed) {

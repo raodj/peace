@@ -166,6 +166,7 @@ int applyFilters(ClusterMaker *clusterMaker, FilterChain *chain,
         EST::dumpESTList(outFile, true);
         outFile.close();
     }
+    // Everything went well.
     return 0;
 }
 
@@ -187,10 +188,10 @@ main(int argc, char* argv[]) {
     // Values of the following variables are processed by the argument
     // parser further below.
     char emptyString[1]     = {'\0'};
-    char defAnalyzer[10]    = "d2";
+    char defAnalyzer[10]    = "twopassD2";
     char defClusterMaker[4] = "mst";
     char defHeuristic[3]    = "tv";
-    char defFilters[]       = "lengthFilter";
+    char defFilters[]       = "lengthFilter-lcFilter";
         
     char *analyzerName = defAnalyzer;
     char *clusterName  = defClusterMaker;

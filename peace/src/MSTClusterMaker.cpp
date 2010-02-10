@@ -300,7 +300,7 @@ int
 MSTClusterMaker::manager() {
     // The number of pending nodes to be added to the MST.
     const int TotalESTcount = EST::getESTList().size() -
-        EST::getProcessedESTCount();;
+        EST::getProcessedESTCount();
     int pendingESTs         = TotalESTcount;
     // The minimum spanning tree that is built by this manager.
     int dummy;
@@ -309,6 +309,26 @@ MSTClusterMaker::manager() {
     // of the MST with a similarity metric of 0.
     int parentESTidx    = -1;
     int estToAdd        = refESTidx;
+    // Ensure the refESTidx has not been proceed out. If it has been
+    // try to make best effort to find an alternative.
+    if (EST::getEST(estToAdd)->hasBeenProcessed()) {
+        std::cerr << "Warning: The reference EST has been filtered out.\n"
+                  << "Trying to select the first non-filtered EST instead.\n";
+        estToAdd = 0;
+        while ((estToAdd < EST::getESTCount()) &&
+               (EST::getEST(estToAdd)->hasBeenProcessed())) {
+            estToAdd++;
+        }
+        if (estToAdd >= EST::getESTCount()) {
+            std::cerr << "Error: All the ESTs have been filtered out.\n"
+                      << "Nothing left to be clustered.\n";
+            return 0;
+        } else {
+            std::cerr << "Using EST at index " << estToAdd
+                      << " as root.\n";
+        }
+    }
+    
     float metric        = analyzer->getValidMetric();
     int   alignmentInfo = 0;
     do {
