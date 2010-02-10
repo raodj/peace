@@ -46,9 +46,14 @@ int MSTCluster::clusterIDSequence = 0;
 // A type-def for HashMap to make code cleaner.
 typedef HashMap<int, MSTCluster*> ClusterMap;
 
-MSTCluster::MSTCluster(MSTCluster* owner) :
-    parent(owner), clusterID(clusterIDSequence++) {
-    // Nothing else to be done for now.
+// Global list to maintain reference to all the MSTClusters created.
+ClusterList MSTCluster::globalClusterList;
+
+MSTCluster::MSTCluster(MSTCluster* owner, const std::string& clsName) :
+    parent(owner), clusterID(clusterIDSequence++), name(clsName) {
+    // Save reference to this cluster entry in the global list
+    ASSERT ( clusterID == (int) globalClusterList.size() );
+    globalClusterList.push_back(this);
 }
 
 MSTCluster::~MSTCluster() {
@@ -60,11 +65,30 @@ MSTCluster::~MSTCluster() {
     clusterList.clear();
     // Remove all nodes in the members list.
     members.clear();
+    // Clear out entry in the global EST list
+    globalClusterList[clusterID] = NULL;
 }
 
 void
 MSTCluster::add(const MSTNode& node) {
     members.push_back(node);
+}
+
+void
+MSTCluster::add(const int clusterID, const MSTNode& node) {
+    // Validate context and parameters
+    ASSERT ((clusterID >= 0) && (clusterID < (int) globalClusterList.size()));
+    ASSERT (globalClusterList[clusterID] != NULL);
+    ASSERT (globalClusterList[clusterID]->clusterID == clusterID);
+    // Add node to the specified cluster.
+    globalClusterList[clusterID]->members.push_back(node);
+}
+
+void
+MSTCluster::add(MSTCluster *child) {
+    ASSERT ( child->parent == this );
+    // Add newly created cluster to list of sub-clusters
+    clusterList.push_back(child);
 }
 
 double
@@ -89,8 +113,8 @@ MSTCluster::makeClusters(NodeList& nodeList, const ESTAnalyzer* analyzer) {
             subCluster = new MSTCluster(this);
             // Add cluster to temporary look up hash_map. 
             clusterMap[(*node).parentIdx] = subCluster;
-            // Add newly created cluster to permanent list of sub-clusters
-            clusterList.push_back(subCluster);
+            // Add to list of sub-clusters
+            add(subCluster);
             // Add the parent node as well to the cluster as it would
             // not have been added yet. To locate the parent node we
             // need to traverse backwards in the node list from the
@@ -171,7 +195,11 @@ void
 MSTCluster::printClusterTree(std::ostream& os,
                              const std::string& prefix) const {
     // First print information about this cluster itself.
-    os << "Cluster #" << clusterID << " (#sub-clusters="
+    os << "Cluster #" << clusterID;
+    if (name != "") {
+        os << " [" << name << "]";
+    }
+    os << " (#sub-clusters="
        << clusterList.size() << ", #members=" << members.size() << ")\n";
     os << prefix      << "  |\n";
     // First print nodes for this cluster.
@@ -221,6 +249,7 @@ void
 MSTCluster::guiPrintTree(std::ostream& os) const {
     // Print information about this cluster and its parent cluster.
     os << "C," << clusterID << ","
+       << name << ","
        << ((parent != NULL) ? parent->clusterID : -1) << std::endl;
     // Print all the ESTs in this cluster.
     for(size_t i = 0; (i < members.size()); i++) {
@@ -236,7 +265,8 @@ MSTCluster::guiPrintTree(std::ostream& os) const {
 std::ostream&
 operator<<(std::ostream& os, const MSTCluster& cluster) {
     // Print information abou this cluster.
-    os << "Cluster #" << cluster.clusterID << "\n";
+    os << "Cluster #" << cluster.clusterID << " ["
+       << cluster.name << "]\n";
     for(size_t i = 0; (i < cluster.members.size()); i++) {
         os << cluster.members[i].getESTInfo() << "\n";
     }

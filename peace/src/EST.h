@@ -95,10 +95,10 @@ public:
         as the parameter.  The EST names are expected to be unique in
         a given file.
 
-	\note If the new EST is successfully instantiated, then this
-	method adds the newly created EST to the end of the list of
-	ESTs maintianed by this class.  Consequenlty, the parameter \c
-	id must be equal to estList.size().
+        \note If the new EST is successfully instantiated, then this
+        method adds the newly created EST to the end of the list of
+        ESTs maintianed by this class.  Consequenlty, the parameter \c
+        id must be equal to estList.size().
 	
         \param[in] id The unqiue ID value to be set for this EST.
         
@@ -137,79 +137,106 @@ public:
         \param[in,out] lineNum A line number counter to be updated to
         provide the user with a more meaningful error message.
 
-	\param[in] minLength The minimum length of EST data that
-	will be accepted and used for clustering.  Sequences shorter
-	than this length will not be loaded into memory.
-        
         \note At the end of this method the fastaFile's file pointer
         will point at the beginning of the next EST (if any) in the
         file.
     */
-    static EST* create(FILE* fastaFile, int& lineNum, const int minLength);
+    static EST* create(FILE* fastaFile, int& lineNum);
 
     /** Obtain the list of ESTs.
 
-	This method may be used to obtain a reference to the list of
-	ESTs currently defined.
+        This method may be used to obtain a reference to the list of
+        ESTs currently defined.
 
-	\return The list of ESTs currently defined.
+        \return The list of ESTs currently defined.
     */
     static std::vector<EST*>& getESTList() { return estList; }
 
+	/** Obtain count of ESTs that have been flagged as being processed.
+
+		This method can be used to determine the number of ESTs that
+		have been flagged as being processed. Subtracting this number
+		from the total number of ESTs indicates the number of ESTs to
+		be processed.
+
+		\note This method iterates over the list of ESTs to determine
+		the current number of processed ESTs. So use this method
+		sparingly.
+
+		\return The number of ESTs that have been flagged as having
+		been processed.
+	*/
+	static int getProcessedESTCount();
+	
     /** Obtain the number of ESTs in this list.
 
-	This method may be used to determine the number of ESTs that
-	have been defined and added to this list.
+        This method may be used to determine the number of ESTs that
+        have been defined and added to this list.
 
-	\return The number of ESTs currently defined.
+        \return The number of ESTs currently defined.
     */
     static int getESTCount() { return (int) estList.size(); }
 
     /** Helper method to determine the longest EST.
 
-	This method can be used to determine the length of the longest
-	EST loaded thus far.  This information is typically used to
-	allocate buffers and other data structures for analysis.
+        This method can be used to determine the length of the longest
+        EST loaded thus far.  This information is typically used to
+        allocate buffers and other data structures for analysis.
 
-	\note This method computes the length of the longest EST the
-	first time it is invoked. Consequently, it should be called
-	only after all the ESTs have been loaded.
+        \note This method computes the length of the longest EST the
+        first time it is invoked. Consequently, it should be called
+        only after all the ESTs have been loaded.
 
-	\return The length of the longest EST to be processed.
+        \return The length of the longest EST to be processed.
     */
     static size_t getMaxESTLen();
     
     /** Obtain a given EST from the EST list.
 
-	This method is a convenience method that can be used to obtain
-	a given EST from the list of ESTs.
+        This method is a convenience method that can be used to obtain
+        a given EST from the list of ESTs.
 
-	\param[in] estIdx The zero-based index of the EST that is
-	desired from the list of ESTs in this class.  If this index is
-	invalid then the behavior of this method is undefined.
+        \param[in] estIdx The zero-based index of the EST that is
+        desired from the list of ESTs in this class.  If this index is
+        invalid then the behavior of this method is undefined.
 
-	\return A mutable pointer to the EST at the provided estIdx
-	index position in the EST list.
+        \return A mutable pointer to the EST at the provided estIdx
+        index position in the EST list.
     */
     static EST* getEST(const int estIdx) { return estList[estIdx]; }
     
     /** Dump currently loaded ESTs in FASTA format.
 
-	This method can be used to dump the currently loaded EST's in
-	FASTA file format to a given output stream.
+        This method can be used to dump the currently loaded EST's in
+        FASTA file format to a given output stream.
 
-	\param[out] os The output stream to which EST data is to be
-	dumped.
+        \param[out] os The output stream to which EST data is to be
+        dumped.
     */
     static void dumpESTList(std::ostream& os);
 
+	/** Dump currently loaded and (un)processed ESTs in FASTA format.
+
+        This method can be used to dump the currently loaded EST's in
+        FASTA file format to a given output stream.
+
+        \param[out] os The output stream to which EST data is to be
+        dumped.
+
+		\param[in] processed If this flag is \c true, then this method
+		dumps only those ESTs that have been flagged as having been
+		processed. If this flag is \c false, then this method dumps
+		only un-processed ESTs.
+    */
+    static void dumpESTList(std::ostream& os, const bool processed);
+
     /** Dump this EST information in FASTA format.
 
-	This method can be used to dump the information associated
-	with the EST in FASTA format to a given output stream.
+        This method can be used to dump the information associated
+        with the EST in FASTA format to a given output stream.
 
-	\param[in] os The output stream to which the EST's information
-	must be written in FASTA format.
+        \param[in] os The output stream to which the EST's information
+        must be written in FASTA format.
     */
     void dumpEST(std::ostream& os);
     
@@ -276,29 +303,29 @@ public:
     
     /** Method to clear general information and sequence data.
 
-	This method can be used to unpopulate the FASTA header and
-	actual sequence (base pairs) information from this EST.  This
-	frees up memory allocated to hold this data thereby minimizing
-	the memory footprint for this EST.  This enables holding a
-	large number of skeleton EST's in memory.
+        This method can be used to unpopulate the FASTA header and
+        actual sequence (base pairs) information from this EST.  This
+        frees up memory allocated to hold this data thereby minimizing
+        the memory footprint for this EST.  This enables holding a
+        large number of skeleton EST's in memory.
     */
     void unpopulate();
 
     /** Repopulate necessary information from a given fasta file.
 
-	This method can be used to request an EST to repopulate its
-	FASTA header and actual sequence (base pair) information from
-	a given FASTA file.  This method uses the offset (saved when
-	this EST was originally loaded) to load the information from
-	the file.
+        This method can be used to request an EST to repopulate its
+        FASTA header and actual sequence (base pair) information from
+        a given FASTA file.  This method uses the offset (saved when
+        this EST was originally loaded) to load the information from
+        the file.
 
-	\param[in,out] fastaFile The file from where the EST
-	information is to be loaded.  If the file changes during EST
-	analysis the behavior of this method is undefined.
+        \param[in,out] fastaFile The file from where the EST
+        information is to be loaded.  If the file changes during EST
+        analysis the behavior of this method is undefined.
 
-	\return This method returns true if the repopulating the data
-	was successfully completed. On errors this method returns
-	false.
+        \return This method returns true if the repopulating the data
+        was successfully completed. On errors this method returns
+        false.
     */
     bool repopulate(FILE *fastaFile);
 
@@ -340,7 +367,7 @@ public:
         auto_ptr.
 
         \return The custom data (if any) associated with this EST.
-     */
+    */
     inline std::auto_ptr<ESTCustomData>& getCustomData() { return customData; }
 
     /** Obtain an immutable reference to custom data associated with
@@ -356,7 +383,7 @@ public:
         auto_ptr.
 
         \return The custom data (if any) associated with this EST.
-     */    
+    */    
     inline const std::auto_ptr<ESTCustomData>& getCustomData() const
     { return customData; }
     
@@ -389,6 +416,33 @@ public:
 		\return The string read from the file.
     */
     static std::string getLine(FILE *fp);
+
+    /** Determine if this EST has already been processed.
+
+        This method exposes a generic flag that is provided as a
+        convenience for algorithms to mark if this EST has gone
+        through their processing.
+
+        \return This method returns \c true if this EST has been
+        flagged as having been processed. Otherwise this method
+        returns \c false.
+     */
+    inline bool hasBeenProcessed() const { return processed; }
+
+    /** Set if this EST has already been processed.
+
+        This method provides a generic flag as a convenience for
+        algorithms to mark if this EST has gone through their
+        processing. By default ESTs are marked has processed when they
+        are instantiated.
+        
+        \param[in] processedFlag If this flag is \c true then this EST
+        is flagged as having been processed. If this flag is \c false
+        then the EST is flagged as not-processed (and requiring
+        processing).
+    */
+    inline void setProcessed(const bool processedFlag)
+    { processed = processedFlag; }
     
 protected:
     /** The unique ID for this EST.
@@ -435,6 +489,28 @@ protected:
     */
     float similarity;
 
+    /** Instance variable to track if EST has gone through some
+        processing.
+
+        This is a generic flag that is provided as a convenience for
+        algorithms to mark if this EST has gone through their
+        processing.  By default this instance variable is intialized
+        to \c false. Once it has been processed, the setProcessed()
+        method can be used to set/reset this flag. The
+        hasBeenProcessed() method can be used to determine if this EST
+        has already been processed.
+    */
+    bool processed;
+
+    /** Size of the longest EST.
+
+        This static instance variable is used to track the size (in
+        number of nucleotides) of the longest EST ever
+        instantiated. The size of the longest EST can be used by
+        algorithms to optimally allocate memory for processing ESTs.
+    */
+    static size_t maxESTlen;
+    
     /** Place holder for some other custom data.
         
         This pointer acts as a convenient place holder for other
@@ -474,8 +550,6 @@ private:
         New entries are added to the list by the create method.
     */
     static std::vector<EST*> estList;
-
-    static size_t maxESTlen;
 
     /** A dummy operator=
 

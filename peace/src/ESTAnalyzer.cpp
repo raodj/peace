@@ -45,7 +45,6 @@
 bool  ESTAnalyzer::readAhead      = false;
 char* ESTAnalyzer::estFileName    = NULL;
 bool  ESTAnalyzer::htmlLog        = false;
-int   ESTAnalyzer::estMinLength   = 50;
 
 // The common set of arguments for all EST analyzers
 arg_parser::arg_record ESTAnalyzer::commonArgsList[] = {
@@ -53,10 +52,8 @@ arg_parser::arg_record ESTAnalyzer::commonArgsList[] = {
      &ESTAnalyzer::readAhead, arg_parser::BOOLEAN},
     {"--estFile", "Name of EST file (in FASTA format) to be processed",
      &ESTAnalyzer::estFileName, arg_parser::STRING},
-    {"--minLength", "Minimum length of sequences to be clustered",
-     &ESTAnalyzer::estMinLength, arg_parser::INTEGER},
     {"--html", "Generate analysis report in HTML format",
-     &ESTAnalyzer::htmlLog, arg_parser::BOOLEAN},   
+     &ESTAnalyzer::htmlLog, arg_parser::BOOLEAN},
     {NULL, NULL, NULL, arg_parser::BOOLEAN}
 };
 
@@ -65,7 +62,7 @@ ESTAnalyzer::ESTAnalyzer(const std::string& name, const int estIdx,
     : refESTidx(estIdx), chain(NULL), outputFileName(outputFile),
       analyzerName(name) {
     // Nothing else to be done for now.
-}
+      }
 
 ESTAnalyzer::~ESTAnalyzer() {
     // Empty constructor begets an empty destructor
@@ -122,9 +119,9 @@ bool
 ESTAnalyzer::loadFASTAFile(const char *fileName, const bool unpopulate) {
     static const std::string IgnoreFileName = "<none>";
     if (IgnoreFileName == fileName) {
-	// The user does not want to use a file name. This possibly
-	// happens when using peace libary from custom applications.
-	return true;
+        // The user does not want to use a file name. This possibly
+        // happens when using peace libary from custom applications.
+        return true;
     }
     FILE *fastaFile = NULL;
 #ifndef _WINDOWS
@@ -145,7 +142,7 @@ ESTAnalyzer::loadFASTAFile(const char *fileName, const bool unpopulate) {
     int filteredCount = 0;
     // Repeatedly read EST's from the file.
     while (!feof(fastaFile)) {
-        EST *est = EST::create(fastaFile, lineNum, estMinLength);
+        EST *est = EST::create(fastaFile, lineNum);
         if ((est == NULL) && (!feof(fastaFile) || ferror(fastaFile))) {
             // An error occured when reading EST.
             fclose(fastaFile);
@@ -154,10 +151,14 @@ ESTAnalyzer::loadFASTAFile(const char *fileName, const bool unpopulate) {
             return false;
         }
         if (est->getID() == -1) {
-            // A dummy EST to represent an EST filtered out of the dataset
+            // A place holder entry to represent an EST filtered out
+            // of the dataset
             filteredCount++;
         }
         if (unpopulate) {
+            // For now don't hold onto the sequences in memory to
+            // reduce memory usage.  These sequences would have to be
+            // loaded on-demand at a later time.
             est->unpopulate();
         }
     }

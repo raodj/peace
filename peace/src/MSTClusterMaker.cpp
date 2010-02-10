@@ -36,7 +36,6 @@
 
 #include "MSTClusterMaker.h"
 #include "ESTAnalyzer.h"
-#include "MSTCluster.h"
 #include "MSTMultiListCache.h"
 #include "MSTHeapCache.h"
 #include "EST.h"
@@ -300,7 +299,8 @@ MSTClusterMaker::updateProgress(const int estsAnalyzed,
 int
 MSTClusterMaker::manager() {
     // The number of pending nodes to be added to the MST.
-    const int TotalESTcount = EST::getESTList().size();
+    const int TotalESTcount = EST::getESTList().size() -
+        EST::getProcessedESTCount();;
     int pendingESTs         = TotalESTcount;
     // The minimum spanning tree that is built by this manager.
     int dummy;
@@ -438,6 +438,13 @@ MSTClusterMaker::analyze(const int otherEST) {
 
 int
 MSTClusterMaker::initialize() {
+    // All the parallel MPI processes load the data for processing
+    // into memory.
+    int result;
+    if ((result = analyzer->initialize()) != NO_ERROR) {
+        // Error occured during initialization. Bail out.
+        return result;
+    }
     // Hack to fix the baton maxUse problem until a better solution is found
     if (!analyzer->getName().compare("baton") && maxUse > -1) {
         maxUse = 100;
@@ -462,9 +469,10 @@ MSTClusterMaker::populateCache(const int estIdx, SMList* metricList) {
     // Flag to ensure only one invalid metric gets added
     bool needInvalidMetric = true;
     for(int otherIdx = startESTidx; (otherIdx < endESTidx); otherIdx++) {
-        if (cache->isESTinMST(otherIdx) || (otherIdx == estIdx)) {
-            // This EST entry can be ignored as this similarity metric
-            // is not needed for MST construction.
+        if (cache->isESTinMST(otherIdx) || (otherIdx == estIdx) ||
+            (EST::getEST(otherIdx)->hasBeenProcessed())) {
+            // This EST entry can be ignored as this metric is not
+            // needed (or must not be used) for MST construction.
             continue;
         }
         // Get similarity/distance metric.
@@ -650,8 +658,25 @@ MSTClusterMaker::populateMST() {
 }
 
 int
+MSTClusterMaker::addDummyCluster(const std::string name) {
+    MSTCluster *dummy = new MSTCluster(&root, name);
+    root.add(dummy);
+    // Return id of newly added cluster
+    return dummy->getClusterID();
+}
+
+void
+MSTClusterMaker::addEST(const int clusterID, const int estIdx) {
+    // Create a dummy MSTNode.
+    MSTNode node(-1, estIdx, analyzer->getInvalidMetric());
+    root.add(clusterID, node);
+    // Flag the EST as having been processed
+    EST::getEST(estIdx)->setProcessed(true);
+}
+
+int
 MSTClusterMaker::buildAndShowClusters() {
-    MSTCluster root;
+    // Let the root cluster build sub-clusters
     root.makeClusters(mst->getNodes(), analyzer);
     
     // Redirect cluster output to outputFile as needed.
@@ -683,14 +708,6 @@ MSTClusterMaker::buildAndShowClusters() {
 int
 MSTClusterMaker::makeClusters() {
     int result = NO_ERROR;
-
-    // All the parallel MPI processes load the data for processing
-    // into memory.
-    if ((result = analyzer->initialize()) != NO_ERROR ||
-        (result = initialize()) != NO_ERROR) {
-        // Error occured during initialization. Bail out.
-        return result;
-    }
 
     // Next compute/load MST using helper method.
     result = populateMST();

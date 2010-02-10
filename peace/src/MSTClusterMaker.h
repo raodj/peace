@@ -36,7 +36,9 @@
 
 #include "ClusterMaker.h"
 #include "MSTCache.h"
+#include "MSTCluster.h"
 #include "MST.h"
+
 #include <fstream>
 
 /** A Minimum Spanning Tree (MST) based parallel cluster maker.
@@ -63,9 +65,9 @@ public:
         parallel/distributed manner.
     */
     enum MessageTags{REPOPULATE_REQUEST, COMPUTE_SIMILARITY_REQUEST,
-		     SIMILARITY_LIST, SIMILARITY_COMPUTATION_DONE,
-		     COMPUTE_MAX_SIMILARITY_REQUEST, MAX_SIMILARITY_RESPONSE,
-		     ADD_EST, TRANSITIVITY_LIST, COMPUTE_TOTAL_ANALYSIS_COUNT};
+                     SIMILARITY_LIST, SIMILARITY_COMPUTATION_DONE,
+                     COMPUTE_MAX_SIMILARITY_REQUEST, MAX_SIMILARITY_RESPONSE,
+                     ADD_EST, TRANSITIVITY_LIST, COMPUTE_TOTAL_ANALYSIS_COUNT};
     
     /** The destructor.
         
@@ -130,7 +132,49 @@ public:
         be written.        
     */
     virtual void displayStats(std::ostream& os);
-    
+
+    /** Add a dummy cluster to the cluster maker.
+        
+        This method can be used to add a dummy cluster to the cluster
+        maker. The dummy clusters are added as direct descendants of
+        the \c root cluster with the given name.
+
+        \note This method is currently used by the Filter hierarchy to
+        add ESTs that are logically filtered out and must not be part
+        of the core clustering process.
+        
+        \param[in] name A human readable name to be set for this
+        cluster. No special checks are made on the contents of the
+        string.
+        
+        \return This method returns the ID value set for the newly
+        added dummy index.
+    */
+    virtual int addDummyCluster(const std::string name);
+
+    /** Add a EST directly to a given cluster.
+
+        This method can be used to add an EST directly to a
+        cluster. This bypasses any traditional mechanism and directly
+        adds the EST to the specified cluster.
+
+        \note The EST is added with an invalid metric value. ESTs
+        added to a cluster are not included in the standard clustering
+        process. Adding an EST that has already been added to the
+        same/another cluster results in undefined behaviors.
+
+        \param[in] clusterID The unique ID of the cluster to which the
+        EST is to be added. This value must have been obtained from an
+        earlier (successful) call to the ClusterMaker::addDummyCluster
+        method.
+        
+        \param[in] estIdx The EST to be added to the given
+        cluster. Once the EST has been added to this cluster it will
+        not be included in the clustering process performed by this
+        cluster maker.
+    */
+    virtual void addEST(const int clusterID, const int estIdx);
+
 protected:
     /** Variable to indicate per-EST similarity cache size.
 
@@ -713,16 +757,16 @@ protected:
         obtaining similarity metrics between two ESTs.  This parameter
         is simply passed onto the base class.
         
-	\param[in] refESTidx The reference EST index value to be used
-	to root the spanning tree created by this method.  This
-	parameter should be >= 0.  This value is simply passed onto
-	the base class.
+        \param[in] refESTidx The reference EST index value to be used
+        to root the spanning tree created by this method.  This
+        parameter should be >= 0.  This value is simply passed onto
+        the base class.
 
-	\param[in] outputFile The name of the output file to which the
-	raw MST cluster information is to be written.  If this
-	parameter is the empty string then output is written to
-	standard output.  This value is simply passed onto the base
-	class.
+        \param[in] outputFile The name of the output file to which the
+        raw MST cluster information is to be written.  If this
+        parameter is the empty string then output is written to
+        standard output.  This value is simply passed onto the base
+        class.
     */
     MSTClusterMaker(ESTAnalyzer *analyzer, const int refESTidx,
                     const std::string& outputFile);
@@ -769,6 +813,15 @@ private:
         manager() method.
     */
     MST* mst;
+
+    /** The top-level root cluster that contains all other clusters.
+
+        This member represents the top-level root cluster that contain
+        all other clusters created by this cluster maker. This cluster
+        also contains dummy clusters that are created by Filter
+        objects used in conjunction with clustering.
+    */
+    MSTCluster root;
 };
 
 #endif

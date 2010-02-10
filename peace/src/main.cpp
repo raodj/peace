@@ -41,13 +41,17 @@
 #include "ESTAnalyzer.h"
 #include "HeuristicFactory.h"
 #include "HeuristicChain.h"
+#include "FilterFactory.h"
+#include "FilterChain.h"
 #include "MPIHelper.h"
 #include "InteractiveConsole.h"
+#include "EST.h"
 
 #include <string>
 #include <sstream>
+#include <fstream>
 
-/** \fn void showUsage(arg_parser& ap, ESTAnalyzer *analyzer, ClusterMaker *cMaker, HeuristicChain *hChain)
+/** \fn void showUsage(arg_parser& ap, ESTAnalyzer *analyzer, ClusterMaker *cMaker, HeuristicChain *hChain, FilterChain fChain)
 
     A simple helper method to show usage and clean up the temporarily
     created EST analyzer and cluster Maker objects.
@@ -68,10 +72,14 @@
 
     \param[in] hChain The chain of heuristics that are currently
     defined for this run.
+
+    \param[in] fChain The chain of filters that are currently defined
+    for this run.
 */
 static void showUsage(arg_parser& ap,
                       ESTAnalyzer *analyzer, ClusterMaker *cMaker,
-                      HeuristicChain *hChain) {
+                      HeuristicChain *hChain,
+                      FilterChain *fChain) {
     std::cout << "Usage: PEACE [options]\n"
               << "where options are:\n";
     std::cout << ap;
@@ -81,6 +89,8 @@ static void showUsage(arg_parser& ap,
     ClusterMakerFactory::displayList(std::cerr);
     std::cout << "Names of heuristics available are:\n";
     HeuristicFactory::displayList(std::cerr);
+    std::cout << "Names of filters available are:\n";
+    FilterFactory::displayList(std::cerr);
     // Display any analyzer specific options.
     if (analyzer != NULL) {
         analyzer->showArguments(std::cout);
@@ -95,6 +105,66 @@ static void showUsage(arg_parser& ap,
     if (hChain != NULL) {
         hChain->showArguments(std::cout);
         delete hChain;
+    }
+    // Display any filter specific options.
+    if (fChain != NULL) {
+        fChain->showArguments(std::cout);
+        delete fChain;
+    }
+}
+
+/** \fn int applyFilters(ClusterMaker *, FilterChain *, const char *, const char *)
+
+    \brief Helper method to apply filters (if any).
+
+    This method is a helper method that is invoked from the main
+    method to apply any filters that the user has sepecified to the
+    list of ESTs (before they are actually clustered).
+
+    \return This method returns 0 (zero) on success. On errors or if
+    further clustering is not to be performed, then this method
+    returns a non-zero value.
+*/
+int applyFilters(ClusterMaker *clusterMaker, FilterChain *chain,
+                 const char* filterPassFileName,
+                 const char *filterFailFileName) {
+    if (chain == NULL) {
+        // Nothing to be done.
+        return 0;
+    }
+    if (FilterChain::applyFilters(clusterMaker)) {
+        // Error occured when applying filter chains.
+        return 1;
+    }
+    // Rest of the file creation code applies only to rank 0
+    if (MPI_GET_RANK() != 0) {
+        // Nothing further to be done on this process.
+        return 0;
+    }
+    // Filter applied successfully. Generate list of processed ESTs
+    // that passed and failed filtering.
+    if (filterPassFileName != NULL) {
+        std::ofstream outFile(filterPassFileName);
+        if (!outFile.good()) {
+            std::cerr << "Unable to open file " << filterPassFileName
+                      << "for writing. Aborting!" << std::endl;
+            return 2;
+        }
+        // Dump the ESTs out
+        EST::dumpESTList(outFile, false);
+        outFile.close();
+    }
+    // Dump out failed ESTs.
+    if (filterFailFileName != NULL) {
+        std::ofstream outFile(filterFailFileName);
+        if (!outFile.good()) {
+            std::cerr << "Unable to open file " << filterFailFileName
+                      << "for writing. Aborting!" << std::endl;
+            return 2;
+        }
+        // Dump the ESTs that failed filtering out.
+        EST::dumpESTList(outFile, true);
+        outFile.close();
     }
 }
 
@@ -119,7 +189,8 @@ main(int argc, char* argv[]) {
     char defAnalyzer[10]    = "d2";
     char defClusterMaker[4] = "mst";
     char defHeuristic[3]    = "tv";
-    
+    char defFilters[]       = "lengthFilter";
+        
     char *analyzerName = defAnalyzer;
     char *clusterName  = defClusterMaker;
     char *heuristicStr = defHeuristic;
@@ -127,6 +198,12 @@ main(int argc, char* argv[]) {
     bool showOptions   = false;
     int  refESTidx     = 0;
     bool interactive   = false;
+
+    // Filtering parameters
+    char *filterStr      = defFilters;
+    char *filterPassFile = NULL;
+    char *filterFailFile = NULL;
+    bool filterOnly      = false;
     
     // Create the list of valid arguments to be used by the arg_parser.
     arg_parser::arg_record arg_list[] = {
@@ -136,6 +213,14 @@ main(int argc, char* argv[]) {
          &analyzerName, arg_parser::STRING},
         {"--heuristics", "Name(s) of the heuristic(s) to use, in order (null for none)",
          &heuristicStr, arg_parser::STRING},
+        {"--filters", "Name(s) of the filters(s) to use, in order (null for none)",
+         &filterStr, arg_parser::STRING},
+        {"--filter-fail", "FASTA file to which ESTs that failed the filter must be written",
+         &filterFailFile, arg_parser::STRING},
+        {"--filter-pass", "FASTA file to which ESTs that pass the filter must be written",
+         &filterPassFile, arg_parser::STRING},
+        {"--filter-only", "Just do filtering and no other processing (false by default)",
+         &filterOnly, arg_parser::BOOLEAN},
         {"--estIdx", "Index of reference EST in a EST file",
          &refESTidx, arg_parser::INTEGER},
         {"--output", "File to which output must be written",
@@ -177,16 +262,25 @@ main(int argc, char* argv[]) {
                                     refESTidx, std::string(outputFile));
 
     // Check for null heuristic chain input
-    if (!strcmp(heuristicStr, "null")) heuristicStr = NULL;
+    if (!strcmp(heuristicStr, "null")) {
+        heuristicStr = NULL;
+    }
     // Create the heuristic chain using a helper method.
     HeuristicChain *heuristicChain =
         HeuristicChain::setupChain(heuristicStr, refESTidx, outputFile);
 
+    // Check and create filters as directed.
+    if (!strcmp(filterStr, "null")) {
+        filterStr = NULL;
+    }
+    // Create the heuristic chain using a helper method.
+    FilterChain *filterChain = FilterChain::setupChain(filterStr, clusterMaker);
+    
     // Check if EST analyzer creation was successful.  A valid EST
     // analyzer is needed even to make clusters.
     if ((analyzer == NULL) || (showOptions) ||
         (!analyzer->parseArguments(argc, argv))) {
-        showUsage(ap, analyzer, clusterMaker, heuristicChain);
+        showUsage(ap, analyzer, clusterMaker, heuristicChain, filterChain);
         return (showOptions ? 0 : 1);
     }
 
@@ -194,7 +288,7 @@ main(int argc, char* argv[]) {
     if (clusterName != NULL)  {
         if ((clusterMaker == NULL) || (showOptions) ||
             (!clusterMaker->parseArguments(argc, argv))) {
-            showUsage(ap, analyzer, clusterMaker, heuristicChain);
+            showUsage(ap, analyzer, clusterMaker, heuristicChain, filterChain);
             return (showOptions ? 0 : 2);
         }
     }
@@ -203,11 +297,20 @@ main(int argc, char* argv[]) {
     if (heuristicStr != NULL) {
         if ((heuristicChain == NULL) || (showOptions) ||
             (!heuristicChain->parseArguments(argc, argv))) {
-            showUsage(ap, analyzer, clusterMaker, heuristicChain);
+            showUsage(ap, analyzer, clusterMaker, heuristicChain, filterChain);
             return (showOptions ? 0 : 3);
         }
     }
 
+    // Check if filter chain was specified and successfully created
+    if (filterStr != NULL) {
+        if ((filterChain == NULL) || (showOptions) ||
+            (!filterChain->parseArguments(argc, argv))) {
+            showUsage(ap, analyzer, clusterMaker, heuristicChain, filterChain);
+            return (showOptions ? 0 : 3);
+        }
+    }
+    
     // Attach the heuristic chain (if it exists) to the EST analyzer
     if (heuristicChain != NULL) {
         analyzer->setHeuristicChain(heuristicChain);
@@ -221,7 +324,13 @@ main(int argc, char* argv[]) {
         InteractiveConsole console(analyzer);
         console.processCommands();
     } else if (clusterMaker != NULL) {
-        result = clusterMaker->makeClusters();
+        // First initialize the cluster maker for use in filters
+        clusterMaker->initialize();
+        // First go through the phase of applying filters if specified.
+        if ((applyFilters(clusterMaker, filterChain, filterPassFile,
+                          filterFailFile) == 0) && (!filterOnly)) {
+            result = clusterMaker->makeClusters();
+        }
         delete clusterMaker;
     } else {
         // Let the analyzer do the analysis.
@@ -240,12 +349,24 @@ main(int argc, char* argv[]) {
         heuristicChain->printStats(buffer, MPI_GET_RANK());
         std::cout << buffer.str() << std::endl;
     }
+
+    // Print statistics regarding operation of filters.
+    if (filterChain != NULL) {
+        // Display statistics by writing all the data to a string
+        // stream and then flushing the stream.  This tries to working
+        // around (it is not perfect solution) interspersed data from
+        // multiple MPI processes
+        std::ostringstream buffer;
+        filterChain->printStats(buffer, MPI_GET_RANK());
+        std::cout << buffer.str() << std::endl;
+    }
     
     // Delete the analyzer as it is no longer needed.
     delete analyzer;
-
     // Delete the heuristic chain as it is no longer needed
     delete heuristicChain;
+    // Delete the filter chain as it is no longer needed
+    delete filterChain;    
 
     // Shutdown MPI.
     MPI_FINALIZE();

@@ -113,7 +113,15 @@ TransCacheEntry.cpp\
 TransMSTClusterMaker.cpp\
 TransMSTClusterMaker.h\
 MPIHelper.h \
-MPIHelper.cpp
+MPIHelper.cpp \
+Filter.h \
+Filter.cpp \
+LengthFilter.h \
+LengthFilter.cpp \
+FilterFactory.h \
+FilterFactory.cpp \
+FilterChain.h \
+FilterChain.cpp
 
 peace_SOURCES = \
 main.cpp\
