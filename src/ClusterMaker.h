@@ -100,9 +100,79 @@ public:
         EST analysis method.  This method is a pure-virtual method.
         Therefore all cluster maker classes must override this method
         to perform all the necessary operations.
+
+		\note This method must be invoked only after the initialize()
+		method is invoked.
     */
     virtual int makeClusters() = 0;
 
+    /** Obtain the EST analyzer set for this cluster maker.
+
+        This method must be used to obtain the EST analyzer set for
+        this cluster maker.
+
+        \return The EST analyzer set for this cluster maker. If a
+        valid EST analyzer has not been set then this method returns
+        NULL.
+    */
+    inline ESTAnalyzer *getAnalyzer() const { return analyzer; }
+
+    /** Add a dummy cluster to the cluster maker.
+
+        This method can be used to add a dummy cluster to the cluster
+        maker. The dummy clusters are added as direct descendants of
+        the root cluster with the given name.
+
+        \note This method is currently used by the Filter hierarchy to
+        add ESTs that are logically filtered out and must not be part
+        of the core clustering process.
+        
+        \param[in] name A human readable name to be set for this
+        cluster.
+        
+        \return If a cluster was successfully added, then this method
+        returns a unique integer that identifies the newly added
+        cluster. This value must be used to add entries to this
+        cluster via the ClusterMaker::addEST method.
+    */
+    virtual int addDummyCluster(const std::string name) = 0;
+
+    /** Add a EST directly to a given cluster.
+
+        This method can be used to add an EST directly to a
+        cluster. This bypasses any traditional mechanism and directly
+        adds the EST to the specified cluster.
+
+        \note The EST is added with an invalid metric value. ESTs
+        added to a cluster are not included in the standard clustering
+        process. Adding an EST that has already been added to the
+        same/another cluster results in undefined behaviors.
+
+        \param[in] clusterID The unique ID of the cluster to which the
+        EST is to be added. This value must have been obtained from an
+        earlier (successful) call to the ClusterMaker::addDummyCluster
+        method.
+        
+        \param[in] estIdx The EST to be added to the given
+        cluster. Once the EST has been added to this cluster it will
+        not be included in the clustering process performed by this
+        cluster maker.
+    */
+    virtual void addEST(const int clusterID, const int estIdx) = 0;
+
+	/** A method to handle initialization tasks for the ClusterMaker.
+		
+		This method is called after the cluster maker has been created
+		but before the ESTs have been loaded into the ESTAnalyzer.
+		
+		\This method must load all the ESTs to be processed via the
+		ESTAnalyzer API methods.
+
+		\return This method returns zero on success. On errors, this
+		method returns a non-zero value.
+    */
+    virtual int initialize() = 0;
+	
     /** The destructor.
 
         The destructor frees memory allocated for holding any data in

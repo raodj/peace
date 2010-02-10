@@ -58,6 +58,7 @@ EST::EST(const int idValue, const char *information, const char* seq,
     info       = EST::duplicate(information);
     sequence   = EST::duplicate(seq);
     similarity = 0;
+    processed  = false;
 }
 
 EST::~EST() {
@@ -114,7 +115,7 @@ EST::create(const int id, const char *info,
 }
 
 EST*
-EST::create(FILE* fastaFile, int& lineNum, const int minLength) {
+EST::create(FILE* fastaFile, int& lineNum) {
     // Some basic validation on the fastFile first.
     if (feof(fastaFile) || ferror(fastaFile)) {
         // Can't read information from the fasta file.
@@ -161,20 +162,15 @@ EST::create(FILE* fastaFile, int& lineNum, const int minLength) {
                        toupper);
         const char* const seqBP = sequence.c_str();
         size_t seqLen = strlen(seqBP);
-        if (seqLen >= minLength) { // Only accept ESTs of sufficient length
-            // Compute new max EST length
-            maxESTlen = std::max(maxESTlen, strlen(seqBP));
-            // Create a new est with all the information.
-            EST *est = new EST((int) estList.size(), headerLine.c_str(), seqBP,
-                               offset);
-            // Add it to the est list.
-            estList.push_back(est);
-            // Return newly created est back to the caller.
-            return est;
-        } else {
-            // Return a dummy EST to the caller.
-            return dummy;
-        }
+        // Compute new max EST length
+        maxESTlen = std::max(maxESTlen, strlen(seqBP));
+        // Create a new est with all the information.
+        EST *est = new EST((int) estList.size(), headerLine.c_str(), seqBP,
+                           offset);
+        // Add it to the est list.
+        estList.push_back(est);
+        // Return newly created est back to the caller.
+        return est;
     }
 
     // Can't create a valid EST
@@ -197,6 +193,19 @@ EST::dumpESTList(std::ostream& os) {
     for(int id = 0; (id < EstCount); id++) {
         // Dump the EST information out.
         estList[id]->dumpEST(os);
+    }
+}
+
+
+void
+EST::dumpESTList(std::ostream& os, const bool processed) {
+    const int EstCount = (int) estList.size();
+    for(int id = 0; (id < EstCount); id++) {
+        // Dump the EST information out based on processed status.
+        if (estList[id]->processed == processed) {
+            // Matched condition.
+            estList[id]->dumpEST(os);
+        }
     }
 }
 
@@ -240,6 +249,18 @@ EST::EST() : id(-1), info(NULL), sequence(NULL), offset(-1), similarity(0) {}
 EST&
 EST::operator=(const EST&) {
     return *this;
+}
+
+int
+EST::getProcessedESTCount() {
+    int count = 0;
+    const int ESTCount = (int) estList.size();
+    for(int id = 0; (id < ESTCount); id++) {
+        if (estList[id]->processed) {
+            count++;
+        }
+    }
+    return count;
 }
 
 size_t

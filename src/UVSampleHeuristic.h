@@ -171,7 +171,7 @@ protected:
 					  const std::string& outputFileName);
     
     /** Determine whether the analyzer should analyze, according to
-	this heuristic.
+        this heuristic.
         
         This method can be used to compare a given EST with the
         reference EST (set via the call to the setReferenceEST())
@@ -181,7 +181,7 @@ protected:
         which the reference EST is to be compared.
         
         \return This method returns true if the heuristic says the
-	EST pair should be analyzed, and false if it should not.
+        EST pair should be analyzed, and false if it should not.
     */
     virtual bool runHeuristic(const int otherEST);
 
@@ -201,31 +201,31 @@ protected:
     void computeHash(const int estIdx);
     
     /** Instance variable to track if a given word (of length \c v)
-	appears in reference EST.
+        appears in reference EST.
 
-	This instance variable is created in the initialize() method
-	to point to an array of 4<sup>v</sup>
+        This instance variable is created in the initialize() method
+        to point to an array of 4<sup>v</sup>
 
     */
     char* s1WordMap;
 
     /** Instance variable to track if a given word (of length \c v)
-	appears in reference EST.
+        appears in reference EST.
 
-	This instance variable is created in the initialize() method
-	to point to an array of 4<sup>v</sup> 
+        This instance variable is created in the initialize() method
+        to point to an array of 4<sup>v</sup> 
     */
     char* s1RCWordMap;
 
     /** Flag to indicate if normal or reverse-complement version
-	provided best match.
+        provided best match.
 
-	This flag is set at the end of the runHeuristic method in this
-	class to indicate if the normal or the reverse-complement
-	check yielded the best possible match. If this flag is \c
-	false, then the normal check yielded the best match. If this
-	value is \c true, then the reverse-complement check yielded
-	the best match.
+        This flag is set at the end of the runHeuristic method in this
+        class to indicate if the normal or the reverse-complement
+        check yielded the best possible match. If this flag is \c
+        false, then the normal check yielded the best match. If this
+        value is \c true, then the reverse-complement check yielded
+        the best match.
     */
     bool bestMatchIsRC;
 
@@ -297,11 +297,11 @@ private:
     UVHashTable uvCache;
 
     /** The hint key that is used to add hint for normal or
-	reverse-complement D2 computation.
-
-	This hint key is used to set a hint in the \c hints hash
-	map. This string is defined as a constant to save compute time
-	in the core \c runHeuristics method.
+		reverse-complement D2 computation.
+		
+		This hint key is used to set a hint in the \c hints hash
+		map. This string is defined as a constant to save compute time
+		in the core \c runHeuristics method.
     */
     const std::string hintKey;
 };

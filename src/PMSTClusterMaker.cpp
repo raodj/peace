@@ -483,7 +483,8 @@ PMSTClusterMaker::populateCache(const int estIdx, SMList* metricList) {
     bool needInvalidMetric = true;
     
     for(int otherIdx = startESTidx; (otherIdx < endESTidx); otherIdx++) {
-        if ((otherIdx == estIdx) || (cache->isESTinMST(otherIdx))) {
+        if ((otherIdx == estIdx) || (cache->isESTinMST(otherIdx)) ||
+            (EST::getEST(otherIdx)->hasBeenProcessed())) {
             // This EST entry can be ignored as this similarity metric
             // is not needed for MST construction.
             continue;

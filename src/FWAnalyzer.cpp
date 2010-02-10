@@ -178,7 +178,7 @@ FWAnalyzer::initialize() {
                       << std::endl;
         }
     }
-    // Initializawtion successful.
+    // Initialization successful.
     return 0;
 }
 

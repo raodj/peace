@@ -136,9 +136,9 @@ public:
 
     /** Method to begin EST analysis.
 
-        This method is invoked just before commencement of EST
+        <p>This method is invoked just before commencement of EST
         analysis.  This method loads the list of ESTs from a given
-        input multi-FASTA file and pouplates the list of ESTs.
+        input multi-FASTA file and pouplates the list of ESTs.</p>
 
         \return If the ESTs were successfully loaded from the FATA
         file then this method returns 0.  Otherwise this method
@@ -204,6 +204,21 @@ public:
         non-zero value.
     */
     virtual int analyze();
+
+    /** Determine preferred dummy EST lengths to be used with this
+        analyzer.
+
+        <b>Note: For more detailed description of the motivation for
+        dummy ESTs please refer to the documentation for the
+        corresponding method in the base class --
+        getPreferredDummyESTLength().
+        
+        \return This method overrides the default implementation in
+        the base class to return twice the length of the frame (aka
+        window) size.
+    */
+    virtual int getPreferredDummyESTLength() const
+    { return frameSize * 2; }
     
 protected:    
     /** Analyze and obtain a similarity metric.
@@ -247,20 +262,20 @@ protected:
         to perform the necessary operations.
     */
     virtual float analyzeFrame(const std::string& refFrame,
-			       const std::string& otherFrame,
-			       const int wordSize);
+                               const std::string& otherFrame,
+                               const int wordSize);
     
     /** Helper method to dump result log header.
 
-	This is a helper method that is invoked from the analyze()
-	method to dump a result log header.  This method was
-	introduced to keep the code clustter in the analyze method to
-	a minimum.
+        This is a helper method that is invoked from the analyze()
+        method to dump a result log header.  This method was
+        introduced to keep the code clustter in the analyze method to
+        a minimum.
 
-	This method dumps some of the analysis parameters to the
-	supplied log.
+        This method dumps some of the analysis parameters to the
+        supplied log.
 
-	\param[out] log The log to which the header is to be dumped.
+        \param[out] log The log to which the header is to be dumped.
 
         \param[in] mean The overall mean similarity for this set of
         ESTs.
@@ -291,7 +306,7 @@ protected:
                              const EST* refEST,
                              ResultLog& log);
 
-    /** Dumps a given EST in 3-column format using R
+    /** Dumps a given EST in 3-column format using R.
 
         This method is a helper method that dumps a given EST out to
         the log.
@@ -326,7 +341,7 @@ protected:
         \note The word size must be smaller than the frame size.
     */    
     static int wordSize;
-
+   
     /** The reference frame to be used for EST comparisons.
 
         This instance variable is set to the reference frame once the
@@ -368,7 +383,7 @@ private:
         that are common all the Frame-Word analyzers.  The common argument
         list is statically defined and shared by all EST instances.
 
-	\note This makes FWAnalyzer class hierarchy not MT-safe.
+        \note This makes FWAnalyzer class hierarchy not MT-safe.
     */
     static arg_parser::arg_record commonArgsList[];
 };

@@ -48,7 +48,6 @@ class MSTCluster;
 */
 typedef std::vector<MSTCluster*> ClusterList;
 
-
 /** Class to encapsulate cluster information and aid in building
     clusters using Minimum Spanning Tree (MST) data.
 
@@ -59,12 +58,39 @@ class MSTCluster {
     // Insertion operator to make dumping MST for debugging easier.
     friend std::ostream& operator<<(std::ostream&, const MSTCluster&);  
 public:
-    MSTCluster(MSTCluster* owner = NULL);
+    MSTCluster(MSTCluster* owner = NULL, const std::string& name = "");
     ~MSTCluster();
 
     double makeClusters(NodeList& nodeList, const ESTAnalyzer* analyzer);
     void add(const MSTNode& node);
 
+    /** Add a child cluster to this cluster.
+
+        This method must be used to add a child cluster this
+        cluster. Note that the parent cluster must be appropriately
+        set in the child to refer to this MSTCluster.
+
+        \note This cluster node takes ownership of the child node.
+
+        \param[in] child The child node to be added to the this
+        cluster.
+    */
+    void add(MSTCluster *child);
+    
+    /** Method to directly add a given EST to a dummy clusterID.
+
+        This method is typically used to add a EST that has been
+        filtered out by a filter to a specific cluster.  The cluster
+        maker typically creates a dummy MSTNode with the necessary
+        information to be added.
+        
+        \param clusterID The ID/index of the cluster to which the
+        MST node is to be added.
+        
+        \param[in] node The MSTNode entry to be added to this cluster.
+    */
+    void add(const int clusterID, const MSTNode& node);
+    
     void printClusterTree(std::ostream& os = std::cout,
                           const std::string& prefix = "") const;
 
@@ -74,16 +100,36 @@ public:
     void makeMergedClusters(const int size, int* parent, bool* root);
                
     inline int getClusterID() const { return clusterID; }
-    
+
+
 protected:
 	void guiPrintTree(std::ostream& os) const;
 	
 private:
+    /** List of sub-clusters for this cluster.
+
+        This instance variable is used to maintain the list of
+        sub-clusters for this cluster. Entries are added to this list
+        whenever sub-clusters are created in the
+        MSTCluster::makeClusters() method.
+    */
     ClusterList clusterList;
+    
     const MSTCluster* parent;
     NodeList members;
     const int clusterID;
-    
+
+	/** A name set to identify filtered clusters.
+
+		The name is set when dummy clusters are created to add ESTs
+		that were filtered out based on a specific condition.  The
+		named clusters are typically created by filters.  By default
+		clusters don't have a name.  These indicate regular clusters.
+		
+		\see Filter.
+	*/
+	const std::string name;
+	
 	/** Instance variable to track the next available cluster ID.
 
 		This instance variable is used to generate unique cluster ID
@@ -93,6 +139,17 @@ private:
 		value.
 	*/
 	static int clusterIDSequence;
+
+	/** Global list to maintain reference to all the MSTClusters created.
+
+		This list is used to maintain a pointer to all the MST
+		clusters ever created. This list is used to look up clusters
+		given the index of the cluster.
+
+		\see MSTCluster::getCluster() method
+	*/
+	static ClusterList globalClusterList;
+	
 };
 
 /** \fn std::ostream& operator<<(std::ostream&, const MSTCluster&)
