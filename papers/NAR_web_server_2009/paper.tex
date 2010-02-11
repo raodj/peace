@@ -39,18 +39,18 @@ urlcolor=blue %color of the url links
 
 \begin{abstract}
   We present {\sc Peace}, a tool for the high-throughput clustering of
-  transcript fragment sequences produced Next Generation or Sanger
-  Sequencing technologies.  Installed and easily run through an easily
+  transcript fragment sequences produced by Next Generation or Sanger
+  Sequencing technologies.  Installed and run through an easily
   downloaded GUI, {\sc Peace} can process large data sets, grouping the
   fragments by gene association, faster and with greater sensitivity
   than competing clustering tools such as {\sc WCD}, and with
   considerably greater sensitivity than the implicit clustering
-  preformed by assembly tools such as {\sc Cap3}.  Through the GUI the
+  performed by assembly tools such as {\sc Cap3}.  Through the GUI the
   user can collect cluster statistics and examine specific
   clusters for more comprehensive study.  And by using {\sc Peace} as
   a ``pre-assembly'' tool to allow the application of an assembly tool
   to the resultant individual clusters, the user gains both a significant
-  increase sensitivity of the clustering method and a large decrease
+  increase in sensitivity of the clustering method and a large decrease
   in overall runtime for the clustering and assembly together.
 \end{abstract}
 
@@ -59,20 +59,20 @@ urlcolor=blue %color of the url links
 
 Understanding an organism's transcriptome, the set of (spliced)
 transcripts expressed by genes of the organism, is a vital step in
-understanding the full functional and organization roll of the genome
+understanding the full functional and organizational role of the genome
 in the life cycle of any organism.  Studying the transcriptome has led
-to gene discovery, provided information of protein isoforms, and
+to gene discovery, provided information on protein isoforms, and
 generally helped shed light on the biological processes both
 controlling and dictated by the genome \cite{Nagaraj07}.  But in order
-to get access those transcripts, we must first deal with the
+to get access to those transcripts, we must first deal with the
 fragmented data produced by both Next Generation and traditional
 Sanger sequencing technology.
 
 Until recently, a primary method of gaining access to a transcriptome
-sequence was through the use of Express Sequence Tags (ESTs), which
+sequence was through the use of Expressed Sequence Tags (ESTs), which
 were primarily single-pass cDNA sequences derived from transcribed
 mRNAs and traditionally sequenced by Sanger Sequencing technology.
-More recently, Next-Generation Sequence (NGS) technologies have
+More recently, Next-Generation Sequencing (NGS) technologies have
 replaced the Sanger Sequencing techniques, allowing for considerably
 greater depth and coverage of the transcriptome.  For example, ESTs in
 GenBank dbEST are increasingly the product of NGS technologies such as
@@ -80,26 +80,26 @@ GenBank dbEST are increasingly the product of NGS technologies such as
 transcripts at a considerably higher rate of coverage than did Sanger
 Sequencing \cite{Cheung2006,Emrich2007}.  But from a computational
 perspective, this is a mixed blessing: while NGS provides immense
-quantities of new information, it does provides immensely larger data sets
-for analysis, requiring even more efficient algorithms than were
-already needed.
+quantities of new information, it also provides immensely larger data sets,
+requiring even more efficient algorithms than were already needed
+for analysis.
 
 Given a set of transcript fragments, produced by either sequencing
 technology, sampled from multiple transcripts across the genome, a
 necessary first step is that of clustering: separating the fragments
 according to the transcript from which they were derived.  While
-clustering is frequently preformed implicitly by assembly tools such
+clustering is frequently performed implicitly by assembly tools such
 as {\sc Cap3} \cite{Huang99}, clustering the data as a
 ``pre-assembly'' step has a number of advantages.  Most significant
-among these: preforming this step will allow the application of the
+among these: performing this step will allow the application of the
 assembly tool to individual clusters -- saving significant amounts of
 time due to the reduced input size \cite{Hazelhurst08a}.  But
 clustering is a computationally challenging problem, especially when
 done {\it ab initio} instead of relying on access to a sequenced
-genome.  Even with the number of ESTs produced using Sanger
+genome.  Even with the smaller number of ESTs produced using Sanger
 sequencing, the runtime and memory requirements to cluster based on
 pair-wise sequence alignments make such an approach infeasible.  The
-much larger data-set sizes produced by the next-generation sequencing
+much larger data-set size produced by next-generation sequencing
 technologies exacerbates this problem.
 
 Here we present {\sc Peace}, a tool for the {\it ab initio} clustering
@@ -122,22 +122,22 @@ sacrifice of performance (e.g. \cite{Burke99}, \cite{Slater00},
 
 \enlargethispage{-65.1pt}
 
-\section{PEACE: Instillation and Use}
+\section{PEACE: Installation and Use}
 
 The {\sc Peace} GUI, available from the {\sc Peace} website
 (\href{http://www.peace-tools.org}{www.peace-tools.org}), handles the
-details of both instillation and job management and provides tools for
+details of both installation and job management and provides tools for
 the initial analysis of the results.  By downloading and executing the
 {\tt peace.jar} GUI Java program on a Linux, Windows or OS-X machine
 running Java 1.6+, the user is presented with the {\sc Peace}
 management tool.  Through this the user can install the computational
-tool and preform a clustering of a data file, view an initial analysis
+tool and perform a clustering of a data file, view an initial analysis
 of the clusters and produce files containing subsets of the clusters
 for assembly by a tool such as {\sc Cap3} \cite{Huang99}.  A typical
 (first) use of the tool would generally require the the following
 steps.
 
-\noindent {\bf Tool Instillation:} Installing the GUI requires only
+\noindent {\bf Tool Installation:} Installing the GUI requires only
 that the Java file be downloaded from the website.  To install the {\sc
   Peace} tool onto a local or remote machine, the user will select
 from within the GUI the {\tt Server > Add New Server} tab from the GUI
@@ -166,7 +166,7 @@ computed and (if necessary) copied back, the user has several options
 for analysis:
 \begin{itemize}
 \item {\bf Export:} The user can export the contents of one or more
-  clusters into a fasta file, obtaining a subset of the original file
+  clusters into a FASTA format file, obtaining a subset of the original file
   containing the sequences corresponding to the selected clusters
   ready for processing by an assembly tool (e.g. {\sc Cap3} \cite{Huang99}).
 \item {\bf View Clustering}: The user may view a list of all clusters,
@@ -176,9 +176,9 @@ for analysis:
   of cluster sizes in a linear or $\log$ scale.  Further, the user may
   set up a {\it classifier}, associating certain patterns with
   specific colors.  These patterns will be matched against the
-  fragment header information from the original fasta file, allowing
+  fragment header information from the original FASTA file, allowing
   the overlay of a colored cluster size distribution does clusters
-  containing matching elements in a specified colors.  For example, if
+  containing matching elements in a specified colors (comment by molerjc: please reword the preceding sentence fragment).  For example, if
   the sequence names contain unique string patterns denoting different
   cDNA libraries, the classifier can help the user to determine the
   differential expression profiles of different libraries for a given
@@ -271,7 +271,7 @@ Supplementary Materials, Figure~S4).
 }
 \label{screen}
 \caption{Screenshots of the PEACE GUI during execution, including (a)
-GUI Welcome and server instillation menu; (b) setup wizard for
+GUI Welcome and server installation menu; (b) setup wizard for
 installing the computational tool on a remote server; (c) execution
 wizard for starting a selected job to be executed in parallel mode;
 (d) basic cluster output; and (e) histogram view of cluster results
@@ -284,7 +284,7 @@ and classifier editor for setting up differential expression profiles.}
 }
 \label{SeT1}
 \caption{Comparisons of Sensitivity and Type 1 error, based on the
-  average over 30 Simulated fragment sets derived from 100 zebra fish genes
+  average over 30 simulated fragment sets derived from 100 zebra fish genes
   (see Supplementary Materials, Section~\href{sim_results}, for more
   details).   Blue/Solid = {\sc Peace}, Green/Dash =
   {\sc wcd}, Black/Dot-Dash = {\sc Cap3}; vertical tics = 95\% confidence
@@ -309,11 +309,11 @@ approximately $190,000$ clean Sanger ESTs derived from the {\it
 sensitivity we used the {\it gmap} tool \cite{Wu05} to map the
 fragment set to the genome, taking this as our reference clustering.
 We see slight improvements in {\sc Peace} over {\sc wcd} in both
-sensitivity and Type 1 error (both significantly out preforming {\sc
+sensitivity and Type 1 error (both significantly outperforming {\sc
   Cap3}).  Using the mouse fragment set used in Hazelhurst {\it et
   al.}  \cite{Hazelhurst08a} {\sc Peace} again shows slight
-improvements in sensitivity and Type 1 error rates, with an 18\% speed
-up for {\sc Peace} (see Supplementary Materials,
+improvements in sensitivity and Type 1 error rates, with an 18\% speedup
+for {\sc Peace} (see Supplementary Materials,
 Section~\href{real_results}, for more details).
 
 \section{Acknowledgements}
