@@ -155,7 +155,7 @@ public:
         \return The current window (or frame) size set for <i>t/v</i>
         heuristic.
     */
-    static int getWindowLen() { return windowLen; }
+    int getWindowLen() { return windowLen; }
     
 protected:
     /** The default constructor.
@@ -200,6 +200,8 @@ protected:
 	EST pair should be analyzed, and \c false if it should not.
     */
     virtual bool runHeuristic(const int otherEST);
+
+    virtual void adjustParameters(const int otherESTLen);
 
     template <typename Encoder>
     int countCommonWords(const int otherEST, Encoder encoder,
@@ -265,7 +267,7 @@ private:
         in pairs of ESTs.  The default is 65. However, this value can
         be overridden by a command line argument.
     */
-    static int t;
+    int t;
 
     /** The window length to be used for <i>t/v</i> heuristic.
 
@@ -276,7 +278,9 @@ private:
         default value is 100.  This value can be overridden by the
         user via suitable command line arguments.
     */
-    static int windowLen;
+    int windowLen;
+
+    int refESTLen;
     
     /** A large table to track matches.
 

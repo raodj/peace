@@ -161,7 +161,6 @@ EST::create(FILE* fastaFile, int& lineNum) {
         std::transform(sequence.begin(), sequence.end(), sequence.begin(),
                        toupper);
         const char* const seqBP = sequence.c_str();
-        size_t seqLen = strlen(seqBP);
         // Compute new max EST length
         maxESTlen = std::max(maxESTlen, strlen(seqBP));
         // Create a new est with all the information.

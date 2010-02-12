@@ -167,12 +167,12 @@ FWAnalyzer::initialize() {
         // heuristic are consistently set. This feels a bit hoaky, but
         // should be OK for now.
         Heuristic* tv = chain->getHeuristic("tv");
-        if ((tv != NULL) && (TVHeuristic::getWindowLen() != frameSize)) {
+        if ((tv != NULL) && (((TVHeuristic*)tv)->getWindowLen() != frameSize)) {
             std::cerr << "Warning: The frame/window size for "
                       << getName() << " analyzer (which is set to "
                       << frameSize << ") is different from that for "
                       << "the t/v heuristic (which is set to "
-                      << TVHeuristic::getWindowLen() << ").\n"
+                      << ((TVHeuristic*)tv)->getWindowLen() << ").\n"
                       << "       : This will most likely cause problems. "
                       << "To avoid it use both --frame and --tv_win options."
                       << std::endl;

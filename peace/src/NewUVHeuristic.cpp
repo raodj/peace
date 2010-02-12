@@ -41,7 +41,7 @@
 
 // default params
 int NewUVHeuristic::u           = 4;
-int NewUVHeuristic::v           = 6;
+int NewUVHeuristic::v           = 8;
 int NewUVHeuristic::wordShift   = 4;
 int NewUVHeuristic::BitMask     = 0;
 int NewUVHeuristic::passes      = 2;
