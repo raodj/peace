@@ -38,26 +38,24 @@
 #include "ESTCodec.h"
 #include "EST.h"
 
-// Define the static parameters
-int TVHeuristic::t = 18;
-
-int TVHeuristic::windowLen = 50;
-
 // The set of arguments for this class.  Note that some of the base
 // class static instance variables are reused here so that the values
 // are consistently set.
 arg_parser::arg_record TVHeuristic::argsList[] = {
-    {"--tv_t", "t (number of v-word matches) (default=65)",
-     &TVHeuristic::t, arg_parser::INTEGER},
-    {"--tv_win", "Window size for t/v heuristics (default=100)",
-     &TVHeuristic::windowLen, arg_parser::INTEGER},    
+    //    {"--tv_t", "t (number of v-word matches) (default=65)",
+    //     &TVHeuristic::t, arg_parser::INTEGER},
+    //    {"--tv_win", "Window size for t/v heuristics (default=100)",
+    //     &TVHeuristic::windowLen, arg_parser::INTEGER},    
     {NULL, NULL, NULL, arg_parser::BOOLEAN}
-};
+    };
 
 TVHeuristic::TVHeuristic(const std::string& outputFileName)
     : NewUVHeuristic("tv", outputFileName) {
     matchTable     = NULL;
     uvSuccessCount = 0;
+    t = 18;
+    windowLen = 50;
+    refESTLen = 0;
 }
 
 TVHeuristic::~TVHeuristic() {
@@ -104,7 +102,8 @@ TVHeuristic::initialize() {
     size_t maxESTlen = EST::getMaxESTLen();
     
     // Add extra 100 characters to ease processing.
-    matchTable = new char[maxESTlen + windowLen + v];
+    //matchTable = new char[maxESTlen + windowLen + v];
+    matchTable = new char[maxESTlen + 150 + v];
     // Everything went well
     return 0;
 }
@@ -115,6 +114,7 @@ TVHeuristic::setReferenceEST(const int estIdx) {
         // The reference EST is the same. Nothing to be done.
         return 0;
     }
+    refESTLen = (int)strlen(EST::getEST(estIdx)->getSequence());
     // Simply let the base class to its job
     return NewUVHeuristic::setReferenceEST(estIdx);
 }
@@ -126,11 +126,15 @@ TVHeuristic::runHeuristic(const int otherEST) {
     if (!NewUVHeuristic::runHeuristic(otherEST)) {
         // This pair need not be analyzed further.
         return false;
-    }
+    }    
     // Track number of successful base-class checks.
     uvSuccessCount++;
     // Now apply tv-heuristic to see if this pair should be analyzed
     // further.
+    
+    // Call adjustParameters method to use proper heuristic params
+    adjustParameters((int) strlen(EST::getEST(otherEST)->getSequence()));
+                     
     int numMatches = 0;
     // bitsToShift is set to 2*(v-1) in the base class.
     ESTCodec::NormalEncoder<bitsToShift, BitMask> encoder;
@@ -145,7 +149,20 @@ TVHeuristic::runHeuristic(const int otherEST) {
     //           << numMatches << std::endl;
     
     // Ensure number of matches exceeds threshold limits
-    return (numMatches >= TVHeuristic::t);
+    return (numMatches >= t);
+}
+
+void
+TVHeuristic::adjustParameters(const int otherESTLen) {
+    int minLen = std::min(refESTLen, otherESTLen);
+    if (minLen >= 300) {
+        windowLen = 150;
+    } else if (minLen >= 100) {
+        windowLen = 100;
+    } else {
+        windowLen = 50;
+    }
+    t = 6 + 0.25*minLen;
 }
 
 void
