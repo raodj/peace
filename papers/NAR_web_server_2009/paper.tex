@@ -44,12 +44,12 @@ urlcolor=blue %color of the url links
   run through an easily downloaded GUI, {\sc Peace} can process large
   data sets and group the fragments by gene association, achieving a
   greater sensitivity (without sacrificing runtime) than the competing
-  clustering tool {\sc WCD}.  Through the GUI the user can collect
+  clustering tools.  Through the GUI the user can collect
   cluster statistics and examine specific clusters for more
   comprehensive study.  {\sc Peace}, used as a ``pre-assembly'' tool,
   enables any assembly tool to work with individual small clusters of
-  closely related sequences, resulting in a signficant: increases in
-  sensitivity, robustness to sequenceing error, and reduction in
+  closely related sequences, resulting in signficant increases in
+  sensitivit and robustness to sequenceing error, as well as a reduction in
   overall runtime.
 \end{abstract}
 
@@ -62,7 +62,7 @@ understanding the full functional and organizational role of the
 genome in the life cycle of any eukaryote.  Studying the transcriptome
 has led to gene discovery, provided information on splice variants,  
 and helped shed light on the biological processes both controlling and
-dictated by the genome \cite{Nagaraj07}.  But to access to those
+dictated by the genome \cite{Nagaraj07}.  However, to access to those
 transcripts, we must deal with the fragmented data produced by
 both Next Generation and traditional Sanger sequencing technology.
 
@@ -70,29 +70,29 @@ Until recently, access to a transcriptome sequence was primarily
 through the use of Expressed Sequence Tags (ESTs), single-pass cDNA
 sequences derived from transcribed mRNAs and sequenced by Sanger
 Sequencing technology.  More recently, Next Generation Sequencing
-technology (NGS) is rapidly replacing Sanger Sequencing, allowing for
-much more comprehensive coverage of the transcriptome.  For example,
-ESTs in GenBank dbEST are increasingly the product of NGS technologies
-such as 454 pyrosequencing, which enables the sequencing of novel and
-rare transcripts at a considerably higher rate of coverage than did
-Sanger Sequencing \cite{Cheung2006,Emrich2007}.  From a computational
-perspective, this is a mixed blessing: while NGS provides immense
-quantities of new information, it also provides immensely larger data
-sets, requiring fast computational techniques if we are to process
-them.
+(NGS) technology has begun to rapidly replace Sanger Sequencing,
+allowing for more comprehensive coverage of the transcriptome.  For
+example, ESTs now being added to the GenBank dbEST are increasingly
+the product of NGS technologies such as 454 pyrosequencing, which
+enables the sequencing of novel and rare transcripts at a considerably
+higher rate of coverage than Sanger Sequencing
+\cite{Cheung2006,Emrich2007}.  From a computational perspective, this
+is a mixed blessing: while NGS provides immense quantities of new
+information, it also provides immensely larger data sets, requiring
+faster computational techniques if we are to process them.
 
 Given a set of transcript fragments sampled from across the genome, a
 necessary first step in the analysis is that of clustering: separating
 the fragments according to the transcript from which they were
 derived.  Frequently performed implicitly by assembly tools,
 clustering the data as a ``pre-assembly'' step has a number of
-advantages.  Most significant among these: performing this step will
+advantages.  Most significantly: performing this step will
 allow the application of the assembly tool to individual clusters --
 saving significant amounts of time due to the reduced input size
 \cite{Hazelhurst08a}.  But clustering is a computationally challenging
 problem.  Even with the smaller number of ESTs produced using Sanger
-sequencing, the runtime and memory requirements to cluster based on
-pair-wise sequence alignments make such an approach infeasible.  The
+Sequencing, the runtime and memory requirements to cluster based on
+pair-wise sequence alignments make such an approach infeasible in practice.  The
 much larger data-set size produced by NGS 
 technologies exacerbates this problem.
 
@@ -107,52 +107,49 @@ Using a {\it minimum spanning tree} (MST) based clustering strategy
 \cite{Jain99,Wan08} and the $d^2$ sequence distance function
 \cite{Hide94}, {\sc Peace} generates the MSTs using a tailored version
 of Prim's algorithm \cite{Prim57}.  The result is an easy-to-use and
-clustering tool that , without any sacrifice in runtime, is
+clustering tool that, without any sacrifice in runtime, is
 considerably more sensitive and robust to sequencing errors than other
 clusters tools in the literature \cite{Burke99,Slater00,
   Huang99,Parkinson02,Kalyanaraman03,Malde03,Ptitsyn05,Hazelhurst08a, Picardi09}.
+
 
 \enlargethispage{-65.1pt}
 
 \section{{\sc Peace}: Installation and Use}
 
-The {\sc Peace} GUI, available from the {\sc Peace} website
-(\href{http://www.peace-tools.org}{www.peace-tools.org}), handles the
-details of both installation and job management and provides tools for
-the initial analysis of the results.  By downloading and executing the
-{\tt peace.jar} GUI Java program on a Linux, Windows or OS-X machine
-running Java 1.6+, the user is presented with the {\sc Peace}
-management tool.  Through this the user can install the computational
-tool and perform a clustering of a data file in the FASTA format, view an initial analysis
-of the clusters and produce files containing subsets of the clusters
-for assembly by a tool such as {\sc Cap3} \cite{Huang99}.  A typical
-(first) use of {\sc Peace} would generally require the the following
-steps.
+The {\sc Peace} GUI can be launched by downloading and executing the
+Jar file available on the {\sc Peace} wesite
+(\href{http://www.peace-tools.org}{www.peace-tools.org}) to any
+machine running a standard Java Virtual Machine (JVM).  Once running,
+the user can employ the GUI to install the computational tool and perform
+a clustering of a data file in the FASTA format, view an initial
+analysis of the clusters, and produce files containing subsets of the
+clusters for assembly by a tool such as {\sc Cap3} \cite{Huang99}.
+A typical (first) use of {\sc Peace} generally
+requires the the following steps.
 
-\noindent {\bf Tool Installation:} Installing the GUI requires only
-that the Java file be downloaded from the website.  To install the
-{\sc Peace} tool onto a local or remote machine, the user will select
-from within the GUI the appropriate menu tab (Figure~1(a)), which
-then starts the install wizard that will prompt for the appropriate
-information.  Figure~1(b) illustrates the request for server
-information; the user has chosen to install the {\sc Peace}
+\noindent {\bf Tool Installation:} (First use only.)  To install the
+{\sc Peace} clustering onto a local or remote machine, the
+user selects from within the GUI the appropriate menu tab
+(Figure~1(a)), which then starts an install wizard that will prompt
+for the appropriate information.  Figure~1(b) illustrates the request
+for server information; the user has chosen to install the {\sc Peace}
 computational tool on a remote machine and is providing the necessary
 connection information.  Server information is persistent between GUI
 sessions, giving the user access to {\sc Peace} on the target machine
 as needed.
 
 \noindent {\bf Job Processing:} After importing the target sequence file into
-the GUI, the user can start a new job and follow the wizard menus.
+the GUI, the user starts a new job by following the wizard menus.
 Figure~1(c) illustrates the process of specifying the number of
 processors available (if running on a machine supporting the OpenMPI
 protocol -- which will be determined during job installation).  Once
 executed, the GUI will manage the job thread, alert the user when the
-job is completed (or when the user next runs the GUI after completion)
+job is completed (or when the user next runs the GUI after completion),
 and copy the final results back to the local machine if necessary.
 
 \noindent {\bf Result Analysis:} Once the resulting clusters have been
-computed, the user has several options
-for analysis:
+computed, the user has several options for analysis:
 \begin{itemize}
 \item {\bf Export:} The user can export the contents of one or more
   clusters into a FASTA format file, obtaining a subset of the original target file
@@ -169,7 +166,7 @@ for analysis:
   distributions.  For example, if the sequence names contain unique
   string patterns denoting different cDNA libraries, the classifier
   can help the user to determine and visualize the differential expression profiles
-  of different libraries for a given cluster.  The method of setting up a these classifiers, and the
+  of different libraries for a given cluster.  The method of setting up these classifiers, and the
   resulting histogram, is illustrated in Figure~1(e).
 \end{itemize}
 Extensive documentation for the tool has been posted on the {\sc
@@ -198,11 +195,11 @@ moderate number of base errors.
 We can model the fragment input as a weighted, undirected graph: the fragments
 are represented as nodes, with $d^2$ sequence distances assigned to
 the connecting edges as weights.  Conceptually, we want to remove each
-edge exceeding a threshold score from the complete graph, and define
+edge exceeding a threshold score from the complete graph and define
 our partitions by the remaining connected components of the graph.  An
 edge with a large weight connects fragments which are likely unrelated;
-once such edges are removed, the components define a series of
-overlaps.  Hence those fragments that can still be connected by some path
+once such edges are removed the components define a series of
+overlaps.  Those fragments that can still be connected by some path
 correspond to the same gene.  However, such an approach requires the
 calculation of all edge weights.  Such a task is infeasible both in terms of
 runtime and memory usage for the data set sizes we expect to process.
@@ -210,7 +207,7 @@ runtime and memory usage for the data set sizes we expect to process.
 We approach the problem by generating a minimum spanning tree of the
 described graph, then removing edges exceeding our threshold.  By
 using Prim's algorithm we are able to calculate edge weights
-on-the-fly (reducing memory requirements), and we can skip the
+on-the-fly (reducing memory requirements) and we can skip the
 calculation of a majority of edge distances using the $u/v$ and $t/v$
 filtering heuristics employed in {\sc wcd} \cite{Hazelhurst08a}.
 These heuristics allow us to quickly dismiss many of the edges as too
@@ -260,9 +257,11 @@ wizard for starting a selected job to be executed in parallel mode;
 and classifier editor for setting up differential expression profiles.}
 \end{figure*}
 
-\begin{figure*}[b]
+\begin{figure*}[h]
 \centerline{
+\begin{minipage}[b]{2in}
 \includegraphics[scale=0.5]{pics.d/SeT1.pdf} 
+\end{minipage}{2in}
 }
 \label{SeT1}
 \caption{Comparisons of Sensitivity and Type 1 error, based on the
@@ -275,9 +274,11 @@ and classifier editor for setting up differential expression profiles.}
 \end{figure*}
 
 \begin{figure*}[b]
+\begin{minipage}{2in}
 \centerline{
 \includegraphics[scale=0.35]{pics.d/singletons.pdf}
 }
+\end{minipage}
 \label{singletons}
 \caption{Average number of fragments flagged as singletons by each tool
   when run on the simulated sequences; correct answer in all cases is
@@ -314,20 +315,20 @@ As a clustering tool based on sequence distance, {\sc Peace} faces
 certain inherent limitations. For example, {\sc Peace} cannot handle
 duplicate genes; like {\sc WCD}, it is unable to separate clusters
 corresponding to genes with a greater than 88\% similarity.
-Similarly, naturally biological effects such as the trans-splicing of
+Similarly, natural biological effects such as the trans-splicing of
 transcripts, or effects from poorly cleaned transcript data (e.g. the
 failure to remove sequencing adapters), post-transcriptional
 poly(A)/(T) tails, and low-complexity repeats can cause similar
 effects in these clustering tools.  The problems can be handled
 through the application of the assembler, and the ability to apply any
-assembler to small cluster (as opposed to the data set as a while)
+assembler to small cluster (as opposed to the data set as a whole)
 results in a significant reduction in overall assembly time.
 
 \section{Acknowledgements}
 
 Dr. Karro was funded under a PhRMA Foundation Informatics Research
 Starters Grant while conducting this research.  We would also like to
-acknowledge Iddo Friedberg, David Woods, Jens Mueller and David
+acknowledge Iddo Friedberg, David Woods, Elizabeth Bikun, Jens Mueller and David
 Scoville at Miami University for their help with this project.
 
 \vspace{3mm}
