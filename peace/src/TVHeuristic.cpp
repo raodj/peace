@@ -162,7 +162,10 @@ TVHeuristic::adjustParameters(const int otherESTLen) {
     } else {
         windowLen = 50;
     }
-    t = 6 + 0.25*minLen;
+    t = 6 + (int) (0.25*minLen);
+    if (t > 125) {
+        t = 125;
+    }
 }
 
 void
