@@ -1789,7 +1789,7 @@ bookmarks,bookmarksopen=true,bookmarksnumbered=true,pdfpagelayout={OneColumn},pd
 \multiply\minutes by 60
 \advance\minutes by \time
 \def\timenow{\two@digits{\the\hours}:\two@digits{\the\minutes}}
-\font\slugfont=hv at 6pt
+\font\slugfont=phvb at 6pt
 %
 \IfFileExists{crop.cfg}{}{%
   \renewcommand*\CROP@@info{%
