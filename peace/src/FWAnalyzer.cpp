@@ -43,13 +43,13 @@
 #include <time.h>
 
 // The static instance variables for command line arguments.
-int FWAnalyzer::frameSize = 50; // 100 is default from WCD implementation
+//int FWAnalyzer::frameSize = 50; // 100 is default from WCD implementation
 int FWAnalyzer::wordSize  = 6;   // 6   is default from CLU implementation.
 
 // The common set of arguments for all FW EST analyzers
 arg_parser::arg_record FWAnalyzer::commonArgsList[] = {
-    {"--frame", "Frame size (in base pairs, default=100)",
-     &FWAnalyzer::frameSize, arg_parser::INTEGER},
+    //{"--frame", "Frame size (in base pairs, default=100)",
+    // &FWAnalyzer::frameSize, arg_parser::INTEGER},
     {"--word", "Word size (in base pairs, default=6)",
      &FWAnalyzer::wordSize, arg_parser::INTEGER},    
     {NULL, NULL, NULL, arg_parser::BOOLEAN}
@@ -58,6 +58,7 @@ arg_parser::arg_record FWAnalyzer::commonArgsList[] = {
 FWAnalyzer::FWAnalyzer(const std::string& analyzerName, const int refESTidx,
                        const std::string& outputFile)
     : ESTAnalyzer(analyzerName, refESTidx, outputFile) {
+    frameSize = 50;
     // Nothing else to be done here for now.
 }
 

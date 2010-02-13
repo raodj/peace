@@ -329,7 +329,7 @@ protected:
         the parseArguments method depending on the actual value
         specified by the user.
     */
-    static int frameSize;
+    int frameSize;
 
     /** The word size to be used by this analyzer.
 

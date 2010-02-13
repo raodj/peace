@@ -40,7 +40,7 @@
 #include <algorithm>
 
 // Skip parameter for d2 asymmetric.
-int TwoPassD2::frameShift = 50;
+//int TwoPassD2::frameShift = 50;
 
 // The bitmak to be used when build hash values.
 int TwoPassD2::BitMask   = 0;
@@ -51,21 +51,21 @@ int TwoPassD2::bitShift  = 0;
 
 // The threshold score below which two ESTs are considered
 // sufficiently similar to be clustered.
-int TwoPassD2::threshold = 0;
+int TwoPassD2::minThreshold = 0;
 
 // The threshold score above which two ESTs are considered
 // sufficiently dissimilar that symmetric bounded D2 does not
 // need to be run.
-int TwoPassD2::maxThreshold = 130;
+//int TwoPassD2::maxThreshold = 130;
 
 // The set of arguments for this class.
 arg_parser::arg_record TwoPassD2::argsList[] = {
-    {"--frameShift", "Frame Shift (default=50)",
-     &TwoPassD2::frameShift, arg_parser::INTEGER},
+    //{"--frameShift", "Frame Shift (default=50)",
+    // &TwoPassD2::frameShift, arg_parser::INTEGER},
     {"--threshold", "Threshold score to break out of D2 (default=0)",
-     &TwoPassD2::threshold, arg_parser::INTEGER},    
-    {"--maxThreshold", "Threshold score to run bounded symmetric D2 (default=130)",
-     &TwoPassD2::maxThreshold, arg_parser::INTEGER},    
+     &TwoPassD2::minThreshold, arg_parser::INTEGER},    
+    //{"--maxThreshold", "Threshold score to run bounded symmetric D2 (default=130)",
+    // &TwoPassD2::maxThreshold, arg_parser::INTEGER},    
     {NULL, NULL, NULL, arg_parser::BOOLEAN}
 };
 
@@ -75,6 +75,12 @@ TwoPassD2::TwoPassD2(const int refESTidx, const std::string& outputFileName)
     s2WordTable     = NULL;
     delta           = NULL;
     alignmentMetric = 0;
+    refESTLen = 0;
+    
+    // Below are formerly static parameters that are now dynamic.
+    frameShift = 50;
+    maxThreshold = 130;
+    threshold = 40;
 }
 
 TwoPassD2::~TwoPassD2() {
@@ -152,6 +158,7 @@ TwoPassD2::setReferenceEST(const int estIdx) {
         // init ref-est word table
         const EST *estS1 = EST::getEST(refESTidx);
         const char* s1   = estS1->getSequence();
+        refESTLen = (int)strlen(s1);
         // Create the word table using our encoder.
         ESTCodec::NormalEncoder<bitShift, BitMask> encoder;
         buildWordTable(s1WordTable, s1, encoder);
@@ -173,22 +180,54 @@ TwoPassD2::getMetric(const int otherEST) {
             }
         });
 
+    // Update the frame size, threshold etc. according to the algorithms
+    updateParameters((int)strlen(EST::getEST(otherEST)->getSequence()));
+
     int s1Index = 0;
     int s2Index = 0;
     
     // OK. Run the asymmetric D2 algorithm
     float distance = (float) runD2Asymmetric(otherEST, &s1Index, &s2Index);
     if (distance > maxThreshold) {
-        return distance;
+        return distance*(1/(float)threshold);
     }
     else {
         // Now run the bounded symmetric D2 algorithm
         int boundDist = frameShift/2;
-        return (float) runD2Bounded(otherEST, s1Index-boundDist, 
-                                    s1Index+boundDist+frameSize, 
-                                    s2Index-boundDist, 
-                                    s2Index+boundDist+frameSize);
+        return (1/(float)threshold) *
+            (float) runD2Bounded(otherEST, s1Index-boundDist, 
+                                 s1Index+boundDist+frameSize, 
+                                 s2Index-boundDist, 
+                                 s2Index+boundDist+frameSize);
     }
+}
+
+void
+TwoPassD2::updateParameters(const int otherESTLen) {
+    // still some magic numbers in this method, to be removed eventually
+
+    // need to change frameshift!!!
+    
+    int greaterLen = std::max(refESTLen, otherESTLen);
+    float coverageNum = 0;
+    if (greaterLen >= 200) {
+        int smallerLen = std::min(refESTLen, otherESTLen);
+        coverageNum = (float)std::min(COVERAGE_FRACTION*greaterLen,
+                                      (double)smallerLen);
+    } else if (greaterLen >= 100) {
+        coverageNum = 60;
+    } else {
+        coverageNum = 42;
+    }
+    frameSize = (int) (coverageNum * FRAME_SIZE_ADJUST);
+    if (frameSize < MIN_FRAME_SIZE) {
+        frameSize = MIN_FRAME_SIZE;
+    } else if (frameSize > MAX_FRAME_SIZE) {
+        frameSize = MAX_FRAME_SIZE;
+    }
+    threshold = (frameSize - coverageNum + 5)*2;
+    maxThreshold = threshold * 2;
+    numWordsInWindow = frameSize - wordSize + 1;
 }
 
 float
@@ -269,7 +308,7 @@ TwoPassD2::runD2Asymmetric(const int otherEST, int* s1MinScoreIdx,
                              s1MinScoreIdx, s2MinScoreIdx);
         }
         // Break out of this loop if we have found a potential match
-        if (minScore <= threshold) {
+        if (minScore <= minThreshold) {
             break;
         }
         
@@ -298,7 +337,7 @@ TwoPassD2::runD2Asymmetric(const int otherEST, int* s1MinScoreIdx,
                              s1MinScoreIdx, s2MinScoreIdx);
         }
         // Break out of this loop if we have found a potential match
-        if (minScore <= threshold) {
+        if (minScore <= minThreshold) {
             break;
         }
     }
@@ -366,7 +405,7 @@ TwoPassD2::runD2Bounded(const int otherEST, int sq1Start, int sq1End,
                      s1WordTable[s1Win + numWordsInWindow],
                      score, minScore, s1Win+1-s2Win);
         // Break out of this loop if we have found a potential match
-        if (minScore <= threshold) {
+        if (minScore <= minThreshold) {
             break;
         }
         
@@ -391,7 +430,7 @@ TwoPassD2::runD2Bounded(const int otherEST, int sq1Start, int sq1End,
                      s1WordTable[s1Win + 1 + numWordsInWindow],
                      score, minScore, s1Win+2-sq2Start);
         // Break out of this loop if we have found a potential match
-        if (minScore <= threshold) {
+        if (minScore <= minThreshold) {
             break;
         }
     }
