@@ -93,7 +93,7 @@ MSTCluster::add(MSTCluster *child) {
 
 double
 MSTCluster::makeClusters(NodeList& nodeList, const ESTAnalyzer* analyzer) {
-    const float threshold = 52;
+    const float threshold = 1;
     // Now create a hash map to track cluster for a given node
     ClusterMap clusterMap;
     // Now extract nodes from the nodeList and add it to appropriate
