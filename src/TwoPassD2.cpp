@@ -213,7 +213,7 @@ TwoPassD2::updateParameters(const int otherESTLen) {
     if (greaterLen >= 200) {
         int smallerLen = std::min(refESTLen, otherESTLen);
         coverageNum = (float)std::min(COVERAGE_FRACTION*greaterLen,
-                                      (double)smallerLen);
+                                      ((double)smallerLen)/FRAME_SIZE_ADJUST);
     } else if (greaterLen >= 100) {
         coverageNum = 60;
     } else {
@@ -241,7 +241,7 @@ TwoPassD2::runD2Asymmetric(const int otherEST, int* s1MinScoreIdx,
     const EST * estS2  = EST::getEST(otherEST);
     const char* sq2    = estS2->getSequence();
     const int   sq2Len = strlen(sq2);
-    
+
     // Build the word table for otherEST depending on normal or
     // reverse complement suggestion using hint UVSampleHeuristic.
     int bestMatchIsRC = 0;

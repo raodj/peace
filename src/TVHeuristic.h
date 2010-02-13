@@ -38,6 +38,8 @@
 #include "EST.h"
 #include <utility>
 
+#define MAX_WINDOW_LEN 200
+
 /** Heuristic based upon the T/V heuristic used in WCD, a type of
     common word heuristic.
 
@@ -215,7 +217,7 @@ protected:
             hash = encoder(hash, otherSeq[i]);
         }
         // Set first window length entries to zero.
-        memset(matchTable, 0, sizeof(char) *( windowLen + v));
+        memset(matchTable, 0, sizeof(char) *( windowLen + NewUVHeuristic::v));
         // Skip first windowLen entries to simplify logic in loop below.
         char *matchTicker = matchTable + windowLen;
         // Now see how many common words exist in the two ESTs

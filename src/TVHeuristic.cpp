@@ -101,9 +101,8 @@ TVHeuristic::initialize() {
     // First compute the longest EST we have.
     size_t maxESTlen = EST::getMaxESTLen();
     
-    // Add extra 100 characters to ease processing.
-    //matchTable = new char[maxESTlen + windowLen + v];
-    matchTable = new char[maxESTlen + 150 + v];
+    // Add extra windowLen characters to ease processing.
+    matchTable = new char[maxESTlen + MAX_WINDOW_LEN + v];
     // Everything went well
     return 0;
 }
@@ -155,7 +154,9 @@ TVHeuristic::runHeuristic(const int otherEST) {
 void
 TVHeuristic::adjustParameters(const int otherESTLen) {
     int minLen = std::min(refESTLen, otherESTLen);
-    if (minLen >= 300) {
+    if (minLen >= 500) {
+        windowLen = MAX_WINDOW_LEN;
+    } else if (minLen >= 300) {
         windowLen = 150;
     } else if (minLen >= 100) {
         windowLen = 100;
@@ -163,8 +164,8 @@ TVHeuristic::adjustParameters(const int otherESTLen) {
         windowLen = 50;
     }
     t = 6 + (int) (0.25*minLen);
-    if (t > 125) {
-        t = 125;
+    if (t > 150) {
+        t = 150;
     }
 }
 

@@ -48,9 +48,6 @@ std::vector<EST*> EST::estList;
 // The length of the longest EST we have
 size_t EST::maxESTlen = 0;
 
-// A "dummy" EST for returning in place of filtered-out ESTs
-EST* dummy = new EST(-1, "", "", 0);
-        
 EST::EST(const int idValue, const char *information, const char* seq,
          const int fileOffset) : id(idValue), offset(fileOffset),
                                  customData(NULL) {
