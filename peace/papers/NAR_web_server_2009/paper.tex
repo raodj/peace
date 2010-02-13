@@ -94,8 +94,8 @@ allow the application of the assembly tool to individual clusters --
 saving significant amounts of time due to the reduced input size
 \cite{Hazelhurst08a}.  
 
-But clustering is a computationally challenging problem.  Even with
-the smaller number of ESTs produced using Sanger Sequencing, the
+However clustering is a computationally challenging problem.  Even
+with the smaller number of ESTs produced using Sanger Sequencing, the
 runtime and memory requirements to cluster based on pair-wise sequence
 alignments make such an approach infeasible in practice.  The much
 larger data-set size produced by NGS technologies exacerbates this
@@ -137,7 +137,7 @@ of the clusters as input to assembly tools such as {\sc Cap3}
 performed in the following manner (see Figure~\ref{fig:workflow}):
 
 \begin{figure}
-  \centerline{\includegraphics[width=3in]{screen.d/workflow-crop.pdf}}
+  \centerline{\includegraphics[width=3in]{screen.d/workflow.pdf}}
   \caption{Overview of the procedure for clustering and analysis using
     PEACE.}\label{fig:workflow}
 \end{figure}
@@ -155,9 +155,33 @@ persistent between GUI sessions, giving the user access to \peace\/
 on the target machine as needed.
 
 \begin{figure*}
-  \centerline{ 
-    \includegraphics[trim=0cm 3cm 0cm 1cm, clip, scale=0.9]{screen.d/screen.pdf}
-  }
+  \begin{minipage}{3in}
+    \includegraphics[width=3in]{screen.d/install_page_big.png}
+    \centerline{\small{(a)}}
+  \end{minipage}
+  \begin{minipage}{2in}
+    \vspace{0.47in}
+    \includegraphics[width=2in]{screen.d/add_server_big.png}
+    \centerline{\small{(b)}}
+  \end{minipage}
+  \begin{minipage}{2in}
+    \vspace{0.47in}
+    \includegraphics[width=2in]{screen.d/add_server_big.png}
+    \centerline{\small{(c)}}
+  \end{minipage}
+
+  \begin{minipage}{3in}
+    \includegraphics[width=3in]{screen.d/cluster_list_big.png}
+    \centerline{\small{(d)}}
+  \end{minipage}
+  \begin{minipage}{1in}
+    \hspace{1in}
+  \end{minipage}
+  \begin{minipage}{3in}
+    \includegraphics[width=3in]{screen.d/classifier_big.png}
+    \centerline{\small{(e)}}
+  \end{minipage}
+
   \caption{Screenshots of the \peace\/ GUI during execution, including (a)
     GUI Welcome and server installation menu; (b) setup wizard for
     installing the computational tool on a remote server; (c) execution
@@ -263,35 +287,33 @@ materials).  Our primary methods of quality assessment were {\it
 were correctly clustered together) and {\it Type 1 error} (the
 fraction of genes that were divided between clusters)
 \cite{Wang04,Hazelhurst08a}; other measurements are also discussed in
-the supplementary materials.  In Figure~2(left) we see a significant
-improvement of \peace\/ (blue) over {\sc wcd} (green) and {\sc
-  Cap3} (black) in its sensitivity to sequencing errors, while in
-Figure~2(right) we see a comparable improvement in Type 1 error.  In
-Figure~3 we look at the number of singleton clusters (fragments not
-joined to any cluster), which will not occur in our simulated sets; we
-again see significant improvement in \peace.  The sequential
-runtime of \peace\/ is slightly improved over that of {\sc wcd}
-(see Supplementary Materials, Figure~S4).
+the supplementary materials.  In Figure~\ref{SeT1} (left) we see a
+significant improvement of \peace\/ (blue) over {\sc wcd} (green) and
+{\sc Cap3} (black) in its sensitivity to sequencing errors, while in
+Figure~\ref{SeT1} (right) we see a comparable improvement in Type 1
+error.  In Figure~\ref{singletons} we look at the number of singleton
+clusters (fragments not joined to any cluster), which will not occur
+in our simulated sets; we again see significant improvement in \peace.
+The sequential runtime of \peace\/ is slightly improved over that of
+{\sc wcd} (see Supplementary Materials, Figure~S4).
 
 \begin{figure}
   \centerline{\includegraphics[width=3.35in]{pics.d/SeT1.pdf}}
-  \label{SeT1}
   \caption{Comparisons of Sensitivity and Type 1 error, based on the
-    average over 30 simulated fragment sets derived from 100 zebra fish genes
-    (see Supplementary Materials, Section~\href{sim_results}, for more
-    details).   Blue/Solid = \peace, Green/Dash =
-    {\sc wcd}, Black/Dot-Dash = {\sc Cap3}; vertical tics = 95\% confidence
+    average over 30 simulated fragment sets derived from 100 zebra
+    fish genes (see Supplementary Materials, Section C, for more
+    details).  Blue/Solid = \peace, Green/Dash = {\sc wcd},
+    Black/Dot-Dash = {\sc Cap3}; vertical tics = 95\% confidence
     intervals on estimates.  Intervals are not presented for Type 1
-    error due to the extremely small variance.}
+    error due to the extremely small variance.}\label{SeT1}
 \end{figure}
 
 \begin{figure}
   \centerline{\includegraphics[width=3in]{pics.d/singletons.pdf}}
-  \label{singletons}
   \caption{Average number of fragments flagged as singletons by each tool
     when run on the simulated sequences; correct answer in all cases is
     zero.  Blue/Solid = \peace, Green/Dash = {\sc wcd},
-    Black/Dot-Dash = {\sc Cap3}.}
+    Black/Dot-Dash = {\sc Cap3}.}\label{singletons}
 \end{figure}
 
 In applying the tools to real data, we started with a set of
