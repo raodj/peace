@@ -19,6 +19,8 @@ urlcolor=blue %color of the url links
 
 % Some shortcuts to make life easier when writing latex
 \newcommand{\peace} {{\small PEACE}}
+\newcommand{\wcd} {{\small WCD}}
+\newcommand{\capthree} {{\small Cap3}}
 
 \begin{document}
 
@@ -47,13 +49,17 @@ urlcolor=blue %color of the url links
   run through an easily downloaded GUI, \peace\/ can process large
   data sets and group the fragments by gene association, achieving a
   greater sensitivity (without sacrificing runtime) than the competing
-  clustering tools.  Through the GUI the user can collect cluster
-  statistics and examine specific clusters for more comprehensive
-  study.  \peace\/, used as a ``pre-assembly'' tool, enables any
-  assembly tool to work with individual small clusters of closely
-  related sequences, resulting in significant increases in sensitive
-  and robustness to sequencing error, as well as a reduction in
-  overall runtime.
+  clustering tools and applicable to bases as small as 75 bases.
+  Through the GUI the user can collect cluster statistics and examine
+  specific clusters for more comprehensive study.  \peace\/, used as a
+  ``pre-assembly'' tool, enables any assembly tool to work with
+  individual small clusters of closely related sequences, resulting in
+  significant increases in sensitive and robustness to sequencing
+  error (e.g. with a 52\% improvement in sensitivity over the cluster
+  tool, \wcd\/, and a 184\% improvement in sensitivity over a leading
+  assembly tool, \capthree, given a a 5\% rate of sequencing errors), as
+  well as a reduction in runtime (with a 40\% speedup, as compared to
+  \wcd, when applied to a 361 Mb set of Arabidopsis transcriptome fragments).
 \end{abstract}
 
 
@@ -65,11 +71,11 @@ understanding the full functional and organizational role of the
 genome in the life cycle of any eukaryote.  Studying the transcriptome
 has led to gene discovery, provided information on splice variants,  
 and helped shed light on the biological processes both controlling and
-dictated by the genome \cite{Nagaraj07}.  However, to access those
+controlled by the genome \cite{Nagaraj07}.  However, to access those
 transcripts, we must deal with the fragmented data produced by
 both Next Generation and traditional Sanger sequencing technology.
 
-Until recently, access to a transcriptome sequence was primarily
+, access to a transcriptome sequence was primarily
 through the use of Expressed Sequence Tags (ESTs), single-pass cDNA
 sequences derived from transcribed mRNAs and sequenced by Sanger
 Sequencing technology.  More recently, Next Generation Sequencing
@@ -84,6 +90,8 @@ is a mixed blessing: while NGS provides immense quantities of new
 information, it also provides immensely larger data sets -- and thus a
 need for faster, more efficient analysis algorithms.
 
+\enlargethispage{-65.1pt}
+
 Given a set of transcript fragments sampled from across the genome, a
 necessary first step of their analysis is that of clustering: separating
 the fragments according to the transcript from which they were
@@ -91,15 +99,14 @@ derived.  Frequently performed implicitly by assembly tools,
 clustering the data as a ``pre-assembly'' step has a number of
 advantages.  Most significantly: performing this step will
 allow the application of the assembly tool to individual clusters --
-saving significant amounts of time due to the reduced input size
-\cite{Hazelhurst08a}.  
+saving significant amounts of time \cite{Hazelhurst08a}.  
 
 However clustering is a computationally challenging problem.  Even
 with the smaller number of ESTs produced using Sanger Sequencing, the
 runtime and memory requirements to cluster based on pair-wise sequence
 alignments make such an approach infeasible in practice.  The much
 larger data-set size produced by NGS technologies exacerbates this
-problem.  To deal with this, \peace\/ combines the $d^2$
+problem.  To deal with this, \peace\/ combines our own version of the $d^2$
 alignment-free sequence distance function \cite{Hide94} and the
 concept of a {\it minimum spanning tree} \cite{Prim57} to quickly and
 accurately find clusters of ESTs expressed from the same gene without
@@ -120,19 +127,16 @@ website, the \peace\/ GUI allows the user to both easily install
 enabling transparent parallel processing and providing various tools
 for result analysis.
 
-
-\enlargethispage{-65.1pt}
-
 \section{\peace\/: Installation and Use}
 
 The \peace\/ GUI can be launched by downloading and executing the
 Jar file available on the \peace\/ website
 (\href{http://www.peace-tools.org}{www.peace-tools.org}) to any
 machine running the standard Java Virtual Machine (JVM).  Once
-running, the user can employ the GUI to install the computational tool
-and perform a clustering of a data file in the FASTA format, view an
+running, the user can employ the GUI to install the clustering engine
+and perform a clustering of a data file in {\sc fasta} format, view an
 initial analysis of the clusters, and produce files containing subsets
-of the clusters as input to assembly tools such as {\sc Cap3}
+of the clusters as input to assembly tools such as \capthree\/ 
 \cite{Huang99}.  A typical (first) use of \peace\/ must be
 performed in the following manner (see Figure~\ref{fig:workflow}):
 
@@ -143,8 +147,8 @@ performed in the following manner (see Figure~\ref{fig:workflow}):
 \end{figure}
 
 
-\noindent {\bf Tool Installation:} (First use) To install the {\sc
-  Peace} clustering onto a local or remote machine, the user selects
+\noindent {\bf Tool Installation:} (First use only.) To install the
+\peace\/ clustering engine onto a local or remote machine, the user selects
 from within the GUI the appropriate menu tab (Figure~\ref{screen}(a)),
 which then starts an install wizard that will prompt for the
 appropriate information.  Figure~\ref{screen}(b) illustrates the
@@ -207,7 +211,7 @@ computed, the user has several options for analysis:
   clusters into a FASTA format file, obtaining a subset of the
   original target file containing the sequences corresponding to the
   selected clusters ready for processing by an assembly tool
-  (e.g. {\sc Cap3} \cite{Huang99}).
+  (e.g. \capthree\/ \cite{Huang99}).
 \item {\bf View Clustering}: The user may view a list of clusters,
   expanding selected clusters to a list of all individual sequences
   (illustrated in Figure~\ref{screen}(d)).
@@ -223,8 +227,7 @@ computed, the user has several options for analysis:
   method of setting up these classifiers, and the resulting histogram,
   is illustrated in Figure~\ref{screen}(e).
 \end{itemize}
-Extensive documentation for the tool has been posted on the {\sc
-  Peace} website, as well as links to several tutorial videos
+Extensive documentation for the tool has been posted on the \peace\/ website, as well as links to several tutorial videos
 demonstrating \peace\/ use and capabilities.
 
 
@@ -232,11 +235,11 @@ demonstrating \peace\/ use and capabilities.
 
 The clustering performed by \peace\/ is based on the use of minimum
 spanning trees (MSTs), known to be an effective approach for narrow
-band single linkage clustering \cite{Jain99,Wan08}. Edge weights are
-assigned using the $d^2$ distance measure \cite{Hide94} to represent
-edge weights.  Prim's algorithm \cite{Prim57} then allows us to
-efficiently calculate an MST from which we can infer a high-quality
-clustering solution.
+band single linkage clustering \cite{Jain99,Wan08}.  Using a graph
+structure to model the fragment relationships and the $d^2$ distance
+measure to assign edge weights \cite{Hide94}, we can employ Prim's
+algorithm \cite{Prim57} to efficiently calculate an MST from which we
+can infer a high-quality clustering solution.
 
 The $d^2$ distance measure used to assign edge weights is an
 alignment-free measurement of sequence distance that can be calculated
@@ -245,26 +248,31 @@ $d^2$ works by comparing the frequency of words (strings of a fixed
 length) appearing in a limited region of each string.  Fragments
 overlapping by a sufficient length will share neighborhoods of enough
 similarity to ensure a small distance even in the presence of a
-moderate number of base errors.
+moderate number of base errors.  In practice we employ our own
+variation of $d^2$, the {\it two-pass $d^2$ algorithm}, which
+heuristically searches for a neighborhood of maximum similarity and
+then finding the $d^2$ score within that neighborhood (see
+Supplementary Materials for details).
 
-Fragment input is modeled as a weighted, undirected graph: the fragments
-are represented as nodes, with $d^2$ sequence distances assigned to
-the connecting edges as weights.  Conceptually, we want to remove each
-edge exceeding a threshold score from the complete graph and define
-our partitions by the remaining connected components of the graph.  An
-edge with a large weight connects fragments which are likely unrelated;
-once such edges are removed the components define a series of
-overlaps.  Those fragments that can still be connected by some path
+Fragment input is modeled as a weighted, undirected graph: the
+fragments are represented as nodes, with $d^2$ sequence distances
+assigned to the connecting edges as weights.  Conceptually, we want to
+remove each edge exceeding a threshold score from the complete graph
+and define our partitions by the remaining connected components.  An
+edge with a large weight connects fragments which are likely
+unrelated; once such edges are removed the components define a series
+of overlaps.  Those fragments that can still be connected by some path
 correspond to the same gene.  However, such an approach requires the
-calculation of all edge weights.  Such a task is infeasible both in terms of
-runtime and memory usage for the data set sizes we expect to process.
+calculation of all edge weights.  Given the data set sizes, that a
+task is infeasible both in terms of runtime and memory usage for the
+data set sizes we expect to process.
 
 \peace\/ approaches the problem by generating a minimum spanning tree of the
 described graph, then removing edges exceeding our threshold.  By
 using Prim's algorithm we are able to calculate edge weights
 on-the-fly (reducing memory requirements) and can skip the
 calculation of a majority of edge distances using the $u/v$ and $t/v$
-filtering heuristics employed in {\sc wcd} \cite{Hazelhurst08a}.
+filtering heuristics employed in \wcd\/ \cite{Hazelhurst08a}.
 These heuristics allow us to quickly dismiss many of the edges as too
 large without the need to apply the full $d^2$ algorithm (see
 Sections~A and B of the Supplementary Materials for more details). 
@@ -273,47 +281,52 @@ Sections~A and B of the Supplementary Materials for more details).
 
 \peace\/ has been test on both simulated and real data from NGS and
 Sanger Sequencing technologies, comparing results against those
-produced by the {\sc wcd} clustering tool \cite{Hazelhurst08a} and the
-{\sc Cap3} assembly tool \cite{Huang99} (which calculates a cluster as
-an implicit, intermediate step).  For our simulation tests we used the
-{\bf ESTSim} tool \cite{Hazelhurst03} to generate simulated transcript
-of varying length fragments under different models of error
-(Supplementary Materials, Section~C.1), generating the fragments from
-the list of 100 zebra fish genes used in the {\sc wcd} testing
-\cite{Hazelhurst08a}.  Tool parameters were taken to match, as closely
-as possible, those used in the {\sc wcd} study (see supplementary
-materials).  Our primary methods of quality assessment were {\it
-  sensitivity} (the fraction of fragment pairs from the same gene that
-were correctly clustered together) and {\it Type 1 error} (the
-fraction of genes that were divided between clusters)
-\cite{Wang04,Hazelhurst08a}; other measurements are also discussed in
-the supplementary materials.  In Figure~\ref{SeT1} (left) we see a
-significant improvement of \peace\/ (blue) over {\sc wcd} (green) and
-{\sc Cap3} (black) in its sensitivity to sequencing errors, while in
+produced by the \wcd\/ clustering tool \cite{Hazelhurst08a} and the
+\capthree\/ assembly tool \cite{Huang99} (the latter of which
+implicitly calculates a cluster in the process of assembly).  For our
+simulation tests we used the {\bf ESTSim} tool \cite{Hazelhurst03} to
+generate simulated transcript of varying length fragments under
+different models of error (Supplementary Materials, Section~C.1),
+generating the fragments from the list of 100 zebra fish genes used in
+the \wcd\/ testing \cite{Hazelhurst08a}.  Tool parameters were taken
+to match, as closely as possible, those used in the \wcd\/ study (see
+supplementary materials).  Our primary methods of quality assessment
+were {\it sensitivity} (the fraction of fragment pairs from the same
+gene that were correctly clustered together) and {\it Type 1 error}
+(the fraction of genes that were divided between clusters)
+\cite{Wang04,Hazelhurst08a}.  Specificity was not an issue in
+simulated tests, as both \peace and \wcd were completely successful
+in separating unrelated ESTs (save when dealing with recently
+duplicated genes).  Other measurements are also discussed in the
+supplementary materials.  In Figure~\ref{SeT1} (left), reflecting
+tests done on simulated Sanger EST set, we see a
+significant improvement of \peace\/ (blue) over \wcd\/ (green) and
+\capthree\/ (black) in its sensitivity to sequencing errors, while in
 Figure~\ref{SeT1} (right) we see a comparable improvement in Type 1
 error.  In Figure~\ref{singletons} we look at the number of singleton
-clusters (fragments not joined to any cluster), which will not occur
-in our simulated sets; we again see significant improvement in \peace.
+clusters (fragments not joined to any cluster), which should not occur
+in our simulated sets.  We again see significant improvement in \peace.
 The sequential runtime of \peace\/ is slightly improved over that of
-{\sc wcd} (see Supplementary Materials, Figure~S4).
+\wcd\/ (see Supplementary Materials, Figure~S4).
 
 \begin{figure}
   \centerline{\includegraphics[width=3.35in]{pics.d/SeT1.pdf}}
   \caption{Comparisons of Sensitivity and Type 1 error, based on the
-    average over 30 simulated fragment sets derived from 100 zebra
-    fish genes (see Supplementary Materials, Section C, for more
-    details).  Blue/Solid = \peace, Green/Dash = {\sc wcd},
-    Black/Dot-Dash = {\sc Cap3}; vertical tics = 95\% confidence
-    intervals on estimates.  Intervals are not presented for Type 1
-    error due to the extremely small variance.}\label{SeT1}
+    average over 30 simulated Sanger Sequence ESTs sets derived from 100 zebra
+    fish genes  (see
+    Supplementary Materials, Section C, for more details).  Blue/Solid
+    = \peace, Green/Dash = \wcd, Black/Dot-Dash = \capthree; vertical
+    tics = 95\% confidence intervals on estimates.  Intervals are not
+    presented for Type 1 error due to the extremely small
+    variance.}\label{SeT1}
 \end{figure}
 
 \begin{figure}
   \centerline{\includegraphics[width=3in]{pics.d/singletons.pdf}}
   \caption{Average number of fragments flagged as singletons by each tool
     when run on the simulated sequences; correct answer in all cases is
-    zero.  Blue/Solid = \peace, Green/Dash = {\sc wcd},
-    Black/Dot-Dash = {\sc Cap3}.}\label{singletons}
+    zero.  Blue/Solid = \peace, Green/Dash = \wcd,
+    Black/Dot-Dash = \capthree.}\label{singletons}
 \end{figure}
 
 In applying the tools to real data, we started with a set of
@@ -321,37 +334,53 @@ approximately $190,000$ clean Sanger ESTs derived from the {\it
   Chlamydomonas reinhardtii} genome \cite{Liang2008}.  To compute
 sensitivity we used the {\it gmap} tool \cite{Wu05} to map the
 fragment set to the genome, taking this as our reference clustering.
-We see slight improvements in \peace\/ over {\sc wcd} in both
-sensitivity and Type 1 error (both significantly outperforming {\sc
-  Cap3}).  Using the mouse data set used in Hazelhurst {\it et al.}
+We see slight improvements in \peace\/ over \wcd\/ in both sensitivity
+and Type 1 error (both significantly outperforming \capthree).  Using
+the mouse data set used in Hazelhurst {\it et al.}
 \cite{Hazelhurst08a} \peace\/ again shows slight improvements in
-sensitivity and Type 1 error rates, with an 18\% speedup for {\sc
-  Peace} (see Supplementary Materials, Section~D, for more details).
+sensitivity and Type 1 error rates, with an 18\% speedup for \peace
+(see Supplementary Materials, Section~D, for more details).
+
+A comparative test of \peace against \wcd on NGS short-read sequences
+was not feasible due to the implementation of \wcd.  In theory that
+tool should be able to handle short-read sequences with the
+appropriate parameter settings.  However, in the distributed code those
+parameters seemed to be hard-coded, thus rendering testing impossible.
+\peace was run on both simulated and real NGS fragment sets.  For the
+former we found \peace to do well, achieving a sensitivity of 0.75
+when simulating a sequencing error rate of 2\% (with comparable {\it
+  Jaccard Index} value, which reflects both sensitivity {\it and}
+specificity \cite{Kalyanaraman03,Hazelhurst08a}).  Runtime was
+approxemently 17.6 minutes to process the 7.9 Mb of data when run in
+sequential mode on a 3.2 GHz Intel Xeon CPU.
 
 \section{Conclusions}
 
 Here we have presented \peace, a stand alone tool for the
-high-throughput clustering of transcript fragments, managed through a
-user friendly GUI that enables both local and remote installation and
-execution in sequential or parallel mode.  Based on a novel algorithm
-for the clustering of the fragments by gene association, \peace\/
-shows significant improvement in sensitivity, without sacrificing runtime,
-over the competing {\sc WCD} tool \cite{Hazelhurst08a}, and shows an
-order of magnitude in improvement over the clustering preformed in the
-course of assembly by the {\sc Cap3} tool \cite{Huang99}.
+high-throughput clustering of transcript fragments capable of dealing
+with sequences as short as 75 bases.  \peace\/, available at
+\href{http://www.peace-tools.org}{www.peace-tools.org}, is open-source
+and managed through a user friendly GUI that enables both local and
+remote installation and execution in sequential or parallel mode.
+Based on a novel algorithm for the clustering of the fragments by gene
+association, \peace\/ shows significant improvement in sensitivity,
+without sacrificing runtime, over the competing \wcd\/ tool
+\cite{Hazelhurst08a}, and shows an order of magnitude in improvement
+over the clustering preformed in the course of assembly by the
+\capthree\/ tool \cite{Huang99}.
 
 As a clustering tool based on sequence distance, \peace\/ faces
 certain inherent limitations. For example, \peace\/ cannot handle
-duplicate genes; like {\sc WCD}, it is unable to separate clusters
+duplicate genes; like \wcd\/, it is unable to separate clusters
 corresponding to genes with a greater than 88\% similarity.
 Similarly, natural biological effects such as the trans-splicing of
 transcripts, or effects from poorly cleaned transcript data (e.g. the
 failure to remove sequencing adapters or post-transcriptional
-poly(A)/(T) tails), and low-complexity repeats can cause similar
-effects in these clustering tools.  The problems can be handled
-through the application of the assembler, and the ability to apply any
-assembler to small cluster (as opposed to the data set as a whole)
-results in a significant reduction in overall assembly time.
+poly(A)/(T) tails), and the presence of low-complexity repeats can
+cause similar effects in these clustering tools.  The problems can be
+handled through the application of the assembler, and the ability to
+apply any assembler to small cluster (as opposed to the data set as a
+whole) results in a significant reduction in overall assembly time.
 
 \section{Acknowledgements}
 
