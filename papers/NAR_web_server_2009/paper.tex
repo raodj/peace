@@ -4,7 +4,7 @@ colorlinks=true, %makes the links show up in color, rather than in a box
 citecolor=black, %color of the in-text citation numbers
 urlcolor=blue %color of the url links
 ]{hyperref}
-
+\usepackage{wrapfig}
 
 \bibliographystyle{unsrt}
 
@@ -15,7 +15,10 @@ urlcolor=blue %color of the url links
 \jvolume{}
 \jissue{}
 
-%\articlesubtype{This is the article type (optional)}
+% \articlesubtype{This is the article type (optional)}
+
+% Some shortcuts to make life easier when writing latex
+\newcommand{\peace} {{\small PEACE}}
 
 \begin{document}
 
@@ -38,18 +41,18 @@ urlcolor=blue %color of the url links
 \maketitle
 
 \begin{abstract}
-  We present {\sc Peace}, a stand alone tool for the high-throughput
-  {\it ab initio} clustering of transcript fragment sequences produced
-  by Next Generation or Sanger Sequencing technologies.  Installed and
-  run through an easily downloaded GUI, {\sc Peace} can process large
+  We present \peace, a stand alone tool for the high-throughput {\it
+    ab initio} clustering of transcript fragment sequences produced by
+  Next Generation or Sanger Sequencing technologies.  Installed and
+  run through an easily downloaded GUI, \peace\/ can process large
   data sets and group the fragments by gene association, achieving a
   greater sensitivity (without sacrificing runtime) than the competing
-  clustering tools.  Through the GUI the user can collect
-  cluster statistics and examine specific clusters for more
-  comprehensive study.  {\sc Peace}, used as a ``pre-assembly'' tool,
-  enables any assembly tool to work with individual small clusters of
-  closely related sequences, resulting in significant increases in
-  sensitive and robustness to sequencing error, as well as a reduction in
+  clustering tools.  Through the GUI the user can collect cluster
+  statistics and examine specific clusters for more comprehensive
+  study.  \peace\/, used as a ``pre-assembly'' tool, enables any
+  assembly tool to work with individual small clusters of closely
+  related sequences, resulting in significant increases in sensitive
+  and robustness to sequencing error, as well as a reduction in
   overall runtime.
 \end{abstract}
 
@@ -96,71 +99,94 @@ the smaller number of ESTs produced using Sanger Sequencing, the
 runtime and memory requirements to cluster based on pair-wise sequence
 alignments make such an approach infeasible in practice.  The much
 larger data-set size produced by NGS technologies exacerbates this
-problem.  To deal with this, {\sc Peace} combines the $d^2$
+problem.  To deal with this, \peace\/ combines the $d^2$
 alignment-free sequence distance function \cite{Hide94} and the
 concept of a {\it minimum spanning tree} \cite{Prim57} to quickly and
 accurately find clusters of ESTs expressed from the same gene without
-reference to a sequenced genome.  Compared against competing tools
-for the same purpose \cite{Burke99,Slater00,Huang99,Parkinson02,Kalyanaraman03,Malde03,
-  Ptitsyn05,Hazelhurst08a,Picardi09}, {\it Peace} proves to be both more sensitive and
-more robust to sequencing error without sacrificing runtime.
+reference to a sequenced genome.  Compared against competing tools for
+the same purpose
+\cite{Burke99,Slater00,Huang99,Parkinson02,Kalyanaraman03,Malde03,
+  Ptitsyn05,Hazelhurst08a,Picardi09}, \peace\/ proves to be both more
+sensitive and more robust to sequencing error without sacrificing
+runtime.
 
 
-In short, {\sc Peace} is computational tool for the {\it ab initio}
-clustering of transcript fragments by gene association, applicable to both NGS and
-traditional Sanger Sequencing technologies.  Available through the
-\href{http://www.peace-tools.org}{www.peace-tools.org} website, the
-{\sc Peace} GUI allows the user to both easily install (locally or
-remotely) and run the clustering engine, as well as enabling
-transparent parallel processing and providing various tools for result
-analysis.  
+In short, \peace\/ is computational tool for the {\it ab initio}
+clustering of transcript fragments by gene association, applicable to
+both NGS and traditional Sanger Sequencing technologies.  Available
+through the \href{http://www.peace-tools.org}{www.peace-tools.org}
+website, the \peace\/ GUI allows the user to both easily install
+(locally or remotely) and run the clustering engine, as well as
+enabling transparent parallel processing and providing various tools
+for result analysis.
 
 
 \enlargethispage{-65.1pt}
 
-\section{{\sc Peace}: Installation and Use}
+\section{\peace\/: Installation and Use}
 
-The {\sc Peace} GUI can be launched by downloading and executing the
-Jar file available on the {\sc Peace} website
+The \peace\/ GUI can be launched by downloading and executing the
+Jar file available on the \peace\/ website
 (\href{http://www.peace-tools.org}{www.peace-tools.org}) to any
-machine running the standard Java Virtual Machine (JVM).  Once running,
-the user can employ the GUI to install the computational tool and perform
-a clustering of a data file in the FASTA format, view an initial
-analysis of the clusters, and produce files containing subsets of the
-clusters as input to assembly tools such as {\sc Cap3} \cite{Huang99}.
-A typical (first) use of {\sc Peace} generally
-requires the following steps.
+machine running the standard Java Virtual Machine (JVM).  Once
+running, the user can employ the GUI to install the computational tool
+and perform a clustering of a data file in the FASTA format, view an
+initial analysis of the clusters, and produce files containing subsets
+of the clusters as input to assembly tools such as {\sc Cap3}
+\cite{Huang99}.  A typical (first) use of \peace\/ must be
+performed in the following manner (see Figure~\ref{fig:workflow}):
 
-\noindent {\bf Tool Installation:} (First use only.)  To install the
-{\sc Peace} clustering onto a local or remote machine, the
-user selects from within the GUI the appropriate menu tab
-(Figure~1(a)), which then starts an install wizard that will prompt
-for the appropriate information.  Figure~1(b) illustrates the request
-for server information; the user has chosen to install the {\sc Peace}
-computational tool on a remote machine and is providing the necessary
-connection information.  Server information is persistent between GUI
-sessions, giving the user access to {\sc Peace} on the target machine
-as needed.
+\begin{figure}
+  \centerline{\includegraphics[width=3in]{screen.d/workflow-crop.pdf}}
+  \caption{Overview of the procedure for clustering and analysis using
+    PEACE.}\label{fig:workflow}
+\end{figure}
 
-\noindent {\bf Job Processing:} After importing the target sequence file into
-the GUI, the user starts a new job by following the wizard menus.
-Figure~1(c) illustrates the process of specifying the number of
-processors available (if running on a machine supporting the OpenMPI
-protocol -- which will be determined during job installation).  Once
-executed, the GUI will manage the job thread, alert the user when the
-job is completed (or when the user next runs the GUI after completion),
-and copy the final results back to the local machine if necessary.
+
+\noindent {\bf Tool Installation:} (First use) To install the {\sc
+  Peace} clustering onto a local or remote machine, the user selects
+from within the GUI the appropriate menu tab (Figure~\ref{screen}(a)),
+which then starts an install wizard that will prompt for the
+appropriate information.  Figure~\ref{screen}(b) illustrates the
+request for server information; the user has chosen to install the
+\peace\/ computational tool on a remote machine and is providing
+the necessary connection information.  Server information is
+persistent between GUI sessions, giving the user access to \peace\/
+on the target machine as needed.
+
+\begin{figure*}
+  \centerline{ 
+    \includegraphics[trim=0cm 3cm 0cm 1cm, clip, scale=0.9]{screen.d/screen.pdf}
+  }
+  \caption{Screenshots of the \peace\/ GUI during execution, including (a)
+    GUI Welcome and server installation menu; (b) setup wizard for
+    installing the computational tool on a remote server; (c) execution
+    wizard for starting a selected job to be executed in parallel mode;
+    (d) basic cluster output; and (e) histogram view of cluster results
+    and classifier editor for setting up differential expression profiles.}\label{screen}
+\end{figure*}
+
+\noindent {\bf Job Processing:} After importing the target sequence
+file into the GUI, the user starts a new job by following the wizard
+menus.  Figure~\ref{screen}(c) illustrates the process of specifying
+the number of processors available (if running on a machine supporting
+the OpenMPI protocol -- which will be determined during job
+installation).  Once executed, the GUI will manage the job thread,
+alert the user when the job is completed (or when the user next runs
+the GUI after completion), and copy the final results back to the
+local machine if necessary.
 
 \noindent {\bf Result Analysis:} Once the resulting clusters have been
 computed, the user has several options for analysis:
 \begin{itemize}
 \item {\bf Export:} The user can export the contents of one or more
-  clusters into a FASTA format file, obtaining a subset of the original target file
-  containing the sequences corresponding to the selected clusters
-  ready for processing by an assembly tool (e.g. {\sc Cap3} \cite{Huang99}).
+  clusters into a FASTA format file, obtaining a subset of the
+  original target file containing the sequences corresponding to the
+  selected clusters ready for processing by an assembly tool
+  (e.g. {\sc Cap3} \cite{Huang99}).
 \item {\bf View Clustering}: The user may view a list of clusters,
-  expanding selected clusters to a list of all individual sequences (illustrated
-  in Figure~1(d)).
+  expanding selected clusters to a list of all individual sequences
+  (illustrated in Figure~\ref{screen}(d)).
 \item {\bf Classified Summary Graph:} The user may view a distribution
   of cluster sizes.  Further, the user can set up a {\it classifier},
   associating certain patterns with specific colors.  These patterns
@@ -168,18 +194,19 @@ computed, the user has several options for analysis:
   original FASTA file, allowing the overlay of a colored cluster size
   distributions.  For example, if the sequence names contain unique
   string patterns denoting different cDNA libraries, the classifier
-  can help the user to determine and visualize the differential expression profiles
-  of different libraries for a given cluster.  The method of setting up these classifiers, and the
-  resulting histogram, is illustrated in Figure~1(e).
+  can help the user to determine and visualize the differential
+  expression profiles of different libraries for a given cluster.  The
+  method of setting up these classifiers, and the resulting histogram,
+  is illustrated in Figure~\ref{screen}(e).
 \end{itemize}
 Extensive documentation for the tool has been posted on the {\sc
-  Peace} website, as well as links to several tutorial videos demonstrating
-{\sc Peace} use and capabilities.
+  Peace} website, as well as links to several tutorial videos
+demonstrating \peace\/ use and capabilities.
 
 
 \section{Methods}
 
-The clustering performed by {\sc Peace} is based on the use of minimum
+The clustering performed by \peace\/ is based on the use of minimum
 spanning trees (MSTs), known to be an effective approach for narrow
 band single linkage clustering \cite{Jain99,Wan08}. Edge weights are
 assigned using the $d^2$ distance measure \cite{Hide94} to represent
@@ -208,7 +235,7 @@ correspond to the same gene.  However, such an approach requires the
 calculation of all edge weights.  Such a task is infeasible both in terms of
 runtime and memory usage for the data set sizes we expect to process.
 
-{\sc Peace} approaches the problem by generating a minimum spanning tree of the
+\peace\/ approaches the problem by generating a minimum spanning tree of the
 described graph, then removing edges exceeding our threshold.  By
 using Prim's algorithm we are able to calculate edge weights
 on-the-fly (reducing memory requirements) and can skip the
@@ -220,7 +247,7 @@ Sections~A and B of the Supplementary Materials for more details).
 
 \section{Results}
 
-{\sc Peace} has been test on both simulated and real data from NGS and
+\peace\/ has been test on both simulated and real data from NGS and
 Sanger Sequencing technologies, comparing results against those
 produced by the {\sc wcd} clustering tool \cite{Hazelhurst08a} and the
 {\sc Cap3} assembly tool \cite{Huang99} (which calculates a cluster as
@@ -237,84 +264,62 @@ were correctly clustered together) and {\it Type 1 error} (the
 fraction of genes that were divided between clusters)
 \cite{Wang04,Hazelhurst08a}; other measurements are also discussed in
 the supplementary materials.  In Figure~2(left) we see a significant
-improvement of {\sc Peace} (blue) over {\sc wcd} (green) and {\sc
+improvement of \peace\/ (blue) over {\sc wcd} (green) and {\sc
   Cap3} (black) in its sensitivity to sequencing errors, while in
 Figure~2(right) we see a comparable improvement in Type 1 error.  In
 Figure~3 we look at the number of singleton clusters (fragments not
 joined to any cluster), which will not occur in our simulated sets; we
-again see significant improvement in {\sc Peace}.  The sequential
-runtime of {\sc Peace} is slightly improved over that of {\sc wcd}
+again see significant improvement in \peace.  The sequential
+runtime of \peace\/ is slightly improved over that of {\sc wcd}
 (see Supplementary Materials, Figure~S4).
 
+\begin{figure}
+  \centerline{\includegraphics[width=3.35in]{pics.d/SeT1.pdf}}
+  \label{SeT1}
+  \caption{Comparisons of Sensitivity and Type 1 error, based on the
+    average over 30 simulated fragment sets derived from 100 zebra fish genes
+    (see Supplementary Materials, Section~\href{sim_results}, for more
+    details).   Blue/Solid = \peace, Green/Dash =
+    {\sc wcd}, Black/Dot-Dash = {\sc Cap3}; vertical tics = 95\% confidence
+    intervals on estimates.  Intervals are not presented for Type 1
+    error due to the extremely small variance.}
+\end{figure}
 
-\begin{figure*}[b]
-\centerline{
-\includegraphics[trim=0cm 3cm 0cm 1cm, clip, scale=0.9]{screen.d/screen.pdf} 
-}
-\label{screen}
-\caption{Screenshots of the {\sc Peace} GUI during execution, including (a)
-GUI Welcome and server installation menu; (b) setup wizard for
-installing the computational tool on a remote server; (c) execution
-wizard for starting a selected job to be executed in parallel mode;
-(d) basic cluster output; and (e) histogram view of cluster results
-and classifier editor for setting up differential expression profiles.}
-\end{figure*}
-
-\begin{figure*}[h]
-\centerline{
-\begin{minipage}[b]{2in}
-\includegraphics[scale=0.5]{pics.d/SeT1.pdf} 
-\end{minipage}{2in}
-}
-\label{SeT1}
-\caption{Comparisons of Sensitivity and Type 1 error, based on the
-  average over 30 simulated fragment sets derived from 100 zebra fish genes
-  (see Supplementary Materials, Section~\href{sim_results}, for more
-  details).   Blue/Solid = {\sc Peace}, Green/Dash =
-  {\sc wcd}, Black/Dot-Dash = {\sc Cap3}; vertical tics = 95\% confidence
-  intervals on estimates.  Intervals are not presented for Type 1
-  error due to the extremely small variance.}
-\end{figure*}
-
-\begin{figure*}[b]
-\begin{minipage}{2in}
-\centerline{
-\includegraphics[scale=0.35]{pics.d/singletons.pdf}
-}
-\end{minipage}
-\label{singletons}
-\caption{Average number of fragments flagged as singletons by each tool
-  when run on the simulated sequences; correct answer in all cases is
-  zero.  Blue/Solid = {\sc Peace}, Green/Dash = {\sc wcd},
-  Black/Dot-Dash = {\sc Cap3}.}
-\end{figure*}
+\begin{figure}
+  \centerline{\includegraphics[width=3in]{pics.d/singletons.pdf}}
+  \label{singletons}
+  \caption{Average number of fragments flagged as singletons by each tool
+    when run on the simulated sequences; correct answer in all cases is
+    zero.  Blue/Solid = \peace, Green/Dash = {\sc wcd},
+    Black/Dot-Dash = {\sc Cap3}.}
+\end{figure}
 
 In applying the tools to real data, we started with a set of
 approximately $190,000$ clean Sanger ESTs derived from the {\it
   Chlamydomonas reinhardtii} genome \cite{Liang2008}.  To compute
 sensitivity we used the {\it gmap} tool \cite{Wu05} to map the
 fragment set to the genome, taking this as our reference clustering.
-We see slight improvements in {\sc Peace} over {\sc wcd} in both
+We see slight improvements in \peace\/ over {\sc wcd} in both
 sensitivity and Type 1 error (both significantly outperforming {\sc
   Cap3}).  Using the mouse data set used in Hazelhurst {\it et al.}
-\cite{Hazelhurst08a} {\sc Peace} again shows slight improvements in
+\cite{Hazelhurst08a} \peace\/ again shows slight improvements in
 sensitivity and Type 1 error rates, with an 18\% speedup for {\sc
   Peace} (see Supplementary Materials, Section~D, for more details).
 
 \section{Conclusions}
 
-Here we have presented {\sc Peace}, a stand alone tool for the
+Here we have presented \peace, a stand alone tool for the
 high-throughput clustering of transcript fragments, managed through a
 user friendly GUI that enables both local and remote installation and
 execution in sequential or parallel mode.  Based on a novel algorithm
-for the clustering of the fragments by gene association, {\sc Peace}
+for the clustering of the fragments by gene association, \peace\/
 shows significant improvement in sensitivity, without sacrificing runtime,
 over the competing {\sc WCD} tool \cite{Hazelhurst08a}, and shows an
 order of magnitude in improvement over the clustering preformed in the
 course of assembly by the {\sc Cap3} tool \cite{Huang99}.
 
-As a clustering tool based on sequence distance, {\sc Peace} faces
-certain inherent limitations. For example, {\sc Peace} cannot handle
+As a clustering tool based on sequence distance, \peace\/ faces
+certain inherent limitations. For example, \peace\/ cannot handle
 duplicate genes; like {\sc WCD}, it is unable to separate clusters
 corresponding to genes with a greater than 88\% similarity.
 Similarly, natural biological effects such as the trans-splicing of
@@ -334,7 +339,7 @@ acknowledge Iddo Friedberg, David Woods, Elizabeth Bikun, Jens Mueller and David
 Scoville at Miami University for their help with this project.
 
 \vspace{3mm}
-%Bib TeX
+% Bib TeX
 
 \bibliography{peace.bib}
 
