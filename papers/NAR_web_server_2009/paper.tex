@@ -45,23 +45,24 @@ urlcolor=blue %color of the url links
 \begin{abstract}
   We present \peace, a stand alone tool for the high-throughput {\it
     ab initio} clustering of transcript fragment sequences produced by
-  Next Generation or Sanger Sequencing technologies, available from
-  \href{http://www.peace-tools.org}{www.peace-tools.org} .  Installed
-  and run through an easily downloaded GUI, \peace\/ can process large
-  data sets and group the fragments by gene association, achieving a
-  greater sensitivity (without sacrificing runtime) than the competing
-  clustering tools and applicable to bases as small as 75 bases.
-  Through the GUI the user can collect cluster statistics and examine
-  specific clusters for more comprehensive study.  \peace\/, used as a
-  ``pre-assembly'' tool, enables any assembly tool to work with
-  individual small clusters of closely related sequences, resulting in
-  significant increases in sensitive and robustness to sequencing
-  error (e.g. with a 52\% improvement in sensitivity over the cluster
-  tool, \wcd\/, and a 184\% improvement in sensitivity over a leading
-  assembly tool, \capthree, given a a 5\% rate of sequencing errors),
-  as well as a reduction in runtime (with a 40\% speedup, as compared
-  to \wcd, when applied to a 361 Mb set of Arabidopsis transcriptome
-  fragments).
+  Next Generation or Sanger Sequencing technologies, freely available
+  from \href{http://www.peace-tools.org}{www.peace-tools.org} .
+  Installed and run through an easily downloaded GUI, \peace\/ can
+  process large data sets of transcripts fragments of length 50 bases
+  or greater, grouping the fragments by gene association and achieving
+  a greater sensitivity (without sacrificing runtime) than the
+  competing clustering tools.  Once clusered, the user can use the GUI
+  to to collect statistics and single out specific clusters for more
+  comprehensive study.  \peace\/, when used as a ``pre-assembly''
+  tool, enables any assembly tool to work with individual small
+  clusters of closely related sequences.  The result is a significant
+  increase in sensitivity, as well as improved robustness to
+  sequencing error as well as a reduction in runtime.  For a 5\%
+  sequencing error rate, we see a 52\% improvement in sensitivity over
+  the leading cluster tool, \wcd\/, a 184\% improvement in sensitivity
+  over the assembly tool \capthree.  When applied to a 361 Mb set of
+  Arabidopsis transcriptome fragments, we see a 40\% speedup over
+  \wcd.
 \end{abstract}
 
 
@@ -361,7 +362,7 @@ sequential mode on a 3.2 GHz Intel Xeon CPU.
 
 Here we have presented \peace, a stand alone tool for the
 high-throughput clustering of transcript fragments capable of dealing
-with sequences as short as 75 bases.  \peace\/, available at
+with sequences as short as 50 bases.  \peace\/, available at
 \href{http://www.peace-tools.org}{www.peace-tools.org}, is open-source
 and managed through a user friendly GUI that enables both local and
 remote installation and execution in sequential or parallel mode.
