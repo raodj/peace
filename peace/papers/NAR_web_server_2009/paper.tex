@@ -46,22 +46,21 @@ urlcolor=blue %color of the url links
   We present \peace, a stand alone tool for the high-throughput {\it
     ab initio} clustering of transcript fragment sequences produced by
   Next Generation or Sanger Sequencing technologies, freely available
-  from \href{http://www.peace-tools.org}{www.peace-tools.org} .
+  from \href{http://www.peace-tools.org}{www.peace-tools.org}.
   Installed and run through an easily downloaded GUI, \peace\/ can
   process large data sets of transcript fragments of length 50 bases
   or greater, grouping the fragments by gene association and achieving
   a greater sensitivity (without sacrificing runtime) than the
-  competing clustering tools.  Once clustered, the user can use the GUI
-  to collect statistics and single out specific clusters for more
+  competing clustering tools.  Once clustered, the user can employ the
+  GUI to collect statistics and single out specific clusters for more
   comprehensive study.  \peace\/, when used as a ``pre-assembly''
   tool, enables any assembly tool to work with individual small
-  clusters of closely related sequences.  The result is a significant
-  increase in sensitivity, improved robustness to sequencing error,
-  and a reduction in runtime.  For a 5\% sequencing error rate, we see
-  a 52\% improvement in sensitivity over the leading cluster tool,
-  \wcd\/, and 184\% improvement in sensitivity over the assembly tool
-  \capthree.  When applied to a 361 Mb set of Arabidopsis transcriptome
-  fragments, we see a 40\% speedup over \wcd.
+  clusters of closely related sequences.  For a 5\% sequencing error
+  rate, we see a 52\% improvement in sensitivity over the leading
+  cluster tool, \wcd\/, and 184\% improvement in sensitivity over the
+  assembly tool \capthree.  When applied to a 361 Mb set of
+  Arabidopsis transcriptome fragments, we see a 40\% speedup over
+  \wcd.
 \end{abstract}
 
 
@@ -292,7 +291,7 @@ different models of error (Supplementary Materials, Section~C.1),
 generating the fragments from the list of 100 zebra fish genes used in
 the \wcd\/ testing \cite{Hazelhurst08a}.  Tool parameters were taken
 to match, as closely as possible, those used in the \wcd\/ study (see
-supplementary materials).  Our primary methods of quality assessment
+Supplementary Materials).  Our primary methods of quality assessment
 were {\it sensitivity} (the fraction of fragment pairs from the same
 gene that were correctly clustered together) and {\it Type 1 error}
 (the fraction of genes that were divided between clusters)
@@ -343,18 +342,21 @@ the mouse data set used in Hazelhurst {\it et al.}
 sensitivity and Type 1 error rates, with an 18\% speedup for \peace\/ 
 (see Supplementary Materials, Section~D, for more details).
 
-A comparative test of \peace\/ against \wcd\/ on NGS short-read sequences
-was not feasible due to the implementation of \wcd.  In theory, that
-tool should be able to handle short-read sequences with the
-appropriate parameter settings.  However, in the distributed versions those
-parameters seemed to be hard-coded, thus rendering testing impossible.
-\peace\/ was run on both simulated and real NGS fragment sets.  For the
-former we found \peace\/ to do well, achieving a sensitivity of 0.75
-when simulating a sequencing error rate of 2\% (with comparable {\it
-  Jaccard Index} value, which reflects both sensitivity {\it and}
-specificity \cite{Kalyanaraman03,Hazelhurst08a}).  Runtime was
-approximately 17.6 minutes to process the 7.9 Mb of data when run in
-sequential mode on a 3.2 GHz Intel Xeon CPU.
+We were unable to run \wcd\/ on short-read sequences, as the
+distributed implementation is unable to handle such data without an
+adjustment to the code.  Hence, while \peace\/ was run on both
+simulated and real NGS fragment sets, there was no cluster tool to
+which the results could be compared.  \peace\/ did well, achieving a
+sensitivity of 0.75 when applied to a simulated short-read set subjected to
+a sequencing error rate of 2\% (with comparable {\it Jaccard Index}
+values reflecting both sensitivity {\it and} specificity
+\cite{Kalyanaraman03,Hazelhurst08a}).  Runtime was approximately 17.6
+minutes to process the 7.9 Mb of data when run in sequential mode on a
+3.2 GHz Intel Xeon CPU.  When applied to a 64 Mb set of 165,490 {\it
+  Chlamydomonas reinhardtii} transcript fragments sequenced by 454
+pyrosequencing technology (ranging in size from 50 bases to several
+hundred), \peace\/ completed the job in 49 minutes using 30 of the
+Xeon processors.
 
 \section{Conclusions}
 
