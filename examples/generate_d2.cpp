@@ -97,6 +97,11 @@ string make_id(int i) {
 }
 
 int main(int argc, char** argv) {
+  cout << "#generate_d2";
+  for (int i=0; i < argc; i++)
+    cout << " " << argv[i] << " ";
+  cout << endl;
+
   int c;
   while ( (c = getopt(argc, argv, "r:o:f:s:w:x:t:m:n:e:uhi")) != -1 ) {
       switch (c) {
