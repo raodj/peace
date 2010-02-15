@@ -6,13 +6,12 @@ on how to put the blocks together.
 Requires biopython to run.
 
 Parameters:
+* Block length (presumably window size)
 * Input file name (template)
 * Output file name (fasta file)
 
 Template format:
-Line 1: Block size
-Line 2: Number of blocks needed
-Line 3+: Tuples defining block sequences (one per line)
+Tuples defining block sequences (one per line)
 * Each tuple is a sequence of integers (comma separated), specifying 
   the blocks that will be concatenated together
 * Block numbers are indexed from 0

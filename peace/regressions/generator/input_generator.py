@@ -8,33 +8,35 @@ import re
 import sys
 import random
 
-def randomSeq(length):
-    """Return a random sequence of length l, bases choosen
-    independetly from a uniform distribution"""
-    return Seq("".join([random.choice(('A', 'C', 'G', 'T')) for x in range(length)]), IUPAC.unambiguous_dna);
-
-def generateBlocks(n, length):
-    """Generate n blocks of size length"""
-    return [randomSeq(length) for x in range(0, length)]
+blocks = [""]
+reverse_blocks = [""]
+def getBlock(i, length):
+    """Get block[abs(i)] fo blocks (generating new content if i > len(blocks),
+    and reverse complement it if i < 0"""
+    assert(i != 0)
+    if (abs(i) >= len(blocks)):
+        new_blocks = ["".join([random.choice(('A', 'C', 'G', 'T')) for x in range(length)]) for j in range(abs(i) + 1 - len(blocks))]
+        new_reverse = [str(Seq(b, IUPAC.unambiguous_dna).reverse_complement()) for b in new_blocks]
+        blocks.extend(new_blocks)
+        reverse_blocks.extend(new_reverse)
+    return blocks[i] if i > 0 else reverse_blocks[-i]
 
 def main(argv):
-    in_file = argv[1]
-    out_file = argv[2]
+    length = int(argv[1])
+    in_file = argv[2]
+    out_file = argv[3]
 
     ifp = open(in_file)
     ofp = open(out_file, "w")
 
-    length = int(ifp.readline())
-    n = int(ifp.readline())
-    blocks = [""] + generateBlocks(n, length)
-
     r = re.compile(",\s*")
-    results = [(Seq("".join([str(blocks[i]) if i > 0 else str(blocks[-i].reverse_complement()) for i in [int(j) for j in r.split(line.rstrip())]]), IUPAC.unambiguous_dna), ",".join(r.split(line.rstrip()))) for line in ifp if line != '\n' and line[0] != '#']
+
+    results = [(Seq("".join([getBlock(i,length) for i in [int(j) for j in r.split(line.rstrip())]]), IUPAC.unambiguous_dna), ",".join(r.split(line.rstrip()))) for line in ifp if line != '\n' and line[0] != '#']
 
     
     id = 0
     records = []
-    for (s,line) in results:
+    for s,line in results:
         records.append(SeqRecord(s, id = "s" + str(id), description = line))
         id = id+1
 
