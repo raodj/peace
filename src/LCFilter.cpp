@@ -100,14 +100,14 @@ LCFilter::initialize() {
     // Process one word at a time. Words are separated by a ","
     // (comma) character.
     while (!patStr.empty()) {
-        // Locate the next hyphen character and get name of filter
+        // Locate the next comma character and get name of filter
         const std::string::size_type commaPos = patStr.find(',');
         const std::string pattern = patStr.substr(0, commaPos);
         // Create dummy entry for this pattern.
         addDummyEntry("DummyEST For Pattern " + pattern, pattern, dummyLen);
         // Onto the next entry if one is present.
         if (commaPos == std::string::npos) {
-            // No hyphen, so this was the last pattern in the list
+            // No comma, so this was the last pattern in the list
             patStr.clear();
         } else {
             // patStr becomes the remaining patterns int the list
@@ -136,7 +136,7 @@ LCFilter::addDummyEntry(const std::string& fastaID, const std::string& seq,
     // Add a dummy cluster for this filter with a suitable name.
     std::ostringstream clsName;
     clsName << "Low Complexity ESTs (filtered by LCFilter Pattern "
-            << seq << "...)" << std::ends;
+            << seq << "...)";
     int clusterID = clusterMaker->addDummyCluster(clsName.str());
     // Save information about the dummy entry.
     dummyESTList.push_back(DummyESTInfo(estIdx, clusterID));
