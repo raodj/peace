@@ -136,7 +136,7 @@ TwoPassD2::initialize() {
     // Compute the number of bits to shift when building hashes
     bitShift = 2 * (wordSize - 1);
     // Compute word table size and initialize word tables
-    const int wordTableSize = EST::getMaxESTLen() + frameSize;
+    const int wordTableSize = EST::getMaxESTLen() + MAX_FRAME_SIZE;
     s1WordTable = new int[wordTableSize];
     s2WordTable = new int[wordTableSize];
     
@@ -193,7 +193,7 @@ TwoPassD2::getMetric(const int otherEST) {
     }
     else {
         // Now run the bounded symmetric D2 algorithm
-        int boundDist = frameShift/2;
+        int boundDist = frameSize/2;
         return (1/(float)threshold) *
             (float) runD2Bounded(otherEST, s1Index-boundDist, 
                                  s1Index+boundDist+frameSize, 
@@ -206,7 +206,7 @@ void
 TwoPassD2::updateParameters(const int otherESTLen) {
     // still some magic numbers in this method, to be removed eventually
 
-    // need to change frameshift!!!
+    // need to change frameshift
     
     int greaterLen = std::max(refESTLen, otherESTLen);
     float coverageNum = 0;
@@ -226,7 +226,7 @@ TwoPassD2::updateParameters(const int otherESTLen) {
         frameSize = MAX_FRAME_SIZE;
     }
     threshold = (frameSize - coverageNum + 5)*2;
-    maxThreshold = threshold * 2;
+    maxThreshold = threshold * 3;
     numWordsInWindow = frameSize - wordSize + 1;
 }
 
