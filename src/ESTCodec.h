@@ -150,9 +150,9 @@ public:
 
     /** A functor to generate a encoded word (serves as a hash entry).
         
-		This functor must be used to generate an encoded word from a
-		"normal" (rather than reverse complement) fragment. This
-		method handles 'n' entries in the EST in the following manner:
+        This functor must be used to generate an encoded word from a
+	"normal" (rather than reverse complement) fragment. This
+	me thod handles 'n' entries in the EST in the following manner:
 
         <ul>
 

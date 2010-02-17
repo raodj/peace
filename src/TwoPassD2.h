@@ -284,9 +284,9 @@ protected:
     /** Helper method to create a word table.
         
         Creates a "word table" mapping integer indices to integer
-		hashes of words, in effect translating the sequence from a
-		sequence of characters to a sequence of n-words (where n =
-		wordSize).
+	hashes of words, in effect translating the sequence from a
+	sequence of characters to a sequence of n-words (where n =
+	wordSize).
 		
         \param[out] wordTable The word table to be populated with with
         hash values.
@@ -294,8 +294,8 @@ protected:
         \param[in] estSeq The sequence of base pairs associated with
         this EST that must be converted to hash values.
 
-		\param encoder The encoder object to be used to generate
-		encoding for the words added to the generated word table.
+	\param encoder The encoder object to be used to generate
+	encoding for the words added to the generated word table.
     */
     template <typename Encoder>
     void buildWordTable(int* wordTable, const char* estSeq, Encoder encoder) {
