@@ -154,20 +154,25 @@ UVSampleHeuristic::setReferenceEST(const int estIdx) {
     ESTCodec::NormalEncoder<bitsToShift, BitMask> encoder;
     ESTCodec& codec = ESTCodec::getCodec();
     
-    int hash  = 0;
+    register int hash = 0;
+    int ignoreMask    = 0;
     for(int i = 0; (i < v - 1); i++) {
-        hash = encoder(hash, s1[i]);
+        hash = encoder(hash, s1[i], ignoreMask);
     }
     // Fill in the word map. But first setup the table to quickly
     // generate reverse complement values.
     codec.setRevCompTable(v);
     const int End = (int) strlen(s1) - v;
     for (int i = v - 1; (i <= End); i++) {
-        hash = encoder(hash, s1[i]);
-        // Setup the word map for the regular word
-        s1WordMap[hash] = 1;
-        // Setup the word map entry for the reverse-complement word.
-        s1RCWordMap[codec.encode2rc(hash)] = 1;
+        hash = encoder(hash, s1[i], ignoreMask);
+        if (!ignoreMask) {
+            // The ignoreMask is zero implying that this hash does not
+            // contain any 'n' bases that are to be ignored. So go
+            // ahead and Setup the word map for the regular word
+            s1WordMap[hash] = 1;
+            // Setup the word map entry for the reverse-complement word.
+            s1RCWordMap[codec.encode2rc(hash)] = 1;
+        }
     }
     return 0; // everything went well
 }
@@ -184,7 +189,6 @@ UVSampleHeuristic::computeHash(const int estIdx) {
     ASSERT ( End > 0 );
     
     // Get the codec for encoding/decoding operations
-
     ESTCodec::NormalEncoder<bitsToShift, BitMask> encoder;
     // Obtain the vector from the hash_map and ensure it has
     // sufficient space to hold all the hash values.
@@ -195,12 +199,16 @@ UVSampleHeuristic::computeHash(const int estIdx) {
     for (register int start = 0; (start < End); start += wordShift) {
         // Compute the hash for the next v words.
         unsigned short hash = 0;
+        int ignoreMask      = 0;
         const int endBP    = start + v;
         for(register int i = start; (i < endBP); i++) {
-            hash = (unsigned short) encoder(hash, sq2[i]);
+            hash = (unsigned short) encoder(hash, sq2[i], ignoreMask);
         }
-        // Store the hash value
-        hashList.push_back(hash);
+        // Store the hash value if it did not have a 'n' in it.
+        if (!ignoreMask) {
+            // This hash does not have a 'n' in it. So use it.
+            hashList.push_back(hash);
+        }
     }
 }
 

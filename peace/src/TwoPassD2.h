@@ -302,14 +302,19 @@ protected:
         // Compute the has for the first word using the encoder. The
         // encoder may do normal or reverse-complement encoding for us.
         register int hash = 0;
+        int ignoreMask    = 0;
         for(register int i = 0; ((*estSeq != 0) && (i < wordSize - 1));
             i++, estSeq++) {
-            hash = encoder(hash, *estSeq);
+            hash = encoder(hash, *estSeq, ignoreMask);
         }
         // Now compute the hash for each word
         for(int entry = 0; (*estSeq != 0); entry++, estSeq++) {
-            hash = encoder(hash, *estSeq);
-            wordTable[entry] = hash;
+            hash = encoder(hash, *estSeq, ignoreMask);
+            if (!ignoreMask) {
+                 // If ignoreMask is zero that indicates that the hash
+                 // is not tainted due to 'n' bp in sequence. So use it.
+                wordTable[entry] = hash;
+            }
         }
     }
 

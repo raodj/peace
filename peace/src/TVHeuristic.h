@@ -174,7 +174,7 @@ protected:
     TVHeuristic(const std::string& outputFileName);
     
     /** Determine whether the analyzer should analyze, according to
-	this heuristic.
+        this heuristic.
         
         This method can be used to compare a given EST with the
         reference EST (set via the call to the setReferenceEST())
@@ -199,12 +199,32 @@ protected:
         which the reference EST is to be compared.
         
         \return This method returns \c true if the heuristic says the
-	EST pair should be analyzed, and \c false if it should not.
+        EST pair should be analyzed, and \c false if it should not.
     */
     virtual bool runHeuristic(const int otherEST);
 
     virtual void adjustParameters(const int otherESTLen);
 
+    /** Templatized-method for counting common woards between two ESTs.
+
+        This method is a helper method that is invoked from the
+        runHeuristic method to count the number of common words
+        between the reference EST (set via call to setReferenceEST)
+        and otherEST (parameter). This method operates as follows:
+
+        <ol>
+
+        <li>First the matchTable (instance variable) is cleared to all
+        zeros.</li>
+
+        <li>Next the initial word of length NewUVHeuristic::v is
+        constructed while ignoring bases marked as 'n' (this may
+        require processing of more than the first NewUVHeuristic::v
+        bases if one of them is a 'n'.</li>
+        
+        </ol>
+
+     */
     template <typename Encoder>
     int countCommonWords(const int otherEST, Encoder encoder,
                          const char* refWordMap) {
@@ -213,22 +233,31 @@ protected:
         const char *otherSeq   = EST::getEST(otherEST)->getSequence();
         const int  otherESTLen = strlen(otherSeq);
         register int hash      = 0;
-        for(int i = 0; (i < NewUVHeuristic::v - 1); i++) {
-            hash = encoder(hash, otherSeq[i]);
-        }
+        int ignoreMask         = 0;
         // Set first window length entries to zero.
-        memset(matchTable, 0, sizeof(char) *( windowLen + NewUVHeuristic::v));
+        memset(matchTable, 0, sizeof(char) * (windowLen + NewUVHeuristic::v));
+        // Compute hash for initial word while skipping over bases
+        // makred 'n'. This may require processing of more then v-1
+        // bases
+        for(int i = 0; (i < NewUVHeuristic::v - 1); i++) {
+            hash = encoder(hash, otherSeq[i], ignoreMask);
+        }
         // Skip first windowLen entries to simplify logic in loop below.
         char *matchTicker = matchTable + windowLen;
         // Now see how many common words exist in the two ESTs
         int numMatch     = 0, maxMatch = 0;
-	int oldWindowPos = -windowLen;
+		int oldWindowPos = -windowLen;
         for(int i = NewUVHeuristic::v - 1; (i < otherESTLen); i++) {
-            hash = encoder(hash, otherSeq[i]);
-            matchTicker[i] = refWordMap[hash];
-            numMatch += refWordMap[hash];
-            numMatch -= matchTicker[oldWindowPos++];
-            maxMatch  = std::max(maxMatch, numMatch);
+            hash = encoder(hash, otherSeq[i], ignoreMask);
+            if (!ignoreMask) {
+                // If ignoreMask is zero, it tells us that the hash is
+                // not tainted due to 'n' bp and it is good to be
+                // used for the operations below.
+                matchTicker[i] = refWordMap[hash];
+                numMatch += refWordMap[hash];
+                numMatch -= matchTicker[oldWindowPos++];
+                maxMatch  = std::max(maxMatch, numMatch);
+            }
         }
         // Return number of matches encountered.
         return maxMatch;

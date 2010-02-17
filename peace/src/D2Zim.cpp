@@ -153,15 +153,20 @@ D2Zim::buildWordTable(int* wordTable, const char* s) {
     const int length = strlen(s) - wordSize;
     ESTCodec::NormalEncoder<wordSize, BitMask> encoder;
     register int hash = 0;
+    int ignoreMask    = 0;
     for(int i = 0; (i < wordSize); i++) {
-        hash = encoder(hash, s[i]);
+        hash = encoder(hash, s[i], ignoreMask);
     }
     // Setup the word table entry for the first word.
     wordTable[0] = hash;
     // Fill in the word table
     for (int i = 1; (i <= length); i++) {
-        hash = encoder(hash, s[i]);
-        wordTable[i] = hash;
+        hash = encoder(hash, s[i], ignoreMask);
+        if (!ignoreMask) {
+            // If ignoreMask is zero that indicates that the hash is
+            // not tainted due to 'n' bp in sequence and it is good.
+            wordTable[i] = hash;
+        }
     }
 }
 
