@@ -249,13 +249,13 @@ protected:
 		int oldWindowPos = -windowLen;
         for(int i = NewUVHeuristic::v - 1; (i < otherESTLen); i++) {
             hash = encoder(hash, otherSeq[i], ignoreMask);
+	    numMatch -= matchTicker[oldWindowPos++];
             if (!ignoreMask) {
                 // If ignoreMask is zero, it tells us that the hash is
                 // not tainted due to 'n' bp and it is good to be
                 // used for the operations below.
                 matchTicker[i] = refWordMap[hash];
                 numMatch += refWordMap[hash];
-                numMatch -= matchTicker[oldWindowPos++];
                 maxMatch  = std::max(maxMatch, numMatch);
             }
         }
