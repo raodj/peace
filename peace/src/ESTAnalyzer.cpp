@@ -45,6 +45,7 @@
 bool  ESTAnalyzer::readAhead      = false;
 char* ESTAnalyzer::estFileName    = NULL;
 bool  ESTAnalyzer::htmlLog        = false;
+bool  ESTAnalyzer::noMaskBases    = false;
 
 // The common set of arguments for all EST analyzers
 arg_parser::arg_record ESTAnalyzer::commonArgsList[] = {
@@ -54,6 +55,8 @@ arg_parser::arg_record ESTAnalyzer::commonArgsList[] = {
      &ESTAnalyzer::estFileName, arg_parser::STRING},
     {"--html", "Generate analysis report in HTML format",
      &ESTAnalyzer::htmlLog, arg_parser::BOOLEAN},
+    {"--no-mask-bases", "Don't mask out all lower case neucleotides in reads",
+     &ESTAnalyzer::noMaskBases, arg_parser::BOOLEAN},
     {NULL, NULL, NULL, arg_parser::BOOLEAN}
 };
 
@@ -142,7 +145,7 @@ ESTAnalyzer::loadFASTAFile(const char *fileName, const bool unpopulate) {
     int filteredCount = 0;
     // Repeatedly read EST's from the file.
     while (!feof(fastaFile)) {
-        EST *est = EST::create(fastaFile, lineNum);
+        EST *est = EST::create(fastaFile, lineNum, !noMaskBases);
         if ((est == NULL) && (!feof(fastaFile) || ferror(fastaFile))) {
             // An error occured when reading EST.
             fclose(fastaFile);
