@@ -137,9 +137,9 @@ public:
         \param[in,out] lineNum A line number counter to be updated to
         provide the user with a more meaningful error message.
 
-		\param[in] maskBases If this flag is true, then all low-case
-		bases are converted to 'N' rather than upper-case characters
-		causing them to be ignored by downstream processing.
+	\param[in] maskBases If this flag is true, then all lowercase
+	bases are converted to 'N' rather than uppercase characters,
+	causing them to be ignored by downstream processing.
 		
         \note At the end of this method the fastaFile's file pointer
         will point at the beginning of the next EST (if any) in the
@@ -157,21 +157,21 @@ public:
     */
     static std::vector<EST*>& getESTList() { return estList; }
 
-	/** Obtain count of ESTs that have been flagged as being processed.
+    /** Obtain count of ESTs that have been flagged as being processed.
 
-		This method can be used to determine the number of ESTs that
-		have been flagged as being processed. Subtracting this number
-		from the total number of ESTs indicates the number of ESTs to
-		be processed.
-
-		\note This method iterates over the list of ESTs to determine
-		the current number of processed ESTs. So use this method
-		sparingly.
-
-		\return The number of ESTs that have been flagged as having
-		been processed.
-	*/
-	static int getProcessedESTCount();
+	This method can be used to determine the number of ESTs that
+	have been flagged as being processed. Subtracting this number
+	from the total number of ESTs indicates the number of ESTs to
+	be processed.
+	
+	\note This method iterates over the list of ESTs to determine
+	the current number of processed ESTs. So use this method
+	sparingly.
+	    
+	\return The number of ESTs that have been flagged as having
+	been processed.
+    */
+    static int getProcessedESTCount();
 	
     /** Obtain the number of ESTs in this list.
 
@@ -228,10 +228,10 @@ public:
         \param[out] os The output stream to which EST data is to be
         dumped.
 
-		\param[in] processed If this flag is \c true, then this method
-		dumps only those ESTs that have been flagged as having been
-		processed. If this flag is \c false, then this method dumps
-		only un-processed ESTs.
+	\param[in] processed If this flag is \c true, then this method
+	dumps only those ESTs that have been flagged as having been
+	processed. If this flag is \c false, then this method dumps
+	only un-processed ESTs.
     */
     static void dumpESTList(std::ostream& os, const bool processed);
 
@@ -252,18 +252,18 @@ public:
     */
     static void deleteAllESTs();
 
-	/** Delete and clear out the last EST in the list.
-
-		This method can be used to delete the last EST in the
-		list. This method rests the maximum EST length instance
-		variable as needed.  This method is typically used to remove
-		dummy ESTs that are added to the end of the list by some
-		filters.
-
-		\param[in] count The number of ESTs to be removed from the
-		list.
-	*/
-	static void deleteLastESTs(const int count);
+    /** Delete and clear out the last EST in the list.
+	    
+        This method can be used to delete the last EST in the
+	list. This method rests the maximum EST length instance
+	variable as needed.  This method is typically used to remove
+	dummy ESTs that are added to the end of the list by some
+	filters.
+	
+	\param[in] count The number of ESTs to be removed from the
+	list.
+    */
+    static void deleteLastESTs(const int count);
 	
     /** Obtain the ID of this EST.
         
@@ -426,12 +426,12 @@ public:
 
     /** Helper method to read a line from a given file.
 		
-		This is a helper method that can be used to read a long line
-		from a given file.
-		
-		\param[in] fp The file from where the line is to be read.
-		
-		\return The string read from the file.
+        This is a helper method that can be used to read a long line
+	from a given file.
+	
+	\param[in] fp The file from where the line is to be read.
+	
+	\return The string read from the file.
     */
     static std::string getLine(FILE *fp);
 
@@ -561,33 +561,33 @@ private:
     */
     static char* duplicate(const char *src);
 
-	/** Helper method to normalize a given nucleotide sequence.
+    /** Helper method to normalize a given nucleotide sequence.
 
-		This method is used to normalize fragments read from a FASTA
-		file. This method normalizes the sequences such that the
-		resulting sequence is over the set {'A', 'T', 'C', 'G', 'N'}
-		in the following manner:
-
-		<ul>
-
-		<li>If the maskBases flag is true, then all low-case
-		nucleotides are converted to 'N'. Otherwise they are converted
-		to upper-case equivalents.</li>
-
-		<li>All nucleotides that are not in "ATCG" are converted to
-		'N'.</li>
-
-		</ul>
-		
-		\param[in,out] sequence The sequence of nucleotides to be
-		normalized by this method.
-
-		\param[in] maskBases If this flag is \c true, then all
-		lower-case "atcg" bases are converted to 'N'. Otherwise they
-		are converted to upper-case letters.
-	*/
-	static void normalizeBases(std::string& sequence,
-							   const bool maskBases = true);
+        This method is used to normalize fragments read from a FASTA
+	file. This method normalizes the sequences such that the
+	resulting sequence is over the set {'A', 'T', 'C', 'G', 'N'}
+	in the following manner:
+	
+	<ul>
+	
+	<li>If the maskBases flag is true, then all lowercase
+	nucleotides are converted to 'N'. Otherwise they are converted
+	to uppercase equivalents.</li>
+	
+	<li>All nucleotides that are not in "ATCG" are converted to
+	'N'.</li>
+	
+	</ul>
+	
+	\param[in,out] sequence The sequence of nucleotides to be
+	normalized by this method.
+	
+	\param[in] maskBases If this flag is \c true, then all
+	lowercase "atcg" bases are converted to 'N'. Otherwise they
+	are converted to uppercase letters.
+    */
+    static void normalizeBases(std::string& sequence,
+			       const bool maskBases = true);
 	
     /** The list of EST's currently being used.
 

@@ -140,15 +140,15 @@ public:
     virtual int setReferenceEST(const int estIdx) = 0;
 
     /** Analyze and obtain a similarity metric using the attached
-		heuristic chain (if one exists) followed by the appropriate
-		heavy weight distance/similarity measure associated with
-		this ESTAnalyzer.
+	heuristic chain (if one exists) followed by the appropriate
+	heavy weight distance/similarity measure associated with
+	this ESTAnalyzer.
 		
         This method can be used to compare a given EST with the
         reference EST (set via the call to the setReferenceEST())
         method.
-		
-		\note This method may return -1, if the otherEST is
+	
+	\note This method may return -1, if the otherEST is
         significantly different from the reference EST (possibly
         warranting no further analysis) that a meanigful metric cannot
         be generated.
@@ -156,11 +156,11 @@ public:
         \param[in] otherEST The index (zero based) of the EST with
         which the reference EST is to be compared.
 		
-		\param[in] useHeuristics A directive instructing the ESTAnalyzer
-		on whether or not to use its heuristis chain.  Defaults to true.
+	\param[in] useHeuristics A directive instructing the ESTAnalyzer
+	on whether or not to use its heuristis chain.  Defaults to true.
 		
-		\param[in] useHeavyWeight A directive instructing the ESTAnalyzer
-		on whether or not to use the heavy weight metric.  Defaults to true.
+	\param[in] useHeavyWeight A directive instructing the ESTAnalyzer
+	on whether or not to use the heavy weight metric.  Defaults to true.
 		
         \return This method returns a similarity/distance metric by
         comparing the ESTs. This method may return -1, if the otherEST
@@ -406,15 +406,15 @@ protected:
         analyzer.  This name is used when generating errors, warnings,
         and other output messages for this analyzer.
 		
-		\param[in] refESTidx The reference EST's index in a given
-		multi-FASTA file.  Index values start with 0 (zero).  The
-		refESTidx is supplied as a global argument that is processed
-		in the main() method.  This value is simply copied to the
-		refESTidx member in this class.
+	\param[in] refESTidx The reference EST's index in a given
+	multi-FASTA file.  Index values start with 0 (zero).  The
+	refESTidx is supplied as a global argument that is processed
+	in the main() method.  This value is simply copied to the
+	refESTidx member in this class.
 		
-		\param[in] outputFileName The file name to which output must
-		be written.  If a valid output file is not specified, then
-		results are written to standard output.  The outputFileName is
+	\param[in] outputFileName The file name to which output must
+	be written.  If a valid output file is not specified, then
+	results are written to standard output.  The outputFileName is
         simply copied to the outputFileName member object.
     */
     ESTAnalyzer(const std::string& analyzerName, const int refESTidx,
@@ -452,20 +452,20 @@ protected:
     */
     static bool readAhead;
 
-	/** Flag to indicate if low-case characters must be masked out of
-		reads.
-
-		Typically low-case characters ('a', 't', 'c', 'g') are used to
-		indicate bases that must be masked out of reads. This notation
-		is used by DUST (part of NCBI BLAST) utility that identifies
-		and tags low complexity regions with low-case letters. If this
-		flag is \c false (default) then these low-case characters are
-		converted to 'N' causing them to ignored by PEACE. If this
-		flag is \c true, then these bases are convered to upper-case
-		equivalents. This flag is passed to EST::create that actually
-		does the conversions.
-	*/
-	static bool noMaskBases;
+    /** Flag to indicate if lower-case characters must be masked out of
+	reads.
+	
+	Typically lower-case characters ('a', 't', 'c', 'g') are used to
+	indicate bases that must be masked out of reads. This notation
+	is used by DUST (part of NCBI BLAST) utility that identifies
+	and tags low complexity regions with lower-case letters. If this
+	flag is \c false (default) then these lower-case characters are
+	converted to 'N' causing them to ignored by PEACE. If this
+	flag is \c true, then these bases are converted to upper-case
+	equivalents. This flag is passed to EST::create which actually
+	does the conversions.
+    */
+    static bool noMaskBases;
 	
     /** The index of the reference EST in a given file. 
 
