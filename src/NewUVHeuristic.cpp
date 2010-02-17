@@ -156,20 +156,24 @@ NewUVHeuristic::setReferenceEST(const int estIdx) {
     ESTCodec::NormalEncoder<bitsToShift, BitMask> encoder;
     ESTCodec& codec = ESTCodec::getCodec();
     
-    int hash  = 0;
+    int hash  = 0, ignoreMask = 0;
     for(int i = 0; (i < v - 1); i++) {
-        hash = encoder(hash, s1[i]);
+        hash = encoder(hash, s1[i], ignoreMask);
     }
     // Fill in the word map. But first setup the table to quickly
     // generate reverse complement values.
     codec.setRevCompTable(v);
     const int End = strlen(s1);
     for (int i = v - 1; (i <= End); i++) {
-        hash = encoder(hash, s1[i]);
-        // Setup the word map for the regular word
-        s1WordMap[hash] = 1;
-        // Setup the word map entry for the reverse-complement word.
-        s1RCWordMap[codec.encode2rc(hash)] = 1;
+        hash = encoder(hash, s1[i], ignoreMask);
+        if (!ignoreMask) {
+            // If ignoreMask is zero, it tells us that the hash has no
+            // values associated with base pairs tagged as 'n'. So use
+            // it to setup the word map for the regular word
+            s1WordMap[hash] = 1;
+            // Setup the word map entry for the reverse-complement word.
+            s1RCWordMap[codec.encode2rc(hash)] = 1;
+        }
     }
     return 0; // everything went well
 }
@@ -197,12 +201,17 @@ NewUVHeuristic::computeHash(const int estIdx) {
     for (register int start = 0; (start < End); start += wordShift) {
         // Compute the hash for the next v words.
         unsigned short hash = 0;
-        const int endBP    = start + v;
-        for(register int i = start; (i < endBP); i++) {
-            hash = (unsigned short) encoder(hash, sq2[i]);
+        int ignoreMask      = 0;
+        const int endBP     = start + v;
+        for(register int i  = start; (i < endBP); i++) {
+            hash = (unsigned short) encoder(hash, sq2[i], ignoreMask);
         }
-        // Store the hash value
-        hashList.push_back(hash);
+        // Store the hash value if usable
+        if (!ignoreMask) {
+            // If ignoreMask is zero it tells us that the hash does
+            // not have 'n' in it and is good to be used.
+            hashList.push_back(hash);
+        }
     }
 }
 

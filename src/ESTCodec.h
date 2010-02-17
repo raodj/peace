@@ -129,38 +129,149 @@ public:
         \param[in] word The encoded word that must be translated to
         its corresponding reverse complement representation.
 
-	\return The reverse-complement representation for a given
-	word.
+        \return The reverse-complement representation for a given
+        word.
     */
     inline int encode2rc(const int word) const { return revCompTable[word]; }
     
     /** Set the reverse-complement translation table to be used whe
-	next time encode2rc method is called.
+        next time encode2rc method is called.
 
-	This method must be invoked to set the correct translation
-	table to be used by the encode2rc(int) method.  If a
-	translation table does not exist in the \c revCompTables, then
-	a new reverse-complement table is created by the \c
-	addRevCompTable method.
+        This method must be invoked to set the correct translation
+        table to be used by the encode2rc(int) method.  If a
+        translation table does not exist in the \c revCompTables, then
+        a new reverse-complement table is created by the \c
+        addRevCompTable method.
 	
-	\param[in] wordSize The number of base pairs in the word for
-	which a reverse-complement translation table is to be created.
+        \param[in] wordSize The number of base pairs in the word for
+        which a reverse-complement translation table is to be created.
     */
     void setRevCompTable(const int wordSize);
 
     /** A functor to generate a encoded word (serves as a hash entry).
-	
-     */
+        
+		This functor must be used to generate an encoded word from a
+		"normal" (rather than reverse complement) fragment. This
+		method handles 'n' entries in the EST in the following manner:
+
+        <ul>
+
+        <li>Whenever it encounters an 'n' base pair (that is created
+        when ESTs are loaded in the class EST.cpp) it sets the
+        ignoreMask to Mask (as Mask template parameter already tells
+        us the number of bits we care about and that is used as an
+        indicator of number hashes to ignore).</li>
+
+        <li>The ignoreMask is shifted right dropping off the least
+        significant bits each time this method is called. If all bits
+        of ignoreMask are cleared then the ignore mask is zero and
+        ignored.</li>
+
+        <li>If the ignoreMask is non-zero, then the caller is expected
+        not to use the hash returned from this method.  as this
+        word/hash contains a 'n'. As bits get shifted the value for
+        'n' drops off (when the ignoreMask is zero) and the hashes can
+        actually be used by the caller.</li>
+
+        </ul>
+
+        \tparam Shift The number of bits by which the encoding for the
+		given base pair must be shifted to the left. For example, when
+		using a word of length 6 nt, this value would be 10.
+
+        \tparam Mask The mask (with bits set to 1) that must be used
+		to retain the signficiant values in the hash. For example,
+		when using words of length 6, the Mask would be the binary
+		<code>1111 1111 1111</code> or <code>0xfff</code>.
+
+        \param[in] w The current hash value that has been computed
+        thusfar.
+
+        \param[in] bp The base pair ('A', 'T', 'C', 'G', or 'n') to be
+        encoded by this method.
+
+        \param[in,out] ignoreMask The ignore mask that is used to
+        determine if the current hash/word has a 'n' entry in it and
+        must be ignored.
+
+        \return The hash for the current word being encoded.
+
+        \note The caller must use the returned value for further
+        operation only if the ignoreMask is zero.  Otherwise the
+        encoder must be repeatedly called with subsequent bases until
+        the ignoreMask is cleared by this method.
+    */
     template <const int& Shift, const int& Mask>
     struct NormalEncoder : public std::binary_function<int, char, int> {
-        inline int operator()(const int w, const char bp) const {
+        inline int operator()(const int w, const char bp, int& ignoreMask) const {
+            // Setup the ignore mask if base pair is 'n' otherwise
+            // drop off the lowest 2 bits.
+            ignoreMask = (bp != 'N') ? (ignoreMask >> 2) : Mask;
+            // Compute the hash for the word. Encoding for 'n' is 0.
             return ((w >> 2) | (ESTCodec::encode(bp) << Shift)) & Mask;
         }
     };
-    
+
+    /** A functor to generate a encoded word (serves as a hash entry).
+        
+        This functor must be used to generate an encoded word for
+        a reverse complement (rather than normal) fragment. This
+        method handles 'n' entries in the EST in the following
+        manner:
+        
+        <ul>
+        
+        <li>Whenever it encounters an 'n' base pair (that is created
+        when ESTs are loaded in the class EST.cpp) it sets the
+        ignoreMask to Mask (as Mask template parameter already tells
+        us the number of bits we care about and that is used as an
+        indicator of number hashes to ignore).</li>
+        
+        <li>The ignoreMask is shifted right dropping off the least
+        significant bits each time this method is called. If all bits
+        of ignoreMask are cleared then the ignore mask is zero and
+        ignored.</li>
+      
+        <li>If the ignoreMask is non-zero, then the caller is expected
+        not to use the hash returned from this method.  as this
+        word/hash contains a 'n'. As bits get shifted the value for
+        'n' drops off (when the ignoreMask is zero) and the hashes can
+        actually be used by the caller.</li>
+        
+        </ul>
+        
+        \tparam Shift The number of bits by which the encoding for the
+        given base pair must be shifted. Currently this parameter is
+        not used but it is present to provide a symmetric interface
+        with the NormalEncoder.
+            
+        \tparam Mask The mask (with bits set to 1) that must be used
+        to retain the signficiant values in the hash. For example,
+        when using words of length 6, the Mask would be the binary
+        <code>1111 1111 1111</code> or <code>0xfff</code>.
+        
+        \param[in] w The current hash value that has been computed
+        thusfar.
+        
+        \param[in] bp The base pair ('A', 'T', 'C', 'G', or 'n') to be
+        encoded by this method.
+        
+        \param[in,out] ignoreMask The ignore mask that is used to
+        determine if the current hash/word has a 'n' entry in it and
+        must be ignored.
+
+        \note The caller must use the returned value for further
+        operation only if the ignoreMask is zero.  Otherwise the
+        encoder must be repeatedly called with subsequent bases until
+        the ignoreMask is cleared by this method.
+    */
     template <const int& Shift, const int& Mask>
     struct RevCompEncoder : public std::binary_function<int, char, int> {
-        inline int operator()(const int w, const char bp) const {
+        inline int operator()(const int w, const char bp, int& ignoreMask) const {
+            // Setup the ignore mask if base pair is 'n' otherwise
+            // drop off the lowest 2 bits.
+            ignoreMask = (bp != 'N') ? (ignoreMask >> 2) : Mask;
+            // Compute the hash for the word. 'n' becomes 0.
             return ((w << 2) | ESTCodec::encode2rc(bp)) & Mask;
         }
     };
@@ -171,7 +282,7 @@ public:
         tables etc.  The destructor is called only once, when the
         process-wide unique instance is destroyed when program
         terminates.
-     */
+    */
     ~ESTCodec();
 
 protected:
@@ -186,18 +297,18 @@ protected:
     ESTCodec();
 
     /** Creates and adds a new reverse-complement translation table
-	for the given word size.
+        for the given word size.
 
-	This method is a helper method that is invoked from the \c
-	setRevCompTable whenever a new reverse-complement translation
-	table is needed.  This method creates a reverse-complement
-	table with 4<sup>wordSize</sup> entries.
+        This method is a helper method that is invoked from the \c
+        setRevCompTable whenever a new reverse-complement translation
+        table is needed.  This method creates a reverse-complement
+        table with 4<sup>wordSize</sup> entries.
 
-	\param[in] wordSize The number of base pairs in the word for
-	which a reverse-complement translation table is to be created.
+        \param[in] wordSize The number of base pairs in the word for
+        which a reverse-complement translation table is to be created.
 
-	\return This method returns the newly created
-	reverse-complement translation table.
+        \return This method returns the newly created
+        reverse-complement translation table.
     */
     int* addRevCompTable(const int wordSize);
     
@@ -243,36 +354,36 @@ private:
     static char charToIntComp[];
 
     /** A hash map that holds tables to aid in translating a given
-	word to its reverse complement.
+        word to its reverse complement.
 
-	<p>Converting a given encoded word (some fixed \em n number of
-	base pairs, with each base pair encoded into 2-bits) to its
-	reverse complement (that is, given the encoded sequence for \c
-	attcggct it must be converted to the encoded sequence for \c
-	agccgaat) needs to be computed as a part of EST analysis
-	algorithms and heuristics. In order to enable rapid translation
-	pre-populated tabes are used.</p>
+        <p>Converting a given encoded word (some fixed \em n number of
+        base pairs, with each base pair encoded into 2-bits) to its
+        reverse complement (that is, given the encoded sequence for \c
+        attcggct it must be converted to the encoded sequence for \c
+        agccgaat) needs to be computed as a part of EST analysis
+        algorithms and heuristics. In order to enable rapid translation
+        pre-populated tabes are used.</p>
 
-	<p>However, the reverse-complement translation tables need to
-	have entries corresponding to the size of words to be
-	translated. Different algorithms use different word sizes
-	(such as: 8 bps or 10 bps etc).  Accordingly, this hash_map is
-	used to hold pre-computed reverse-complement translation
-	tables. The key in the hash map is the word size. The
-	translation tables contained in this hash map are used via the
-	\c setRevCompTable method. If a reverse-complement entry does
-	not exist, then a new entry is added by the addRevCompTable
-	method. </p>
+        <p>However, the reverse-complement translation tables need to
+        have entries corresponding to the size of words to be
+        translated. Different algorithms use different word sizes
+        (such as: 8 bps or 10 bps etc).  Accordingly, this hash_map is
+        used to hold pre-computed reverse-complement translation
+        tables. The key in the hash map is the word size. The
+        translation tables contained in this hash map are used via the
+        \c setRevCompTable method. If a reverse-complement entry does
+        not exist, then a new entry is added by the addRevCompTable
+        method. </p>
     */
     HashMap<int, int*> revCompTables;
 
     /** The reverse-complement translation table to be used by the
-	encode2rc method.
+        encode2rc method.
 
-	This array is set by the \c setRevCompTable method to refer to
-	the reverse-complement translation table to translate words of
-	given size to their corresponding reverse-complement
-	encodings.
+        This array is set by the \c setRevCompTable method to refer to
+        the reverse-complement translation table to translate words of
+        given size to their corresponding reverse-complement
+        encodings.
     */
     const int* revCompTable;
     
