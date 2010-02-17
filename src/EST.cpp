@@ -112,7 +112,7 @@ EST::create(const int id, const char *info,
 }
 
 EST*
-EST::create(FILE* fastaFile, int& lineNum) {
+EST::create(FILE* fastaFile, int& lineNum, const bool maskBases) {
     // Some basic validation on the fastFile first.
     if (feof(fastaFile) || ferror(fastaFile)) {
         // Can't read information from the fasta file.
@@ -154,9 +154,9 @@ EST::create(FILE* fastaFile, int& lineNum) {
     } while (!feof(fastaFile) && !ferror(fastaFile) && (headerChar != '>'));
     // Check if all the data was loaded successfully
     if (!ferror(fastaFile)) {
-        // Convert est information to upper case
-        std::transform(sequence.begin(), sequence.end(), sequence.begin(),
-                       toupper);
+        // Normalize the nucleotide sequence.
+        normalizeBases(sequence, maskBases);
+        // Use the c-string equivalent for futher processing.
         const char* const seqBP = sequence.c_str();
         // Compute new max EST length
         maxESTlen = std::max(maxESTlen, strlen(seqBP));
@@ -244,6 +244,27 @@ EST::duplicate(const char *src) {
 #endif
     }
     return copy;
+}
+
+void
+EST::normalizeBases(std::string& sequence, const bool maskBases) {
+    const size_t seqLen = sequence.size();
+    const std::string LowCaseBases = "atcg";
+    const std::string UpCaseBases  = "ATCG";
+    // Normalize the sequence.
+    for(size_t i = 0; (i < seqLen); i++) {
+        int index = 0;
+        // Obtain base to be normalized.
+        char nt   = sequence[i];
+        if ((index = LowCaseBases.find(nt)) != std::string::npos) {
+            nt = (maskBases ? 'N' : UpCaseBases[index]);
+        } else if (UpCaseBases.find(nt) == std::string::npos) {
+            // An entry other than "atcgATCG" to be ignored
+            nt= 'N';
+        }
+        // Store normalize character
+        sequence[i] = nt;
+    }
 }
 
 // A dummy default constructor to keep the compiler happy.

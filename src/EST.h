@@ -137,11 +137,16 @@ public:
         \param[in,out] lineNum A line number counter to be updated to
         provide the user with a more meaningful error message.
 
+		\param[in] maskBases If this flag is true, then all low-case
+		bases are converted to 'N' rather than upper-case characters
+		causing them to be ignored by downstream processing.
+		
         \note At the end of this method the fastaFile's file pointer
         will point at the beginning of the next EST (if any) in the
         file.
     */
-    static EST* create(FILE* fastaFile, int& lineNum);
+    static EST* create(FILE* fastaFile, int& lineNum,
+					   const bool maskBases = true);
 
     /** Obtain the list of ESTs.
 
@@ -555,7 +560,35 @@ private:
         version of the specified string.
     */
     static char* duplicate(const char *src);
-    
+
+	/** Helper method to normalize a given nucleotide sequence.
+
+		This method is used to normalize fragments read from a FASTA
+		file. This method normalizes the sequences such that the
+		resulting sequence is over the set {'A', 'T', 'C', 'G', 'N'}
+		in the following manner:
+
+		<ul>
+
+		<li>If the maskBases flag is true, then all low-case
+		nucleotides are converted to 'N'. Otherwise they are converted
+		to upper-case equivalents.</li>
+
+		<li>All nucleotides that are not in "ATCG" are converted to
+		'N'.</li>
+
+		</ul>
+		
+		\param[in,out] sequence The sequence of nucleotides to be
+		normalized by this method.
+
+		\param[in] maskBases If this flag is \c true, then all
+		lower-case "atcg" bases are converted to 'N'. Otherwise they
+		are converted to upper-case letters.
+	*/
+	static void normalizeBases(std::string& sequence,
+							   const bool maskBases = true);
+	
     /** The list of EST's currently being used.
 
         This list contains the complete set of ESTs that are currently

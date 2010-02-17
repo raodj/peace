@@ -452,6 +452,21 @@ protected:
     */
     static bool readAhead;
 
+	/** Flag to indicate if low-case characters must be masked out of
+		reads.
+
+		Typically low-case characters ('a', 't', 'c', 'g') are used to
+		indicate bases that must be masked out of reads. This notation
+		is used by DUST (part of NCBI BLAST) utility that identifies
+		and tags low complexity regions with low-case letters. If this
+		flag is \c false (default) then these low-case characters are
+		converted to 'N' causing them to ignored by PEACE. If this
+		flag is \c true, then these bases are convered to upper-case
+		equivalents. This flag is passed to EST::create that actually
+		does the conversions.
+	*/
+	static bool noMaskBases;
+	
     /** The index of the reference EST in a given file. 
 
         This member object is used to hold the index of a reference
