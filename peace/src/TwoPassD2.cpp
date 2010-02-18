@@ -58,6 +58,14 @@ int TwoPassD2::minThreshold = 0;
 // need to be run.
 //int TwoPassD2::maxThreshold = 130;
 
+// Define parameter sets for use in updateParameters() method
+const int paramSetCount = 3;
+struct TwoPassD2Parameter parameterSets[paramSetCount] = {
+    {-1, 150, 50, 1, 45, 45},
+    {150, 400, 75, 25, 85, 100},
+    {400, -1, 100, 50, 125, 150}
+};
+
 // The set of arguments for this class.
 arg_parser::arg_record TwoPassD2::argsList[] = {
     //{"--frameShift", "Frame Shift (default=50)",
@@ -78,6 +86,8 @@ TwoPassD2::TwoPassD2(const int refESTidx, const std::string& outputFileName)
     refESTLen = 0;
     
     // Below are formerly static parameters that are now dynamic.
+    // Note that the following defaults are meaningless as they will be
+    // changed before the first comparison is made.
     frameShift = 50;
     maxThreshold = 130;
     threshold = 40;
@@ -136,7 +146,8 @@ TwoPassD2::initialize() {
     // Compute the number of bits to shift when building hashes
     bitShift = 2 * (wordSize - 1);
     // Compute word table size and initialize word tables
-    const int wordTableSize = EST::getMaxESTLen() + MAX_FRAME_SIZE;
+    const int wordTableSize = EST::getMaxESTLen() +
+        parameterSets[paramSetCount-1].frameSize; // max possible frameSize
     s1WordTable = new int[wordTableSize];
     s2WordTable = new int[wordTableSize];
     
@@ -180,53 +191,52 @@ TwoPassD2::getMetric(const int otherEST) {
             }
         });
 
+    const int otherESTLen = (int)strlen(EST::getEST(otherEST)->getSequence());
+
     // Update the frame size, threshold etc. according to the algorithms
-    updateParameters((int)strlen(EST::getEST(otherEST)->getSequence()));
+    updateParameters(otherESTLen);
 
     int s1Index = 0;
     int s2Index = 0;
-    
-    // OK. Run the asymmetric D2 algorithm
-    float distance = (float) runD2Asymmetric(otherEST, &s1Index, &s2Index);
-    if (distance > maxThreshold) {
-        return distance*(1/(float)threshold);
+    int boundDist = 0;
+
+    if (frameShift > 1) {
+        // OK. Run the asymmetric D2 algorithm
+        float distance = (float) runD2Asymmetric(otherEST, &s1Index, &s2Index);
+        if (distance > maxThreshold) {
+            return distance*(1/(float)threshold);
+        }
+        // Set boundDist
+        boundDist = frameSize/2;
+    } else {
+        // If frameshift is 1 we are only running symmetric D2, with no bounds
+        // So set the bound distance to be the ends of each sequence
+        boundDist = std::max(refESTLen, otherESTLen);
     }
-    else {
-        // Now run the bounded symmetric D2 algorithm
-        int boundDist = frameSize/2;
-        return (1/(float)threshold) *
-            (float) runD2Bounded(otherEST, s1Index-boundDist, 
-                                 s1Index+boundDist+frameSize, 
-                                 s2Index-boundDist, 
-                                 s2Index+boundDist+frameSize);
-    }
+
+    // Now run the bounded symmetric D2 algorithm
+    return (1/(float)threshold) *
+        (float) runD2Bounded(otherEST, s1Index-boundDist, 
+                             s1Index+boundDist+frameSize, 
+                             s2Index-boundDist, 
+                             s2Index+boundDist+frameSize);
 }
 
 void
 TwoPassD2::updateParameters(const int otherESTLen) {
-    // still some magic numbers in this method, to be removed eventually
+    int minLength = std::min(refESTLen, otherESTLen);
+    int setNum;
+    for (setNum = 0; setNum < paramSetCount-1; setNum++) {
+        if (minLength < parameterSets[setNum].maxLength) {
+            break;
+        }
+    }
+    // Assign parameters according to parameter set chosen
+    frameSize = parameterSets[setNum].frameSize;
+    frameShift = parameterSets[setNum].frameShift;
+    threshold = parameterSets[setNum].threshold;
+    maxThreshold = parameterSets[setNum].maxThreshold;
 
-    // need to change frameshift
-    
-    int greaterLen = std::max(refESTLen, otherESTLen);
-    float coverageNum = 0;
-    if (greaterLen >= 200) {
-        int smallerLen = std::min(refESTLen, otherESTLen);
-        coverageNum = (float)std::min(COVERAGE_FRACTION*greaterLen,
-                                      ((double)smallerLen)/FRAME_SIZE_ADJUST);
-    } else if (greaterLen >= 100) {
-        coverageNum = 60;
-    } else {
-        coverageNum = 42;
-    }
-    frameSize = (int) (coverageNum * FRAME_SIZE_ADJUST);
-    if (frameSize < MIN_FRAME_SIZE) {
-        frameSize = MIN_FRAME_SIZE;
-    } else if (frameSize > MAX_FRAME_SIZE) {
-        frameSize = MAX_FRAME_SIZE;
-    }
-    threshold = (frameSize - coverageNum + 5)*2;
-    maxThreshold = threshold * 3;
     numWordsInWindow = frameSize - wordSize + 1;
 }
 
