@@ -215,7 +215,7 @@ TwoPassD2::getMetric(const int otherEST) {
     int s1Index = 0, s2Index = 0, boundDist = 0;
     if (frameShift > 1) {
         // OK. Run the asymmetric D2 algorithm
-        float distance = (float) runD2Asymmetric(otherEST, &s1Index, &s2Index);
+        float distance = (float) runD2Asymmetric(&s1Index, &s2Index);
         if (distance > maxThreshold) {
             return distance*(1/(float)threshold);
         }
@@ -229,7 +229,7 @@ TwoPassD2::getMetric(const int otherEST) {
 
     // Now run the bounded symmetric D2 algorithm
     return (1/(float)threshold) *
-        (float) runD2Bounded(otherEST, s1Index-boundDist, 
+        (float) runD2Bounded(s1Index-boundDist, 
                              s1Index+boundDist+frameSize, 
                              s2Index-boundDist, 
                              s2Index+boundDist+frameSize);
