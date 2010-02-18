@@ -113,7 +113,7 @@ void Reconstruction::printConsensus() {
 	int num = 0;
 	for (int i=0; i<usedNodes.size(); i++) {
 		if (usedNodes[i] == 0) {	//singleton
-			outFile2 << g->getCommentOfNode(i) << "\n";
+			outFile2 << ">" << g->getCommentOfNode(i) << "\n";
 			outFile2 << g->getSeqOfNode(i) << "\n";
 		} else {
 			num++;
