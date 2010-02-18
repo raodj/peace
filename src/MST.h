@@ -141,8 +141,13 @@ public:
 	\param[in] srcFile The source file from where the ESTs were
 	read. This file name is simply used for cross reference in the
 	data generated for this MST.
+
+	\param[in] threshold The threshold value to be used in clustering
+	of the MST data.  Important for downstream analysis such as that
+	done by assembly tools.
     */
-    void serialize(const char *fileName, const char* srcFile) const;
+    void serialize(const char *fileName, const char* srcFile,
+		   const float threshold) const;
     
     /** Method to create and load data for MST from a text file.
         

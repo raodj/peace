@@ -54,7 +54,8 @@ MST::addNode(const int parentIdx, const int estIdx,
 }
 
 void
-MST::serialize(const char *fileName, const char *srcFile) const {
+MST::serialize(const char *fileName, const char *srcFile,
+               const float threshold) const {
     // Create the output stream to write data to..
     std::ofstream outFile(fileName);
     if (!outFile.good()) {
@@ -71,6 +72,7 @@ MST::serialize(const char *fileName, const char *srcFile) const {
             << "# Source file timestamp: " << getTimeStamp(srcFile, srcTimeStr)
             << "# Data format: <parentESTidx>,<estIdx>,<similarityMetric>\n"
             << "# Total MST distance: " << getMSTDistance() << "\n"
+            << "# Clustering threshold: " << threshold << "\n"
             << "# Command line: " << arg_parser::get_global_args() << "\n";
     
     // Stream the data out to the file.
