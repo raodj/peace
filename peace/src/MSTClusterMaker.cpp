@@ -751,7 +751,7 @@ MSTClusterMaker::makeClusters() {
     // Dump MST out to the specified output file (if any).
     if ((outputMSTFile != NULL) && (mst != NULL)) {
         mst->serialize(outputMSTFile, (inputMSTFile != NULL) ? inputMSTFile :
-                       analyzer->getInputFileName());
+                       analyzer->getInputFileName(), root.getThreshold());
     }
     
     // Do clustering and display results if so desired.

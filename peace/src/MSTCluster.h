@@ -90,6 +90,20 @@ public:
         \param[in] node The MSTNode entry to be added to this cluster.
     */
     void add(const int clusterID, const MSTNode& node);
+
+    /** Method to obtain the threshold value being used to separate
+	the MST into individual clusters.
+
+	\note At present, the threshold is a static value of 1.0
+	and the dynamic behavior of threshold values is handled at the
+	level of the ESTAnalyzer (\see TwoPassD2::updateParameters() for
+	one example).  However, the relevant architecture has changed
+	more than once during the lifecycle of this software, hence the
+	existence of this method in the event that other objects need to
+	obtain the threshold value being used for clustering.
+    */
+	
+    float getThreshold() const { return threshold; };
     
     void printClusterTree(std::ostream& os = std::cout,
                           const std::string& prefix = "") const;
@@ -119,37 +133,43 @@ private:
     NodeList members;
     const int clusterID;
 
-	/** A name set to identify filtered clusters.
+    /** A name set to identify filtered clusters.
 
-		The name is set when dummy clusters are created to add ESTs
-		that were filtered out based on a specific condition.  The
-		named clusters are typically created by filters.  By default
-		clusters don't have a name.  These indicate regular clusters.
-		
-		\see Filter.
-	*/
-	const std::string name;
+        The name is set when dummy clusters are created to add ESTs
+	that were filtered out based on a specific condition.  The
+	named clusters are typically created by filters.  By default
+	clusters don't have a name.  These indicate regular clusters.
 	
-	/** Instance variable to track the next available cluster ID.
-
-		This instance variable is used to generate unique cluster ID
-		values for each newly created cluster.  It is intialized to
-		zero. Each time a cluster is instantiated, the constructor
-		uses this value to set the clusterID and then increments this
-		value.
-	*/
-	static int clusterIDSequence;
-
-	/** Global list to maintain reference to all the MSTClusters created.
-
-		This list is used to maintain a pointer to all the MST
-		clusters ever created. This list is used to look up clusters
-		given the index of the cluster.
-
-		\see MSTCluster::getCluster() method
-	*/
-	static ClusterList globalClusterList;
+	\see Filter.
+    */
+    const std::string name;
 	
+    /** Instance variable to track the next available cluster ID.
+
+        This instance variable is used to generate unique cluster ID
+	values for each newly created cluster.  It is intialized to
+	zero. Each time a cluster is instantiated, the constructor
+	uses this value to set the clusterID and then increments this
+	value.
+    */
+    static int clusterIDSequence;
+
+    /** Global list to maintain reference to all the MSTClusters created.
+
+	This list is used to maintain a pointer to all the MST
+	clusters ever created. This list is used to look up clusters
+	given the index of the cluster.
+	
+	\see MSTCluster::getCluster() method
+    */
+    static ClusterList globalClusterList;
+
+    /** The threshold value used for clustering.
+
+        \see MSTCluster::makeClusters() method
+     */
+    static float threshold;
+
 };
 
 /** \fn std::ostream& operator<<(std::ostream&, const MSTCluster&)
