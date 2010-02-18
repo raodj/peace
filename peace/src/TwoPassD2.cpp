@@ -83,7 +83,6 @@ TwoPassD2::TwoPassD2(const int refESTidx, const std::string& outputFileName)
     s2WordTable     = NULL;
     delta           = NULL;
     alignmentMetric = 0;
-    refESTLen = 0;
     
     // Below are formerly static parameters that are now dynamic.
     // Note that the following defaults are meaningless as they will be
@@ -169,7 +168,7 @@ TwoPassD2::setReferenceEST(const int estIdx) {
         // init ref-est word table
         const EST *estS1 = EST::getEST(refESTidx);
         const char* s1   = estS1->getSequence();
-        refESTLen = (int)strlen(s1);
+        sq1Len = (int)strlen(s1);
         // Create the word table using our encoder.
         ESTCodec::NormalEncoder<bitShift, BitMask> encoder;
         buildWordTable(s1WordTable, s1, encoder);
@@ -191,15 +190,29 @@ TwoPassD2::getMetric(const int otherEST) {
             }
         });
 
-    const int otherESTLen = (int)strlen(EST::getEST(otherEST)->getSequence());
+    // Access information on the comparison sequence
+    const EST *estS2 = EST::getEST(otherEST);
+    const char* s2   = estS2->getSequence();
+    sq2Len = (int)strlen(s2);
 
     // Update the frame size, threshold etc. according to the algorithms
-    updateParameters(otherESTLen);
+    updateParameters();
 
-    int s1Index = 0;
-    int s2Index = 0;
-    int boundDist = 0;
+    // Build the word table for otherEST depending on normal or
+    // reverse complement suggestion using hint UVSampleHeuristic.
+    int bestMatchIsRC = 0;
+    if (chain != NULL) {
+        HeuristicChain::getHeuristicChain()->getHint("D2_DoRC", bestMatchIsRC);
+    }
+    if (bestMatchIsRC) {
+        ESTCodec::RevCompEncoder<bitShift, BitMask> encoder;
+        buildWordTable(s2WordTable, s2, encoder);
+    } else {
+        ESTCodec::NormalEncoder<bitShift, BitMask> encoder;
+        buildWordTable(s2WordTable, s2, encoder);
+    }
 
+    int s1Index = 0, s2Index = 0, boundDist = 0;
     if (frameShift > 1) {
         // OK. Run the asymmetric D2 algorithm
         float distance = (float) runD2Asymmetric(otherEST, &s1Index, &s2Index);
@@ -211,7 +224,7 @@ TwoPassD2::getMetric(const int otherEST) {
     } else {
         // If frameshift is 1 we are only running symmetric D2, with no bounds
         // So set the bound distance to be the ends of each sequence
-        boundDist = std::max(refESTLen, otherESTLen);
+        boundDist = std::max(sq1Len, sq2Len);
     }
 
     // Now run the bounded symmetric D2 algorithm
@@ -223,8 +236,8 @@ TwoPassD2::getMetric(const int otherEST) {
 }
 
 void
-TwoPassD2::updateParameters(const int otherESTLen) {
-    int minLength = std::min(refESTLen, otherESTLen);
+TwoPassD2::updateParameters() {
+    int minLength = std::min(sq1Len, sq2Len);
     int setNum;
     for (setNum = 0; setNum < paramSetCount-1; setNum++) {
         if (minLength < parameterSets[setNum].maxLength) {
@@ -241,31 +254,7 @@ TwoPassD2::updateParameters(const int otherESTLen) {
 }
 
 float
-TwoPassD2::runD2Asymmetric(const int otherEST, int* s1MinScoreIdx, 
-                           int* s2MinScoreIdx) {    
-    // Get basic information about the reference EST
-    const EST * estS1  = EST::getEST(refESTidx);
-    const char* sq1    = estS1->getSequence();
-    const int   sq1Len = strlen(sq1);
-    // Get basic information about the otherEST EST
-    const EST * estS2  = EST::getEST(otherEST);
-    const char* sq2    = estS2->getSequence();
-    const int   sq2Len = strlen(sq2);
-
-    // Build the word table for otherEST depending on normal or
-    // reverse complement suggestion using hint UVSampleHeuristic.
-    int bestMatchIsRC = 0;
-    if (chain != NULL) {
-        HeuristicChain::getHeuristicChain()->getHint("D2_DoRC", bestMatchIsRC);
-    }
-    if (bestMatchIsRC) {
-        ESTCodec::RevCompEncoder<bitShift, BitMask> encoder;
-        buildWordTable(s2WordTable, sq2, encoder);
-    } else {
-        ESTCodec::NormalEncoder<bitShift, BitMask> encoder;
-        buildWordTable(s2WordTable, sq2, encoder);
-    }
-
+TwoPassD2::runD2Asymmetric(int* s1MinScoreIdx, int* s2MinScoreIdx) {    
     // Currently, the bounds on the word compares in d2 is set to the
     // sizes of the two ESTs to compare. However, the bounds can be
     // reduced based on hints from the <i>t/v</i> heuristic.
@@ -356,18 +345,8 @@ TwoPassD2::runD2Asymmetric(const int otherEST, int* s1MinScoreIdx,
 }
 
 float
-TwoPassD2::runD2Bounded(const int otherEST, int sq1Start, int sq1End, 
-                        int sq2Start, int sq2End) {
-    // Get basic information about the reference EST
-    const EST * estS1  = EST::getEST(refESTidx);
-    const char* sq1    = estS1->getSequence();
-    const int   sq1Len = strlen(sq1);
-    // Get basic information about the otherEST EST
-    const EST * estS2  = EST::getEST(otherEST);
-    const char* sq2    = estS2->getSequence();
-    const int   sq2Len = strlen(sq2);
-    
-    // sanity checks on bounds (invalid bounds may be passed in)
+TwoPassD2::runD2Bounded(int sq1Start, int sq1End, int sq2Start, int sq2End) {
+    // Perform sanity checks on bounds (invalid bounds may be passed in)
     if (sq1Start < 0) sq1Start = 0;
     if (sq2Start < 0) sq2Start = 0;
     if (sq1End > sq1Len) sq1End = sq1Len;
