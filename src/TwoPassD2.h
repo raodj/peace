@@ -42,13 +42,16 @@
 class EST;
 class ResultLog;
 
-// Define some constants for the dynamic frame/threshold adjustment
-// functionality, in order to avoid magic numbers in the code
-
-#define MIN_FRAME_SIZE     50
-#define MAX_FRAME_SIZE    500
-#define COVERAGE_FRACTION 0.3
-#define FRAME_SIZE_ADJUST 1.2
+// Simple structure to hold a set of two-pass D2 parameters.
+// This is a placeholder for a more involved system of parameter selection.
+struct TwoPassD2Parameter {
+  int minLength;
+  int maxLength;
+  int frameSize;
+  int frameShift;
+  int threshold;
+  int maxThreshold;
+};
 
 /** \brief EST Analyzer that uses the D2 algorithm in both its
 	symmetric and asymmetric variations to compute distance between
@@ -574,6 +577,7 @@ private:
         in the core \c runHeuristics method.
     */
     const std::string hintKey;
+
 };
 
 #endif
