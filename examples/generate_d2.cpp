@@ -244,10 +244,16 @@ int main(int argc, char** argv) {
   //char* params[] = {param1, frame, param2, word, // Set Window & Word size
   //		    param3, value3};  // Last parameter is mandatory
   int paramCount = sizeof(params) / sizeof(char*);
-  d2->parseArguments(paramCount, params);
 
   string eol = unixCRLF ? "\n" : "\r\n";
 
+  HeuristicChain* chain = HeuristicChain::setupChain("uv-tv", 0, "");
+  chain->initialize();
+  chain->setReferenceEST(0); // Set reference EST using index value.
+  Heuristic* uv = chain->getHeuristic("uv");
+  Heuristic* tv = chain->getHeuristic("tv");
+
+  d2->parseArguments(paramCount, params);
   d2->initialize();
   if (header) 
     *out << "overlap d2" << eol;
@@ -255,13 +261,26 @@ int main(int argc, char** argv) {
   for (int i=0; i < id_overlap; i += 2) {
       d2->setReferenceEST(i);
       const float metric = d2->analyze(i+1);
-      *out << start_coords[i] + segmentLength - start_coords[i+1] << " " << metric << eol;
-  }
 
+      chain->setReferenceEST(id);
+      bool uv_result = uv->shouldAnalyze(id+1);
+      bool tv_result = tv->shouldAnalyze(id+1);
+      *out << start_coords[i] + segmentLength - start_coords[i+1] << " " << metric << " ";
+      *out << (uv_result ? "TRUE" : "FALSE") << " ";
+      *out << (tv_result ? "TRUE" : "FALSE") << eol;
+  }
+  
   for (int i=id_overlap; i < id; i += 2) {
       d2->setReferenceEST(i);
       const float metric = d2->analyze(i+1);
-      *out << 0 << " "  << metric << eol;
+
+      chain->setReferenceEST(id);
+      bool uv_result = uv->shouldAnalyze(id+1);
+      bool tv_result = tv->shouldAnalyze(id+1);
+      *out << 0 << " "  << metric << " ";
+      *out << start_coords[i] + segmentLength - start_coords[i+1] << " " << metric << " ";
+      cout << (uv_result ? "TRUE" : "FALSE") << " ";
+      cout << (tv_result ? "TRUE" : "FALSE") << eol;
   }
 
   return 0;
