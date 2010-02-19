@@ -103,7 +103,8 @@ void ESTAssembly::readMST(const string& inFileName) {
 		exit(1);
 	}
 
-	vector<vector<int> > nodes(nOfNodes-1, vector<int>(3));	//store edges in MST, there are n-1 edges, n is number of nodes.
+	//vector<vector<int> > nodes(nOfNodes-1, vector<int>(3));	//store edges in MST, there are n-1 edges, n is number of nodes.
+	vector<vector<int> > nodes;
 
 	//read mst from the input file
 	ifstream in;
@@ -113,19 +114,16 @@ void ESTAssembly::readMST(const string& inFileName) {
 		string str;
 		getline(in, str);
 
-		int curIndex = 0;
 		while (str.size() != 0) {
 			str.erase(str.find_last_not_of(" \n\r\t")+1); //trim str
 			if (str[0] != '#') {	//comment line begins from '#'
 				vector<string> paras = split(str, ',');
 				if (atoi(paras[0].c_str()) != -1) {	//-1 means root of MST
-					int i0 = atoi(paras[0].c_str());
-					int i1 = atoi(paras[1].c_str());
-					int i2 = atoi(paras[2].c_str());
-					nodes[curIndex][0] = i0;
-					nodes[curIndex][1] = i1;
-					nodes[curIndex][2] = i2;
-					curIndex++;
+					vector<int> tmp(3);
+					tmp[0] = atoi(paras[0].c_str());
+					tmp[1] = atoi(paras[1].c_str());
+					tmp[2] = atoi(paras[2].c_str());
+					nodes.push_back(tmp);
 				}
 			}
 			getline(in, str);
