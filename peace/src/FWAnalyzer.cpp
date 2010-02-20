@@ -163,22 +163,6 @@ FWAnalyzer::initialize() {
         // Error occured during initialization. Bail out.
         return 2;
     }
-    if (chain != NULL) {
-        // Ensure that the frame sizes for FWAnalyzer and that in t/v
-        // heuristic are consistently set. This feels a bit hoaky, but
-        // should be OK for now.
-        Heuristic* tv = chain->getHeuristic("tv");
-        if ((tv != NULL) && (((TVHeuristic*)tv)->getWindowLen() != frameSize)) {
-            std::cerr << "Warning: The frame/window size for "
-                      << getName() << " analyzer (which is set to "
-                      << frameSize << ") is different from that for "
-                      << "the t/v heuristic (which is set to "
-                      << ((TVHeuristic*)tv)->getWindowLen() << ").\n"
-                      << "       : This will most likely cause problems. "
-                      << "To avoid it use both --frame and --tv_win options."
-                      << std::endl;
-        }
-    }
     // Initialization successful.
     return 0;
 }
