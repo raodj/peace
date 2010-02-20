@@ -52,7 +52,6 @@ TVHeuristic::TVHeuristic(const std::string& outputFileName)
     uvSuccessCount = 0;
     t = 18;
     windowLen = 50;
-    refESTLen = 0;
 }
 
 TVHeuristic::~TVHeuristic() {
@@ -112,13 +111,18 @@ TVHeuristic::setReferenceEST(const int estIdx) {
         // The reference EST is the same. Nothing to be done.
         return 0;
     }
-    refESTLen = (int)strlen(EST::getEST(estIdx)->getSequence());
     // Simply let the base class to its job
     return NewUVHeuristic::setReferenceEST(estIdx);
 }
 
 bool
-TVHeuristic::runHeuristic(const int otherEST) {
+TVHeuristic::runHeuristic(const int otherEST) {    
+    // Call updateParameters method to use proper heuristic params
+    otherESTLen = (int)strlen(EST::getEST(otherEST)->getSequence());
+    if (!updateParameters()) {
+        // This pair need not be analyzed further.
+        return false;
+    }
     // First check if this pair passes UV Sample heuristic.  If not do
     // no further analysis.
     if (!NewUVHeuristic::runHeuristic(otherEST)) {
@@ -129,12 +133,6 @@ TVHeuristic::runHeuristic(const int otherEST) {
     uvSuccessCount++;
     // Now apply tv-heuristic to see if this pair should be analyzed
     // further.
-    
-    // Call updateParameters method to use proper heuristic params
-    if (!updateParameters((int) strlen(EST::getEST(otherEST)->getSequence()))) {
-        // This pair need not be analyzed further.
-        return false;
-    }
                      
     int numMatches = 0;
     // bitsToShift is set to 2*(v-1) in the base class.
@@ -154,13 +152,16 @@ TVHeuristic::runHeuristic(const int otherEST) {
 }
 
 bool
-TVHeuristic::updateParameters(const int otherESTLen) {
+TVHeuristic::updateParameters() {
     ParameterSet* parameterSet = ParameterSetManager::getParameterSetManager()
         ->getParameterSet(refESTLen, otherESTLen);
     if (parameterSet == NULL) return false;
     // Assign parameters according to parameter set chosen
     windowLen = parameterSet->frameSize;
     t = parameterSet->t;
+    u = parameterSet->u;
+    wordShift = parameterSet->wordShift;
+    passes = (u < 6) ? 2 : 3;
     return true;
 }
 
