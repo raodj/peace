@@ -281,14 +281,22 @@ vector<string>Reconstruction::processLeftEnds() {
 
 	while (true) {
 		string s1 = allLeftEnds[0].seq;
+		int s1Idx = allLeftEnds[0].index;
 		vector<LeftEnd> includedEnds;
 		includedEnds.push_back(allLeftEnds[0]);
 		vector<LeftEnd> excludedEnds;
 		for (int i=1; i<allLeftEnds.size(); i++) {
-			bool b = (g->ovl).checkInclusion(allLeftEnds[i].seq, s1); //if resultArray[i].firstEst is included in s1
-			if (b) {
+			vector<int> ovlDis = g->calDist.searchDistance(allLeftEnds[i].index, s1Idx);
+
+			if (ovlDis[1] == INT_MIN) { //if resultArray[i].firstEst is included in s1
 				includedEnds.push_back(allLeftEnds[i]);
-			} else {
+			} else if ((ovlDis[1] == INT_MAX) && (ovlDis[0] == INT_MAX)) { //have not been calculated
+				bool b = (g->ovl).checkInclusion(allLeftEnds[i].seq, s1);
+				if (b)
+					includedEnds.push_back(allLeftEnds[i]);
+				else
+					excludedEnds.push_back(allLeftEnds[i]);
+			} else { //have been calculated, but no inclusion
 				excludedEnds.push_back(allLeftEnds[i]);
 			}
 		}
