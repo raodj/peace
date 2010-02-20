@@ -41,23 +41,30 @@
 ParameterSetManager* ParameterSetManager::ptrInstance = NULL;
 
 void
-ParameterSetManager::setupParameters() {
+ParameterSetManager::setupParameters(int t1, int u1, int ws1, int t2,
+                                     int u2, int ws2, int t3, int u3,
+                                     int ws3) {
     // First validate and create a blank parameter set manager.
     ASSERT ( ptrInstance == NULL );
     ptrInstance = new ParameterSetManager;
 
-    // Nothing more to do
+    // Add the default parameter sets to the list of sets.
+    // Line 1 is Two-Pass D2, Line 2 is heuristic parameters
+    ptrInstance->addParameterSet(new ParameterSet(-1, 150, 50, 1, 45, 45,
+                                                  t1, u1, ws1));
+    ptrInstance->addParameterSet(new ParameterSet(150, 400, 75, 25, 75, 100,
+                                                  t2, u2, ws2));
+    ptrInstance->addParameterSet(new ParameterSet(400, -1, 100, 50, 105, 130,
+                                                  t3, u3, ws3));
+}
+
+void
+ParameterSetManager::addParameterSet(ParameterSet* p) {
+    parameterSets.push_back(p);
 }
 
 ParameterSetManager::ParameterSetManager() { 
-    // Add the default parameter sets to the list of sets.
-    // Line 1 is Two-Pass D2, Line 2 is heuristic parameters
-    parameterSets.push_back(new ParameterSet(-1, 150, 50, 1, 45, 45,
-                                             20, 4, 4, 2));
-    parameterSets.push_back(new ParameterSet(150, 400, 75, 25, 75, 100,
-                                             30, 4, 8, 2));
-    parameterSets.push_back(new ParameterSet(400, -1, 100, 50, 105, 130,
-                                             40, 6, 8, 3));
+    // Nothing more to do
 }
 
 ParameterSetManager::~ParameterSetManager() {

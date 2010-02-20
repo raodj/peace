@@ -39,6 +39,8 @@
 #include "HeuristicFactory.h"
 #include "HeuristicChain.h"
 
+#include "ParameterSetManager.h"
+
 #include "ClusterMaker.h"
 #include "ESTAnalyzer.h"
 #include "Heuristic.h"
@@ -246,6 +248,8 @@ int main(int argc, char** argv) {
   int paramCount = sizeof(params) / sizeof(char*);
 
   string eol = unixCRLF ? "\n" : "\r\n";
+
+  ParameterSetManager::setupParameters();
 
   HeuristicChain* chain = HeuristicChain::setupChain("uv-tv", 0, "");
   chain->initialize();
