@@ -465,10 +465,6 @@ MSTClusterMaker::initialize() {
         // Error occured during initialization. Bail out.
         return result;
     }
-    // Hack to fix the baton maxUse problem until a better solution is found
-    if (!analyzer->getName().compare("baton") && maxUse > -1) {
-        maxUse = 100;
-    }
     // Return success.
     return NO_ERROR;
 }
