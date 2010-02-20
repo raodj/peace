@@ -43,6 +43,7 @@
 #include "HeuristicChain.h"
 #include "FilterFactory.h"
 #include "FilterChain.h"
+#include "ParameterSetManager.h"
 #include "MPIHelper.h"
 #include "InteractiveConsole.h"
 #include "EST.h"
@@ -188,9 +189,9 @@ main(int argc, char* argv[]) {
     // Values of the following variables are processed by the argument
     // parser further below.
     char emptyString[1]     = {'\0'};
-    char defAnalyzer[10]    = "twopassD2";
-    char defClusterMaker[4] = "mst";
-    char defHeuristic[3]    = "tv";
+    char defAnalyzer[]      = "twopassD2";
+    char defClusterMaker[]  = "mst";
+    char defHeuristic[]     = "tv";
     char defFilters[]       = "lengthFilter-lcFilter";
         
     char *analyzerName = defAnalyzer;
@@ -275,8 +276,11 @@ main(int argc, char* argv[]) {
     if (!strcmp(filterStr, "null")) {
         filterStr = NULL;
     }
-    // Create the heuristic chain using a helper method.
+    // Create the filter chain using a helper method.
     FilterChain *filterChain = FilterChain::setupChain(filterStr, clusterMaker);
+
+    // Create the parameter set manager using a helper method
+    ParameterSetManager::setupParameters();
     
     // Check if EST analyzer creation was successful.  A valid EST
     // analyzer is needed even to make clusters.

@@ -38,13 +38,11 @@
 #include "HeuristicChain.h"
 #include "ESTCodec.h"
 #include "EST.h"
+#include "ParameterSetManager.h"
 
 // default params
-int NewUVHeuristic::u           = 6;
 int NewUVHeuristic::v           = 8;
-int NewUVHeuristic::wordShift   = 8;
 int NewUVHeuristic::BitMask     = 0;
-int NewUVHeuristic::passes      = 3;
 
 // Instance variable to track number of bits to shift for building
 // hash values.  This is set to 2*(v-1) in initialize method.
@@ -52,14 +50,8 @@ int NewUVHeuristic::bitsToShift = 0;
 
 // The set of arguments for this class.
 arg_parser::arg_record NewUVHeuristic::argsList[] = {
-    {"--uv_u", "u (number of v-word matches) (default=4)",
-     &NewUVHeuristic::u, arg_parser::INTEGER},
     {"--uv_v", "v (length of common words) (default=8)",
      &NewUVHeuristic::v, arg_parser::INTEGER},
-    {"--uv_wordShift", "Word Shift (default=16)",
-     &NewUVHeuristic::wordShift, arg_parser::INTEGER},
-    {"--uv_passes", "Number of Passes (default=3)",
-     &NewUVHeuristic::passes, arg_parser::INTEGER},
     {NULL, NULL, NULL, arg_parser::BOOLEAN}
 };
 
@@ -69,6 +61,11 @@ NewUVHeuristic::NewUVHeuristic(const std::string& name,
     // Initialize hash table arrays
     s1WordMap   = NULL;
     s1RCWordMap = NULL;
+
+    // Set defaults for the dynamic parameters
+    u = 6;
+    wordShift = 8;
+    passes = 3;
 }
 
 NewUVHeuristic::~NewUVHeuristic() {
@@ -216,6 +213,19 @@ NewUVHeuristic::computeHash(const int estIdx) {
 }
 
 bool
+NewUVHeuristic::updateParameters(const int otherESTLen) {
+    int refESTLen = (int)strlen(EST::getEST(refESTidx)->getSequence());
+    ParameterSet* parameterSet = ParameterSetManager::getParameterSetManager()
+        ->getParameterSet(refESTLen, otherESTLen);
+    if (parameterSet == NULL) return false;
+    // Assign parameters according to parameter set chosen
+    u = parameterSet->u;
+    wordShift = parameterSet->wordShift;
+    passes = parameterSet->passes;
+    return true;
+}
+
+bool
 NewUVHeuristic::runHeuristic(const int otherEST) {
     // Extra sanity checks on uncommon scenarios.
     VALIDATE({
@@ -227,6 +237,12 @@ NewUVHeuristic::runHeuristic(const int otherEST) {
             return false;
         }
     });
+
+    // Call updateParameters method to use proper heuristic params
+    if (!updateParameters((int) strlen(EST::getEST(otherEST)->getSequence()))) {
+        // This pair need not be analyzed further.
+        return false;
+    }
 
     // Get otherEST's hash values from the uvCache. If an entry for
     // otherEST is not present in uvCache then build one.
