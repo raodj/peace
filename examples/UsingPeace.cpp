@@ -43,6 +43,7 @@
 #include "ESTAnalyzerFactory.h"
 #include "HeuristicFactory.h"
 #include "HeuristicChain.h"
+#include "ParameterSetManager.h"
 
 #include "ClusterMaker.h"
 #include "ESTAnalyzer.h"
@@ -65,6 +66,9 @@ main(int argc, char* argv[]) {
     EST::create(1, "TestSeq#2", "AAAAATTTTCCCGGGAAATTTCCGGGAAATTTCCCGGAAAAA" \
                 "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
     
+    // Initialize the dynamic parameters manager (a required step)
+    ParameterSetManager::setupParameters();
+
     // Create a heuristic chain to hold the uv and tv heuristics that
     // we are going to use. We could have created these two heuristics
     // separately. But the chain eases creating heuristics for us.

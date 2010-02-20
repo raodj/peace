@@ -55,7 +55,6 @@ public:
     // UV Heuristic parameters
     int u;
     int wordShift;
-    int passes;
     
     /** The destructor.
         
@@ -71,10 +70,10 @@ protected:
         must be instantiated via the ParameterSetManager.
     */
     ParameterSet(int min, int max, int fsz, int fsh, int thresh,
-		 int maxThresh, int tIn, int uIn,  int ws, int ps) :
+		 int maxThresh, int tIn, int uIn,  int ws) :
       minLength(min), maxLength(max), frameSize(fsz), frameShift(fsh),
       threshold(thresh), maxThreshold(maxThresh), t(tIn), u(uIn), 
-      wordShift(ws), passes(ps) {}
+      wordShift(ws) {}
     
 private:
 

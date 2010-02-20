@@ -43,10 +43,6 @@
 // class static instance variables are reused here so that the values
 // are consistently set.
 arg_parser::arg_record TVHeuristic::argsList[] = {
-    //    {"--tv_t", "t (number of v-word matches) (default=65)",
-    //     &TVHeuristic::t, arg_parser::INTEGER},
-    //    {"--tv_win", "Window size for t/v heuristics (default=100)",
-    //     &TVHeuristic::windowLen, arg_parser::INTEGER},    
     {NULL, NULL, NULL, arg_parser::BOOLEAN}
     };
 

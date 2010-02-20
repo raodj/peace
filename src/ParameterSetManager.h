@@ -61,6 +61,11 @@ public:
     */
     int getMaxFrameSize();
 
+    /** Adds a parameter set to the parameter set manager.
+
+    */
+    void addParameterSet(ParameterSet* p);
+
     /** Get a pointer to the instance of the parameter set manager.
         
         Since this class is a singleton, the constructor is private
@@ -90,7 +95,9 @@ public:
 	In the future this class should incorporate command-line arguments
 	and customizability for the parameter sets.
     */
-    static void setupParameters();
+    static void setupParameters(int t1 = 20, int u1 = 4, int ws1 = 4,
+			        int t2 = 30, int u2 = 6, int ws2 = 8,
+				int t3 = 40, int u3 = 8, int ws3 = 8);
     
     /** The destructor.
 
