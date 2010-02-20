@@ -38,8 +38,6 @@
 #include "EST.h"
 #include <utility>
 
-#define MAX_WINDOW_LEN 200
-
 /** Heuristic based upon the T/V heuristic used in WCD, a type of
     common word heuristic.
 
@@ -203,7 +201,12 @@ protected:
     */
     virtual bool runHeuristic(const int otherEST);
 
-    virtual void adjustParameters(const int otherESTLen);
+    /** Method to obtain and update the parameters for the heuristic
+	based on the parameter set manager.
+
+	\return true if we should analyze these ESTs, false otherwise
+    */
+    bool updateParameters(const int otherESTLen);
 
     /** Templatized-method for counting common woards between two ESTs.
 
@@ -311,6 +314,9 @@ private:
     */
     int windowLen;
 
+    /** The length of the currently set reference sequence.
+
+    */
     int refESTLen;
     
     /** A large table to track matches.

@@ -42,17 +42,6 @@
 class EST;
 class ResultLog;
 
-// Simple structure to hold a set of two-pass D2 parameters.
-// This is a placeholder for a more involved system of parameter selection.
-struct TwoPassD2Parameter {
-  int minLength;
-  int maxLength;
-  int frameSize;
-  int frameShift;
-  int threshold;
-  int maxThreshold;
-};
-
 /** \brief EST Analyzer that uses the D2 algorithm in both its
 	symmetric and asymmetric variations to compute distance between
 	two ESTs.

@@ -123,7 +123,10 @@ FilterFactory.cpp \
 FilterChain.h \
 FilterChain.cpp \
 LCFilter.h \
-LCFilter.cpp
+LCFilter.cpp \
+ParameterSet.h \
+ParameterSetManager.h \
+ParameterSetManager.cpp
 
 peace_SOURCES = \
 main.cpp\

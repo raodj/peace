@@ -37,6 +37,7 @@
 #include "TVHeuristic.h"
 #include "ESTCodec.h"
 #include "EST.h"
+#include "ParameterSetManager.h"
 
 // The set of arguments for this class.  Note that some of the base
 // class static instance variables are reused here so that the values
@@ -100,9 +101,11 @@ TVHeuristic::initialize() {
     NewUVHeuristic::initialize();
     // First compute the longest EST we have.
     size_t maxESTlen = EST::getMaxESTLen();
+    int maxFrameSize = ParameterSetManager::getParameterSetManager()
+        ->getMaxFrameSize();
     
     // Add extra windowLen characters to ease processing.
-    matchTable = new char[maxESTlen + MAX_WINDOW_LEN + v];
+    matchTable = new char[maxESTlen + maxFrameSize + v];
     // Everything went well
     return 0;
 }
@@ -131,8 +134,11 @@ TVHeuristic::runHeuristic(const int otherEST) {
     // Now apply tv-heuristic to see if this pair should be analyzed
     // further.
     
-    // Call adjustParameters method to use proper heuristic params
-    adjustParameters((int) strlen(EST::getEST(otherEST)->getSequence()));
+    // Call updateParameters method to use proper heuristic params
+    if (!updateParameters((int) strlen(EST::getEST(otherEST)->getSequence()))) {
+        // This pair need not be analyzed further.
+        return false;
+    }
                      
     int numMatches = 0;
     // bitsToShift is set to 2*(v-1) in the base class.
@@ -151,22 +157,15 @@ TVHeuristic::runHeuristic(const int otherEST) {
     return (numMatches >= t);
 }
 
-void
-TVHeuristic::adjustParameters(const int otherESTLen) {
-    int minLen = std::min(refESTLen, otherESTLen);
-    if (minLen >= 500) {
-        windowLen = MAX_WINDOW_LEN;
-    } else if (minLen >= 300) {
-        windowLen = 150;
-    } else if (minLen >= 100) {
-        windowLen = 100;
-    } else {
-        windowLen = 50;
-    }
-    t = 6 + (int) (0.25*minLen);
-    if (t > 150) {
-        t = 150;
-    }
+bool
+TVHeuristic::updateParameters(const int otherESTLen) {
+    ParameterSet* parameterSet = ParameterSetManager::getParameterSetManager()
+        ->getParameterSet(refESTLen, otherESTLen);
+    if (parameterSet == NULL) return false;
+    // Assign parameters according to parameter set chosen
+    windowLen = parameterSet->frameSize;
+    t = parameterSet->t;
+    return true;
 }
 
 void

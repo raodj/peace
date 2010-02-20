@@ -37,12 +37,10 @@
 #include "TwoPassD2.h"
 #include "EST.h"
 #include "ESTCodec.h"
+#include "ParameterSetManager.h"
 #include <algorithm>
 
-// Skip parameter for d2 asymmetric.
-//int TwoPassD2::frameShift = 50;
-
-// The bitmak to be used when build hash values.
+// The bitmask to be used when build hash values.
 int TwoPassD2::BitMask   = 0;
 
 // Instance variable to store the number of bits to be shifted to
@@ -53,27 +51,10 @@ int TwoPassD2::bitShift  = 0;
 // sufficiently similar to be clustered.
 int TwoPassD2::minThreshold = 0;
 
-// The threshold score above which two ESTs are considered
-// sufficiently dissimilar that symmetric bounded D2 does not
-// need to be run.
-//int TwoPassD2::maxThreshold = 130;
-
-// Define parameter sets for use in updateParameters() method
-const int paramSetCount = 3;
-struct TwoPassD2Parameter parameterSets[paramSetCount] = {
-    {-1, 150, 50, 1, 45, 45},
-    {150, 400, 75, 25, 85, 100},
-    {400, -1, 100, 50, 125, 150}
-};
-
 // The set of arguments for this class.
 arg_parser::arg_record TwoPassD2::argsList[] = {
-    //{"--frameShift", "Frame Shift (default=50)",
-    // &TwoPassD2::frameShift, arg_parser::INTEGER},
     {"--threshold", "Threshold score to break out of D2 (default=0)",
      &TwoPassD2::minThreshold, arg_parser::INTEGER},    
-    //{"--maxThreshold", "Threshold score to run bounded symmetric D2 (default=130)",
-    // &TwoPassD2::maxThreshold, arg_parser::INTEGER},    
     {NULL, NULL, NULL, arg_parser::BOOLEAN}
 };
 
@@ -146,7 +127,7 @@ TwoPassD2::initialize() {
     bitShift = 2 * (wordSize - 1);
     // Compute word table size and initialize word tables
     const int wordTableSize = EST::getMaxESTLen() +
-        parameterSets[paramSetCount-1].frameSize; // max possible frameSize
+        ParameterSetManager::getParameterSetManager()->getMaxFrameSize();
     s1WordTable = new int[wordTableSize];
     s2WordTable = new int[wordTableSize];
     
@@ -237,18 +218,14 @@ TwoPassD2::getMetric(const int otherEST) {
 
 void
 TwoPassD2::updateParameters() {
-    int minLength = std::min(sq1Len, sq2Len);
-    int setNum;
-    for (setNum = 0; setNum < paramSetCount-1; setNum++) {
-        if (minLength < parameterSets[setNum].maxLength) {
-            break;
-        }
-    }
+    ParameterSet* parameterSet = ParameterSetManager::getParameterSetManager()
+        ->getParameterSet(sq1Len, sq2Len);
+    ASSERT(parameterSet != NULL);
     // Assign parameters according to parameter set chosen
-    frameSize = parameterSets[setNum].frameSize;
-    frameShift = parameterSets[setNum].frameShift;
-    threshold = parameterSets[setNum].threshold;
-    maxThreshold = parameterSets[setNum].maxThreshold;
+    frameSize = parameterSet->frameSize;
+    frameShift = parameterSet->frameShift;
+    threshold = parameterSet->threshold;
+    maxThreshold = parameterSet->maxThreshold;
 
     numWordsInWindow = frameSize - wordSize + 1;
 }

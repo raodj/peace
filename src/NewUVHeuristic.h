@@ -198,6 +198,13 @@ protected:
         values is to be computed and cached.
     */
     void computeHash(const int estIdx);
+
+    /** Method to obtain and update the parameters for the heuristic
+	based on the parameter set manager.
+
+	\return true if we should analyze these ESTs, false otherwise
+    */
+    bool updateParameters(const int otherESTLen);
     
     /** Instance variable to track if a given word (of length \c v)
 	appears in reference EST.
@@ -234,11 +241,7 @@ protected:
     */
     static int v;
 
-    static int wordShift;
-
     static int BitMask;
-
-    static int passes;
 
     /** Instance variable to store the number of bits to be shifted to
         create hash values.
@@ -269,9 +272,13 @@ private:
         \note Use of static arguments and parameters renders this UV
         sample heuristic class not to be MT-safe.
     */
-    static arg_parser::arg_record argsList[];    
+    static arg_parser::arg_record argsList[];
 
-    static int u;
+    int u;
+
+    int wordShift;
+
+    int passes;
 
     /** A hash map to cache hash values (<i>v</i> base pairs in
         length) to seedup <i>u/v</i> heuristic.
