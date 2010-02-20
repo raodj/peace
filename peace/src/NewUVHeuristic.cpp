@@ -66,6 +66,8 @@ NewUVHeuristic::NewUVHeuristic(const std::string& name,
     u = 6;
     wordShift = 8;
     passes = 3;
+    refESTLen = 0;
+    otherESTLen = 0;
 }
 
 NewUVHeuristic::~NewUVHeuristic() {
@@ -147,6 +149,7 @@ NewUVHeuristic::setReferenceEST(const int estIdx) {
     const EST *estS1 = EST::getEST(refESTidx);
     ASSERT ( estS1 != NULL );
     const char* s1 = estS1->getSequence();
+    refESTLen = strlen(s1);
     
     // First compute the hash for a single word using a suitable
     // generator.
@@ -183,7 +186,7 @@ NewUVHeuristic::computeHash(const int estIdx) {
     ASSERT ( estS2  != NULL );
     const char *sq2  = estS2->getSequence();
     ASSERT ( sq2 != NULL );
-    const int End    = strlen(sq2) - v;
+    const int End    = otherESTLen - v;
     ASSERT ( End > 0 );
     
     // Get the codec for encoding/decoding operations
@@ -213,19 +216,6 @@ NewUVHeuristic::computeHash(const int estIdx) {
 }
 
 bool
-NewUVHeuristic::updateParameters(const int otherESTLen) {
-    int refESTLen = (int)strlen(EST::getEST(refESTidx)->getSequence());
-    ParameterSet* parameterSet = ParameterSetManager::getParameterSetManager()
-        ->getParameterSet(refESTLen, otherESTLen);
-    if (parameterSet == NULL) return false;
-    // Assign parameters according to parameter set chosen
-    u = parameterSet->u;
-    wordShift = parameterSet->wordShift;
-    passes = (u < 6) ? 2 : 3;
-    return true;
-}
-
-bool
 NewUVHeuristic::runHeuristic(const int otherEST) {
     // Extra sanity checks on uncommon scenarios.
     VALIDATE({
@@ -237,12 +227,6 @@ NewUVHeuristic::runHeuristic(const int otherEST) {
             return false;
         }
     });
-
-    // Call updateParameters method to use proper heuristic params
-    if (!updateParameters((int) strlen(EST::getEST(otherEST)->getSequence()))) {
-        // This pair need not be analyzed further.
-        return false;
-    }
 
     // Get otherEST's hash values from the uvCache. If an entry for
     // otherEST is not present in uvCache then build one.

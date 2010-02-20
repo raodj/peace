@@ -206,7 +206,7 @@ protected:
 
 	\return true if we should analyze these ESTs, false otherwise
     */
-    bool updateParameters(const int otherESTLen);
+    bool updateParameters();
 
     /** Templatized-method for counting common woards between two ESTs.
 
@@ -234,7 +234,6 @@ protected:
         // First compute the hash for the first word using the supplied
         // encoder.
         const char *otherSeq   = EST::getEST(otherEST)->getSequence();
-        const int  otherESTLen = strlen(otherSeq);
         register int hash      = 0;
         int ignoreMask         = 0;
         // Set first window length entries to zero.
@@ -313,11 +312,6 @@ private:
         user via suitable command line arguments.
     */
     int windowLen;
-
-    /** The length of the currently set reference sequence.
-
-    */
-    int refESTLen;
     
     /** A large table to track matches.
 

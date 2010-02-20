@@ -199,12 +199,15 @@ protected:
     */
     void computeHash(const int estIdx);
 
-    /** Method to obtain and update the parameters for the heuristic
-	based on the parameter set manager.
+    int refESTLen;
 
-	\return true if we should analyze these ESTs, false otherwise
-    */
-    bool updateParameters(const int otherESTLen);
+    int otherESTLen;
+
+    int u;
+
+    int wordShift;
+
+    int passes;
     
     /** Instance variable to track if a given word (of length \c v)
 	appears in reference EST.
@@ -273,12 +276,6 @@ private:
         sample heuristic class not to be MT-safe.
     */
     static arg_parser::arg_record argsList[];
-
-    int u;
-
-    int wordShift;
-
-    int passes;
 
     /** A hash map to cache hash values (<i>v</i> base pairs in
         length) to seedup <i>u/v</i> heuristic.
