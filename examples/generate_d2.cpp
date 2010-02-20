@@ -97,10 +97,10 @@ string make_id(int i) {
 }
 
 int main(int argc, char** argv) {
-  cout << "#generate_d2";
-  for (int i=0; i < argc; i++)
-    cout << " " << argv[i] << " ";
-  cout << endl;
+//   cout << "#generate_d2";
+//   for (int i=0; i < argc; i++)
+//     cout << " " << argv[i] << " ";
+//   cout << endl;
 
   int c;
   while ( (c = getopt(argc, argv, "r:o:f:s:w:x:t:m:n:e:uhi")) != -1 ) {
@@ -262,9 +262,9 @@ int main(int argc, char** argv) {
       d2->setReferenceEST(i);
       const float metric = d2->analyze(i+1);
 
-      chain->setReferenceEST(id);
-      bool uv_result = uv->shouldAnalyze(id+1);
-      bool tv_result = tv->shouldAnalyze(id+1);
+      chain->setReferenceEST(i);
+      bool uv_result = uv->shouldAnalyze(i+1);
+      bool tv_result = tv->shouldAnalyze(i+1);
       *out << start_coords[i] + segmentLength - start_coords[i+1] << " " << metric << " ";
       *out << (uv_result ? "TRUE" : "FALSE") << " ";
       *out << (tv_result ? "TRUE" : "FALSE") << eol;
@@ -274,9 +274,9 @@ int main(int argc, char** argv) {
       d2->setReferenceEST(i);
       const float metric = d2->analyze(i+1);
 
-      chain->setReferenceEST(id);
-      bool uv_result = uv->shouldAnalyze(id+1);
-      bool tv_result = tv->shouldAnalyze(id+1);
+      chain->setReferenceEST(i);
+      bool uv_result = uv->shouldAnalyze(i+1);
+      bool tv_result = tv->shouldAnalyze(i+1);
       *out << 0 << " "  << metric << " ";
       *out << start_coords[i] + segmentLength - start_coords[i+1] << " " << metric << " ";
       cout << (uv_result ? "TRUE" : "FALSE") << " ";
