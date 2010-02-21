@@ -163,74 +163,63 @@ SixTuple Graph::get2CloseNodesFromGrand(int index, const SixTuple sixTuple) {
 
 	//put all the nodes within three levels from the current node into the stack "allNodes". Do not
 	// include parents and children because they have been processed.
-	stack<int> allNodes;
-	stack<int> partNodes;
-	partNodes.push(index);
+	vector<stack<int> > nodes (2);
+	nodes[0].push(index);
+	nodes[1].push(-1);
+	nodes = getNodesFromMST(nodes); //skip over the first level because they have been processed
+	for (int level=1; level<3; level++) { //next two levels
+		nodes = getNodesFromMST(nodes);
+		if (nodes[0].size() == 0) {
+			break;
+		} else {
+			stack<int> allNodes = nodes[0];
+			//find two closest nodes
+			string s1 = graphNodes[index].getNodeStr();
+			while (!allNodes.empty()) {
+				int tmpIndex = allNodes.top();
+				allNodes.pop();
+				if (inc->containInclusionNode(tmpIndex)) continue;
+				string s2 = graphNodes[tmpIndex].getNodeStr();
 
-	for (int i=0; i<3; i++) {
-		stack<int> tmpStack;
 
-		while (!partNodes.empty()) {
-			int tmpIndex = partNodes.top();
-			partNodes.pop();
-			for (EdgeIterator it=mst[tmpIndex].begin(); it!=mst[tmpIndex].end(); it++) {
-				int tIndex = (*it).node;
-				if (abs((*it).weight) <= treeThreshold) {
-					tmpStack.push(tIndex);
-					if ((i != 0) && (tIndex != index)){ //Do not include parents and children because they have been processed.
-						allNodes.push(tIndex);
-					}
+				vector<int> ovlDis = calDist.searchDistance(index, tmpIndex);
+				if ((ovlDis[1] == INT_MAX) && (ovlDis[0] == INT_MAX)) {
+					ovlDis = ovl.getOVLDistance(s1, s2);
+
+					//add to CalculatedOvlDistance
+					calDist.addDistance(index, tmpIndex, ovlDis[1], ovlDis[0]);
 				}
-			}
-		}
-		partNodes = tmpStack;
 
-	}
-
-	//find two closest nodes
-	string s1 = graphNodes[index].getNodeStr();
-	while (!allNodes.empty()) {
-		int tmpIndex = allNodes.top();
-		allNodes.pop();
-		if (inc->containInclusionNode(tmpIndex)) continue;
-		string s2 = graphNodes[tmpIndex].getNodeStr();
-
-		vector<int> ovlDis = calDist.searchDistance(index, tmpIndex);
-		if ((ovlDis[1] == INT_MAX) && (ovlDis[0] == INT_MAX)) {
-			ovlDis = ovl.getOVLDistance(s1, s2);
-
-			//add to CalculatedOvlDistance
-			calDist.addDistance(index, tmpIndex, ovlDis[1], ovlDis[0]);
-		}
-
-		if (ovlDis[1] == INT_MIN) {	// there is inclusion between them
-			if (s1.length() >= s2.length()) {
-				inc->addNode2(tmpIndex, index);
-			} else {
-				inc->addNode2(index, tmpIndex);
-			}
-		} else if (ovlDis[1] != INT_MAX) {	// there is overlap between them
-			if (ovlDis[0] < 0) {
-				if (ovlDis[1] > maxLeft){
-					maxLeft = ovlDis[1];
-					overlapLeft = ovlDis[0];
-					leftNode = tmpIndex;
-				} else if (ovlDis[1] == maxLeft) {	//if they are equal, find that one with maximal overlap
-					if (abs(ovlDis[0]) > abs(overlapLeft)) {
-						overlapLeft = ovlDis[0];
-						leftNode = tmpIndex;
+				if (ovlDis[1] == INT_MIN) {	// there is inclusion between them
+					if (s1.length() >= s2.length()) {
+						inc->addNode2(tmpIndex, index);
+					} else {
+						inc->addNode2(index, tmpIndex);
 					}
-				}
-			}
-			if (ovlDis[0] > 0) {
-				if (ovlDis[1] < minRight) {
-					minRight = ovlDis[1];
-					overlapRight = ovlDis[0];
-					rightNode = tmpIndex;
-				} else if (ovlDis[1] == minRight) {	//if they are equal, find that one with maximal overlap
-					if (abs(ovlDis[0]) > abs(overlapRight)) {
-						overlapRight = ovlDis[0];
-						rightNode = tmpIndex;
+				} else if (ovlDis[1] != INT_MAX) {	// there is overlap between them
+					if (ovlDis[0] < 0) {
+						if (ovlDis[1] > maxLeft){
+							maxLeft = ovlDis[1];
+							overlapLeft = ovlDis[0];
+							leftNode = tmpIndex;
+						} else if (ovlDis[1] == maxLeft) {	//if they are equal, find that one with maximal overlap
+							if (abs(ovlDis[0]) > abs(overlapLeft)) {
+								overlapLeft = ovlDis[0];
+								leftNode = tmpIndex;
+							}
+						}
+					}
+					if (ovlDis[0] > 0) {
+						if (ovlDis[1] < minRight) {
+							minRight = ovlDis[1];
+							overlapRight = ovlDis[0];
+							rightNode = tmpIndex;
+						} else if (ovlDis[1] == minRight) {	//if they are equal, find that one with maximal overlap
+							if (abs(ovlDis[0]) > abs(overlapRight)) {
+								overlapRight = ovlDis[0];
+								rightNode = tmpIndex;
+							}
+						}
 					}
 				}
 			}

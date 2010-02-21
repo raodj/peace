@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include "Prim.h"
 
 class InclusionNodes {
 public:
@@ -15,9 +16,12 @@ public:
 	void addNode2(int chd, int parent);
 	int getSize();
 	bool containInclusionNode(int idx);
-	std::vector<int> containPNode(int pIdx);
+	std::vector<int> containPNode(int pIdx, int size);
 	std::vector<int> getAllChdNodes();
 	void printAllNodes();
+private:
+	DefGraph nodes2Tree;
+	void makeTreeFromNodes2(int size);
 };
 
 #endif

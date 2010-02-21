@@ -13,6 +13,7 @@ public:
 	int numC;
 	int numG;
 	int numT;
+	int numN;
 	int numDash;
 
 	SingleBase(char c);
