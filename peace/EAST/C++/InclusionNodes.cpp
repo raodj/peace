@@ -24,7 +24,7 @@ bool InclusionNodes::containInclusionNode(int idx) {
 	}
 }
 
-vector<int> InclusionNodes::containPNode(int pIdx) {
+vector<int> InclusionNodes::containPNode(int pIdx, int size) {
 	vector<int> chdIdx;
 	map<int, int>::iterator it;
 	multimap<int, int>::iterator it2;
@@ -34,10 +34,11 @@ vector<int> InclusionNodes::containPNode(int pIdx) {
 			chdIdx.push_back((*it).first);
 		}
 	}
-	for (it2 = nodes2.begin(); it2 != nodes2.end(); it2++) {
-		if ((*it2).second == pIdx) {
-			chdIdx.push_back((*it2).first);
-		}
+	if (nodes2Tree.size() == 0) {
+		makeTreeFromNodes2(size);
+	}
+	for (EdgeIterator it2=nodes2Tree[pIdx].begin(); it2!=nodes2Tree[pIdx].end(); it2++) {
+		chdIdx.push_back((*it2).node);
 	}
 
 	return chdIdx;
@@ -73,5 +74,14 @@ void InclusionNodes::printAllNodes() {
 	}
 	for (it2 = nodes2.begin(); it2 != nodes2.end(); it2++) {
 		cout << (*it2).first << "\t" << (*it2).second << endl;
+	}
+}
+
+void InclusionNodes::makeTreeFromNodes2(int size) {
+	for (int i=0; i<size; i++) {
+		addNode(nodes2Tree);
+	}
+	for (multimap<int, int>::iterator it2 = nodes2.begin(); it2 != nodes2.end(); it2++) {
+		addEdge(nodes2Tree, (*it2).second, (*it2).first, 0, true); //parent->child, directed.
 	}
 }

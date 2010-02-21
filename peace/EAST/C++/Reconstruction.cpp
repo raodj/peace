@@ -290,10 +290,13 @@ vector<string>Reconstruction::processLeftEnds() {
 
 			if (ovlDis[1] == INT_MIN) { //if resultArray[i].firstEst is included in s1
 				includedEnds.push_back(allLeftEnds[i]);
+				incNodes->addNode2(allLeftEnds[i].index, s1Idx);
 			} else if ((ovlDis[1] == INT_MAX) && (ovlDis[0] == INT_MAX)) { //have not been calculated
 				bool b = (g->ovl).checkInclusion(allLeftEnds[i].seq, s1);
-				if (b)
+				if (b) {
 					includedEnds.push_back(allLeftEnds[i]);
+					incNodes->addNode2(allLeftEnds[i].index, s1Idx);
+				}
 				else
 					excludedEnds.push_back(allLeftEnds[i]);
 			} else { //have been calculated, but no inclusion
@@ -349,8 +352,17 @@ string Reconstruction::processLeftEndsWithInclusion(vector<LeftEnd>& includeStrs
 		}
 
 		string s1 = includeStrs[idxMaxLen].seq;
-		usedNodes[includeStrs[idxMaxLen].index] = 1;	//mark that the node is used.
+		//usedNodes[includeStrs[idxMaxLen].index] = 1;	//mark that the node is used.
+
 		vector<vector<int> > dGraph = genDGraph();
+		//make node "idxMaxNumNodes" the right node of "idxMaxLen", so that all the nodes included in "idxMaxLen" will be counted in for reconstruction.
+		vector<int> ele(4);
+		ele[0] = includeStrs[idxMaxLen].index;
+		ele[1] = includeStrs[idxMaxNumNodes].index;
+		ele[2] = 0;	//distance
+		ele[3] = s1.size()-1;	//overlap length
+		dGraph.push_back(ele);
+/*
 		string s2 = getInfoOfLeftEnd(includeStrs[idxMaxNumNodes].index, dGraph, 1);
 
 		string tmpConsensus = s2;
@@ -360,6 +372,8 @@ string Reconstruction::processLeftEndsWithInclusion(vector<LeftEnd>& includeStrs
 		AlignResult strs = alignment.getLocalAlignment(s1, tmpConsensus);
 		int offset = s1.find(replace(strs.str1, "-", ""));
 		return (s1.substr(0, offset) + s2);
+*/
+		return getInfoOfLeftEnd(includeStrs[idxMaxLen].index, dGraph, 1);
 	}
 }
 
@@ -391,12 +405,10 @@ vector<string> Reconstruction::reconstructSeq(vector<StartPos>& a) {
 	int comparisonLen = COMPARISON_LENGTH;
 	vector<SingleBase*> bases;
 	string tConsensus = g->getSeqOfNode(resultArray[0].index);
-	usedNodes[resultArray[0].index] = 1;	//mark that the node is used.
 	string curSeq = "";
 	int len = resultArray.size() - 1;
 	for (int i=1; i<=len; i++) {
 		curSeq = g->getSeqOfNode(resultArray[i].index);
-		usedNodes[resultArray[i].index] = 1;	//mark that the node is used.
 		string tmpConsensus = tConsensus;
 		if (tmpConsensus.length() > comparisonLen) {
 			tmpConsensus = tConsensus.substr(tConsensus.size()-comparisonLen+1);
@@ -412,7 +424,9 @@ vector<string> Reconstruction::reconstructSeq(vector<StartPos>& a) {
 		int offset = (int)tConsensus.find(strs.str1);
 
 		string tSeq = replace(curSeq, replace(strs.str2, "-", ""), strs.str2);
-		curSeq = tSeq.substr((int)tSeq.find(strs.str2));
+		int tmpOff = (int)tSeq.find(strs.str2);
+		string firstPartCur = tSeq.substr(0, tmpOff);
+		curSeq = tSeq.substr(tmpOff);
 		if (i == 1) {
 			int len1 = tConsensus.size();
 			int len2 = curSeq.size();
@@ -443,6 +457,11 @@ vector<string> Reconstruction::reconstructSeq(vector<StartPos>& a) {
 				} else if (j >= len1) {
 					bases.push_back(new SingleBase(curSeq[j-offset]));
 				}
+			}
+
+			//put first part of curSeq into bases
+			for (int k=0; k<tmpOff; k++) {
+				bases[offset-tmpOff+k]->addOneBase(firstPartCur[k]);
 			}
 		}
 
@@ -506,12 +525,14 @@ vector<UsedNode> Reconstruction::addInclusionNodes(vector<StartPos>& input) {
 
 	for (int i=0; i<size; i++) {
 		int curIdx = input[i].index;
+		usedNodes[curIdx] = 1; //mark this node being used
 		int pos = input[i].pos;
 		tmpList.insert(pair<int, int> (curIdx, pos));
 
-		vector<int> chdIdx = incNodes->containPNode(curIdx); //inclusion children index of the curIdx if exist.
+		vector<int> chdIdx = incNodes->containPNode(curIdx, g->graphNodes.size()); //inclusion children index of the curIdx if exist.
 		for (int j=0; j<chdIdx.size(); j++) {
 			tmpList.insert(pair<int, int> (chdIdx[j], pos+1));
+			usedNodes[chdIdx[j]] = 1; //mark this node being used
 		}
 	}
 	for (map<int, int>::iterator it = tmpList.begin(); it != tmpList.end(); it++) {

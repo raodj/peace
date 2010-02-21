@@ -9,6 +9,7 @@ SingleBase::SingleBase(char c) {
 	numC = 0;
 	numG = 0;
 	numT = 0;
+	numN = 0;
 	numDash = 0;
 	changeBaseNum(c);
 	changeCurBase();
@@ -21,6 +22,7 @@ SingleBase::SingleBase(char c1, char c2) {
 	numC = 0;
 	numG = 0;
 	numT = 0;
+	numN = 0;
 	numDash = 0;
 	changeBaseNum(c1);
 	changeBaseNum(c2);
@@ -54,6 +56,9 @@ void SingleBase::changeBaseNum(char base) {
 	case 'G':
 		numG++;
 		break;
+	case 'N':
+		numN++;
+		break;
 	case '-':
 		numDash++;
 		break;
@@ -64,10 +69,7 @@ void SingleBase::changeCurBase() {
 	int maxNum = numDash;
 	char base = '-';
 
-	if (maxNum < numA) {
-		base = 'A';
-		maxNum = numA;
-	}
+	//if the number of C/G is equal to A/T, we will take C/G.
 	if (maxNum < numC) {
 		base = 'C';
 		maxNum = numC;
@@ -76,9 +78,17 @@ void SingleBase::changeCurBase() {
 		base = 'G';
 		maxNum = numG;
 	}
+	if (maxNum < numA) {
+		base = 'A';
+		maxNum = numA;
+	}
 	if (maxNum < numT) {
 		base = 'T';
 		maxNum = numT;
+	}
+	if (maxNum < numN) {
+		base = 'N';
+		maxNum = numN;
 	}
 
 	curBase = base;
