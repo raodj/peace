@@ -39,10 +39,9 @@ class LeftEnd {
 public:
 	int index;
 	int lenOfSeq;
-	int numOfUsedNodes;
 	std::string seq;
 	LeftEnd() {};
-	LeftEnd(int idx, int n, std::string s);
+	LeftEnd(int idx, std::string s);
 	friend bool operator< (const LeftEnd& k1, const LeftEnd& k2);
 };
 
@@ -74,8 +73,8 @@ private:
 	void printConsensus();
 	std::vector<std::string> reconstruct();
 	std::vector<std::vector<int> > genDGraph();
-	std::string getInfoOfLeftEnd(int leftEnd, std::vector<std::vector<int> >& dGraph, int flag);
 	std::vector<std::string> processLeftEnds();
+	std::string reconstructFromEnds(std::vector<std::vector<int> > leftEnds, std::vector<std::vector<int> >& dGraph);
 	std::string processLeftEndsWithInclusion(std::vector<LeftEnd>& includeStrs);
 	int getNumUsedNodes(std::vector<StartPos>& a);
 	std::string getCurConsensus(std::vector<SingleBase*> bases);

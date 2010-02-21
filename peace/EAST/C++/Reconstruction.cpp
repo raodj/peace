@@ -27,10 +27,9 @@ bool operator< (const StartPos& k1, const StartPos& k2) {
 	return (k1.pos < k2.pos);
 }
 
-LeftEnd::LeftEnd(int idx, int n, string s) {
+LeftEnd::LeftEnd(int idx, string s) {
 	index = idx;
 	lenOfSeq = s.length();
-	numOfUsedNodes = n;
 	seq = s;
 }
 
@@ -51,13 +50,16 @@ Reconstruction::Reconstruction(Graph* graph, vector<SixTuple*> align, vector<Six
 	consensusFileName = con;
 	singletonFileName = sing;
 	numOfUsedESTsFileName = numF;
+	sPos = vector<int> (g->graphNodes.size(), 0);	//store starting positions of all the nodes
 
 	usedNodes = vector<int> (g->graphNodes.size(), 0);
 
+/*
 	vector<int> chdNodes = incNodes->getAllChdNodes(); //all the children nodes in inclusion list should not be considered as singletons.
 	for (int i=0; i<chdNodes.size(); i++) {
 		usedNodes[chdNodes[i]] = 1;
 	}
+*/
 }
 
 void Reconstruction::getConsensus() {
@@ -195,9 +197,10 @@ std::vector<std::vector<int> > Reconstruction::genDGraph() {
 }
 
 
+
 /*
- *  If flag = 0, return number of used nodes for this left end.
- *  If flag = 1, return consensus from this left end.
+ *  Return consensus from this set of left ends.
+ *  input: leftEnds[][2] : [][0]-index, [][1]-position of the left end; size-the size of the array
  *
  * 1. Generate dGraph.
  * 2. For each left-end node, starting from it to calculate positions for each node.
@@ -205,45 +208,44 @@ std::vector<std::vector<int> > Reconstruction::genDGraph() {
  * the overlap distance instead of overlap length.
  * Then reconstruct the sequence from the set of ESTs.
  *
- *  	Because the Prim algorithm starts from index 0 to generate MST, we have to
- *  		put left-end node to index 0 in order to get the MST we want. If Prim does
- *  		not start from the left-end node, the directed tree will be unconnected.
- *
  */
-string Reconstruction::getInfoOfLeftEnd(int leftEnd, vector<vector<int> >& dGraph, int flag) {
+string Reconstruction::reconstructFromEnds(vector<vector<int> > leftEnds, vector<vector<int> >& dGraph) {
 	string ret = "";
-	sPos = vector<int> (g->graphNodes.size());	//store starting positions of all the nodes
+	int size = leftEnds.size();
+	map<int, int> ends;
+	map<int, int>::iterator ite;
 
+	for (int i=0; i<size; i++) {
+		int leftEnd = leftEnds[i][0];
+		sPos[leftEnd] = leftEnds[i][1];
+		ends[leftEnd] = 0;
+		// Calculate starting positions using minimum spanning tree starting from this left-end node.
+		DefGraph primMST = constructMinTree(g->graphNodes.size(), dGraph, leftEnd); //the first param is the total number of ESTs.
 
-	// Calculate starting positions using minimum spanning tree starting from this left-end node.
-	DefGraph primMST = constructMinTree(g->graphNodes.size(), dGraph, leftEnd); //the first param is the total number of ESTs.
+		//get starting positions for the nodes in primMST
+		getStartPos(leftEnd, primMST, dGraph);
 
-	//get starting positions for the nodes in primMST
-	getStartPos(leftEnd, primMST, dGraph);
+		printStr = printStr + printLeftEndInfo(leftEnd); //get information of this left end which is used to start reconstruction.
+	}
+	stringstream tstr;
+	tstr << leftEnds[0][0];
+	printStr = printStr + "Start from node " + tstr.str() + " to do reconstruction" + "\n\n";
 
 
 	vector<StartPos> tmpArray;
 	for (int j=0; j<sPos.size(); j++) {
-		if ((j == leftEnd) || (sPos[j] != 0)) {
+		ite = ends.find(j);
+		if ((ite != ends.end()) || (sPos[j] != 0)) { // is left end or a node which has got its position
 			tmpArray.push_back(StartPos(sPos[j], j));
 		}
 	}
 
 
-	if (flag == 0) { //get number of used nodes
-		std::stringstream out;
-		out << getNumUsedNodes(tmpArray);
-		ret = out.str();
-	} else if (flag == 1) { //get consensus
-		printStr = printStr + printLeftEndInfo(leftEnd); //get information of this left end which is used to start reconstruction.
-		vector<string> tStr = reconstructSeq(tmpArray);
-		if (tStr.size() != 0) {
-			//this is an estimated value, not an exact one because some nodes may repeat (both from nodes2 in inclusion list and also exist in the ordinary list)
-			//the value in numOfUsedEsts file is an exact value.
-			printStr = printStr + tStr[1] + " nodes are used to reconstruct the sequence.(estimated. real number<= the number)\n";
-			printStr = printStr + tStr[0] + "\n\n";
-			ret = tStr[0];
-		}
+	vector<string> tStr = reconstructSeq(tmpArray);
+	if (tStr.size() != 0) {
+		printStr = printStr + tStr[1] + " nodes are used to reconstruct the sequence.\n";
+		printStr = printStr + tStr[0] + "\n\n";
+		ret = tStr[0];
 	}
 
 	return ret;
@@ -269,8 +271,7 @@ vector<string>Reconstruction::processLeftEnds() {
 	vector<LeftEnd> resultArray(sizeOfs); //store the starting positions of ests
 	for (int i=0; i<sizeOfs; i++) { //start for
 		int idx = leftMostNodes[i]->curNode;
-		string num = getInfoOfLeftEnd(idx, dGraph, 0);
-		resultArray[i] = LeftEnd(idx, atoi(num.c_str()), g->getSeqOfNode(idx));
+		resultArray[i] = LeftEnd(idx, g->getSeqOfNode(idx));
 	} //end for
 	sort(resultArray.begin(), resultArray.end());
 
@@ -284,6 +285,7 @@ vector<string>Reconstruction::processLeftEnds() {
 		int s1Idx = allLeftEnds[0].index;
 		vector<LeftEnd> includedEnds;
 		includedEnds.push_back(allLeftEnds[0]);
+
 		vector<LeftEnd> excludedEnds;
 		for (int i=1; i<allLeftEnds.size(); i++) {
 			vector<int> ovlDis = g->calDist.searchDistance(allLeftEnds[i].index, s1Idx);
@@ -329,50 +331,43 @@ string Reconstruction::processLeftEndsWithInclusion(vector<LeftEnd>& includeStrs
 		return "";
 	} else if (includeStrs.size() == 1) {
 		vector<vector<int> > dGraph = genDGraph();
-		string s = getInfoOfLeftEnd(includeStrs[0].index, dGraph, 1);
+		vector<vector<int> > leftEnds = vector<vector<int> > (1, std::vector<int>(2));
+		leftEnds[0][0] = includeStrs[0].index; //index
+		leftEnds[0][1] = 0; //position
+		string s = reconstructFromEnds(leftEnds, dGraph);
 		return s;
 	} else {
 		int maxLen = 0; //the maximal length of the first EST.
 		int idxMaxLen = 0;
-		int maxNumNodes = 0;
-		int idxMaxNumNodes = 0;
+		vector<vector<int> > dGraph = genDGraph();
+		int numOfEnds = includeStrs.size();
+		vector<vector<int> > leftEnds = vector<vector<int> > (numOfEnds, std::vector<int>(2));
 
-		for (int i=0; i<includeStrs.size(); i++) {
+		for (int i=0; i<numOfEnds; i++) {
 			int tLen = includeStrs[i].lenOfSeq;
 			if (tLen > maxLen) {
 				maxLen = tLen;
 				idxMaxLen = i;
 			}
-
-			int num = includeStrs[i].numOfUsedNodes;
-			if (num > maxNumNodes) {
-				maxNumNodes = num;
-				idxMaxNumNodes = i;
-			}
 		}
 
+		int idx = 0;
 		string s1 = includeStrs[idxMaxLen].seq;
+		leftEnds[idx][0] = includeStrs[idxMaxLen].index; //index
+		leftEnds[idx++][1] = 0; //position
 
-		vector<vector<int> > dGraph = genDGraph();
-		//make node "idxMaxNumNodes" the right node of "idxMaxLen", so that all the nodes included in "idxMaxLen" will be counted in for reconstruction.
-		vector<int> ele(4);
-		ele[0] = includeStrs[idxMaxLen].index;
-		ele[1] = includeStrs[idxMaxNumNodes].index;
-		ele[2] = 0;	//distance
-		ele[3] = s1.size()-1;	//overlap length
-		dGraph.push_back(ele);
-/*
-		string s2 = getInfoOfLeftEnd(includeStrs[idxMaxNumNodes].index, dGraph, 1);
-
-		string tmpConsensus = s2;
-		if (tmpConsensus.length() > s1.length()) {
-			tmpConsensus = s2.substr(0, s1.size());
+		for (int i=0; i<numOfEnds; i++) {
+			if (i == idxMaxLen) continue;
+			string s2 = includeStrs[i].seq;
+			AlignResult strs = alignment.getLocalAlignment(s1, s2);
+			int offset1 = s1.find(replace(strs.str1, "-", ""));
+			int offset2 = s2.find(replace(strs.str2, "-", ""));
+			int endPos = (offset1-offset2) > 0 ? (offset1-offset2) : 0;
+			leftEnds[idx][0] = includeStrs[i].index;
+			leftEnds[idx++][1] = endPos;
 		}
-		AlignResult strs = alignment.getLocalAlignment(s1, tmpConsensus);
-		int offset = s1.find(replace(strs.str1, "-", ""));
-		return (s1.substr(0, offset) + s2);
-*/
-		return getInfoOfLeftEnd(includeStrs[idxMaxLen].index, dGraph, 1);
+
+		return reconstructFromEnds(leftEnds, dGraph);
 	}
 }
 

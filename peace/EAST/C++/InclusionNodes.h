@@ -20,8 +20,8 @@ public:
 	std::vector<int> getAllChdNodes();
 	void printAllNodes();
 private:
-	DefGraph nodes2Tree;
-	void makeTreeFromNodes2(int size);
+	DefGraph nodesGraph;
+	void makeGraphFromAllNodes(int size); //construct a graph from nodes and nodes2, store the tree into nodesGraph.
 };
 
 #endif
