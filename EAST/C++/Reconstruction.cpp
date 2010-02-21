@@ -352,7 +352,6 @@ string Reconstruction::processLeftEndsWithInclusion(vector<LeftEnd>& includeStrs
 		}
 
 		string s1 = includeStrs[idxMaxLen].seq;
-		//usedNodes[includeStrs[idxMaxLen].index] = 1;	//mark that the node is used.
 
 		vector<vector<int> > dGraph = genDGraph();
 		//make node "idxMaxNumNodes" the right node of "idxMaxLen", so that all the nodes included in "idxMaxLen" will be counted in for reconstruction.
@@ -389,7 +388,6 @@ vector<string> Reconstruction::reconstructSeq(vector<StartPos>& a) {
 	}
 
 	sort(a.begin(), a.end());
-
 	vector<UsedNode> addedNodes = addInclusionNodes(a);  //add all those related inclusion nodes into it for reconstruction.
 	std::stringstream out;
 	out << addedNodes.size();
@@ -461,7 +459,8 @@ vector<string> Reconstruction::reconstructSeq(vector<StartPos>& a) {
 
 			//put first part of curSeq into bases
 			for (int k=0; k<tmpOff; k++) {
-				bases[offset-tmpOff+k]->addOneBase(firstPartCur[k]);
+				if (offset-tmpOff+k >= 0)
+					bases[offset-tmpOff+k]->addOneBase(firstPartCur[k]);
 			}
 		}
 
