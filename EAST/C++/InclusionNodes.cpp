@@ -1,5 +1,6 @@
 #include "InclusionNodes.h"
 #include <iostream>
+#include <stack>
 using namespace std;
 
 void InclusionNodes::addNode1(int chd, int parent) {
@@ -26,19 +27,21 @@ bool InclusionNodes::containInclusionNode(int idx) {
 
 vector<int> InclusionNodes::containPNode(int pIdx, int size) {
 	vector<int> chdIdx;
-	map<int, int>::iterator it;
-	multimap<int, int>::iterator it2;
 
-	for (it = nodes.begin(); it != nodes.end(); it++) {
-		if ((*it).second == pIdx) {
-			chdIdx.push_back((*it).first);
+	if (nodesGraph.size() == 0) {
+		makeGraphFromAllNodes(size);
+	}
+	DefGraph nodesTree = Prim(nodesGraph, pIdx, true);
+
+	stack<int> tStack;
+	tStack.push(pIdx);
+	while (!tStack.empty()) {
+		int tmpPIdx = tStack.top();
+		tStack.pop();
+		for (EdgeIterator it=nodesTree[tmpPIdx].begin(); it!=nodesTree[tmpPIdx].end(); it++) {
+			chdIdx.push_back((*it).node);
+			tStack.push((*it).node);
 		}
-	}
-	if (nodes2Tree.size() == 0) {
-		makeTreeFromNodes2(size);
-	}
-	for (EdgeIterator it2=nodes2Tree[pIdx].begin(); it2!=nodes2Tree[pIdx].end(); it2++) {
-		chdIdx.push_back((*it2).node);
 	}
 
 	return chdIdx;
@@ -77,11 +80,15 @@ void InclusionNodes::printAllNodes() {
 	}
 }
 
-void InclusionNodes::makeTreeFromNodes2(int size) {
+void InclusionNodes::makeGraphFromAllNodes(int size) {
 	for (int i=0; i<size; i++) {
-		addNode(nodes2Tree);
+		addNode(nodesGraph);
+	}
+
+	for (map<int, int>::iterator it = nodes.begin(); it != nodes.end(); it++) {
+		addEdge(nodesGraph, (*it).second, (*it).first, 0, true); //parent->child, directed.
 	}
 	for (multimap<int, int>::iterator it2 = nodes2.begin(); it2 != nodes2.end(); it2++) {
-		addEdge(nodes2Tree, (*it2).second, (*it2).first, 0, true); //parent->child, directed.
+		addEdge(nodesGraph, (*it2).second, (*it2).first, 0, true); //parent->child, directed.
 	}
 }
