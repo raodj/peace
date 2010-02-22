@@ -80,6 +80,8 @@ void InclusionNodes::printAllNodes() {
 	}
 }
 
+//Construct a graph from nodes and nodes2, store the tree into nodesGraph.
+//It is called by containPNode which will return all the descendants of the input node.
 void InclusionNodes::makeGraphFromAllNodes(int size) {
 	for (int i=0; i<size; i++) {
 		addNode(nodesGraph);
