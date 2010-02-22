@@ -138,7 +138,7 @@ int main(int argc, char** argv) {
   sprintf(word, "%d", word_length);
 
 
-  std::auto_ptr<ESTAnalyzer> d2(ESTAnalyzerFactory::create("d2", 0, ""));
+  std::auto_ptr<ESTAnalyzer> d2(ESTAnalyzerFactory::create("twopassD2", 0, ""));
   char param0[]  = "generate_d2";   
   char param1[]  = "--frame";   
   char param2[]  = "--word";    
