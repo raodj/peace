@@ -43,6 +43,9 @@
 // The bitmask to be used when build hash values.
 int TwoPassD2::BitMask   = 0;
 
+// The special value used for words containing an 'N'.
+int TwoPassD2::NHash     = 0;
+
 // Instance variable to store the number of bits to be shifted to
 // create hash values. This value is initialized to 2*(wordSize-1)
 int TwoPassD2::bitShift  = 0;
@@ -123,6 +126,7 @@ TwoPassD2::initialize() {
     // to a given word size.  Each entry in a word takes up 2 bits and
     // that is why the following formula involves a 2.
     BitMask = (1 << (wordSize * 2)) - 1;
+    NHash = MapSize;
     // Compute the number of bits to shift when building hashes
     bitShift = 2 * (wordSize - 1);
     // Compute word table size and initialize word tables
@@ -245,12 +249,16 @@ TwoPassD2::runD2Asymmetric(int* s1MinScoreIdx, int* s2MinScoreIdx) {
     for(int i = 0; (i < numWordsInWindow); i++) {
         // Process i'th word in EST 1
         const int w1 = s1WordTable[sq1Start + i];
-        score += (delta[w1] << 1) + 1;
-        delta[w1]++;
+        if (w1 != NHash) {
+            score += (delta[w1] << 1) + 1;
+            delta[w1]++;
+        }
         // Process i'th word in EST 2
         const int w2 = s2WordTable[sq2Start + i];
-        score -= (delta[w2] << 1) - 1;
-        delta[w2]--;
+        if (w2 != NHash) {
+            score -= (delta[w2] << 1) - 1;
+            delta[w2]--;
+        }    
     }
 
     // Precompute iteration bounds for the for-loops below to
@@ -336,12 +344,16 @@ TwoPassD2::runD2Bounded(int sq1Start, int sq1End, int sq2Start, int sq2End) {
     for(int i = 0; (i < numWordsInWindow); i++) {
         // Process i'th word in EST 1
         const int w1 = s1WordTable[sq1Start + i];
-        score += (delta[w1] << 1) + 1;
-        delta[w1]++;
+        if (w1 != NHash) {
+            score += (delta[w1] << 1) + 1;
+            delta[w1]++;
+        }
         // Process i'th word in EST 2
         const int w2 = s2WordTable[sq2Start + i];
-        score -= (delta[w2] << 1) - 1;
-        delta[w2]--;
+        if (w2 != NHash) {
+            score -= (delta[w2] << 1) - 1;
+            delta[w2]--;
+        }    
     }
     // Precompute iteration bounds for the for-loops below to
     // hopefully save on compuation.

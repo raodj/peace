@@ -302,11 +302,14 @@ protected:
         // Now compute the hash for each word
         for(int entry = 0; (*estSeq != 0); entry++, estSeq++) {
             hash = encoder(hash, *estSeq, ignoreMask);
-            if (!ignoreMask) {
-                 // If ignoreMask is zero that indicates that the hash
-                 // is not tainted due to 'n' bp in sequence. So use it.
-                wordTable[entry] = hash;
-            }
+	    // If ignoreMask is zero that indicates that the hash
+	    // is not tainted due to 'n' bp in sequence. So use it.
+	    // Otherwise, use the special value for 'n' hashes.
+	    if (!ignoreMask) {
+	        wordTable[entry] = hash;
+	    } else {
+	        wordTable[entry] = NHash;
+	    }
         }
     }
 
@@ -465,6 +468,12 @@ private:
     */
     static int BitMask;
 
+    /** The hash value to be used for a word containing 'N'.
+
+        Initialized to BitMask+1.
+    */
+    static int NHash;
+
     /** Instance variable to track the number of words (of \c
         wordSize) that can fit into a window (of \c frameSize).
 
@@ -502,11 +511,15 @@ private:
                                  const int s2CurWindowIdx,
                                  int* s1MinScoreIdx, int* s2MinScoreIdx) {
         // Update score and delta for word moving in
-        score -= (delta[wordIn] << 1) - 1;
-        delta[wordIn]--;
+        if (wordIn != NHash) {
+            score -= (delta[wordIn] << 1) - 1;
+            delta[wordIn]--;
+        }
         // Update score and delta for word moving out
-        score += (delta[wordOut] << 1) + 1;
-        delta[wordOut]++;
+        if (wordOut != NHash) {
+            score += (delta[wordOut] << 1) + 1;
+            delta[wordOut]++;
+        }
         // Track the minimum score.
         if (score < minScore) {
             minScore = score;
@@ -525,11 +538,15 @@ private:
                              int& score, int& minScore,
                              const int windowDistance) {
         // Update score and delta for word moving in
-        score -= (delta[wordIn] << 1) - 1;
-        delta[wordIn]--;
+        if (wordIn != NHash) {
+            score -= (delta[wordIn] << 1) - 1;
+            delta[wordIn]--;
+        }
         // Update score and delta for word moving out
-        score += (delta[wordOut] << 1) + 1;
-        delta[wordOut]++;
+        if (wordOut != NHash) {
+            score += (delta[wordOut] << 1) + 1;
+            delta[wordOut]++;
+        }
         // Track the minimum score.
         if (score < minScore) {
             minScore = score;
