@@ -470,7 +470,7 @@ private:
 
     /** The hash value to be used for a word containing 'N'.
 
-        Initialized to BitMask+1.
+        Initialized to MapSize (the size of the delta table).
     */
     static int NHash;
 

@@ -304,7 +304,9 @@ protected:
             if (!ignoreHash) {
                 // This hash does not have a 'n' in it. So use it.
                 wordTable[entry] = hash;
-            }
+            } else {
+                wordTable[entry] = NHash;
+	    }
         }
     }
 
@@ -445,6 +447,12 @@ private:
     */
     static int BitMask;
 
+    /** The hash value to be used for a word containing 'N'.
+
+        Initialized to MapSize (the size of the delta table).
+    */
+    static int NHash;
+
     /** Instance variable to track the number of words (of \c
         wordSize) that can fit into a window (of \c frameSize).
 
@@ -458,11 +466,15 @@ private:
     inline void updateWindow(const int wordIn, const int wordOut,
                              int& score, int& minScore) {
         // Update score and delta for word moving in
-        score -= (delta[wordIn] << 1) - 1;
-        delta[wordIn]--;
+        if (wordIn != NHash) {
+            score -= (delta[wordIn] << 1) - 1;
+            delta[wordIn]--;
+        }
         // Update score and delta for word moving out
-        score += (delta[wordOut] << 1) + 1;
-        delta[wordOut]++;
+        if (wordOut != NHash) {
+            score += (delta[wordOut] << 1) + 1;
+            delta[wordOut]++;
+        }
         // Track the minimum score.
         if (score < minScore) {
             minScore = score;
