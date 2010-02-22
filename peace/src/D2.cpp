@@ -44,6 +44,9 @@ int D2::frameShift = 1;
 // The bitmak to be used when build hash values.
 int D2::BitMask   = 0;
 
+// The special value used for words containing an 'N'.
+int D2::NHash     = 0;
+
 // Instance variable to store the number of bits to be shifted to
 // create hash values. This value is initialized to 2*(wordSize-1)
 int D2::bitShift  = 0;
@@ -114,11 +117,12 @@ D2::initialize() {
     }
     // Setup the frequency delta table
     const int MapSize = (1 << (wordSize * 2));
-    delta = new int[MapSize];
+    delta = new int[MapSize];    
     // Compute bit mask that will retain only the bits corresponding
     // to a given word size.  Each entry in a word takes up 2 bits and
     // that is why the following formula involves a 2.
     BitMask = (1 << (wordSize * 2)) - 1;
+    NHash = MapSize;
     // Compute the number of bits to shift when building hashes
     bitShift = 2 * (wordSize - 1);
     // Compute word table size and initialize word tables
@@ -207,12 +211,16 @@ D2::runD2(const int otherEST) {
     for(int i = 0; (i < numWordsInWindow); i++) {
         // Process i'th word in EST 1
         const int w1 = s1WordTable[sq1Start + i];
-        score += (delta[w1] << 1) + 1;
-        delta[w1]++;
+        if (w1 != NHash) {
+            score += (delta[w1] << 1) + 1;
+            delta[w1]++;
+        }
         // Process i'th word in EST 2
         const int w2 = s2WordTable[sq2Start + i];
-        score -= (delta[w2] << 1) - 1;
-        delta[w2]--;
+        if (w2 != NHash) {
+            score -= (delta[w2] << 1) - 1;
+            delta[w2]--;
+        }
     }
 
     // Precompute iteration bounds for the for-loops below to
