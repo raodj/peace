@@ -21,7 +21,7 @@ public:
 	void printAllNodes();
 private:
 	DefGraph nodesGraph;
-	void makeGraphFromAllNodes(int size); //construct a graph from nodes and nodes2, store the tree into nodesGraph.
+	void makeGraphFromAllNodes(int size);
 };
 
 #endif
