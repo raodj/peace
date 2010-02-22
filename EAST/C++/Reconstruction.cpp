@@ -50,16 +50,8 @@ Reconstruction::Reconstruction(Graph* graph, vector<SixTuple*> align, vector<Six
 	consensusFileName = con;
 	singletonFileName = sing;
 	numOfUsedESTsFileName = numF;
-	sPos = vector<int> (g->graphNodes.size(), 0);	//store starting positions of all the nodes
 
 	usedNodes = vector<int> (g->graphNodes.size(), 0);
-
-/*
-	vector<int> chdNodes = incNodes->getAllChdNodes(); //all the children nodes in inclusion list should not be considered as singletons.
-	for (int i=0; i<chdNodes.size(); i++) {
-		usedNodes[chdNodes[i]] = 1;
-	}
-*/
 }
 
 void Reconstruction::getConsensus() {
@@ -214,6 +206,7 @@ string Reconstruction::reconstructFromEnds(vector<vector<int> > leftEnds, vector
 	int size = leftEnds.size();
 	map<int, int> ends;
 	map<int, int>::iterator ite;
+	sPos = vector<int> (g->graphNodes.size(), 0);	//store starting positions of all the nodes, reset it to the initial state
 
 	for (int i=0; i<size; i++) {
 		int leftEnd = leftEnds[i][0];
@@ -376,12 +369,14 @@ string Reconstruction::processLeftEndsWithInclusion(vector<LeftEnd>& includeStrs
 vector<string> Reconstruction::reconstructSeq(vector<StartPos>& a) {
 	vector<string> ret(2);
 	int sizeOfa = a.size();
-	if ((sizeOfa == 0) || (sizeOfa == 1)){ //size=1, this node should be a singleton if it is not used in other place. it shouldn't appear as a consensus sequence.
+	if ((sizeOfa == 0) || (sizeOfa == 1)){
+		//size=1, this node should be a singleton if it is not used in other place. it shouldn't appear as a consensus sequence.
+		//size=1, then usedNodes[this node] will not be set to 1 because addInclusionNodes won't be called.
 		return ret;
 	}
 
 	sort(a.begin(), a.end());
-	vector<UsedNode> addedNodes = addInclusionNodes(a);  //add all those related inclusion nodes into it for reconstruction.
+	vector<UsedNode> addedNodes = addInclusionNodes(a);  //add all those related inclusion nodes into it for reconstruction and set usedNodes[related nodes]=1.
 	std::stringstream out;
 	out << addedNodes.size();
 	ret[1] = out.str();
