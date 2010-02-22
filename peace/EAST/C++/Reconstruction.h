@@ -51,6 +51,7 @@ public:
 	std::vector<SixTuple*> alignArray;
 	std::vector<int> sPos;	//starting positions of all the nodes
 				//the index in the array is the index of the node, the value is its starting position.
+				//initialized in reconstructFromEnds method. That is, it is reset each time when the method is invoked.
 	std::vector<int> sPosDebug;	//starting positions of all the nodes
 						//it's used for debugging. All the left ends will be assigned to their actual value in order to calculate inversions later.
 	Alignment alignment;
