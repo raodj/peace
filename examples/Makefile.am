@@ -38,7 +38,7 @@ include $(top_builddir)/Makefile.common.am
 AM_CPPFLAGS=$(GLOBALCPPFLAGS)
 AM_CXXFLAGS=$(GLOBALCXXFLAGS)
 
-bin_PROGRAMS = UsingPeace generate_d2
+bin_PROGRAMS = UsingPeace generate_d2 standalone_d2
 
 UsingPeace_LDFLAGS = -L../src
 UsingPeace_LDADD = $(STDCPP) -lpeace
@@ -52,5 +52,11 @@ generate_d2_LDADD = $(STDCPP) -lpeace
 generate_d2_SOURCES = \
 generate_d2.h \
 generate_d2.cpp
+
+standalone_d2_LDFLAGS = -L../src
+standalone_d2_LDADD = $(STDCPP) -lpeace
+
+standalone_d2_SOURCES = \
+standalone_d2.cpp
 
 # end of Makefile.am
