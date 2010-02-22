@@ -306,7 +306,7 @@ vector<string>Reconstruction::processLeftEnds() {
 			}
 		}
 
-		string contig = processLeftEndsWithInclusion(includedEnds);
+		string contig = processLeftEndsWithInclusion(includedEnds, dGraph);
 		if ((contig.size() != 0) && (contig.erase(contig.find_last_not_of(" \n\r\t")+1).size() != 0)) { //trim
 			allOutputContigs.push_back(contig);
 		}
@@ -326,11 +326,10 @@ vector<string>Reconstruction::processLeftEnds() {
  * We combine the one with the longest first EST and the one using the most number of ESTs together to
  * form a new one and return it.
  */
-string Reconstruction::processLeftEndsWithInclusion(vector<LeftEnd>& includeStrs) {
+string Reconstruction::processLeftEndsWithInclusion(vector<LeftEnd>& includeStrs, vector<vector<int> >& dGraph) {
 	if (includeStrs.size() == 0) {
 		return "";
 	} else if (includeStrs.size() == 1) {
-		vector<vector<int> > dGraph = genDGraph();
 		vector<vector<int> > leftEnds = vector<vector<int> > (1, std::vector<int>(2));
 		leftEnds[0][0] = includeStrs[0].index; //index
 		leftEnds[0][1] = 0; //position
@@ -339,7 +338,6 @@ string Reconstruction::processLeftEndsWithInclusion(vector<LeftEnd>& includeStrs
 	} else {
 		int maxLen = 0; //the maximal length of the first EST.
 		int idxMaxLen = 0;
-		vector<vector<int> > dGraph = genDGraph();
 		int numOfEnds = includeStrs.size();
 		vector<vector<int> > leftEnds = vector<vector<int> > (numOfEnds, std::vector<int>(2));
 

@@ -75,7 +75,7 @@ private:
 	std::vector<std::vector<int> > genDGraph();
 	std::vector<std::string> processLeftEnds();
 	std::string reconstructFromEnds(std::vector<std::vector<int> > leftEnds, std::vector<std::vector<int> >& dGraph);
-	std::string processLeftEndsWithInclusion(std::vector<LeftEnd>& includeStrs);
+	std::string processLeftEndsWithInclusion(std::vector<LeftEnd>& includeStrs, std::vector<std::vector<int> >& dGraph);
 	int getNumUsedNodes(std::vector<StartPos>& a);
 	std::string getCurConsensus(std::vector<SingleBase*> bases);
 	std::vector<UsedNode> addInclusionNodes(std::vector<StartPos>& input);
