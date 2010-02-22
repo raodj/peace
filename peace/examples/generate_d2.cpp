@@ -66,6 +66,7 @@ string file = "all_zf_cdnas.reduced.fa";
 string output_file = "";
 
 double error_rate = 0.03;
+double N_rate = 0.00;
 bool unixCRLF = false;
 long seed = -1;
 bool help = false;
@@ -73,7 +74,10 @@ bool header = true;
 
 string add_errors(double error_rate, string& s) {
   for (string::iterator i=s.begin(); i != s.end(); i++) {
-    if (drand48() < error_rate) {
+    if (drand48() < N_rate) {
+      *i = 'N';
+    }
+    else if (drand48() < error_rate) {
       int shift = (int)(((int)3*drand48()) + 1);
       for (int j=0; j < shift; j++) {
 	switch (*i) {
@@ -105,7 +109,7 @@ int main(int argc, char** argv) {
 //   cout << endl;
 
   int c;
-  while ( (c = getopt(argc, argv, "r:o:f:s:w:x:t:m:n:e:uhi")) != -1 ) {
+  while ( (c = getopt(argc, argv, "r:o:f:s:w:x:t:m:n:e:N:uhi")) != -1 ) {
       switch (c) {
       case 's' : segmentLength = atoi(optarg); break;
       case 'w' : window_length = atoi(optarg); break;
@@ -120,6 +124,7 @@ int main(int argc, char** argv) {
       case 'r' : seed = atol(optarg); assert(seed >= 0); break;
       case 'o' : output_file = optarg; break;
       case 'h' : help = true; break;
+      case 'N' : N_rate = (double)atof(optarg); assert(N_rate >= 0); break;
       case '?' : cout << argv[0] << ": Bad switch: -" << (char)c << endl; exit(1);
       }
   }
@@ -140,6 +145,7 @@ int main(int argc, char** argv) {
 \t-r: Set RNG seed (default = time + pid)\n\
 \t-o: Output file (default = standadrd out)\n\
 \t-h: Print help menu\n\
+\t-N: Probability of replacing a base with an N (default = 0)\
 \n";
     exit(0);
   }
