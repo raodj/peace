@@ -288,9 +288,8 @@ int main(int argc, char** argv) {
       bool uv_result = uv->shouldAnalyze(i+1);
       bool tv_result = tv->shouldAnalyze(i+1);
       *out << 0 << " "  << metric << " ";
-      *out << start_coords[i] + segmentLength - start_coords[i+1] << " " << metric << " ";
-      cout << (uv_result ? "TRUE" : "FALSE") << " ";
-      cout << (tv_result ? "TRUE" : "FALSE") << eol;
+      *out << (uv_result ? "TRUE" : "FALSE") << " ";
+      *out << (tv_result ? "TRUE" : "FALSE") << eol;
   }
 
   return 0;
