@@ -571,6 +571,7 @@ AlignResult AlignmentAlgorithm::getSWAlignment(const std::string& s1,
 AlignResult AlignmentAlgorithm::getBoundedSWAlignment(const std::string& horizontal,
 		const std::string& vertical) {
 	AlignResult result;
+	int band = BAND_WIDTH_SW;
 
 	//calculate the alignment score and record the traceback path
 	int numOfRows = vertical.length();
@@ -593,81 +594,16 @@ AlignResult AlignmentAlgorithm::getBoundedSWAlignment(const std::string& horizon
 	int maxRow = 0;
 	int maxCol = 0;
 
-	//build the matrix row by row until row 50 and then look for the starting point of bounded algorithm in the first 50 rows.
-	int tmpRowEnd = numOfRows>50? 50 : numOfRows;
-	for (int i = 1; i <= tmpRowEnd; i++) {
-		int base1 = encodeBase(vertical[i - 1]);
-		alignMatrix[i][0] = 0;
-		trace[i][0] = 0; //start point
-
-		for (int j = 1; j <= numOfCols; j++) {
-			int flag = 1;
-			// Initialize max to the first of the three terms (NORTH).
-			int base2 = encodedBaseH[j - 1];
-			int max = alignMatrix[i - 1][j] + this->gapPenalty;
-
-			// See if the second term is larger (WEST).
-			int west = alignMatrix[i][j - 1] + this->gapPenalty;
-			if (max <= west) {
-				max = west;
-				flag = 2;
-			}
-
-			// See if the third term is the largest (NORTHWEST)
-			int northwest = alignMatrix[i - 1][j - 1]
-			                                   + (this->scoreMatrix)[base1][base2];
-			if (max <= northwest) {
-				max = northwest;
-				flag = 3;
-			}
-
-			if (max <= 0) {
-				alignMatrix[i][j] = 0;
-				trace[i][j] = 0; //start point
-			} else {
-				alignMatrix[i][j] = max;
-				trace[i][j] = flag;
-			}
-			if (max > maxScore) {
-				maxScore = max;
-				maxRow = i;
-				maxCol = j;
-			}
-		}
-	}
-
-	//check trace to decide where to start bounded algorithm
-	int boundRow = 0;
-	int boundCol = 0;
-	int bounded = 0;
-	int band = BAND_WIDTH_SW;
-	for (int i=0; i<=tmpRowEnd-band; i++) {
-		for (int j=0; j<=numOfCols-band; j++) {
-			if (alignMatrix[i][j] == 0) {
-				int northwestNum = 0;
-				for (int k=1; k<=band; k++)
-					northwestNum = trace[i+k][j+k]==3 ? (northwestNum+1): northwestNum;
-
-				if (northwestNum >= band-2) {
-					bounded = 1;
-					boundRow = i;
-					boundCol = j;
-					break;
-				}
-			}
-		}
-		if (bounded == 1) break;
-	}
 
 	//build the matrix row by row
-	int tmpStart = boundCol+1;
-	for (int i = boundRow+1; i <= numOfRows; i++) {
+	for (int i = 1; i <= numOfRows; i++) {
 		int base1 = encodeBase(vertical[i - 1]);
+		alignMatrix[i][0] = 0;
+		trace[i][0] = 0;
 
-		int tmpI = i + boundCol;
-		int start = (tmpI-band) > tmpStart ? (tmpI-band) : tmpStart;
-		int end = numOfCols > (tmpI+band) ? (tmpI+band) : numOfCols;
-		for (int j = start; j <= end; j++) {
+		int start = (i-band) > 1 ? (i-band) : 1;
+		int end = numOfCols > (i+band) ? (i+band) : numOfCols;
+		for (int j = start; j < end; j++) {
 			int base2 = encodedBaseH[j - 1];
 			int flag = 3;
 			// Initialize max to the first of the three terms (NORTHWEST).
@@ -675,7 +611,7 @@ AlignResult AlignmentAlgorithm::getBoundedSWAlignment(const std::string& horizon
 		                                   + (this->scoreMatrix)[base1][base2];
 
 			// See if the second term is larger (WEST).
-			if (abs(tmpI-j+1) <= band) {
+			if (abs(i-j+1) <= band) {
 				int west = alignMatrix[i][j - 1] + this->gapPenalty;
 				if (max <= west) {
 					max = west;
@@ -684,7 +620,7 @@ AlignResult AlignmentAlgorithm::getBoundedSWAlignment(const std::string& horizon
 			}
 
 			// See if the third term is the largest (NORTH)
-			if (abs(tmpI-1-j) <= band) {
+			if (abs(i-1-j) <= band) {
 				int north = alignMatrix[i - 1][j] + this->gapPenalty;
 				if (max <= north) {
 					max = north;
