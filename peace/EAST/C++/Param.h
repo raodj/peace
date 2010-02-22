@@ -41,7 +41,8 @@ const int BAND_WIDTH_NW=20;
 const int USE_BOUNDED_NW=1;
 
 //the width of band which is used to speed up method "getSWAlignment".
-const int BAND_WIDTH_SW=20;
+//It should be <= COMPARISON_LENGTH. It is related to coverage depth, the bigger the coverage, the smaller this value.
+const int BAND_WIDTH_SW=100;
 
 //If use bounded version of Smith-Waterman algorithm to get SW Alignment when doing reconstruction.
 //1-use, 0-not use. Use bounded version may reduce the precision.
