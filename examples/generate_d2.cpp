@@ -266,7 +266,7 @@ int main(int argc, char** argv) {
   d2->parseArguments(paramCount, params);
   d2->initialize();
   if (header) 
-    *out << "overlap d2" << eol;
+    *out << "overlap d2 uv tv" << eol;
 
   for (int i=0; i < id_overlap; i += 2) {
       d2->setReferenceEST(i);
