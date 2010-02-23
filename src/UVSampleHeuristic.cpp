@@ -238,7 +238,10 @@ UVSampleHeuristic::runHeuristic(const int otherEST) {
     // Obtain a reference to the hash list from the cache.
     const std::vector<unsigned short>& otherHash = cacheEntry->second;
     const int hashSize = (int) otherHash.size();
-    ASSERT ( hashSize > 0 );
+    if (hashSize == 0) {
+        // No valid words, therefore this pair need not be analyzed further.
+        return false;
+    }
     // go through the otherHash and track number of matching words
     // Initialize local variables.
     register int numMatches = 0, numRCmatches = 0;
