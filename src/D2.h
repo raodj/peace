@@ -174,11 +174,11 @@ public:
         merely calls the corresponding base class implementation that
         performs all the necessary operations.
 
-	\note This method was introduced to avoid the unnecessary
-	warning about partial overloading of virtual methods (warning
-	#654) in ICC.
+        \note This method was introduced to avoid the unnecessary
+        warning about partial overloading of virtual methods (warning
+        #654) in ICC.
 	
-	\return This method returns zero if all the processing
+        \return This method returns zero if all the processing
         proceeded successfully. On errors this method returns a
         non-zero value.
     */
@@ -272,12 +272,12 @@ protected:
     /** Helper method to create a word table.
         
         Creates a "word table" mapping integer indices to integer
-		hashes of words, in effect translating the sequence from a
-		sequence of characters to a sequence of n-words (where n =
-		wordSize).
+        hashes of words, in effect translating the sequence from a
+        sequence of characters to a sequence of n-words (where n =
+        wordSize).
 
-		\param encoder The encoder class to be used for building the
-		word table.
+        \param encoder The encoder class to be used for building the
+        word table.
 		
         \param[out] wordTable The word table to be populated with with
         hash values.
@@ -286,16 +286,20 @@ protected:
         this EST that must be converted to hash values.
     */
     template <typename Encoder>
-    void buildWordTable(int* wordTable, const char* estSeq, Encoder encoder) {
+    void buildWordTable(std::vector<int>& wordTable, const char* estSeq,
+                        Encoder encoder) {
         // First clear out old data in word table.
+        wordTable.clear();
         const size_t wordTableSize = EST::getMaxESTLen() + frameSize;
-        memset(wordTable, 0, sizeof(int) * wordTableSize);
+        // Reserve space to avoid repeated reallocations as entries
+        // are added to the wordTable vector.
+        wordTable.reserve(wordTableSize);
         // Compute the has for the first word using the encoder. The
         // encoder may do normal or reverse-complement encoding for us.
-        register int hash = 0;
-        int ignoreHash    = 0;
+        int hash       = 0;
+        int ignoreHash = 0;
         for(register int i = 0; ((*estSeq != 0) && (i < wordSize - 1));
-	    i++, estSeq++) {
+            i++, estSeq++) {
             hash = encoder(hash, *estSeq, ignoreHash);
         }
         // Now compute the hash for each word
@@ -303,38 +307,36 @@ protected:
             hash = encoder(hash, *estSeq, ignoreHash);
             if (!ignoreHash) {
                 // This hash does not have a 'n' in it. So use it.
-                wordTable[entry] = hash;
-            } else {
-                wordTable[entry] = NHash;
-	    }
+                wordTable.push_back(hash);
+            }
         }
     }
 
     /** Instance variable that maps an index in the reference sequence
-	(sequence s1) to the hash of a word.  This hash can then be used
-	as an index in the fdHashMap to get the frequency differential
-	for that word.
+        (sequence s1) to the hash of a word.  This hash can then be
+        used as an index in the delta array to get the frequency
+        differential for that word.
 
-	The word table is created in the initialize() method and
-	filled in using the buildWordTable() method.  For the reference
-	EST, buildWordTable() is called in the setReferenceEST() method,
-	meaning it does not need to be rebuilt every time we analyze
-	a new comparison sequence.
+        The word table is created in the initialize() method and
+        filled in using the buildWordTable() method.  For the reference
+        EST, buildWordTable() is called in the setReferenceEST() method,
+        meaning it does not need to be rebuilt every time we analyze
+        a new comparison sequence.
     */
-    int* s1WordTable;
+    std::vector<int> s1WordTable;
 
     /** Instance variable that maps an index in the comparison sequence
-	(sequence s2) to the hash of a word.
+        (sequence s2) to the hash of a word.
 
-        This hash is used as an index in the fdHashMap to get the
-	frequency differential for that word.
+        This hash is used as an index in the delta array to get the
+        frequency differential for that word.
 
-	The word table is created in the initialize() method and
-	filled in using the buildWordTable() method.  For the comparison
-	EST, buildWordTable() must be called in the analyze() method because
-	a new comparison sequence is given every time analyze() is called.
+        The word table is created in the initialize() method and
+        filled in using the buildWordTable() method.  For the comparison
+        EST, buildWordTable() must be called in the analyze() method because
+        a new comparison sequence is given every time analyze() is called.
     */
-    int* s2WordTable;
+    std::vector<int> s2WordTable;
 
     /** Array to track the delta values in the core D2 algorithm.
 
@@ -345,17 +347,17 @@ protected:
     int *delta;
     
     /** Parameter to define number of characters to shift the frame
-	on the reference sequence, when computing D2.
-
-	This parameter is used to enable D2-asymmetric behavior.
-	The default value is 1, which means D2 symmetric: all frames
-	in both sequences will be compared.  Higher values mean that
-	the algorithm will shift by more than one character when
-	shifting the frame on the reference sequence, resulting in
-	fewer computations but a possible loss of accuracy from not
-	comparing every frame in both sequences.
-
-	\note Currently this value is not used.
+        on the reference sequence, when computing D2.
+		
+        This parameter is used to enable D2-asymmetric behavior.
+        The default value is 1, which means D2 symmetric: all frames
+        in both sequences will be compared.  Higher values mean that
+        the algorithm will shift by more than one character when
+        shifting the frame on the reference sequence, resulting in
+        fewer computations but a possible loss of accuracy from not
+        comparing every frame in both sequences.
+		
+        \note Currently this value is not used.
     */
     static int frameShift;
     
@@ -397,29 +399,29 @@ private:
         argument list is statically defined and shared by all
         instances of this class.
 
-	\note Use of static arguments and parameters makes D2 class
-	hierarchy not MT-safe.
+        \note Use of static arguments and parameters makes D2 class
+        hierarchy not MT-safe.
     */
     static arg_parser::arg_record argsList[];
 	
     /* The default constructor for this class.
        
-        The default constructor for this class.  The constructor is
-        made private so that this class cannot be directly
-        instantiated.  However, since the ESTAnalyzerFactory is a
-        friend of this class; therefore it can instantiate the D2
-        analyzer.  Accordingly, the ESTAnalyzerFactory::create()
-        method must be used to instantiate this class.
+       The default constructor for this class.  The constructor is
+       made private so that this class cannot be directly
+       instantiated.  However, since the ESTAnalyzerFactory is a
+       friend of this class; therefore it can instantiate the D2
+       analyzer.  Accordingly, the ESTAnalyzerFactory::create()
+       method must be used to instantiate this class.
 
-	\param[in] refESTidx The reference EST index value to be used
-	when performing EST analysis.  This parameter should be >= 0.
-	This value is simply passed onto the base class.
+       \param[in] refESTidx The reference EST index value to be used
+       when performing EST analysis.  This parameter should be >= 0.
+       This value is simply passed onto the base class.
         
-	\param[in] outputFile The name of the output file to which the
-	EST analysis data is to be written.  This parameter is ignored
-	if this analyzer is used for clustering.  If this parameter is
-	the empty string then output is written to standard output.
-	This value is simply passed onto the base class.
+       \param[in] outputFile The name of the output file to which the
+       EST analysis data is to be written.  This parameter is ignored
+       if this analyzer is used for clustering.  If this parameter is
+       the empty string then output is written to standard output.
+       This value is simply passed onto the base class.
     */
     D2(const int refESTidx, const std::string& outputFileName);
 
@@ -447,12 +449,6 @@ private:
     */
     static int BitMask;
 
-    /** The hash value to be used for a word containing 'N'.
-
-        Initialized to MapSize (the size of the delta table).
-    */
-    static int NHash;
-
     /** Instance variable to track the number of words (of \c
         wordSize) that can fit into a window (of \c frameSize).
 
@@ -463,32 +459,80 @@ private:
     */
     int numWordsInWindow;
 
+    /** Helper method to update the scores based on a sliding window.
+
+        This method is invoked from several different spots from the
+        runD2() method to update the d2 scores as the window slides
+        across the two sequences being analyzed. The hash values of
+        the words moving into and out of the window are used to update
+        the scores.
+
+        \param[in] wordIn The hash value of the word moving into the
+        window.
+
+        \param[in] wordOut The hash value of the word moving out of
+        the window.
+
+        \param[in,out] score The current running score for this
+        window. This value is updated using the delta array.
+
+        \param[in,out] minScore The current minimum score. This value
+        is updated after the score is updated to reflect the minimum
+        of score and minScore.
+    */
     inline void updateWindow(const int wordIn, const int wordOut,
                              int& score, int& minScore) {
         // Update score and delta for word moving in
-        if (wordIn != NHash) {
-            score -= (delta[wordIn] << 1) - 1;
-            delta[wordIn]--;
-        }
+        score -= (delta[wordIn] << 1) - 1;
+        delta[wordIn]--;
         // Update score and delta for word moving out
-        if (wordOut != NHash) {
-            score += (delta[wordOut] << 1) + 1;
-            delta[wordOut]++;
-        }
+        score += (delta[wordOut] << 1) + 1;
+        delta[wordOut]++;
         // Track the minimum score.
-        if (score < minScore) {
-            minScore = score;
-        }
+        minScore = std::min(score, minScore);
     }
 
+    /** The core method that run's the D2 algorithm.
+
+        This method performs the core D2 analysis. This method is
+        invoked from the getMetric() method to run the core D2
+        algorithm. This method operates as follows:
+
+        <ol>
+
+        <li>If a heuristic chain has been set, then this method
+        obtains a hint from the chain to decide if the normal or
+        reverse complement analysis must be performed. The default is
+        normal analysis.</li>
+
+        <li>Next, a hash table of words is built for the otherEST
+        sequence via a call to the buildWordTable method.</li>
+
+        <li>Next, it computes the score using the first two windows.</li>
+
+        <li>Finally, for each window in the reference EST it iterates
+        over the windows in the other EST (sliding windows in each
+        inner iteration) to compute the minimum d2 score by calling
+        the updateWindow() method.</li>
+
+        <li>It finally returns the minimum d2 score recorded.</li>
+
+        </ol>
+
+        \param[in] otherEST The index of the other EST to be analyzed
+        by this method.
+        
+        \return The d2 score between the reference EST (set via call
+        to setReferenceEST()) and the otherEST (parameter).
+    */
     float runD2(const int otherEST);
 
-        /** The hint key that is used to add hint for normal or
-	reverse-complement D2 computation.
-
-	This hint key is used to set a hint in the \c hints hash
-	map. This string is defined as a constant to save compute time
-	in the core \c runHeuristics method.
+    /** The hint key that is used to add hint for normal or
+        reverse-complement D2 computation.
+		
+        This hint key is used to set a hint in the \c hints hash
+        map. This string is defined as a constant to save compute time
+        in the core \c runHeuristics method.
     */
     const std::string hintKey;
 };

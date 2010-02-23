@@ -44,9 +44,6 @@ int D2::frameShift = 1;
 // The bitmak to be used when build hash values.
 int D2::BitMask   = 0;
 
-// The special value used for words containing an 'N'.
-int D2::NHash     = 0;
-
 // Instance variable to store the number of bits to be shifted to
 // create hash values. This value is initialized to 2*(wordSize-1)
 int D2::bitShift  = 0;
@@ -66,19 +63,11 @@ arg_parser::arg_record D2::argsList[] = {
 
 D2::D2(const int refESTidx, const std::string& outputFileName)
     : FWAnalyzer("D2", refESTidx, outputFileName) {
-    s1WordTable     = NULL;
-    s2WordTable     = NULL;
     delta           = NULL;
     alignmentMetric = 0;
 }
 
 D2::~D2() {
-    if (s1WordTable != NULL) {
-        delete [] s1WordTable;
-    }
-    if (s2WordTable != NULL) {
-        delete [] s2WordTable;
-    }
     if (delta != NULL) {
         delete [] delta;
     }
@@ -122,14 +111,8 @@ D2::initialize() {
     // to a given word size.  Each entry in a word takes up 2 bits and
     // that is why the following formula involves a 2.
     BitMask = (1 << (wordSize * 2)) - 1;
-    NHash = MapSize;
     // Compute the number of bits to shift when building hashes
     bitShift = 2 * (wordSize - 1);
-    // Compute word table size and initialize word tables
-    size_t wordTableSize = EST::getMaxESTLen() + frameSize;
-    s1WordTable = new int[wordTableSize];
-    s2WordTable = new int[wordTableSize];
-    
     // Set the number of words in a window.
     numWordsInWindow = frameSize - wordSize + 1;
     
@@ -175,14 +158,9 @@ D2::getMetric(const int otherEST) {
 
 float
 D2::runD2(const int otherEST) {
-    // Get basic information about the reference EST
-    const EST *estS1   = EST::getEST(refESTidx);
-    const char* sq1    = estS1->getSequence();
-    const int   sq1Len = (int) strlen(sq1);
     // Get basic information about the otherEST EST
     const EST *estS2   = EST::getEST(otherEST);
     const char* sq2    = estS2->getSequence();
-    const int   sq2Len = (int) strlen(sq2);
     
     // Build the word table for otherEST depending on normal or
     // reverse complement suggestion using hint UVSampleHeuristic.
@@ -201,25 +179,28 @@ D2::runD2(const int otherEST) {
     // Currently, the bounds on the word compares in d2 is set to the
     // sizes of the two ESTs to compare. However, the bounds can be
     // reduced based on hints from the <i>t/v</i> heuristic.
-    int sq1Start = 0, sq1End = sq1Len;
-    int sq2Start = 0, sq2End = sq2Len;
+    int sq1Start = 0, sq1End = s1WordTable.size();
+    int sq2Start = 0, sq2End = s2WordTable.size();
 
     // Initialize the delta tables.
     memset(delta, 0, sizeof(int) * (1 << (wordSize * 2)));
     int score = 0;
-    // First compute the score for first windows.
-    for(int i = 0; (i < numWordsInWindow); i++) {
-        // Process i'th word in EST 1
-        const int w1 = s1WordTable[sq1Start + i];
-        if (w1 != NHash) {
-            score += (delta[w1] << 1) + 1;
-            delta[w1]++;
+    // First compute the score for first windows but don't exceed
+    // fragment lengths.
+    const int FirstWinSize = std::min(numWordsInWindow,
+                                      std::max(sq1End, sq2End));
+    for(int i = 0; (i < FirstWinSize); i++) {
+        // Process i'th word in EST 1 if available.
+        if (sq1Start + i < sq1End) {
+            const int word1 = s1WordTable[sq1Start + i];
+            score += (delta[word1] << 1) + 1;
+            delta[word1]++;
         }
-        // Process i'th word in EST 2
-        const int w2 = s2WordTable[sq2Start + i];
-        if (w2 != NHash) {
-            score -= (delta[w2] << 1) - 1;
-            delta[w2]--;
+        // Process i'th word in EST 2, if available.
+        if (sq2Start + i < sq2End) {
+            const int word2 = s2WordTable[sq2Start + i];
+            score -= (delta[word2] << 1) - 1;
+            delta[word2]--;
         }
     }
 
