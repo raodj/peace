@@ -225,7 +225,8 @@ int main(int argc, char** argv) {
   char word[5];
   sprintf(word, "%d", word_length);
 
-  std::auto_ptr<ESTAnalyzer> d2(ESTAnalyzerFactory::create(d2_type.c_str(), 0, ""));
+  std::auto_ptr<ESTAnalyzer> d2(ESTAnalyzerFactory::create("D2", 0, ""));
+  std::auto_ptr<ESTAnalyzer> p2_d2(ESTAnalyzerFactory::create("twopassd2", 0, ""));
   char param0[]  = "generate_d2";   
   char param1[]  = "--frame";   
   char param2[]  = "--word";    
@@ -243,14 +244,16 @@ int main(int argc, char** argv) {
   d2->parseArguments(paramCount, params);
   d2->initialize();
 
+  p2_d2->parseArguments(paramCount, params);
+  p2_d2->initialize();
+
   //********************
   // Set up huristics
   ParameterSetManager::setupParameters(tv_t, uv_u, uv_skip, tv_t, uv_u, uv_skip, tv_t, uv_u, uv_skip);
-  HeuristicChain* chain = HeuristicChain::setupChain("uv-tv", 0, "");
+  HeuristicChain* chain = HeuristicChain::setupChain("tv", 0, "");
   chain->initialize();
 
-  Heuristic* uv = chain->getHeuristic("uv");
-  Heuristic* tv = chain->getHeuristic("tv");
+  Heuristic* uv_tv = chain->getHeuristic("tv");
 
   //*********************
   // Computations and ouput
@@ -261,24 +264,27 @@ int main(int argc, char** argv) {
       d2->setReferenceEST(i);
       const float metric = d2->analyze(i+1);
 
+      p2_d2->setReferenceEST(i);
+      const float metric2 = d2->analyze(i+1);
+
       chain->setReferenceEST(i);
-      bool uv_result = uv->shouldAnalyze(i+1);
-      bool tv_result = tv->shouldAnalyze(i+1);
-      *out << start_coords[i] + segmentLength - start_coords[i+1] << " " << metric << " ";
-      *out << (uv_result ? "TRUE" : "FALSE") << " ";
-      *out << (tv_result ? "TRUE" : "FALSE") << eol;
+      bool uv_tv_result = uv_tv->shouldAnalyze(i+1);
+      *out << start_coords[i] + segmentLength - start_coords[i+1] << " " << metric << " " << metric2 << " ";
+      *out << (uv_tv_result ? "TRUE" : "FALSE") << eol;
   }
   
   for (int i=id_overlap; i < id; i += 2) {
       d2->setReferenceEST(i);
       const float metric = d2->analyze(i+1);
 
+      p2_d2->setReferenceEST(i);
+      const float metric2 = d2->analyze(i+1);
+
+
       chain->setReferenceEST(i);
-      bool uv_result = uv->shouldAnalyze(i+1);
-      bool tv_result = tv->shouldAnalyze(i+1);
-      *out << 0 << " "  << metric << " ";
-      *out << (uv_result ? "TRUE" : "FALSE") << " ";
-      *out << (tv_result ? "TRUE" : "FALSE") << eol;
+      bool uv_tv_result = uv_tv->shouldAnalyze(i+1);
+      *out << 0 << " "  << metric << " " << metric2 << " ";
+      *out << (uv_tv_result ? "TRUE" : "FALSE") << eol;
   }
 
   return 0;
