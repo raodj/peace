@@ -185,6 +185,15 @@ std::vector<std::vector<int> > Reconstruction::genDGraph() {
 		}
 	}
 
+	// Make a directed graph graphForPrim.
+	graphForPrim = DefGraph(g->graphNodes.size());
+	for (int j=0; j<dGraph.size(); j++) {
+		if (dGraph[j][3] != 0) {	//there is an edge between the nodes
+			graphForPrim[dGraph[j][0]].push_back(Edge(dGraph[j][1], dGraph[j][2]));
+		}
+	}
+
+
 	return dGraph;
 }
 
@@ -213,7 +222,7 @@ string Reconstruction::reconstructFromEnds(vector<vector<int> > leftEnds, vector
 		sPos[leftEnd] = leftEnds[i][1];
 		ends[leftEnd] = 0;
 		// Calculate starting positions using minimum spanning tree starting from this left-end node.
-		DefGraph primMST = constructMinTree(g->graphNodes.size(), dGraph, leftEnd); //the first param is the total number of ESTs.
+		DefGraph primMST = constructMinTree(leftEnd); //the first param is the total number of ESTs.
 
 		//get starting positions for the nodes in primMST
 		getStartPos(leftEnd, primMST, dGraph);
@@ -536,15 +545,8 @@ vector<UsedNode> Reconstruction::addInclusionNodes(vector<StartPos>& input) {
  *  @param g a directed graph, the second dimension has three elements:
  *  	index of starting node, index of ending node, weight between them.
  */
-DefGraph Reconstruction::constructMinTree(int nOfNodes, const vector<vector<int> >& input, int source) {
-	// Make a directed graph.
-	DefGraph dGraph(nOfNodes);
-	for (int j=0; j<input.size(); j++) {
-		if (input[j][3] != 0) {	//there is an edge between the nodes
-			dGraph[input[j][0]].push_back(Edge(input[j][1], input[j][2]));
-		}
-	}
-	DefGraph mst = Prim(dGraph, source, true);
+DefGraph Reconstruction::constructMinTree(int source) {
+	DefGraph mst = Prim(graphForPrim, source, true);
 	return mst;
 }
 
