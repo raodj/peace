@@ -56,19 +56,34 @@
 const int max_id_length = 1000;
 const int max_string_length = 100000;
 
+void parse_args(int argc, char** argv);
+
+// Parameters for d2 and heurstics
+string d2_type = "d2";
+int window_length = 100;
+int word_length = 6;
+
+int uv_u = 8;
+int uv_skip = 8;
+
+int tv_t = 40;
+
+// Parameters for simulaton
 int segmentLength = 500;
 int min_overlap = 1;
 int max_overlap = 100;
 int num_trials = 10;
-int window_length = 100;
-int word_length = 6;
-string file = "all_zf_cdnas.reduced.fa";
-string output_file = "";
-
 double error_rate = 0.03;
 double N_rate = 0.00;
-bool unixCRLF = false;
+
+// Parameters for input
 long seed = -1;
+string file = "all_zf_cdnas.reduced.fa";
+
+// Parameters for output
+string output_file = "";
+bool unixCRLF = false;
+
 bool help = false;
 bool header = true;
 
@@ -102,55 +117,17 @@ string make_id(int i) {
   return (string)b;
 }
 
+void set_uv_params(char* params) {
+  uv_u = atoi(strtok(params,"x"));
+  uv_skip = atoi(strtok(NULL,"\0"));
+}
+
 int main(int argc, char** argv) {
-//   cout << "#generate_d2";
-//   for (int i=0; i < argc; i++)
-//     cout << " " << argv[i] << " ";
-//   cout << endl;
 
-  int c;
-  while ( (c = getopt(argc, argv, "r:o:f:s:w:x:t:m:n:e:N:uhi")) != -1 ) {
-      switch (c) {
-      case 's' : segmentLength = atoi(optarg); break;
-      case 'w' : window_length = atoi(optarg); break;
-      case 'x' : word_length = atoi(optarg); break;
-      case 't' : num_trials = atoi(optarg); assert(num_trials >= 0); break;
-      case 'm' : min_overlap = atoi(optarg); assert(min_overlap > 0); break;
-      case 'n' : max_overlap = atoi(optarg); assert(max_overlap > 0); break;
-      case 'e' : error_rate = (double)atof(optarg); assert(error_rate >= 0); break;
-      case 'i' : header = false; break;
-      case 'u' : unixCRLF = true; break;
-      case 'f' : file = optarg; break;
-      case 'r' : seed = atol(optarg); assert(seed >= 0); break;
-      case 'o' : output_file = optarg; break;
-      case 'h' : help = true; break;
-      case 'N' : N_rate = (double)atof(optarg); assert(N_rate >= 0); break;
-      case '?' : cout << argv[0] << ": Bad switch: -" << (char)c << endl; exit(1);
-      }
-  }
-  assert(min_overlap < max_overlap);
+  parse_args(argc, argv);
 
-  if (help) {
-    cout << argv[0] << " parameters:\n\
-\t-s: Set segment length (default = 500)\n\
-\t-w: Set window length (default = 100)\n\
-\t-x: Set word length (default = 6)\n\
-\t-t: Set number of trials (defult = 1000)\n\
-\t-m: Minimum overlap to be checked (default = 1)\n\
-\t-n: Maximum overlap to to be checked (default = 100)\n\
-\t-e: Error rate (default = 0.01)\n\
-\t-i: Supress header\n\
-\t-u: End output with linux \\n instead of windows \\r\\n (default = false)\n\
-\t-f: File of genes (default = all_zf_cdnas.reduced.fa)\n\
-\t-r: Set RNG seed (default = time + pid)\n\
-\t-o: Output file (default = standadrd out)\n\
-\t-h: Print help menu\n\
-\t-N: Probability of replacing a base with an N (default = 0)\
-\n";
-    exit(0);
-  }
-
-
+  //*****************************
+  // Setup
   ifstream fin(file.c_str());
   assert(fin);
 
@@ -161,9 +138,15 @@ int main(int argc, char** argv) {
   }
   srand48(seed);
 
+  string eol = unixCRLF ? "\n" : "\r\n";
+
+
+  //*****************************
+  // Read in sequence files
   char id_str[max_id_length];
   char s[max_string_length];
   vector<string> seqs;
+
 
   // NOTE: Assumes that the sequence is contained on one line!
   while (fin.getline(id_str, max_id_length)) {
@@ -176,6 +159,7 @@ int main(int argc, char** argv) {
   int id = 0;
   vector<int> start_coords;
 
+  //*************************************
   // Generate the overlapping sequences
   for (int overlap=min_overlap; overlap <= max_overlap; overlap++) {
     for (int i=0; i < num_trials; i++) {
@@ -201,7 +185,7 @@ int main(int argc, char** argv) {
   }
   int id_overlap = id;
 
-
+  //******************************************
   // Generate the non-overlapping sequences
   for (int i=0; i < num_trials; i++) {
     int index1, index2;
@@ -230,14 +214,18 @@ int main(int argc, char** argv) {
     id += 2;
   }
 
+  //*****************************************
+  // Setup heursitics and distance functions
+
+  //************
+  // Set up d2
   char frame[5];
   sprintf(frame, "%d", window_length);
 
   char word[5];
   sprintf(word, "%d", word_length);
 
-
-  std::auto_ptr<ESTAnalyzer> d2(ESTAnalyzerFactory::create("twopassD2", 0, ""));
+  std::auto_ptr<ESTAnalyzer> d2(ESTAnalyzerFactory::create(d2_type.c_str(), 0, ""));
   char param0[]  = "generate_d2";   
   char param1[]  = "--frame";   
   char param2[]  = "--word";    
@@ -252,19 +240,20 @@ int main(int argc, char** argv) {
   //char* params[] = {param1, frame, param2, word, // Set Window & Word size
   //		    param3, value3};  // Last parameter is mandatory
   int paramCount = sizeof(params) / sizeof(char*);
+  d2->parseArguments(paramCount, params);
+  d2->initialize();
 
-  string eol = unixCRLF ? "\n" : "\r\n";
-
-  ParameterSetManager::setupParameters();
-
+  //********************
+  // Set up huristics
+  ParameterSetManager::setupParameters(tv_t, uv_u, uv_skip, tv_t, uv_u, uv_skip, tv_t, uv_u, uv_skip);
   HeuristicChain* chain = HeuristicChain::setupChain("uv-tv", 0, "");
   chain->initialize();
-  chain->setReferenceEST(0); // Set reference EST using index value.
+
   Heuristic* uv = chain->getHeuristic("uv");
   Heuristic* tv = chain->getHeuristic("tv");
 
-  d2->parseArguments(paramCount, params);
-  d2->initialize();
+  //*********************
+  // Computations and ouput
   if (header) 
     *out << "overlap d2 uv tv" << eol;
 
@@ -296,3 +285,73 @@ int main(int argc, char** argv) {
 }
 
   
+void parse_args(int argc, char** argv) {
+  int c;
+  while ( (c = getopt(argc, argv, "U:T:r:o:f:s:w:x:t:m:n:e:N:uhi2")) != -1 ) {
+      switch (c) {
+
+	// Heuristic / distance fuction selection
+      case '2' : d2_type = "twopassD2"; break;
+
+
+	// Heuristic / distance function parameter selections
+
+      case 'w' : window_length = atoi(optarg); break;
+      case 'x' : word_length = atoi(optarg); break;
+      case 'U' : set_uv_params(optarg); break;
+      case 'T' : tv_t = atoi(optarg); break;
+
+
+	// Simulation paramteters
+      case 's' : segmentLength = atoi(optarg); break;
+      case 't' : num_trials = atoi(optarg); assert(num_trials >= 0); break;
+      case 'm' : min_overlap = atoi(optarg); assert(min_overlap > 0); break;
+      case 'n' : max_overlap = atoi(optarg); assert(max_overlap > 0); break;
+      case 'e' : error_rate = (double)atof(optarg); assert(error_rate >= 0); break;
+      case 'N' : N_rate = (double)atof(optarg); assert(N_rate >= 0); break;
+
+	// Input parameters
+      case 'f' : file = optarg; break;
+      case 'r' : seed = atol(optarg); assert(seed >= 0); break;
+
+	// Ouput parameters
+      case 'i' : header = false; break;
+      case 'u' : unixCRLF = true; break;
+      case 'o' : output_file = optarg; break;
+
+
+	// Helo
+      case 'h' : help = true; break;
+      case '?' : cout << argv[0] << ": Bad switch: -" << (char)c << endl; exit(1);
+      }
+  }
+  assert(min_overlap < max_overlap);
+
+  if (help) {
+    cout << argv[0] << " parameters:\n\
+\t Choice of heuristics and distance metric versins:\n\
+\t\t-2: Use 2-pass d2 (default = off; use standard d2)\n\
+\t Heuristic and distance metric parameters:\n\
+\t\t-w: Set window length (default = 100)\n\
+\t\t-x: Set word length (default = 6)\n\
+\t\t-U: Set uv parameters u and uv_skip (default = 8x8)\
+\t\t-T: Set tv parameter t (default = 40)\
+\t Simulation parameters:\n\
+\t\t-s: Set segment length (default = 500)\n\
+\t\t-t: Set number of trials (defult = 1000)\n\
+\t\t-m: Minimum overlap to be checked (default = 1)\n\
+\t\t-n: Maximum overlap to to be checked (default = 100)\n\
+\t\t-e: Error rate (default = 0.01)\n\
+\t\t-N: Probability of replacing a base with an N (default = 0)\
+\t Input parameters:\n\
+\t\t-f: File of genes (default = all_zf_cdnas.reduced.fa)\n\
+\t\t-r: Set RNG seed (default = time + pid)\n\
+\t Output parameters:\n\
+\t\t-i: Supress header\n\
+\t\t-u: End output with linux \\n instead of windows \\r\\n (default = false)\n\
+\t\t-o: Output file (default = standadrd out)\n\
+\t Other parameters:\n\
+\t\t-h: Print help menu\n";
+    exit(0);
+  }
+}
