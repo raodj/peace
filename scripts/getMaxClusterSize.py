@@ -1,3 +1,5 @@
+# Usage: python getMaxClusterSize.py [FastA filename]
+
 import sys
 
 f1 = open(sys.argv[1], 'r')

@@ -1,8 +1,6 @@
-#!/usr/bin/python
-
-# Requires biopython to run.
+# Requires biopython to run. (module load biopython)
 # Usage:
-# ./n_distributions [filename] [--normalize]
+# python n_distributions.py [FastA filename] [--normalize]
 # --normalize is an optional flag that will instruct
 # the script to treat any non-"ACGT" character as an N
 # (including lowercase letters and Xs).  This emulates the
