@@ -80,10 +80,12 @@ private:
 	int getNumUsedNodes(std::vector<StartPos>& a);
 	std::string getCurConsensus(std::vector<SingleBase*> bases);
 	std::vector<UsedNode> addInclusionNodes(std::vector<StartPos>& input);
-	DefGraph constructMinTree(int nOfNodes, const std::vector<std::vector<int> >& input, int source);
+	DefGraph constructMinTree(int source); //construct MST from the directed graph graphForPrim
 	void getStartPos(int parentNode, DefGraph& tree, std::vector<std::vector<int> >& d);
 	std::string replace(std::string str, const std::string& old, const std::string& newstr);
 	std::string printLeftEndInfo(int leftEnd);
+
+	DefGraph graphForPrim; //this is a graph which is used for generating MST. It is generated once in genDGraph(), then used multiple times.
 };
 
 
