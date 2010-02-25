@@ -58,7 +58,7 @@ arg_parser::arg_record FWAnalyzer::commonArgsList[] = {
 FWAnalyzer::FWAnalyzer(const std::string& analyzerName, const int refESTidx,
                        const std::string& outputFile)
     : ESTAnalyzer(analyzerName, refESTidx, outputFile) {
-    frameSize = 50;
+    frameSize = 100;
     // Nothing else to be done here for now.
 }
 
