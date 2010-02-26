@@ -211,7 +211,8 @@ D2::runD2(const int otherEST) {
     const int FirstWordInSq2 = sq2Start + numWordsInWindow - 1;
     // Variable to track the minimum d2 distance observed.
     int minScore  = score;
-    for(int s1Win = sq1Start; (s1Win < LastWordInSq1); s1Win += 2) {
+    for(int s1Win = sq1Start; (s1Win < LastWordInSq1 || s1Win == sq1Start);
+        s1Win += 2) {
         // Check each window in EST #2 against current window in EST
         // #1 by sliding EST #2 window to right
         for(int s2Win = sq2Start; (s2Win < LastWordInSq2); s2Win++) {
@@ -220,6 +221,10 @@ D2::runD2(const int otherEST) {
             // associated with EST #2 from left-to-right.
             updateWindow(s2WordTable[s2Win + numWordsInWindow],
                          s2WordTable[s2Win], score, minScore);
+        }
+        // Break if the window on s1 cannot be shifted any further right
+        if (s1Win >= LastWordInSq1) {
+            break;
         }
         // Move onto the next window in EST #1.  In this window at
         // (s1Win + numWordsWin) is moving in, while window at s1Win
@@ -240,6 +245,10 @@ D2::runD2(const int otherEST) {
             // associated with EST #2 from right-to-left.
             updateWindow(s2WordTable[s2Win - numWordsInWindow],
                          s2WordTable[s2Win], score, minScore);
+        }
+        // Break if the window on s1 cannot be shifted any further right
+        if ((s1Win+1) >= LastWordInSq1) {
+            break;
         }
         // Move onto the next window in EST #1.  In this window at
         // (s1Win + numWordsWin + 1) is moving in, while window at

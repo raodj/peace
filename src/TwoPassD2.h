@@ -474,6 +474,8 @@ private:
     */
     static int NHash;
 
+    static bool noNormalize;
+
     /** Instance variable to track the number of words (of \c
         wordSize) that can fit into a window (of \c frameSize).
 
