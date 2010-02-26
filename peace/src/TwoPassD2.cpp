@@ -54,10 +54,14 @@ int TwoPassD2::bitShift  = 0;
 // sufficiently similar to be clustered.
 int TwoPassD2::minThreshold = 0;
 
+bool TwoPassD2::noNormalize = false;
+
 // The set of arguments for this class.
 arg_parser::arg_record TwoPassD2::argsList[] = {
     {"--threshold", "Threshold score to break out of D2 (default=0)",
-     &TwoPassD2::minThreshold, arg_parser::INTEGER},    
+     &TwoPassD2::minThreshold, arg_parser::INTEGER},
+    {"--noNormalize", "Signals that threshold scores should not be normalized",
+     &TwoPassD2::noNormalize, arg_parser::BOOLEAN},
     {NULL, NULL, NULL, arg_parser::BOOLEAN}
 };
 
@@ -198,11 +202,12 @@ TwoPassD2::getMetric(const int otherEST) {
     }
 
     int s1Index = 0, s2Index = 0, boundDist = 0;
+    float normalize = (float) (noNormalize ? 1 : (1.0 / float(threshold)));
     if (frameShift > 1) {
         // OK. Run the asymmetric D2 algorithm
         float distance = (float) runD2Asymmetric(&s1Index, &s2Index);
         if (distance > maxThreshold) {
-            return distance*(1/(float)threshold);
+            return distance * normalize;
         }
         // Set boundDist
         boundDist = frameSize/2;
@@ -213,11 +218,10 @@ TwoPassD2::getMetric(const int otherEST) {
     }
 
     // Now run the bounded symmetric D2 algorithm
-    return (1/(float)threshold) *
-        (float) runD2Bounded(s1Index-boundDist, 
-                             s1Index+boundDist+frameSize, 
-                             s2Index-boundDist, 
-                             s2Index+boundDist+frameSize);
+    return normalize * (float) runD2Bounded(s1Index-boundDist, 
+                                            s1Index+boundDist+frameSize, 
+                                            s2Index-boundDist, 
+                                            s2Index+boundDist+frameSize);
 }
 
 void
@@ -269,7 +273,8 @@ TwoPassD2::runD2Asymmetric(int* s1MinScoreIdx, int* s2MinScoreIdx) {
     // Variable to track the minimum d2 distance observed.
     int minScore   = score;
     int s1Win, s2Win, i;
-    for(s1Win = sq1Start; (s1Win < LastWindowInSq1); s1Win += frameShift*2) {
+    for(s1Win = sq1Start; (s1Win < LastWindowInSq1 || s1Win == sq1Start);
+        s1Win += frameShift*2) {
         // Check each window in EST #2 against current window in EST
         // #1 by sliding EST #2 window to right
         for(s2Win = sq2Start; (s2Win < LastWindowInSq2); s2Win++) {
@@ -279,6 +284,10 @@ TwoPassD2::runD2Asymmetric(int* s1MinScoreIdx, int* s2MinScoreIdx) {
             updateWindowAsym(s2WordTable[s2Win + numWordsInWindow],
                              s2WordTable[s2Win], score, minScore, 
                              s1Win, s2Win+1, s1MinScoreIdx, s2MinScoreIdx);
+        }        
+        // Break if the window on s1 cannot be shifted any further right
+        if ((s1Win) >= LastWindowInSq1) {
+            break;
         }
         // Move onto the next window in EST #1.  In this window at
         // (s1Win + numWordsWin) is moving in, while window at s1Win
@@ -365,7 +374,8 @@ TwoPassD2::runD2Bounded(int sq1Start, int sq1End, int sq2Start, int sq2End) {
     int minScore   = score;
     alignmentMetric = sq1Start - sq2Start;
     int s1Win, s2Win;
-    for(s1Win = sq1Start; (s1Win < LastWindowInSq1); s1Win += 2) {
+    for(s1Win = sq1Start; (s1Win < LastWindowInSq1 || s1Win == sq1Start);
+        s1Win += 2) {
         // Check each window in EST #2 against current window in EST
         // #1 by sliding EST #2 window to right
         for(s2Win = sq2Start; (s2Win < LastWindowInSq2); s2Win++) {
@@ -375,6 +385,10 @@ TwoPassD2::runD2Bounded(int sq1Start, int sq1End, int sq2Start, int sq2End) {
             updateWindow(s2WordTable[s2Win + numWordsInWindow],
                          s2WordTable[s2Win], score, minScore,
                          s1Win-s2Win-1);
+        }        
+        // Break if the window on s1 cannot be shifted any further right
+        if (s1Win >= LastWindowInSq1) {
+            break;
         }
         // Move onto the next window in EST #1.  In this window at
         // (s1Win + numWordsWin) is moving in, while window at s1Win
@@ -396,8 +410,9 @@ TwoPassD2::runD2Bounded(int sq1Start, int sq1End, int sq2Start, int sq2End) {
             updateWindow(s2WordTable[s2Win - numWordsInWindow],
                          s2WordTable[s2Win], score, minScore,
                          s1Win+1-s2Win+numWordsInWindow);
-        }
-        if ((s1Win+1) == LastWindowInSq1) {
+        }              
+        // Break if the window on s1 cannot be shifted any further right
+        if ((s1Win+1) >= LastWindowInSq1) {
             break;
         }
         // Move onto the next window in EST #1.  In this window at
