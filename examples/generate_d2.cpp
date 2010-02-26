@@ -31,6 +31,8 @@
 //
 //---------------------------------------------------------------------
 
+#define USE_2PD2
+
 #include <fstream>
 #include <unistd.h>
 
@@ -59,7 +61,6 @@ const int max_string_length = 100000;
 void parse_args(int argc, char** argv);
 
 // Parameters for d2 and heurstics
-string d2_type = "d2";
 int window_length = 100;
 int word_length = 6;
 
@@ -71,7 +72,7 @@ int tv_t = 40;
 // Parameters for simulaton
 int segmentLength = 500;
 int min_overlap = 1;
-int max_overlap = 100;
+int max_overlap = -1;
 int num_trials = 10;
 double error_rate = 0.03;
 double N_rate = 0.00;
@@ -83,9 +84,11 @@ string file = "all_zf_cdnas.reduced.fa";
 // Parameters for output
 string output_file = "";
 bool unixCRLF = false;
+bool header = true;
+string header_string = "overlap\td2\t2pd2\tuvtv";
+bool header_only = false;
 
 bool help = false;
-bool header = true;
 
 string add_errors(double error_rate, string& s) {
   for (string::iterator i=s.begin(); i != s.end(); i++) {
@@ -139,6 +142,13 @@ int main(int argc, char** argv) {
   srand48(seed);
 
   string eol = unixCRLF ? "\n" : "\r\n";
+
+  //*****************************
+  // Print header in file (if necessary0
+  if (header) 
+    *out << header_string << eol;
+  if (header_only) 
+    return 0;
 
 
   //*****************************
@@ -225,8 +235,12 @@ int main(int argc, char** argv) {
   char word[5];
   sprintf(word, "%d", word_length);
 
-  std::auto_ptr<ESTAnalyzer> d2(ESTAnalyzerFactory::create("D2", 0, ""));
-  std::auto_ptr<ESTAnalyzer> p2_d2(ESTAnalyzerFactory::create("twopassd2", 0, ""));
+  std::auto_ptr<ESTAnalyzer> d2(ESTAnalyzerFactory::create("d2", 0, ""));
+
+#ifdef USE_2PD2
+  std::auto_ptr<ESTAnalyzer> p2_d2(ESTAnalyzerFactory::create("twopassD2", 0, ""));
+#endif
+  
   char param0[]  = "generate_d2";   
   char param1[]  = "--frame";   
   char param2[]  = "--word";    
@@ -244,8 +258,10 @@ int main(int argc, char** argv) {
   d2->parseArguments(paramCount, params);
   d2->initialize();
 
+#ifdef USE_2PD2
   p2_d2->parseArguments(paramCount, params);
   p2_d2->initialize();
+#endif
 
   //********************
   // Set up huristics
@@ -257,19 +273,18 @@ int main(int argc, char** argv) {
 
   //*********************
   // Computations and ouput
-  if (header) 
-    *out << "overlap d2 uv tv" << eol;
-
   for (int i=0; i < id_overlap; i += 2) {
       d2->setReferenceEST(i);
       const float metric = d2->analyze(i+1);
 
-      p2_d2->setReferenceEST(i);
-      const float metric2 = d2->analyze(i+1);
-
       chain->setReferenceEST(i);
       bool uv_tv_result = uv_tv->shouldAnalyze(i+1);
-      *out << start_coords[i] + segmentLength - start_coords[i+1] << " " << metric << " " << metric2 << " ";
+      *out << start_coords[i] + segmentLength - start_coords[i+1] << "\t" << metric << "\t";
+#ifdef USE_2PD2
+      p2_d2->setReferenceEST(i);
+      const float metric2 = p2_d2->analyze(i+1);
+      *out << metric2 << "\t";
+#endif
       *out << (uv_tv_result ? "TRUE" : "FALSE") << eol;
   }
   
@@ -277,13 +292,14 @@ int main(int argc, char** argv) {
       d2->setReferenceEST(i);
       const float metric = d2->analyze(i+1);
 
-      p2_d2->setReferenceEST(i);
-      const float metric2 = d2->analyze(i+1);
-
-
       chain->setReferenceEST(i);
       bool uv_tv_result = uv_tv->shouldAnalyze(i+1);
-      *out << 0 << " "  << metric << " " << metric2 << " ";
+      *out << 0 << "\t"  << metric << "\t";
+#ifdef USE_2PD2
+      p2_d2->setReferenceEST(i);
+      const float metric2 = p2_d2->analyze(i+1);
+      *out << metric2 << "\t";
+#endif
       *out << (uv_tv_result ? "TRUE" : "FALSE") << eol;
   }
 
@@ -293,20 +309,14 @@ int main(int argc, char** argv) {
   
 void parse_args(int argc, char** argv) {
   int c;
-  while ( (c = getopt(argc, argv, "U:T:r:o:f:s:w:x:t:m:n:e:N:uhi2")) != -1 ) {
+  while ( (c = getopt(argc, argv, "U:T:r:o:f:s:w:x:t:m:n:e:N:uhiH")) != -1 ) {
       switch (c) {
 
-	// Heuristic / distance fuction selection
-      case '2' : d2_type = "twopassD2"; break;
-
-
 	// Heuristic / distance function parameter selections
-
-      case 'w' : window_length = atoi(optarg); break;
+      case 'w' : if (atoi(optarg) != 100) {cerr << "-w not currently enabled\n"; exit(1);} window_length = atoi(optarg); break;
       case 'x' : word_length = atoi(optarg); break;
       case 'U' : set_uv_params(optarg); break;
       case 'T' : tv_t = atoi(optarg); break;
-
 
 	// Simulation paramteters
       case 's' : segmentLength = atoi(optarg); break;
@@ -324,35 +334,36 @@ void parse_args(int argc, char** argv) {
       case 'i' : header = false; break;
       case 'u' : unixCRLF = true; break;
       case 'o' : output_file = optarg; break;
-
+      case 'H' : header_only = true; break;
 
 	// Helo
       case 'h' : help = true; break;
       case '?' : cout << argv[0] << ": Bad switch: -" << (char)c << endl; exit(1);
       }
   }
+  if (max_overlap < 0) 
+    max_overlap = segmentLength;
   assert(min_overlap < max_overlap);
 
   if (help) {
     cout << argv[0] << " parameters:\n\
-\t Choice of heuristics and distance metric versins:\n\
-\t\t-2: Use 2-pass d2 (default = off; use standard d2)\n\
 \t Heuristic and distance metric parameters:\n\
 \t\t-w: Set window length (default = 100)\n\
 \t\t-x: Set word length (default = 6)\n\
-\t\t-U: Set uv parameters u and uv_skip (default = 8x8)\
-\t\t-T: Set tv parameter t (default = 40)\
-\t Simulation parameters:\n\
+\t\t-U: Set uv parameters u and uv_skip (default = 8x8)\n\
+\t\t-T: Set tv parameter t (default = 40)\n\
+\tSimulation parameters:\n\
 \t\t-s: Set segment length (default = 500)\n\
 \t\t-t: Set number of trials (defult = 1000)\n\
 \t\t-m: Minimum overlap to be checked (default = 1)\n\
-\t\t-n: Maximum overlap to to be checked (default = 100)\n\
+\t\t-n: Maximum overlap to to be checked (default = segmentLength)\n\
 \t\t-e: Error rate (default = 0.01)\n\
 \t\t-N: Probability of replacing a base with an N (default = 0)\
 \t Input parameters:\n\
 \t\t-f: File of genes (default = all_zf_cdnas.reduced.fa)\n\
 \t\t-r: Set RNG seed (default = time + pid)\n\
 \t Output parameters:\n\
+\t\t-H: Print header only (default = false)\n\
 \t\t-i: Supress header\n\
 \t\t-u: End output with linux \\n instead of windows \\r\\n (default = false)\n\
 \t\t-o: Output file (default = standadrd out)\n\
