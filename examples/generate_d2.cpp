@@ -238,6 +238,8 @@ int main(int argc, char** argv) {
   std::auto_ptr<ESTAnalyzer> d2(ESTAnalyzerFactory::create("d2", 0, ""));
 
 #ifdef USE_2PD2
+  // Initialize the parameter manager
+  // ParameterSetManager::setupParameters();
   std::auto_ptr<ESTAnalyzer> p2_d2(ESTAnalyzerFactory::create("twopassD2", 0, ""));
 #endif
   
@@ -258,10 +260,6 @@ int main(int argc, char** argv) {
   d2->parseArguments(paramCount, params);
   d2->initialize();
 
-#ifdef USE_2PD2
-  p2_d2->parseArguments(paramCount, params);
-  p2_d2->initialize();
-#endif
 
   //********************
   // Set up huristics
@@ -271,6 +269,12 @@ int main(int argc, char** argv) {
 
   Heuristic* uv_tv = chain->getHeuristic("tv");
 
+
+#ifdef USE_2PD2
+  p2_d2->parseArguments(paramCount, params);
+  p2_d2->initialize();
+#endif
+  
   //*********************
   // Computations and ouput
   for (int i=0; i < id_overlap; i += 2) {
