@@ -179,16 +179,16 @@ D2::runD2(const int otherEST) {
     // Currently, the bounds on the word compares in d2 is set to the
     // sizes of the two ESTs to compare. However, the bounds can be
     // reduced based on hints from the <i>t/v</i> heuristic.
-    int sq1Start = 0, sq1End = s1WordTable.size();
-    int sq2Start = 0, sq2End = s2WordTable.size();
+    int sq1Start = 0, sq1End = s1WordTable.size() + wordSize - 1;
+    int sq2Start = 0, sq2End = s2WordTable.size() + wordSize - 1;
 
     // Initialize the delta tables.
     memset(delta, 0, sizeof(int) * (1 << (wordSize * 2)));
     int score = 0;
     // First compute the score for first windows but don't exceed
     // fragment lengths.
-    const int FirstWinSize = std::min(numWordsInWindow,
-                                      std::max(sq1End, sq2End));
+    const int FirstWinSize = std::min(frameSize,
+                                      std::max(sq1End, sq2End)) - wordSize + 1;
     for(int i = 0; (i < FirstWinSize); i++) {
         // Process i'th word in EST 1 if available.
         if (sq1Start + i < sq1End) {
