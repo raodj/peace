@@ -120,11 +120,6 @@ string make_id(int i) {
   return (string)b;
 }
 
-void set_uv_params(char* params) {
-  uv_u = atoi(strtok(params,"x"));
-  uv_skip = atoi(strtok(NULL,"\0"));
-}
-
 int main(int argc, char** argv) {
 
   parse_args(argc, argv);
@@ -247,12 +242,13 @@ int main(int argc, char** argv) {
   char param1[]  = "--frame";   
   char param2[]  = "--word";    
   char param3[]  = "--estFile", value3[] = "<none>";
+  char param4[]  = "--noNormalize";
 
 
   char* params[] = {param0, // First param (although not used) is needed as
                             // parser assumes it is exectuable name.
                     param1, frame, param2, word, // Set Window & Word size
-                    param3, value3};  // Last parameter is mandatory
+                    param3, value3, param4};  // Last parameter is mandatory
 
   //char* params[] = {param1, frame, param2, word, // Set Window & Word size
   //		    param3, value3};  // Last parameter is mandatory
@@ -313,13 +309,14 @@ int main(int argc, char** argv) {
   
 void parse_args(int argc, char** argv) {
   int c;
-  while ( (c = getopt(argc, argv, "U:T:r:o:f:s:w:x:t:m:n:e:N:uhiH")) != -1 ) {
+  while ( (c = getopt(argc, argv, "U:S:T:r:o:f:s:w:x:t:m:n:e:N:uhiH")) != -1 ) {
       switch (c) {
 
 	// Heuristic / distance function parameter selections
       case 'w' : if (atoi(optarg) != 100) {cerr << "-w not currently enabled\n"; exit(1);} window_length = atoi(optarg); break;
       case 'x' : word_length = atoi(optarg); break;
-      case 'U' : set_uv_params(optarg); break;
+      case 'U' : uv_u = atoi(optarg); break;
+      case 'S' : uv_skip = atoi(optarg); break;
       case 'T' : tv_t = atoi(optarg); break;
 
 	// Simulation paramteters
@@ -354,7 +351,8 @@ void parse_args(int argc, char** argv) {
 \t Heuristic and distance metric parameters:\n\
 \t\t-w: Set window length (default = 100)\n\
 \t\t-x: Set word length (default = 6)\n\
-\t\t-U: Set uv parameters u and uv_skip (default = 8x8)\n\
+\t\t-U: Set uv parameters u (default = 8)\n\
+\t\t-S: Set uv parameters s (default = 8)\n\
 \t\t-T: Set tv parameter t (default = 40)\n\
 \tSimulation parameters:\n\
 \t\t-s: Set segment length (default = 500)\n\
