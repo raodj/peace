@@ -61,8 +61,37 @@ public:
     MSTCluster(MSTCluster* owner = NULL, const std::string& name = "");
     ~MSTCluster();
 
-    double makeClusters(NodeList& nodeList, const ESTAnalyzer* analyzer,
+    /** Method to make clusters.
+
+        This method takes a supplied list of nodes from an MST,
+	an EST analyzer, and a threshold score, and uses them to
+	break the MST into clusters based on the threshold.
+
+	\param nodeList  The list of nodes in the MST
+	\param analyzer  The ESTAnalyzer used for score computation
+	\param threshold The threshold value for separating clusters
+    */
+    void makeClusters(NodeList& nodeList, const ESTAnalyzer* analyzer,
 			const float threshold);
+
+    /** Method to automatically calculate a threshold.
+
+        Currently this method is called only when the threshold supplied
+	to MSTCluster::makeClusters() is equal to -1.  This threshold
+	corresponds to the CLU analyzer and tells the calculateThreshold
+	method to calculate the threshold based on the mean and variance
+	of scoring metrics among the list of MST nodes.
+
+	\param nodeList The list of nodes in the MST
+
+	\return the calculated threshold as a floating-point number
+    */
+    float calculateThreshold(NodeList& nodeList);
+
+    /** Add a MST Node to this cluster.
+
+        \param[in] node The node ot be added to the cluster.
+    */
     void add(const MSTNode& node);
 
     /** Add a child cluster to this cluster.
@@ -91,20 +120,42 @@ public:
         \param[in] node The MSTNode entry to be added to this cluster.
     */
     void add(const int clusterID, const MSTNode& node);
-    
+
+    /** Print the cluster tree.
+
+        This method prints a tree display of the clusters.
+    */
     void printClusterTree(std::ostream& os = std::cout,
                           const std::string& prefix = "") const;
 
-    void guiPrintClusterTree(std::ostream& os = std::cout,
-							 const char *srcFile = NULL) const;
+    /** Print the cluster tree in a different format.
 
+        As above, but prints the cluster tree in a format recognizable
+	by the PEACE GUI and suitable for GUI processing.
+    */
+    void guiPrintClusterTree(std::ostream& os = std::cout,
+			     const char *srcFile = NULL) const;
+
+    /** makeMergedClusters
+
+        Currently not used in the code.
+    */
     void makeMergedClusters(const int size, int* parent, bool* root);
-               
+
+    /** Gets the ID of this cluster.
+
+        \return the cluster ID, an integer
+    */
     inline int getClusterID() const { return clusterID; }
 
 
 protected:
-	void guiPrintTree(std::ostream& os) const;
+    /** A helper method for the guiPrintClusterTree method.
+
+        Works by printing the data for the current cluster
+	and then calling guiPrintTree on the sub-clusters (if any).
+    */
+    void guiPrintTree(std::ostream& os) const;
 	
 private:
     /** List of sub-clusters for this cluster.

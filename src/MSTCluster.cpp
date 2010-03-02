@@ -91,10 +91,14 @@ MSTCluster::add(MSTCluster *child) {
     clusterList.push_back(child);
 }
 
-double
+void
 MSTCluster::makeClusters(NodeList& nodeList, const ESTAnalyzer* analyzer,
-                         const float threshold) {
-    // Now create a hash map to track cluster for a given node
+                         float threshold) {
+    // Check if the threshold is less than 0 (treat all negatives as -1)
+    if (threshold < 0) {
+        threshold = calculateThreshold(nodeList);
+    }
+    // Create a hash map to track cluster for a given node
     ClusterMap clusterMap;
     // Now extract nodes from the nodeList and add it to appropriate
     // sub clusters.
@@ -140,7 +144,7 @@ MSTCluster::makeClusters(NodeList& nodeList, const ESTAnalyzer* analyzer,
     if (parent != NULL) {
         // This not the root node. Make the code a bit more
         // streamlined by returning right away.
-        return threshold;
+        return;
     }
 
     // This is code path only for the root cluster.
@@ -158,8 +162,25 @@ MSTCluster::makeClusters(NodeList& nodeList, const ESTAnalyzer* analyzer,
     }
     // Remove all the nodes from the list of nodes.
     nodeList.clear();
-    // Return threshold value back to the caller
-    return threshold;
+}
+
+float
+MSTCluster::calculateThreshold(NodeList& nodeList) {
+    double totalSim = 0;
+    double totalSimSqr = 0;
+    // Iterate over the set of nodes and compute total values
+    // to determine mean and standard deviation.
+    for (NodeList::const_iterator curr = nodeList.begin();
+         (curr != nodeList.end()); curr++) {
+        const float sim = (*curr).getMetric();
+        totalSim    += sim;
+        totalSimSqr += (sim*sim);
+    }
+    const double mean  = totalSim / (nodeList.size()-1);
+    const double stDev = sqrt((totalSimSqr / (nodeList.size()-1))
+                              - (mean*mean));
+    // Return the threshold
+    return (float) (mean + stDev);
 }
 
 void
