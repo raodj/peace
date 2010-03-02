@@ -61,7 +61,8 @@ public:
     MSTCluster(MSTCluster* owner = NULL, const std::string& name = "");
     ~MSTCluster();
 
-    double makeClusters(NodeList& nodeList, const ESTAnalyzer* analyzer);
+    double makeClusters(NodeList& nodeList, const ESTAnalyzer* analyzer,
+			const float threshold);
     void add(const MSTNode& node);
 
     /** Add a child cluster to this cluster.
@@ -90,20 +91,6 @@ public:
         \param[in] node The MSTNode entry to be added to this cluster.
     */
     void add(const int clusterID, const MSTNode& node);
-
-    /** Method to obtain the threshold value being used to separate
-	the MST into individual clusters.
-
-	\note At present, the threshold is a static value of 1.0
-	and the dynamic behavior of threshold values is handled at the
-	level of the ESTAnalyzer (\see TwoPassD2::updateParameters() for
-	one example).  However, the relevant architecture has changed
-	more than once during the lifecycle of this software, hence the
-	existence of this method in the event that other objects need to
-	obtain the threshold value being used for clustering.
-    */
-	
-    float getThreshold() const { return threshold; };
     
     void printClusterTree(std::ostream& os = std::cout,
                           const std::string& prefix = "") const;
@@ -163,12 +150,6 @@ private:
 	\see MSTCluster::getCluster() method
     */
     static ClusterList globalClusterList;
-
-    /** The threshold value used for clustering.
-
-        \see MSTCluster::makeClusters() method
-     */
-    static float threshold;
 
 };
 

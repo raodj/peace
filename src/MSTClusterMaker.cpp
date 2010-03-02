@@ -64,6 +64,7 @@ bool   MSTClusterMaker::dontCluster   = false;
 bool   MSTClusterMaker::prettyPrint   = false;
 bool   MSTClusterMaker::guiPrint      = false;
 int    MSTClusterMaker::maxUse        = -1;
+float  MSTClusterMaker::clsThreshold  = 1.0;
 char*  MSTClusterMaker::cacheType     = DefCacheType;
 char*  MSTClusterMaker::progFileName  = NULL;
     
@@ -87,6 +88,8 @@ arg_parser::arg_record MSTClusterMaker::argsList[] = {
      &MSTClusterMaker::guiPrint, arg_parser::BOOLEAN},
     {"--maxUse", "Set a threshold to aggressively use metrics (default=0)",
      &MSTClusterMaker::maxUse, arg_parser::INTEGER},
+    {"--clsThreshold", "Set a threshold for clustering (default=1.0)",
+     &MSTClusterMaker::clsThreshold, arg_parser::FLOAT},
     {"--cacheType", "Set type of cache (heap or mlist) to use (default=heap)",
      &MSTClusterMaker::cacheType, arg_parser::STRING},
     {"--progress", "Log MST construction progress in a file (used by GUI)",
@@ -693,7 +696,7 @@ MSTClusterMaker::addEST(const int clusterID, const int estIdx) {
 int
 MSTClusterMaker::buildAndShowClusters() {
     // Let the root cluster build sub-clusters
-    root.makeClusters(mst->getNodes(), analyzer);
+    root.makeClusters(mst->getNodes(), analyzer, clsThreshold);
     
     // Redirect cluster output to outputFile as needed.
     std::ofstream outFile;
@@ -747,7 +750,7 @@ MSTClusterMaker::makeClusters() {
     // Dump MST out to the specified output file (if any).
     if ((outputMSTFile != NULL) && (mst != NULL)) {
         mst->serialize(outputMSTFile, (inputMSTFile != NULL) ? inputMSTFile :
-                       analyzer->getInputFileName(), root.getThreshold());
+                       analyzer->getInputFileName(), clsThreshold);
     }
     
     // Do clustering and display results if so desired.

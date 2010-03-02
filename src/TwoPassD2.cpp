@@ -58,7 +58,7 @@ bool TwoPassD2::noNormalize = false;
 
 // The set of arguments for this class.
 arg_parser::arg_record TwoPassD2::argsList[] = {
-    {"--threshold", "Threshold score to break out of D2 (default=0)",
+    {"--d2Threshold", "Threshold score to break out of D2 (default=0)",
      &TwoPassD2::minThreshold, arg_parser::INTEGER},
     {"--noNormalize", "Signals that threshold scores should not be normalized",
      &TwoPassD2::noNormalize, arg_parser::BOOLEAN},

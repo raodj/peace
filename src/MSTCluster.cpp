@@ -43,9 +43,6 @@
 // The static variable to generate unique cluster ID values.
 int MSTCluster::clusterIDSequence = 0;
 
-// The threshold value used for clustering.
-float MSTCluster::threshold = 1.0;
-
 // A type-def for HashMap to make code cleaner.
 typedef HashMap<int, MSTCluster*> ClusterMap;
 
@@ -95,7 +92,8 @@ MSTCluster::add(MSTCluster *child) {
 }
 
 double
-MSTCluster::makeClusters(NodeList& nodeList, const ESTAnalyzer* analyzer) {
+MSTCluster::makeClusters(NodeList& nodeList, const ESTAnalyzer* analyzer,
+                         const float threshold) {
     // Now create a hash map to track cluster for a given node
     ClusterMap clusterMap;
     // Now extract nodes from the nodeList and add it to appropriate
