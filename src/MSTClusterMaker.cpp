@@ -226,7 +226,7 @@ MSTClusterMaker::computeNextESTidx(int& parentESTidx, int& estToAdd,
                                          workerRank, MAX_SIMILARITY_RESPONSE));
             });
         // Undo the fudge on similarity done at the sender end.
-        const float remoteSim = *((float *) (remoteData + 2));
+        const float remoteSim = *(reinterpret_cast<float*>(remoteData + 2));
         // Use a better or first valid entry
         if (analyzer->compareMetrics(remoteSim, similarity) ||
             (estToAdd == -1)) {
