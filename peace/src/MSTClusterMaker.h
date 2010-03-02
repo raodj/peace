@@ -312,6 +312,21 @@ protected:
     */
     static int  maxUse;
 
+    /** Command line option to set the clustering threshold to be
+	used in deriving clusters from the MST.
+
+	This member variable is used to set the clustering threshold.
+	There are two "special" options here:
+
+	1.0 -- Corresponds to the TwoPassD2 analyzer which uses different
+	window lengths, each with different thresholds.  If TwoPassD2
+	is used then clsThreshold must be set to 1.0.
+
+	-1 -- Corresponds to the mean/variance-based threshold.  Intended
+	to be used with the CLU analyzer.
+    */
+    static float clsThreshold;
+
     /** Command line option to set the type of cache to be used by
         PEACE.
 

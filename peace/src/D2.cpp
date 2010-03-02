@@ -56,7 +56,7 @@ int D2::threshold = 0;
 arg_parser::arg_record D2::argsList[] = {
     {"--frameShift", "Frame Shift (default=1)",
      &D2::frameShift, arg_parser::INTEGER},
-    {"--threshold", "Threshold score to break out of D2 (default=0)",
+    {"--d2Threshold", "Threshold score to break out of D2 (default=0)",
      &D2::threshold, arg_parser::INTEGER},    
     {NULL, NULL, NULL, arg_parser::BOOLEAN}
 };
