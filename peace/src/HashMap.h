@@ -82,7 +82,9 @@
 #endif
 
 // Hasher for std::string. This hash function is needed to use std::string
-// objects as key value in hash_map
+// objects as key value in hash_map only in older version of compilers.
+// Check and provide a backwards compatible hasher if needed.
+#ifdef NEED_STRING_HASHER
 struct StringHasher  {
     inline size_t operator()(const std::string& s) const {
         Hash<const char*> hasher;
@@ -90,6 +92,10 @@ struct StringHasher  {
 
     }
 };
+#else
+// Use default system-provided string hasher
+#define StringHasher Hash<std::string>
+#endif
 
 /** \typedef hash_map<std::string, int, StringHasher> StringIntMap
 
@@ -99,7 +105,7 @@ struct StringHasher  {
     The following typedef provides a short cut for using a hash map
     whose key is a std::string and contains integers.
 */
-typedef HashMap<std::string, int> StringIntMap;
+typedef HashMap< std::string, int, StringHasher > StringIntMap;
 
 #else // Windows code path begins 
 

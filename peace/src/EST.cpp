@@ -253,7 +253,7 @@ EST::normalizeBases(std::string& sequence, const bool maskBases) {
     const std::string UpCaseBases  = "ATCG";
     // Normalize the sequence.
     for(size_t i = 0; (i < seqLen); i++) {
-        int index = 0;
+        size_t index = 0;
         // Obtain base to be normalized.
         char nt   = sequence[i];
         if ((index = LowCaseBases.find(nt)) != std::string::npos) {

@@ -77,7 +77,7 @@ ParameterSetManager::~ParameterSetManager() {
 ParameterSet*
 ParameterSetManager:: getParameterSet(const int seq1Len, const int seq2Len) {
     int minLength = std::min(seq1Len, seq2Len);
-    int setNum = 0;
+    size_t setNum = 0;
     for (setNum = 0; setNum < parameterSets.size()-1; setNum++) {
         if (minLength <= parameterSets[setNum]->maxLength) {
             break;
