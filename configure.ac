@@ -209,21 +209,21 @@ AC_DEFUN([AC_CHECK_GCC_VERSION],
 	patchLevel=`echo $version| cut -d'.' -f3`
 
 	good="yes"
-    # Check to ensure gcc is at least 4.1
+    # Check to ensure gcc is at least 4.0.1
 	if test $majorVer -lt 4; then
 	   good="no"
 	elif test $majorVer -eq 4; then
-		 if test $minorVer -lt 1 && test $patchLevel -eq 0; then
+		 if test $minorVer -lt 1 && test $patchLevel -lt 1; then
 	   	 	good="no"
 		 fi
-		 # Add checks for buggy gcc 4.1+ versions here
+		 # Add checks for buggy gcc 4.0.1+ versions here
 	fi
 
 	if test $good = no; then
 	    AC_MSG_RESULT([no])
 		AC_MSG_ERROR([
 	  PEACE has been developed using the latest C++ standards.
-	  It requires atleast GCC Version 4.1 to compile. The gcc
+	  It requires atleast GCC Version 4.0.1 to compile. The gcc
 	  version on your machine is $version which is not
 	  sufficiently recent to compile PEACE. You need upgrade
 	  gcc. If you are on a cluster environment contact your
@@ -249,7 +249,7 @@ AC_DEFUN([AC_PROG_GCC],
 
      if test -z "$gcc"; then
          AC_MSG_CHECKING([for gcc])
-         gcc=`mpicxx --version 2>&1 | grep "GCC"`
+         gcc=`mpicxx --version 2>&1 | grep -i "GCC"`
 	 	 if test -n "$gcc"; then
 	     	gcc="yes"
 	 	 else
@@ -274,29 +274,42 @@ AC_DEFUN([AC_CHECK_HASHMAP],
      AC_MSG_CHECKING([whether hash map is operational])
      AC_LANG([C++])
      AC_LANG_CONFTEST()
-     
+
+	 # First try to run hash map without a custom string hasher
      AC_LINK_IFELSE(
      [AC_LANG_PROGRAM([[#include "src/HashMap.h"]],[[const StringIntMap map; map.find("1")]])],
 	 [AC_MSG_RESULT([yes])],
-     [AC_MSG_RESULT([no])
-  	  AC_MSG_ERROR([
-		 Despite best efforts and checks this machine does not
-		 have an operational version of hash_map or
-		 unordered_map. This indicates your C++ compiler is not
-		 sufficiently recent to be upto date with standards.
-		 Possibly you are using a very old C++ compiler and you
-		 need to upgrade it. If you are on a cluster environment
-		 contact your administrator to see if you can load a more
-		 recent C++ compiler module by default.
-	  ])
-	 ]
-	 )
+     [
+	    # Previous attempt failed. Try to run hash map with custom hasher
+		AC_LINK_IFELSE(
+		[AC_LANG_PROGRAM([[#define NEED_STRING_HASHER]
+						  [#include "src/HashMap.h"]],
+						 [[const StringIntMap map; map.find("1")]])
+		],
+		[
+		  AC_MSG_RESULT([yes (with custom std::string hasher)])
+		  AC_DEFINE([NEED_STRING_HASHER], [1], [needs custom std::string hasher])
+		], # End if
+		[
+		  AC_MSG_RESULT([no])
+  	      AC_MSG_ERROR([
+		     Despite best efforts and checks this machine does not
+		     have an operational version of hash_map or
+		     unordered_map. This indicates your C++ compiler is not
+		     sufficiently recent to be upto date with standards.
+		     Possibly you are using a very old C++ compiler and you
+		     need to upgrade it. If you are on a cluster environment
+		     contact your administrator to see if you can load a more
+		     recent C++ compiler module by default.
+		  ])
+		] )
+	])
 ])
 
 # A custom helper to check to ensure hash map is operational
 AC_DEFUN([AC_CHECK_TR1_HASHMAP],
 [
-     AC_MSG_CHECKING([whether tr1/unordered_map is available and operational])
+     AC_MSG_CHECKING([whether tr1/unordered_map is available])
      AC_LANG([C++])
      AC_LANG_CONFTEST()
      
@@ -330,7 +343,8 @@ AC_CHECK_ARGS([-Wextra], [WEXTRA="-Wextra"], [WEXTRA=""])
 AC_SUBST(WEXTRA)
 AC_CHECK_ARGS([-pipe], [PIPE="-pipe"], [PIPE=""])
 AC_SUBST(PIPE)
-
+AC_CHECK_ARGS([-O3], [OPT_O3="-O3"], [OPT_O3=""])
+AC_SUBST(OPT_O3)
 
 # Checks for libraries.
 #AC_CHECK_LIB([pthread], [pthread_create])
@@ -353,9 +367,10 @@ AC_C_INLINE
 AC_TYPE_SIZE_T
 AC_HEADER_TIME
 AC_C_VOLATILE
+
+# checks for the version of hash map is available in c++ lan
 AC_CHECK_TR1_HASHMAP
 
-# checks for the version of hash map is available in c++ land
 AC_LANG_PUSH([C])
 AC_LANG([C++])
 AC_CHECK_HEADERS([ext/hash_map hash_map])
