@@ -56,6 +56,7 @@ import javax.swing.border.EmptyBorder;
 import org.peace_tools.generic.GenericWizardPage;
 import org.peace_tools.generic.Utilities;
 import org.peace_tools.generic.WizardDialog;
+import org.peace_tools.workspace.FWAnalyzer;
 import org.peace_tools.workspace.JobSummary;
 import org.peace_tools.workspace.MSTClusterData;
 
@@ -148,21 +149,55 @@ implements ActionListener {
 					"(This is for your reference & can be anything)", 0, false,
 					jsp);
 		// Create the spinner.
-		threshold = new JSpinner(new SpinnerNumberModel(130, 1, 1024, 10));
+		threshold = new JSpinner(new SpinnerNumberModel(130, -1, 1024, 10));
 		JComponent threshBox = 
 			Utilities.createLabeledComponents("Threshold for clustering:",
 					"(See note below for tips)", 4, false, threshold);
-		JLabel note = new JLabel(THRESHOLD_INFO, 
-				Utilities.getIcon("images/24x24/Warning.png"), JLabel.LEFT);
-		Utilities.adjustFont(note, -2, 8, -1);
-		note.setAlignmentX(0);
+		JPanel notePanel = createNotesPanel(); 
+		notePanel.setAlignmentX(0);
 		// Organize components in a vertical panel
 		return Utilities.createLabeledComponents(null, null, 0, false, 
 				descBox, Box.createVerticalStrut(10), 
 				threshBox, Box.createVerticalStrut(5),
-				note);
+				notePanel);
 	}
 	
+	/**
+	 * Helper method to create a panel with multiple informational notes
+	 * in them.
+	 * 
+	 * This method is invoked from the {@link #createOthers()} method to create
+	 * a single panel with multiple, mutually exclusive informational notes
+	 * (or JLabels) in them. Only one note is visible at any given time. The
+	 * choice of the visible note is made based on the analyzer being currently
+	 * used. The appropriate note is made visible when this wizard page is 
+	 * displayed by the {@link #pageChanged(WizardDialog, int, int)} method.
+	 * 
+	 * @return A JPanel containing the various optional notes to be displayed
+	 * to the user.
+	 */
+	private JPanel createNotesPanel() {
+		JPanel notePanel = new JPanel(new BorderLayout(0, 0));
+		// Create the default note and add it to the panel.
+		infoLabels[0] = new JLabel(THRESHOLD_INFO, 
+				Utilities.getIcon("images/24x24/Warning.png"), JLabel.LEFT);
+		Utilities.adjustFont(infoLabels[0], -2, 8, -1);
+		notePanel.add(infoLabels[0], BorderLayout.NORTH);
+		// Create the two pass d2 note but make it invisible for now.
+		infoLabels[1] = new JLabel(TWO_PASS_INFO, 
+				Utilities.getIcon("images/24x24/Warning.png"), JLabel.LEFT);
+		infoLabels[1].setVisible(false);
+		Utilities.adjustFont(infoLabels[1], -2, 8, -1);
+		notePanel.add(infoLabels[1], BorderLayout.CENTER);
+		// Create the CLU note but make it invisible for now.
+		infoLabels[2] = new JLabel(CLU_INFO, 
+				Utilities.getIcon("images/24x24/Warning.png"), JLabel.LEFT);
+		infoLabels[2].setVisible(false);
+		Utilities.adjustFont(infoLabels[2], -2, 8, -1);
+		notePanel.add(infoLabels[2], BorderLayout.SOUTH);
+		// Return the panel with all three notes back to the caller.
+		return notePanel;
+	}
 	/**
 	 * This method is called just before this page is to be displayed.
 	 * This method provides the user with a default cluster file name
@@ -179,6 +214,27 @@ implements ActionListener {
 		// Compute cluster file name by simply tagging ".cls" to mst name
 		String clusterFileName = mstFileName + ".cls";
 		clusterFile.setText(clusterFileName);
+		// Next setup the note to be displayed appropriately based on the
+		// analyzer currently being used.
+		// First hide all the notes.
+		infoLabels[0].setVisible(false); infoLabels[1].setVisible(false);
+		infoLabels[2].setVisible(false);
+		threshold.setEnabled(false);
+		// Now set the appropriate label to be visible.
+		if (wizard.getAnalyzerType().equals(FWAnalyzer.FWAnalyzerType.TWOPASSD2)) {
+			infoLabels[1].setVisible(true);
+			threshold.setValue(new Integer(1));
+		} else if (wizard.getAnalyzerType().equals(FWAnalyzer.FWAnalyzerType.CLU)) {
+			infoLabels[2].setVisible(true);
+			threshold.setValue(new Integer(-1));
+		} else {
+			// The default message regarding setting threshold value.
+			infoLabels[0].setVisible(true);
+			threshold.setValue(130);
+			threshold.setEnabled(true);
+		}
+		// Relayout to handle changes in labels
+		validate();
 	}
 		
 
@@ -305,6 +361,16 @@ implements ActionListener {
 		"</html>";
 	
 	/**
+	 * This array contains three informational labels containing the 
+	 * information in {@link #THRESHOLD_INFO}, {@link #TWO_PASS_INFO}, and
+	 * {@link #CLU_INFO} respectively in that order. The labels are
+	 * created in {@link #createNotesPanel()} method and are 
+	 * suitably displayed by the {@link #pageChanged(WizardDialog, int, int)}
+	 * method.
+	 */
+	private JLabel[] infoLabels = new JLabel[3];
+	
+	/**
 	 * A generic informational message that provides additional information
 	 * on the significance of the threshold value.
 	 */
@@ -313,6 +379,30 @@ implements ActionListener {
 		"ESTs more making more clusters. Larger thresholds make larger clusters.<br>" +
 		"Optional threshold value is important  for best results.<br>" +
 		"See help for more details." +
+		"</html>";
+	
+	/**
+	 * A simple text message that is displayed to the user when the user 
+	 * selects the two-passed D2 configuration. The text is present to ensure
+	 * that the user is clear about the operations being performed. The text is
+	 * used in the {@link #pageChanged(WizardDialog, int, int)} method.
+	 */
+	private static final String TWO_PASS_INFO = "<html>" +
+		"Two Pass D2 analyzer is adaptive and normalizes thresholds.<br>" +
+		"This value must be set to 1 (one) for Two Pass D2 (and it <br>" +
+		"cannot be changed). See help for more details." +
+		"</html>";
+	
+	/**
+	 * A simple text message that is displayed to the user when the user 
+	 * selects the CLU analyzer. The text is present to ensure
+	 * that the user is clear about the operations being performed. The text is
+	 * used in the {@link #pageChanged(WizardDialog, int, int)} method.
+	 */
+	private static final String CLU_INFO = "<html>" +
+		"The CLU analyzer automatically computes threshold based on mean.<br>" +
+		"and variance of similarity values. Thefore the threshold is set to<br>" +
+		"-1 as a sentinel value. See help for more details" +
 		"</html>";
 	
 	/**

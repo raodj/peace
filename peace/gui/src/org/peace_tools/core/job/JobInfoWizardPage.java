@@ -37,6 +37,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 
 import javax.swing.Box;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -98,6 +99,9 @@ public class JobInfoWizardPage extends GenericWizardPage {
 			Utilities.createLabeledComponents("Description for job:",
 					"(This is for your reference & can be anything)", 0, 
 					false, jsp);
+		// Create the check box to mask or process low-case nucleotides
+		maskBases = new JCheckBox(MASK_MSG, true);
+		
 		// Create the informational label.
 		JLabel info = new JLabel(INFO_MSG, 
 				Utilities.getIcon("images/32x32/Information.png"), 
@@ -105,12 +109,24 @@ public class JobInfoWizardPage extends GenericWizardPage {
 		
 		// Pack the input fields into a box
 		JPanel subPanel = Utilities.createLabeledComponents(null, null, 0, true,
-			info, Box.createVerticalStrut(20),
-			dataSetBox, Box.createVerticalStrut(20),
-			descBox);
+			info, Box.createVerticalStrut(10),
+			dataSetBox, Box.createVerticalStrut(10),
+			descBox, Box.createVerticalStrut(15), maskBases);
 		subPanel.setBorder(new EmptyBorder(5, 15, 10, 10));
 		// Add the contents to this page
 		add(subPanel, BorderLayout.CENTER);
+	}
+	
+	/** Determine if base masking is enabled or disabled.
+	 * 
+	 * This method can be used to determine if base-masking
+	 * (that is mask out atcg) is enabled or disabled.
+	 * 
+	 * @return This method returns true if base masking is enabled.
+	 * Otherwise it returns false.
+	 */
+	public boolean isMaksBasesSet() {
+		return maskBases.isSelected();
 	}
 	
 	/**
@@ -177,6 +193,13 @@ public class JobInfoWizardPage extends GenericWizardPage {
 	private JTextArea description;
 
 	/**
+	 * Check box to permit user to mask out or process nucleotides in
+	 * low-case characters. If this check box is un-checked then
+	 * "--no-mask-bases" is added to PEACE command line.
+	 */
+	private JCheckBox maskBases;
+	
+	/**
 	 * A generic informational message that is displayed at the
 	 * top of this wizard page to provide some additional information
 	 * to the user.
@@ -184,9 +207,17 @@ public class JobInfoWizardPage extends GenericWizardPage {
 	private static final String INFO_MSG = 
 		"<html>Select the data set that contains the EST file to be<br>" +
 		"processed by this job. Subsequent wizard pages will<br>" +
-		"permit setting up additional information for the job<br>" +
-		"such as: MST generation parameters, clustering<br>" +
-		"settings, and server to run the job, etc.</html>";
+		"permit setting up additional information for the job.";
+	
+	/**
+	 * A generic informational message that is displayed at the
+	 * top of this wizard page to provide some additional information
+	 * to the user.
+	 */
+	private static final String MASK_MSG = 
+		"<htmL>Mask out nucleotides in lower case letters (atcg).<br>" +
+		"<font size=\"-2\">If unchecked then lower case and upper case nucleotides<br>" +
+		"are processed in the same manner.</font></html>";
 	
 	/**
 	 * A serialization UID to keep the compiler happy.

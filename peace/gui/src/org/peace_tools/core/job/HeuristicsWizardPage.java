@@ -35,6 +35,7 @@ package org.peace_tools.core.job;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
@@ -51,7 +52,9 @@ import javax.swing.border.EmptyBorder;
 import org.peace_tools.generic.GenericWizardPage;
 import org.peace_tools.generic.Utilities;
 import org.peace_tools.generic.WizardDialog;
+import org.peace_tools.workspace.FWAnalyzer;
 import org.peace_tools.workspace.Heuristic;
+import org.peace_tools.workspace.Param;
 
 /**
  * This class serves as an interactive page in a JobWizard.
@@ -87,15 +90,15 @@ implements ActionListener {
 				JLabel.LEFT);
 		info.setAlignmentX(0);
 		// Pack the input fields into a box
-		JPanel subPanel = Utilities.createLabeledComponents(null, null, 0, true,
+		heuristicPanel = Utilities.createLabeledComponents(null, null, 0, true,
 				info, Box.createVerticalStrut(5),
 				createUvPanels(),
 				Box.createVerticalStrut(5),
 				createTvPanels());
 		// Set border to make layout look good.
-		subPanel.setBorder(new EmptyBorder(5, 15, 10, 10));
+		heuristicPanel.setBorder(new EmptyBorder(5, 15, 10, 10));
 		// Add the contents to this page
-		add(subPanel, BorderLayout.CENTER);
+		add(heuristicPanel, BorderLayout.CENTER);
 	}
 	
 	/**
@@ -127,7 +130,7 @@ implements ActionListener {
 	 * information regarding the u/v heuristic.
 	 */
 	private JPanel createUvPanels() {
-		// First create enable/disable checkbox with nice border.
+		// First create enable/disable check box with nice border.
 		enableUV = new JCheckBox("Enable u/v sample heuristic for this job");
 		JPanel bag = adjustCheckBox(enableUV, "uv");
 		// Create and add u/v heuristic parameters.
@@ -227,11 +230,40 @@ implements ActionListener {
 	/**
 	 * This method is called just before this page is to be displayed.
 	 * This page essentially updates the frame size for the t/v
-	 * heuristic from the data provided by the analyzer wizard page.
+	 * heuristic from the data provided by the analyzer wizard page. 
+	 * 
+	 * In addition, the heuristic sub-panel is hidden (or displayed)
+	 * if the heuristic is TwoPassD2 or CLU indicating that these
+	 * analyzers configure their own heuristics.
 	 */
 	@Override
 	public void pageChanged(WizardDialog dialog, int currPage, int prevPage) {
-		tvParams[0].setValue(awp.getFrameSize());
+		// Remove component at the center in preparation for new one below.
+		BorderLayout bl = (BorderLayout) getLayout();
+		Component currComp = bl.getLayoutComponent(this, BorderLayout.CENTER);
+		this.remove(currComp);
+		// Display suitable message or the heuristic configuration
+		// information depending on the type of heuristic chosen earlier.
+		if (awp.getAnalyzerType().equals(FWAnalyzer.FWAnalyzerType.TWOPASSD2)) {
+			JLabel msg = new JLabel(TWO_PASS_INFO, Utilities.getIcon("images/32x32/Information.png"),
+					JLabel.LEFT);
+			msg.setIconTextGap(10);
+			msg.setVerticalAlignment(JLabel.CENTER);
+			add(msg, BorderLayout.CENTER);
+		} else if (awp.getAnalyzerType().equals(FWAnalyzer.FWAnalyzerType.CLU)) {
+			JLabel msg = new JLabel(CLU_INFO, Utilities.getIcon("images/32x32/Information.png"),
+					JLabel.LEFT);
+			msg.setIconTextGap(10);
+			msg.setVerticalAlignment(JLabel.CENTER);
+			add(msg, BorderLayout.CENTER);
+		} else {
+			// Update the fixed window size
+			tvParams[0].setValue(awp.getFrameSize());
+			// Display the panel for configuring heuristics
+			add(heuristicPanel, BorderLayout.CENTER);
+		}
+		// Ensure any changes are picked up and displayed
+		validate();
 	}
 	
 	/**
@@ -245,25 +277,59 @@ implements ActionListener {
 	 */
 	protected ArrayList<Heuristic> getHeuristics() {
 		ArrayList<Heuristic> heurList = new ArrayList<Heuristic>(2);
+		final boolean useHeuristics = 
+			awp.getAnalyzerType().equals(FWAnalyzer.FWAnalyzerType.D2) ||
+			awp.getAnalyzerType().equals(FWAnalyzer.FWAnalyzerType.D2ZIM);
 		// Populate list with necessary entries.
-		if (enableUV.isSelected()) {
+		if (enableUV.isSelected() && (useHeuristics)) {
 			Heuristic uv = new Heuristic("uv");
-			uv.addParameter(uv.new Param("uv_v", uvParams[0].getValue().toString()));
-			uv.addParameter(uv.new Param("uv_u", uvParams[1].getValue().toString()));
-			uv.addParameter(uv.new Param("uv_wordShift", uvParams[2].getValue().toString()));
+			uv.addParameter(new Param("uv_v", uvParams[0].getValue().toString()));
+			uv.addParameter(new Param("uv_u", uvParams[1].getValue().toString()));
+			uv.addParameter(new Param("uv_wordShift", uvParams[2].getValue().toString()));
 			// Add uv heuristic entry to the list.
 			heurList.add(uv);
 		}
-		if (enableUV.isSelected() && enableTV.isSelected()) {
+		if (enableUV.isSelected() && enableTV.isSelected() && (useHeuristics)) {
 			Heuristic tv = new Heuristic("tv");
-			tv.addParameter(tv.new Param("tv_win", tvParams[0].getValue().toString()));
-			tv.addParameter(tv.new Param("tv_t", tvParams[1].getValue().toString()));
+			tv.addParameter(new Param("tv_win", tvParams[0].getValue().toString()));
+			tv.addParameter(new Param("tv_t", tvParams[1].getValue().toString()));
 			// Add uv heuristic entry to the list.
 			heurList.add(tv);
 		}
 		// Return list of heuristics to use.
 		return heurList;
 	}
+	
+	/**
+	 * This method is a convenience method that can be used to obtain
+	 * a String summarizing the heuristic setup for this job. 
+	 * This method is used by the JobWizard to compose a complete set of
+	 * summary information just before the job is submitted.
+	 * 
+	 * @return A String containing a summary information of the various
+	 * heuristics configured for this run by the user.
+	 */
+	protected String getHeuristicsSummary() {
+		StringBuilder sb = new StringBuilder();
+		// Obtain heuristic list and get summary information from there.
+		ArrayList<Heuristic> heuristicList = getHeuristics();
+		// Dump summary information.
+		for(Heuristic heuristic: heuristicList) {
+			sb.append(heuristic.getSummary());
+		}
+		// Return summary string.
+		return sb.toString();
+	}
+	
+	/**
+	 * This panel actually contains all the controls for setting up the
+	 * necessary heuristics and their parameters required by certain 
+	 * analyzers. Some of the analyzers currently do not permit setting or
+	 * modifications of heuristics. In this case this panel is not displayed
+	 * to the user. Instead a simple message indicating that there are no
+	 * heuristics to be configured is displayed to the user. 
+	 */
+	private final JPanel heuristicPanel;
 	
 	/**
 	 * A reference to the wizard dialog that logically owns this
@@ -324,6 +390,33 @@ implements ActionListener {
 		"<html>This heursitc requires: <i>v</i> (#common words), <i>u</i> (# v-word<br>" +
 		"matches) and <i>shift</i> (# of bases to shift/skip)</html>";
 
+	/**
+	 * A simple text message that is displayed to the user when the user 
+	 * selects the two-passed D2 configuration. The text is present to ensure
+	 * that the user is clear about the operations being performed. The text is
+	 * used in the {@link #pageChanged(WizardDialog, int, int)} method.
+	 */
+	private static final String TWO_PASS_INFO = "<html>" +
+		"Two Pass D2 analyzer is adaptive and uses several different ranges<br>" +
+		"of window (aka frame) sizes that are most suitable to analyze<br>" +
+		"a given pair of fragments. In addition, the analyzer suitably<br>" +
+		"sets the values and thresholds for the <i>u/v</i> and the <i>t/v</i><br>" +
+		"heuristics. Consequently, there is no additional heuristic setup or<br>" +
+		"configuration needed for this analyzer. PEACE will automatically<br>" +
+		"default to the best, adaptive choices." +
+		"</html>";
+	
+	/**
+	 * A simple text message that is displayed to the user when the user 
+	 * selects the CLU analyzer. The text is present to ensure
+	 * that the user is clear about the operations being performed. The text is
+	 * used in the {@link #pageChanged(WizardDialog, int, int)} method.
+	 */
+	private static final String CLU_INFO = "<html>" +
+		"This analyzer currently does not use any heuristics.<br>" +
+		"Therefore there are no heuristics to configure on this page." +
+		"</html>";
+	
 	/**
 	 * A serialization UID to keep the compiler happy.
 	 */
