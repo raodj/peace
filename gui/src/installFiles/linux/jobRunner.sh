@@ -314,7 +314,7 @@ elif [ "$1" == "error" ]; then
 	# Echo file with stderr data if files are ready
 	ls *.e* > /dev/null 2> /dev/null
 	if [ $? -eq 0 ]; then
-		cat *.e* 1>&2
+		cat *.e*
 		exit $?
 	else
 		echo "Error data for this job is not yet available."
