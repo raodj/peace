@@ -301,8 +301,14 @@ public class WorkspaceChooser extends JDialog implements ActionListener {
 		JButton cancelButton = new JButton(" Cancel ");
 		cancelButton.addActionListener(this);
 		cancelButton.setActionCommand("cancel");
-		// Put ok and cancel button into a horizontal layout
+		// Put ok and cancel button into a horizontal layout with
+		// some version information to the left.
+		String version = "<html>" + Version.GUI_VERSION + "</html>";
+		version = version.replaceAll("\n", "<br>"); // Convert newline to HTML <br>
+		JLabel versionInfo = new JLabel(version, 
+				Utilities.getIcon("images/24x24/PEACE.png"), JLabel.LEFT);
 		Box buttonPanel = Box.createHorizontalBox();
+		buttonPanel.add(versionInfo);
 		buttonPanel.add(Box.createHorizontalGlue()); // right align
 		buttonPanel.add(okButton);
 		buttonPanel.add(Box.createHorizontalStrut(10));

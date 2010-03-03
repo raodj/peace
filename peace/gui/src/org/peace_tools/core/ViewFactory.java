@@ -57,8 +57,10 @@ import org.peace_tools.data.ClusterFile;
 import org.peace_tools.data.ClusterTreeTableModel;
 import org.peace_tools.data.DataStore;
 import org.peace_tools.data.ESTList;
+import org.peace_tools.data.ESTTableModel;
 import org.peace_tools.data.MST;
 import org.peace_tools.data.MSTTreeModel;
+import org.peace_tools.data.OverlapModel;
 import org.peace_tools.generic.ProgrammerLog;
 import org.peace_tools.generic.Utilities;
 import org.peace_tools.generic.dndTabs.DnDTabListener;
@@ -68,6 +70,7 @@ import org.peace_tools.views.ClusterSummaryView;
 import org.peace_tools.views.ClusterTreeTableView;
 import org.peace_tools.views.DataSetFileListView;
 import org.peace_tools.views.DataSetTreeView;
+import org.peace_tools.views.ESTTableView;
 import org.peace_tools.views.GenericHTMLView;
 import org.peace_tools.views.JobDetailsView;
 import org.peace_tools.views.JobListView;
@@ -76,11 +79,13 @@ import org.peace_tools.views.ProgrammerLogPane;
 import org.peace_tools.views.ServerJobsView;
 import org.peace_tools.views.ServerListView;
 import org.peace_tools.views.UserLogPane;
+import org.peace_tools.views.overlap.OverlapView;
 import org.peace_tools.workspace.DataSet;
 import org.peace_tools.workspace.Job;
 import org.peace_tools.workspace.MSTClusterData;
 import org.peace_tools.workspace.MSTData;
 import org.peace_tools.workspace.Server;
+import org.peace_tools.workspace.Workspace;
 
 /**
  * A factory to help with creation of views.
@@ -96,7 +101,7 @@ public abstract class ViewFactory implements DnDTabListener {
 	 * views that this factory can create. 
 	 */
 	public enum ViewType { EST_FILE, MST_FILE, CLUSTER_FILE, 
-		CLUSTER_SUMMARY, HTML_VIEW, TEXT_VEIW, DEFAULT_VIEW, 
+		CLUSTER_SUMMARY, OVERLAP_VIEW, HTML_VIEW, TEXT_VEIW, DEFAULT_VIEW, 
 		DATASET_TREE, DATASET_FILE, JOB_LIST, SERVER_LIST, 
 		USER_LOGS, PROGRAMMER_LOGS}
 
@@ -239,16 +244,23 @@ public abstract class ViewFactory implements DnDTabListener {
 	 * this view is stored.
 	 * 
 	 * @param viewType The type of view to be displayed.
+	 * 
+	 * @param wsEntry The workspace entry object for which the default view is
+	 * to be created. This object is used by the views to reference the workspace
+	 * entry as needed. Note that even though the workspace entry is passed in
+	 * as an Object, it must be correspond to the type of view being created.
+	 * 
 	 * @return A valid view if successfully created.
+	 * 
 	 * @throws Exception This method throws various exceptions when errors
 	 * occur during view creation.
 	 */
 	private JComponent createDefaultView(String estFileName, 
-			String dataFileName, ViewType viewType) throws Exception {
+			String dataFileName, ViewType viewType, final Object wsEntry) throws Exception {
 		// Check and load the FASTA file
 		JComponent view = null;
 		ESTList ests = null;
-		if ((estFileName != null) && (!ViewType.EST_FILE.equals(viewType))) {
+		if (estFileName != null) {
 			ests = DataStore.get().getFASTA(estFileName, mainFrame);
 		}
 		// Check and load the data file depending on the view type
@@ -258,12 +270,21 @@ public abstract class ViewFactory implements DnDTabListener {
 			view = new MSTFileView(mainFrame, mstModel);
 		} else if (ViewType.CLUSTER_FILE.equals(viewType)) {
 			ClusterFile ct = DataStore.get().getClusterData(dataFileName, mainFrame);
-			ClusterTreeTableModel model = new ClusterTreeTableModel(ct, ests); 
+			MSTClusterData clusterEntry = (MSTClusterData) wsEntry;
+			MSTData mstEntry = Workspace.get().getMSTData(clusterEntry.getJobSummary().getJobID());
+			if (!mstEntry.getID().equals(clusterEntry.getMSTID())) {
+				// The cluster file and MST file ID's don't match. Bummer. Bail out.
+				return null;
+			}
+			ClusterTreeTableModel model = new ClusterTreeTableModel(ct, ests, (MSTClusterData) wsEntry); 
 			view = new ClusterTreeTableView(model, mainFrame);
+			// Load the MST data for use.
+			// MST mst = DataStore.get().getMSTData(mstEntry.getPath(), mainFrame);
+			// OverlapModel pam = OverlapModel.create(ct, ests, mst);
+			// view = new OverlapView(mainFrame, pam, ct);
 		} else if (ViewType.EST_FILE.equals(viewType)) {
-			// Currently not implemented maybe a simple text area
-			// would suffice?
-			view = createTextView(estFileName);
+			ESTTableModel model = new ESTTableModel(ests);
+			view = new ESTTableView(model, mainFrame);
 		} else if (ViewType.HTML_VIEW.equals(viewType)) {
 			// Create an HTML view of the specified data file.
 			view = new GenericHTMLView(dataFileName, mainFrame);
@@ -361,6 +382,74 @@ public abstract class ViewFactory implements DnDTabListener {
 		creator.start();
 	}
 
+	/**
+	 * Method to create a overlap view for a given entry.
+	 * 
+	 * This method performs the actual loading process via  a
+	 * background thread so that the GUI does not become unresponsive
+	 * as the data is loaded.
+	 * 
+	 * @param cluster The MSTClusterDAta object for which a graphical
+	 * overlap view is to be created and added to the viewing area.
+	 */
+	public void createOverlapView(final MSTClusterData cluster) {
+		final String dataFileName = cluster.getPath();
+		ViewType viewType   = ViewType.OVERLAP_VIEW;
+		// Check and handle duplicate file name & view type.
+		String viewSignature = dataFileName + "_" + viewType;
+		if (views.get(viewSignature) != null) {
+			// The view already exists. Nothing further to be done.
+			emphasize(views.get(viewSignature).get(0));
+			return;
+		}
+		Thread creator = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					// Set cursor to indicate longer operations
+					mainFrame.getContentPane().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
+					// Load the cluster file.
+					ClusterFile ct = DataStore.get().getClusterData(dataFileName, mainFrame);
+					// Next load the MST file.
+					MSTData mstEntry = Workspace.get().getMSTData(cluster.getJobSummary().getJobID());
+					if ((mstEntry == null) || (!mstEntry.getID().equals(cluster.getMSTID()))) {
+						// The cluster file and MST file ID's don't match. Bummer. Bail out.
+						throw new Exception("Could not locate matching MST file in workspace."); 
+					}
+					// Load the MST data for use.
+					MST mst = DataStore.get().getMSTData(mstEntry.getPath(), mainFrame);
+					// Load the EST file as well if needed.
+					String estFileName = cluster.getDataSet().getPath();
+					ESTList ests = DataStore.get().getFASTA(estFileName, mainFrame);
+					// Create the view and the model
+					OverlapModel pam = OverlapModel.create(ct, ests, mst);
+					final OverlapView view = new OverlapView(mainFrame, pam, ct);
+					// Add the view to the center panel in the main frame.
+					SwingUtilities.invokeAndWait(new Runnable() {
+						@Override
+						public void run() {
+							addView(view, dataFileName, ViewType.OVERLAP_VIEW);
+						}
+					});
+				} catch (Exception exp) {
+					// Reset cursor type
+					mainFrame.getContentPane().setCursor(Cursor.getDefaultCursor());
+					JPanel msg = Utilities.collapsedMessage(CANT_MAKE_VIEW, 
+							Utilities.toString(exp));
+					JOptionPane.showMessageDialog(mainFrame, msg, 
+							"Error creating view", 
+							JOptionPane.ERROR_MESSAGE);
+				} finally {
+					// Reset cursor type
+					mainFrame.getContentPane().setCursor(Cursor.getDefaultCursor());
+				}
+
+			}			
+		});
+		// Start the view creation in background.
+		creator.start();
+	}
+	
 	/**
 	 * Method to create a graph type of view for a given entry.
 	 * 
@@ -483,7 +572,7 @@ public abstract class ViewFactory implements DnDTabListener {
 			viewType               = ViewType.CLUSTER_FILE;
 		}
 		// Now get the other public method do the view creation.
-		createView(dataFileName, estFileName, viewType, duplicate, textView);
+		createView(dataFileName, estFileName, viewType, duplicate, textView, wsEntry);
 	}
 
 	/**
@@ -510,9 +599,13 @@ public abstract class ViewFactory implements DnDTabListener {
 	 * 
 	 * @param textView If this flag is true, then a textual view of the data is
 	 * created.
+	 * 
+	 * @param wsEntry The workspace entry for which the view is to be created.
+	 * This value is set for some of the views (like: ClusterTreeTableView and
+	 * ClusterSummaryView).
 	 */
 	public void createView(String dataFileName, String estFileName, ViewType viewType,
-			boolean duplicate, final boolean textView) {
+			boolean duplicate, final boolean textView, final Object wsEntry) {
 		// Check and handle duplicate file name & view type.
 		String viewSignature = dataFileName + "_" + (textView ? ViewType.TEXT_VEIW : viewType);
 		if ((!duplicate) &&  (views.get(viewSignature) != null)) {
@@ -537,7 +630,7 @@ public abstract class ViewFactory implements DnDTabListener {
 					if (textView) {
 						view = createTextView(finalDataFileName);
 					} else {
-						view = createDefaultView(finalEstFileName, finalDataFileName, finalViewType);
+						view = createDefaultView(finalEstFileName, finalDataFileName, finalViewType, wsEntry);
 					}
 					// Now we should have a valid view.
 					if (view == null) {
@@ -551,11 +644,11 @@ public abstract class ViewFactory implements DnDTabListener {
 							addView(finalView, finalDataFileName, finalViewType);	
 						}
 					});
-				} catch (Exception exp) {
+				} catch (Throwable thr) {
 					// Reset cursor type
 					mainFrame.getContentPane().setCursor(Cursor.getDefaultCursor());
 					final JPanel msg = Utilities.collapsedMessage(CANT_MAKE_VIEW, 
-							Utilities.toString(exp));
+							Utilities.toString(thr));
 					JOptionPane.showMessageDialog(mainFrame, msg, 
 							"Error creating view", 
 							JOptionPane.ERROR_MESSAGE);
@@ -714,6 +807,7 @@ public abstract class ViewFactory implements DnDTabListener {
 		Utilities.getIcon("images/16x16/MST.png"),
 		Utilities.getIcon("images/16x16/Cluster.png"),
 		Utilities.getIcon("images/16x16/ClusterSummary.png"),
+		Utilities.getIcon("images/16x16/OverlapView.png"),
 		Utilities.getIcon("images/16x16/HTML.png"),
 		Utilities.getIcon("images/16x16/TextView.png"),
 		Utilities.getIcon("images/16x16/DefaultView.png")

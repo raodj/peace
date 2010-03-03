@@ -273,7 +273,10 @@ implements Runnable, ActionListener {
 			// Do the page change in from the main AWT thread.
 		} catch (Exception e) {
 			exp = e;
+		} catch (Throwable thr) {
+			exp = new Exception(thr);
 		}
+		
 		// Show the results in the main AWT thread.
 		final Exception error = exp;
 		final JPanel page     = this;

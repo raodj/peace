@@ -110,9 +110,9 @@ public class SummaryWizardPage extends GenericWizardPage {
 		// Populate the text area with data on the EST file.
 		double stats[] = wizard.getESTList().computeStatistics();
 		// Convert the stats to a string.
-		String statistics = String.format(STATS_STR, wizard.getESTList().getESTs().size(), 
-				(int) stats[2], (float) stats[3], 
-				(int) stats[0], (int) stats[1]);
+		String statistics = String.format(STATS_STR, (int) stats[0], 
+				(int) stats[3], (float) stats[4], 
+				(int) stats[1], (int) stats[2]);
 		// Set it up for display.
 		infoFields[1].setText(statistics);
 	}

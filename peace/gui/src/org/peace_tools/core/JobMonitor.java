@@ -252,9 +252,13 @@ public class JobMonitor implements Runnable {
 		progInfo[0] = progInfo[0].trim();
 		int comma = progInfo[0].indexOf(',');
 		int estsAnalyzed = Integer.parseInt(progInfo[0].substring(0, comma));
-		int estCount     = Integer.parseInt(progInfo[0].substring(comma + 1));
+		int estCount     = Integer.parseInt(progInfo[0].substring(comma + 1).trim());
 		// Update job progress information if progress has changed.
 		int[] prevProgress = job.getProgressInfo();
+		// Log progress information for debugging purposes.
+		// Date now = new Date();
+		// ProgrammerLog.log("Job monitor for " + job.getJobID() + " at " + now + 
+		//		" -- progress = " + progInfo[0] + "\n");
 		if (estsAnalyzed > prevProgress[0]) {
 			// There has been advancement.
 			job.setProgress(estsAnalyzed, estCount);
@@ -262,7 +266,7 @@ public class JobMonitor implements Runnable {
 			recheckDelay = Math.max(250, recheckDelay / 2);
 		} else {
 			// No update. Don't bother checking so frequently then.
-			recheckDelay = Math.min(60000, recheckDelay * 2);
+			recheckDelay = Math.min(30000, recheckDelay * 2);
 		}
 		
 		// Next process and obtain overall runtime status.

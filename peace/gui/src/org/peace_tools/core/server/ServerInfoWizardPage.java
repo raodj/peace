@@ -534,12 +534,16 @@ implements Runnable, ActionListener {
 	 * on the remote machine on which PEACE is being installed.
 	 */
 	private static final String NO_MPI_MSG = "<html>" + 
-		"The MPI C++ compiler (mpicc) was not found in the default path.<br>" +
-		"Most likely MPI is not installed on the machine or your path is<br>" +
-		"incorrectly setup. You need to contact your system adminstrator to<br>" +
+		"The MPI C++ compiler (mpicc) was not found in the default path<br>" +
+		"(You need to set path in <b>.bashrc</b> for bash and in <b>.cshrc</b> for tcsh).<br>" +
+		"Either MPI is not installed on the machine or your path is<br>" +
+		"incorrectly setup. You need to contact your system adminstrator<br>" +
 		"to determine if MPI is setup or if your path is not correct. Some<br>" +
 		"clusters require MPI module(s) to be loaded manually, which your<br>" +
 		"administrator can automate so that PEACE finds mpicc correctly.<br><br>" +
+		"<b>Note that PEACE uses a non-interactive shell to communicate<br>" +
+		"with remote hosts. Therefore ensure your setup is consistent<br>" + 
+		"in both interactive and non-interactive logins/shells.</b><br><br>" +	
 		"You may still procceed further with the default non-MPI based C++<br>" +
 		"compiler. <i>However, PEACE will not run in parallel mode.</i><br><br>" +
 		"Do you wish to proceed with default C++ compiler (if available)?</html>";
