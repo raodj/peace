@@ -249,7 +249,7 @@ AC_DEFUN([AC_PROG_GCC],
 
      if test -z "$gcc"; then
          AC_MSG_CHECKING([for gcc])
-         gcc=`mpicxx --version 2>&1 | grep -i "GCC"`
+         gcc=`mpicxx --version 2>&1 | grep -i -w "GCC"`
 	 	 if test -n "$gcc"; then
 	     	gcc="yes"
 	 	 else
@@ -261,6 +261,8 @@ AC_DEFUN([AC_PROG_GCC],
      if test "yes" == "$gcc"; then
 	 	USING_GCC="-DGCC"
 		AC_CHECK_GCC_VERSION
+                AC_CHECK_ARGS([-O3], [OPT_O3="-O3"], [OPT_O3=""])
+                AC_SUBST(OPT_O3)
      else
      	USING_GCC=""
      fi
@@ -335,7 +337,7 @@ AC_CHECK_MPICC
 AC_PROG_RANLIB
 
 # Check and set some default compiler flags for the build
-AC_CHECK_ARGS([-Minform,warn], [INFORM_WARN="-Minform=warn"], [INFORM_WARN=""])
+AC_CHECK_ARGS([-Minform=warn], [INFORM_WARN="-Minform=warn"], [INFORM_WARN=""])
 AC_SUBST(INFORM_WARN)
 AC_CHECK_ARGS([-Wall], [WALL="-Wall"], [WALL=""])
 AC_SUBST(WALL)
@@ -343,8 +345,8 @@ AC_CHECK_ARGS([-Wextra], [WEXTRA="-Wextra"], [WEXTRA=""])
 AC_SUBST(WEXTRA)
 AC_CHECK_ARGS([-pipe], [PIPE="-pipe"], [PIPE=""])
 AC_SUBST(PIPE)
-AC_CHECK_ARGS([-O3], [OPT_O3="-O3"], [OPT_O3=""])
-AC_SUBST(OPT_O3)
+AC_CHECK_ARGS([-fast], [FAST="-fast"], [FAST=""])
+AC_SUBST(FAST)
 
 # Checks for libraries.
 #AC_CHECK_LIB([pthread], [pthread_create])
