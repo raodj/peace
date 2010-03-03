@@ -45,7 +45,11 @@ import org.peace_tools.core.MainFrame;
 import org.peace_tools.core.job.JobWizard;
 import org.peace_tools.generic.Utilities;
 import org.peace_tools.workspace.DataSet;
+import org.peace_tools.workspace.Job;
+import org.peace_tools.workspace.JobBase;
 import org.peace_tools.workspace.MSTClusterData;
+import org.peace_tools.workspace.MSTData;
+import org.peace_tools.workspace.Workspace;
 
 /**
  * Class to generate and handle pop-up menus for data set viewers.
@@ -84,6 +88,9 @@ public class DataSetPopupMenu extends JPopupMenu implements ActionListener {
 				"Clustering summary graph", "summary", this, 
 				"images/16x16/ClusterSummary.png", null, true, false));
 		add(Utilities.createMenuItem(Utilities.MENU_ITEM, 
+				"Overlap analysis graph", "overlap", this, 
+				"images/16x16/OverlapView.png", null, true, false));
+		add(Utilities.createMenuItem(Utilities.MENU_ITEM, 
 				"Show with text editor", "text", this, 
 				"images/16x16/TextView.png", null, true, false));
 		addSeparator();
@@ -117,11 +124,30 @@ public class DataSetPopupMenu extends JPopupMenu implements ActionListener {
 		getComponent(1).setEnabled(entry instanceof DataSet);
 		// getComponent(1).setEnabled(entry instanceof MSTData);
 		getComponent(4).setEnabled(entry instanceof MSTClusterData);
+		getComponent(5).setEnabled(entry instanceof MSTClusterData);
 		// Enable/disable expand or collapse options
 		if (isTreeView) {
-			getComponent(8).setEnabled(isExpanded);
-			getComponent(9).setEnabled(!isExpanded);
+			getComponent(9).setEnabled(isExpanded);
+			getComponent(10).setEnabled(!isExpanded);
 		}
+		// Disable the delete option if the job associated with this entry
+		// is not yet finished running.
+		Job job = null;
+		boolean jobDone = true;
+		if (entry instanceof MSTClusterData) {
+			String jobID = ((MSTClusterData) entry).getJobSummary().getJobID();
+			job = Workspace.get().getJobList().getjob(jobID);
+		} else if (entry instanceof MSTData) {
+			String jobID = ((MSTData) entry).getJobSummary().getJobID();
+			job = Workspace.get().getJobList().getjob(jobID);
+		}
+		if (job != null) {
+			// Check if the job is done running.
+			jobDone = JobBase.JobStatusType.FAILED.equals(job.getStatus()) ||
+				JobBase.JobStatusType.SUCCESS.equals(job.getStatus());
+		}
+		// Update deletion status based on job status.
+		getComponent(8).setEnabled(jobDone);
 		// Save current entry for use in actionPerformed method
 		this.entry = entry;
 	}
@@ -139,6 +165,10 @@ public class DataSetPopupMenu extends JPopupMenu implements ActionListener {
 				(entry instanceof MSTClusterData)) {
 			// Check and display cluster summary 
 	        mainFrame.getViewFactory().createSummaryView((MSTClusterData) entry);
+		} else if ("overlap".equals(cmd) && (entry != null) &&
+				(entry instanceof MSTClusterData)) {
+			// Check and display overlap view
+	        mainFrame.getViewFactory().createOverlapView((MSTClusterData) entry);
 		} else if ("delete".equals(cmd) && (entry != null)) {
 			// Delete the entry via the delete dialog.
 			DeleteDialog delDiag = new DeleteDialog(mainFrame, entry);
