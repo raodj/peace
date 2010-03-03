@@ -81,31 +81,31 @@ public:
 
     /** Dump the alignment to the output file.
 
-	This method merely calls the drawEST() method to draw all the
-	ESTs.  It first draws the refernece EST and then draws the
-	remaining ESTs.
+        This method merely calls the drawEST() method to draw all the
+        ESTs.  It first draws the refernece EST and then draws the
+        remaining ESTs.
 
-	\param[in] rectHeight The height of the rectangle (in XFig
-	units) to be drawn for each EST.  If this value is -1, then
-	the actual sequence is displayed.
+        \param[in] rectHeight The height of the rectangle (in XFig
+        units) to be drawn for each EST.  If this value is -1, then
+        the actual sequence is displayed.
     */
     bool drawAlignment(const int rectHeight);
 
     /** Obtain a row to draw an EST.
 
-	This method may be used to obtain a row to draw an EST.  This
-	method iteratively searches through the rowUsage vector to
-	find a row which is not filled up to the start column. If a
-	row is not found then a new row is added. The row usage is
-	updated to the end column specified.
+        This method may be used to obtain a row to draw an EST.  This
+        method iteratively searches through the rowUsage vector to
+        find a row which is not filled up to the start column. If a
+        row is not found then a new row is added. The row usage is
+        updated to the end column specified.
 
-	\param[in] start The starting column from where the EST is to
-	be drawn.
+        \param[in] start The starting column from where the EST is to
+        be drawn.
 
-	\param[in] end The ending column where the EST ends.
+        \param[in] end The ending column where the EST ends.
 
-	\return The logical row in the figure where the EST is to be
-	drawn.
+        \return The logical row in the figure where the EST is to be
+        drawn.
     */
     int getRow(const int start, const int end);
     
@@ -121,55 +121,55 @@ protected:
 
     /** \typedef std::pair<int, int> UseEntry
 
-	\brief A typedef for a pair of values to store starting and
-	ending column usages in a given row.
+        \brief A typedef for a pair of values to store starting and
+        ending column usages in a given row.
 
-	This typedef provides a shortcut to refer to entries
-	containing the space usage in each row.  \c UsageEntry.first
-	indicates the smallest (or first) column (on a given row)
-	where EST information has already been written while \c
-	UsageEntry.second contains the last column where a EST entry
-	has been written.
+        This typedef provides a shortcut to refer to entries
+        containing the space usage in each row.  \c UsageEntry.first
+        indicates the smallest (or first) column (on a given row)
+        where EST information has already been written while \c
+        UsageEntry.second contains the last column where a EST entry
+        has been written.
     */
     typedef std::pair<int, int> UseEntry;
     
     /** Tracks the columns on each row used thus far.
 
-	This vector tracks the maximum column (on each row) on which
-	data has already been written.  This array is used to ensure
-	that EST information do not overlap.
+        This vector tracks the maximum column (on each row) on which
+        data has already been written.  This array is used to ensure
+        that EST information do not overlap.
     */
     std::vector<UseEntry> rowUsage;
           
     /** Helper method to draw a given est.
 
-	This helper method is used to draw a single EST as an XFig
-	entity. This method operates as follows:
+        This helper method is used to draw a single EST as an XFig
+        entity. This method operates as follows:
 
-	<ol>
+        <ol>
 
-	<li>If the index is not -1, then it assumes the EST is not a
-	reference EST and parses the header assuming it is in the
-	format: g001_000001_000001. If the gene/transcript number (the
-	first 3-digts) is not a match to the gene being processed then
-	this method returns immediately. Otherwise it extracts the
-	start and end positions for the EST (the second and third 6
-	digit numbers respectively) for further use below.</li>
+        <li>If the index is not -1, then it assumes the EST is not a
+        reference EST and parses the header assuming it is in the
+        format: g001_000001_000001. If the gene/transcript number (the
+        first 3-digts) is not a match to the gene being processed then
+        this method returns immediately. Otherwise it extracts the
+        start and end positions for the EST (the second and third 6
+        digit numbers respectively) for further use below.</li>
 
-	<li>Next, it converts the index to a string to ease display.</li>
+        <li>Next, it converts the index to a string to ease display.</li>
 
-	<li>Next it determines the logical row in which the EST must
-	be displayed by calling the getRow() method.</li>
+        <li>Next it determines the logical row in which the EST must
+        be displayed by calling the getRow() method.</li>
 
-	<li>First the index is rendered in Courier font using a fixed
-	font size (currently 6 pt).</li>
+        <li>First the index is rendered in Courier font using a fixed
+        font size (currently 6 pt).</li>
 
-	<li>If rectHeight is not -1, then this method draws a
-	rectangle to fill the space for the EST. Otherwise it draws
-	the actual sequence for the EST.</li>
+        <li>If rectHeight is not -1, then this method draws a
+        rectangle to fill the space for the EST. Otherwise it draws
+        the actual sequence for the EST.</li>
 
-	</ol>
-     */
+        </ol>
+    */
     void drawEST(const int index, const EST* est, const int rectHeight = -1);
 
 private:
@@ -205,48 +205,48 @@ private:
 
     /** Obtain start and end column from EST's FASTA header.
 
-	This is a helper method that is used to obtain the alignment
-	information from an EST's FASTA header.  This method
-	consistently trys and extracts information from two different
-	formats of ESTs: "g001_<stcol>_<endCol>" or
-	"...|<genStCol><genEndCol>".
+        This is a helper method that is used to obtain the alignment
+        information from an EST's FASTA header.  This method
+        consistently trys and extracts information from two different
+        formats of ESTs: "g001_<stcol>_<endCol>" or
+        "...|<genStCol><genEndCol>".
 
-	\param[in] est The EST whose starting and ending column are to
-	be extracted.
+        \param[in] est The EST whose starting and ending column are to
+        be extracted.
 
-	\param[out] startCol This parameter is set with the starting
-	column where the EST is to be aligned.
+        \param[out] startCol This parameter is set with the starting
+        column where the EST is to be aligned.
 
-	\param[out] endCol This parameter is set to the ending column
-	where the EST ends.
+        \param[out] endCol This parameter is set to the ending column
+        where the EST ends.
 
-	\return This method returns \c true if the data was
-	successfully read.  If data was not read successfully, then
-	this method generates a suitable error message and returns \c
-	false.
+        \return This method returns \c true if the data was
+        successfully read.  If data was not read successfully, then
+        this method generates a suitable error message and returns \c
+        false.
     */
     bool getStartEnd(const EST* est, int &startCol, int& endCol) const;
 
     /** Obtain color coding information (if any) for a given EST.
 
-	This method is a helper method that is used to determine
-	additional color coding information for a given EST.  If a
-	color code is available (based on clustering) then this method
-	returns that color. Otherwise this method returns black as the
-	default color.
+        This method is a helper method that is used to determine
+        additional color coding information for a given EST.  If a
+        color code is available (based on clustering) then this method
+        returns that color. Otherwise this method returns black as the
+        default color.
 
-	\note This method consistently trys and extracts original gene
-	name from two different formats of ESTs:
-	"g001_<stcol>_<endCol>" or "...|<genStCol><genEndCol>" to
-	provide consistent color coding based on clustering
-	information.
+        \note This method consistently trys and extracts original gene
+        name from two different formats of ESTs:
+        "g001_<stcol>_<endCol>" or "...|<genStCol><genEndCol>" to
+        provide consistent color coding based on clustering
+        information.
 
-	\param[in] est The EST for which color coding information is
-	to be computed.
+        \param[in] est The EST for which color coding information is
+        to be computed.
 
-	\return This method returns a color code extracted from the
-	colorMap.  If a color code is not found, then this method
-	returns black as the default color code.
+        \return This method returns a color code extracted from the
+        colorMap.  If a color code is not found, then this method
+        returns black as the default color code.
     */
     int getColor(const EST* est) const;
 };

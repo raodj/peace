@@ -92,6 +92,27 @@ Tool::loadClusterInfo(const char* fileName) {
     return clstrFile.eof();
 }
 
+void
+Tool::setClustersToColor(std::string clusterList) {
+    while (!clusterList.empty()) {
+        // Locate the next comma character and get cluster index
+        const std::string::size_type commaPos = clusterList.find(',');
+        const std::string indexStr = clusterList.substr(0, commaPos);
+        // Convert string to integer and add it to hash map.
+        int index = (int) strtol(indexStr.c_str(), NULL, 10);
+        // Setup flag in instance-variable.
+        clustersToColor[index] = true;
+        // Remove already processed index appropriately
+        if (commaPos == std::string::npos) {
+            // No comma, so this was the last value
+            clusterList.clear();
+        } else {
+            // clusterList becomes the remaining values.
+            clusterList = clusterList.substr(commaPos + 1);
+        }
+    }
+}
+
 int
 Tool::getColor(const int estIdx, const int defaultColor) const {
     const EST *est = EST::getEST(estIdx);
@@ -102,6 +123,7 @@ Tool::getColor(const int estIdx, const int defaultColor) const {
         // Entry found. Update color.
         color = entry->second + USER_COLOR_START;
     }
+    
     // return either the default or the supplied color.
     return color;
 }
