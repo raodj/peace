@@ -249,11 +249,11 @@ public class ClusterFile {
 	protected static void makeClusterNode(ArrayList<ClusterNode> nodeList, 
 			String line) throws IOException {
 		// Extract the ',' separated values. The values are in the form:
-		// C, <clstrID>, <parentClstrID>   OR 
-		// E, <estIdx, clstrId>
+		// C, <clstrID>, <parentClstrID>, <clusterName>   OR 
+		// E, <estIdx>, <clstrId>
 		String[] entries = line.split(",");
-		// Ensure we have exactly 3 entries.
-		if (entries.length != 3) {
+		// Ensure we have 3 or 4 entries.
+		if ((entries.length < 3) || (entries.length > 4)) {
 			throw new IOException("Invalid data line in cluster file " +
 					"(line: " + line + ")");
 		}
@@ -262,12 +262,13 @@ public class ClusterFile {
 		ClusterNode node = null;
 		switch("CE".indexOf(entries[0].charAt(0))) {
 		case 0: // Cluster node
-			node = new ClusterNode(null, false, nodeID);
+			final String name = (entries.length == 4) ? entries[3] : "";
+			node = new ClusterNode(null, false, nodeID, name); 
 			// Add cluster node to the list of nodes for future reference
 			nodeList.add(node);
 			break;
 		case 1: // EST node
-			node = new ClusterNode(null, true, nodeID);
+			node = new ClusterNode(null, true, nodeID, null);
 			break;
 		default: // Bad node!
 			throw new IOException("Unknown data line in cluster file " +

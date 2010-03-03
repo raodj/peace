@@ -100,6 +100,22 @@ public class MST {
 	public MSTNode getRoot() { return root; }
 	
 	/**
+	 * Determine if all nodes in this MST have alignment information.
+	 * 
+	 * This method can be used to determine if all the nodes in this MST
+	 * have alignment information. This information is handy to organize
+	 * the fragments in the nodes in a more intuitive form to illustrate
+	 * overlaps and for other visual analysis.
+	 * 
+	 * @return This method returns true if all the nodes in this MST have
+	 * alignment information. Otherwise (even if one node does not have
+	 * alignment information) then this method returns false.
+	 * 
+	 * @see OverlapModel
+	 */
+	public boolean hasAlignmentInfo() { return this.haveAlignmentInfo; }
+	
+	/**
 	 * This method loads MST data into an in-memory format.
 	 * 
 	 * This method must be used to load MST data from a PEACE generated
@@ -148,7 +164,10 @@ public class MST {
 		HashMap<Integer, MSTNode> nodeList = new HashMap<Integer, MSTNode>();
 		// Put dummy parent entry for root
 		nodeList.put(-1, null);
-		// Process line-by-line from the MST file.
+		// Process line-by-line from the MST file and track if all nodes have
+		// alignment information (the following haveAlignInfo gets set to false
+		// even if a single node does not have alignment information).
+		boolean haveAlignInfo = true;
 		while (input.hasNextLine()) {
 			// Read the line in and ignore blank lines
 			String line = input.nextLine().trim();
@@ -162,11 +181,17 @@ public class MST {
 				mst.metadata.add(makeMetadataEntry(line));
 			} else {
 				// Process the line with MST node information.
-				makeMSTNode(nodeList, line);
+				haveAlignInfo &= makeMSTNode(nodeList, line);
+				// Make a note of the root node 
+				if (mst.root == null) {
+					Integer rootID = nodeList.keySet().iterator().next();
+					mst.root = nodeList.get(rootID);
+					assert ( mst.root != null );
+				}
 			}
 		}
-		// OK, now that we have read all the data update the MST
-		mst.root = nodeList.get(0);
+		// Setup if mst has alignment information for all nodes
+		mst.haveAlignmentInfo = haveAlignInfo;
 		// return the newly loaded/created mst.
 		return mst;
 	}
@@ -185,10 +210,13 @@ public class MST {
 	 * @param line The line containing node data to be processed and
 	 * converted to a MSTNode.
 	 * 
+	 * @return This method returns true if the line contained an alignment
+	 * information.
+	 * 
 	 * @throws IOException This method throws an exception if the data
 	 * was invalid or not read.
 	 */
-	protected static void makeMSTNode(HashMap<Integer, MSTNode> nodeList, 
+	protected static boolean makeMSTNode(HashMap<Integer, MSTNode> nodeList, 
 			String line) throws IOException {
 		// Extract the ',' separated values. The values are in the form:
 		// <parentIdx>, <estIdx>, <metric>, <alignment>
@@ -202,8 +230,10 @@ public class MST {
 		int   estIdx      = Integer.parseInt(entries[1]);
 		float metric      = Float.parseFloat(entries[2]);
 		int   alignment   = 0;
+		boolean haveAlign = false;
 		if (entries.length == 4) {
 			alignment = Integer.parseInt(entries[3]);
+			haveAlign = true; // Track this node has alignment information
 		}
 		// Ensure the the estIndex and parentIdx are valid.
 		if ((parentIdx < -1) || (!nodeList.containsKey(parentIdx))) {
@@ -224,6 +254,8 @@ public class MST {
 		}
 		// Add the EST to the list of ESTs for future reference
 		nodeList.put(new Integer(estIdx), child);
+		// Return if the new node has alignment information
+		return haveAlign;
 	}
 	
 	/**
@@ -266,6 +298,7 @@ public class MST {
 		this.fileName = fileName;
 		this.root     = null;
 		this.metadata = new ArrayList<Pair>();
+		this.haveAlignmentInfo = false;
 	}
 	
 	/**
@@ -279,6 +312,14 @@ public class MST {
 	 * node.
 	 */
 	private MSTNode root;
+	
+	/**
+	 * Flag to indicate if the MST data contains initial, pre-assembly alignment
+	 * metric that is useful to detect where overlaps between two adjacent 
+	 * (parent-child) fragments occur to obtain the given alignment metric. This
+	 * value is set when the MST is loaded from a data file.
+	 */
+	private boolean haveAlignmentInfo;
 	
 	/**
 	 * The set of meta data that was loaded from the MST file. The
