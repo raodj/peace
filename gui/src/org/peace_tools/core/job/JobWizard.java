@@ -45,10 +45,13 @@ import org.peace_tools.generic.GenericWizardPage;
 import org.peace_tools.generic.Utilities;
 import org.peace_tools.generic.WizardDialog;
 import org.peace_tools.workspace.DataSet;
+import org.peace_tools.workspace.FWAnalyzer;
 import org.peace_tools.workspace.Job;
+import org.peace_tools.workspace.JobList;
 import org.peace_tools.workspace.JobSummary;
 import org.peace_tools.workspace.MSTClusterData;
 import org.peace_tools.workspace.MSTData;
+import org.peace_tools.workspace.Server;
 import org.peace_tools.workspace.Workspace;
 
 /**
@@ -94,6 +97,9 @@ public class JobWizard extends WizardDialog {
 		// Create heuristics information page
 		hwp = new HeuristicsWizardPage(this, awp);
 		addPage(hwp);
+		// Create filter information page.
+		fwp = new FiltersWizardPage(this);
+		addPage(fwp);
 		// Create the MST file information file.
 		mwp = new MSTWizardPage(this);
 		addPage(mwp);
@@ -210,14 +216,13 @@ public class JobWizard extends WizardDialog {
 		// Add the MST, cluster, and job entries to the work space.
 		Workspace workspace = Workspace.get();
 		// First create a full job entry for this job.
-		job = mwp.createJobEntry(jiwp.getDescription());
+		job = createJobEntry();
 		// Build a job summary.
 		JobSummary summary = new JobSummary(job);
 		// Next create the MSTData entry.
 		mstData = new MSTData(workspace.reserveID(), 
 				MSTData.MSTBuilderType.MST, mwp.getMSTFile(), 
-				"", awp.getAnalyzer(), 
-				hwp.getHeuristics(), summary);
+				"", awp.getAnalyzer(), summary);
 		// Finally create the cluster entry.
 		clusterData = cwp.getClusterEntry(workspace.reserveID(), 
 				mstData.getID(), summary);
@@ -230,6 +235,43 @@ public class JobWizard extends WizardDialog {
 	}
 
 	/**
+	 * Helper method to create the job entry to be added to the workspace.
+	 * 
+	 * This method is a helper method that is used to create the actual
+	 * job entry in the workspace. This method is invoked from the 
+	 * createWorkspaceEntries() method. This method obtains information
+	 * from various wizard pages and uses them to create the job entry.
+	 * 
+	 * @return The workspace object that represents the new job created
+	 * by this method.
+	 */
+	private Job createJobEntry() {
+		// Determine ID of the selected server.
+		Server server   = mwp.getSelectedServer();
+		// Get the nodes and cpus/node..
+		int platformInfo[] = mwp.getPlatformConfiguration();
+		// Get an unique ID for this job.
+		JobList   jobList   = Workspace.get().getJobList();
+		// Now we have all the info to create the new job entry. The
+		// only thing critical thing that is not yet finalized is
+		// the path where the job files are stored on the remote 
+		// server. That will happen once the job is actually submitted.
+		Job job = new Job(jobList.reserveJobID(),
+				jiwp.getDescription(),
+				server.getID(),	null, 
+				platformInfo[0],     // number of nodes, 
+				platformInfo[1],     // cpus per node, 
+				platformInfo[2],     // memory, 
+				platformInfo[3],     // runTime
+				hwp.getHeuristics(), // heuristic list
+				fwp.getFilters()     // Filter list
+				);
+		System.out.println(job.toCmdLine());
+		// Return the newly created job entry.
+		return job;
+	}
+	
+	/**
 	 * This is a helper method that is invoked from the last wizard
 	 * page (SubmitJobWizardPage) to obtain summary data. This method
 	 * creates a job summary string and returns it back to the caller.
@@ -239,15 +281,26 @@ public class JobWizard extends WizardDialog {
 	protected String getSummary() {
 		StringBuilder sb = new StringBuilder();
 		// Obtain the necessary information into a simple string.
-		sb.append("SUMMARY OF JOB\n\n");
+		sb.append("SUMMARY OF JOB\n");
 		// Append information about the server and nodes.
 		sb.append(mwp.getSummary("\t"));
+		// Append information about the heuristics being used.
+		sb.append("\n\nHEURISTICS INFORMATION:\n");
+		if (this.getAnalyzerType().equals(FWAnalyzer.FWAnalyzerType.TWOPASSD2)) {
+			sb.append("\tAutomatically configured u/v and t/v heuristics\n");
+		} else {
+			sb.append(hwp.getHeuristicsSummary());
+		}
+		// Append information about filters being used.
+		sb.append("\nFILTER INFORMATION:\n");
+		sb.append(fwp.getSummary());
+		
 		// Append information about the MSTData file by creating a
 		// temporary dummy entry.
 		MSTData mstEntry = new MSTData("TBD", 
 				MSTData.MSTBuilderType.MST, mwp.getMSTFile(), 
 				jiwp.getDescription(), awp.getAnalyzer(), 
-				hwp.getHeuristics(), null);
+				null);
 		sb.append("\nMST Data Summary:\n");
 		sb.append(mstEntry.getSummary("\t"));
 		// Append information about cluster file by creating a 
@@ -271,6 +324,22 @@ public class JobWizard extends WizardDialog {
 	 */
 	protected String getMSTFileName() {
 		return mwp.getMSTFile();
+	}
+	
+	/**
+	 * Obtain the currently selected analyzer.
+	 * 
+	 * This method is a convenience method that can be used by other
+	 * wizard pages to determine the type of the wizard that the user
+	 * has currently selected. Currently this method is used by the
+	 * HeuristicsWizardPage and ClusterWizardPage to enable or disable 
+	 * configuration.
+	 * 
+	 * @return A predefined enumeration defining the type of analyzer that
+	 * the user has currently chosen.
+	 */
+	protected FWAnalyzer.FWAnalyzerType getAnalyzerType() {
+		return awp.getAnalyzerType();
 	}
 	
 	/**
@@ -317,8 +386,21 @@ public class JobWizard extends WizardDialog {
 	 */
 	public String toCmdLine(String estFile) {
 		String cmdLine = "--estFile " + estFile;
+		// Check and suppress base masking.
+		if (!jiwp.isMaksBasesSet()) {
+			// Disable base masking. That is atcg is
+			// equal to ATCG.
+			cmdLine += " --no-mask-bases";
+		}
 		cmdLine += " " + mstData.toCmdLine();
 		cmdLine += " " + clusterData.toCmdLine();
+		// Add parameters for heuristics if it is not two pass d2. For two pass
+		// d2 PEACE (C++ engine) automatically sets up the heuristics it needs.
+		if (!getAnalyzerType().equals(FWAnalyzer.FWAnalyzerType.TWOPASSD2)) {
+			cmdLine += " " + job.getHeuristicsCmdLine();
+		}
+		// Add parameters for filters.
+		cmdLine += " " + job.getFiltersCmdLine();
 		// Add command line option to generate progress information
 		cmdLine += " --progress progress.dat";
 		return cmdLine;
@@ -342,6 +424,13 @@ public class JobWizard extends WizardDialog {
 	 */
 	private final HeuristicsWizardPage hwp;
 
+	/**
+	 * The filter wizard page that contains information about the various
+	 * filters configured by the user to weed out problematic ESTs that
+	 * could negatively impact the quality of clustering. 
+	 */
+	private final FiltersWizardPage fwp;
+	
 	/**
 	 * The wizard page that collects information about the MST file
 	 * and the server on which the job is to be run.

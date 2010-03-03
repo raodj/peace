@@ -36,7 +36,10 @@ package org.peace_tools.core.job;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -60,7 +63,7 @@ import org.peace_tools.workspace.FWAnalyzer;
  * When the "Next >" button is clicked this wizard populates the
  * user supplied information in FWAnalyzer data structure.
  */
-public class AnalyzerWizardPage extends GenericWizardPage {
+public class AnalyzerWizardPage extends GenericWizardPage implements ActionListener {
 	/**
 	 * The constructor. The constructor sets up the various components
 	 * on this wizard page. The components include: combo box to
@@ -79,7 +82,7 @@ public class AnalyzerWizardPage extends GenericWizardPage {
 		// Create the combo-box with list of analyzers.
 		analyzerList = new JComboBox(ANALYZERS);
 		analyzerList.setBackground(Color.white);
- 				
+ 		analyzerList.addActionListener(this);	
 		// Create panel with the combo box for the user to choose
 		JComponent analyzerBox = 
 			Utilities.createLabeledComponents("Select analyzer for EST comparison:",
@@ -113,14 +116,29 @@ public class AnalyzerWizardPage extends GenericWizardPage {
 	private JPanel createFrameWordPanels() {
 		// Create the frame size spinner.
 		frameSize = new JSpinner(new SpinnerNumberModel(100, 10, 1000, 5));
+		frameSize.setVisible(false);
 		Utilities.adjustDimension(frameSize, 0, 6); // Adjust size to look right
+		// Create the dummy "Auto" label that is used instead of the frameSize 
+		// spinner when the analyzer is two pass d2
+		frameSizeAuto = new JLabel("Auto/Adaptive", Utilities.getIcon("images/16x16/Job.png"), JLabel.LEFT);
+		frameSizeAuto.setBackground(frameSize.getBackground());
+		frameSizeAuto.setOpaque(true);
+		frameSizeAuto.setBorder(BorderFactory.createCompoundBorder(frameSize.getBorder(), 
+				BorderFactory.createEmptyBorder(2, 5, 2, 5)));
+		frameSizeAuto.setToolTipText("Window size is automatically detected in an adaptive manner");
+		// Wrap the above two mutually-exclusive controls into a panel so that
+		// one of them can be shown easily.
+		JPanel wrapper = new JPanel(new BorderLayout(0, 0));
+		wrapper.add(frameSize, BorderLayout.NORTH);
+		wrapper.add(frameSizeAuto, BorderLayout.SOUTH);
+		
 		// Create the word size selection combo box 
 		wordSize = new JComboBox(new String[]{"6 bp"});
 		wordSize.setBackground(Color.white);
 		// Put the above two components into a horizontal box.
 		JPanel horizBox = new JPanel(new GridLayout(1, 2, 20, 0));
 		horizBox.add(Utilities.createLabeledComponents("Window size (bp):", 
-				null, 0, false, frameSize), BorderLayout.WEST);
+				null, 0, false, wrapper));
 		horizBox.add(Utilities.createLabeledComponents("Word size (bp):", 
 				null, 0, false, wordSize));
 		horizBox.setBorder(new EmptyBorder(3, 0, 0, 0));
@@ -158,6 +176,25 @@ public class AnalyzerWizardPage extends GenericWizardPage {
 	}
 	
 	/**
+	 * Action listener to enable/disable frame depending on analyzer selected.
+	 * 
+	 * This method is invoked whenever the user changes the currently selected 
+	 * analyzer in the {@link #analyzerList} combo box. This method enables or
+	 * disables the spinner for setting the window/frame size.
+	 * 
+	 * @param e The action event associated with this method. This event is
+	 * currently unused.
+	 */
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		final boolean isTwoPassD2 = analyzerList.getSelectedIndex() == 0;
+		// The TwoPassD2 analyzer has been selected. The user cannot
+		// modify the frame size here.
+		frameSize.setVisible(!isTwoPassD2);
+		frameSizeAuto.setVisible(isTwoPassD2);
+	}
+	
+	/**
 	 * Obtain the currently set frame size for the analyzer.
 	 * This method is currently used by the HeuristicsWizardPage class.
 	 * 
@@ -166,6 +203,21 @@ public class AnalyzerWizardPage extends GenericWizardPage {
 	protected Integer getFrameSize() {
 		Number value = (Number) frameSize.getValue();
 		return new Integer(value.intValue());
+	}
+	
+	/**
+	 * Obtain the currently selected analyzer.
+	 * 
+	 * This method is a convenience method that can be used by other
+	 * wizard pages to determine the type of the wizard that the user
+	 * has currently selected. Currently this method is used by the
+	 * HeuristicsWizardPage to enable or disable heuristic configuration.
+	 * 
+	 * @return A predefined enumeration defining the type of analyzer that
+	 * the user has currently chosen.
+	 */
+	protected FWAnalyzer.FWAnalyzerType getAnalyzerType() {
+		return FWAnalyzer.FWAnalyzerType.values()[analyzerList.getSelectedIndex()];
 	}
 	
 	/**
@@ -216,6 +268,13 @@ public class AnalyzerWizardPage extends GenericWizardPage {
 	private JSpinner frameSize;
 
 	/**
+	 * A simple JLabel that is used instead of the {@link #frameSize}
+	 * spinner whenever the user selected TwoPassD2 to indicate that
+	 * the frame size is automatically determined.
+	 */
+	private JLabel frameSizeAuto;
+	
+	/**
 	 * This combo box is provided to permit the user to select a
 	 * suitable word size to be used for analysis. Currently the
 	 * word size is locked to 6.
@@ -249,7 +308,7 @@ public class AnalyzerWizardPage extends GenericWizardPage {
 	 * two ESTs to determine similarity or distance. 
 	 */
 	private static final String ANALYZERS[] = {
-		"Two Pass D2 (Fastest)", 
+		"Two Pass D2 (Best Choice)", 
 		"D2 Optimized (similar to wcd)", 
 		"D2 Standard",
 		"CLU (similarity metric)"

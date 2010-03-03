@@ -60,8 +60,6 @@ import org.peace_tools.generic.GenericWizardPage;
 import org.peace_tools.generic.Utilities;
 import org.peace_tools.generic.WizardDialog;
 import org.peace_tools.workspace.DataSet;
-import org.peace_tools.workspace.Job;
-import org.peace_tools.workspace.JobList;
 import org.peace_tools.workspace.Server;
 import org.peace_tools.workspace.ServerList;
 import org.peace_tools.workspace.Workspace;
@@ -356,36 +354,27 @@ implements ActionListener {
 			indent + "Server: " + server.getName() + "\n" +
 			indent + "Nodes: " + nodeInfo[0].getValue() + "\n" +
 			indent + "CPUs per Node: " + nodeInfo[1].getValue() + "\n" +
-			indent + "Max Memory (GB): " + nodeInfo[2].getValue() +  "\n" + 
+			indent + "Max Memory (MB): " + nodeInfo[2].getValue() +  "\n" + 
 			indent + "Max run time (hours): " + nodeInfo[3].getValue();
 	}
 	
 	/**
-	 * Helper method to create a job. This method creates a new Job
-	 * entry and populates it with as much information as possible.
+	 * Obtain platform-specific job configuration information.
 	 * 
-	 * @param description The description for this job that was
-	 * entered by the user in the JobInfoWizardPage.
+	 * This method must be used to obtain the platform specific job configuration
+	 * information.  This method converts the job information into an array and
+	 * returns it. The returned array has the elements in the order: no. of. nodes,
+	 * cpus/node, total memory (in MB), and runTime (in hours).
 	 * 
-	 * @return A new job entry for the newly created job.
+	 * @return An array of 4 integers that contains the job information entered
+	 * by the user. The order of the elements in the array is fixed.
 	 */
-	protected Job createJobEntry(String description) {
-		// Determine ID of the selected server.
-		Server server   = getSelectedServer();
-		// Get the nodes and cpus/node..
-		int nodes   = ((Number) nodeInfo[0].getValue()).intValue();
-		int cpus    = ((Number) nodeInfo[1].getValue()).intValue();
-		int memory  = ((Number) nodeInfo[2].getValue()).intValue();
-		int runTime = ((Number) nodeInfo[3].getValue()).intValue();
-		// Get an unique ID for this job.
-		JobList   jobList   = Workspace.get().getJobList();
-		// Now we have all the info to create the new job entry. The
-		// only thing critical thing that is not yet finalized is
-		// the path where the job files are stored on the remote 
-		// server. That will happen soon.
-		Job job = new Job(jobList.reserveJobID(), description, 
-				server.getID(),	null, nodes, cpus, memory, runTime);
-		return job;
+	protected int[] getPlatformConfiguration() {
+		int[] configInfo = new int[nodeInfo.length];
+		for(int i = 0; (i < nodeInfo.length); i++) {
+			configInfo[i] = ((Number) nodeInfo[i].getValue()).intValue();
+		}
+		return configInfo;
 	}
 	
 	/**
