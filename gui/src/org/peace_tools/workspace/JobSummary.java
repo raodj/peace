@@ -64,15 +64,18 @@ public class JobSummary extends JobBase {
 	 */
 	public static JobSummary create(Element jobNode) throws Exception {
 		// First extract the necessary information from the DOM tree.
-		String jobID    = jobNode.getAttribute("jobID");
-		int    cpus     = DOMHelper.getIntValue(jobNode, "CPUs");
+		String jobID      = jobNode.getAttribute("jobID");
+		int    cpus       = DOMHelper.getIntValue(jobNode, "CPUs");
 		// Obtain the server name and serverID attribute
-		Element server  = DOMHelper.getElement(jobNode, "ServerName");
-		String srvrName = DOMHelper.getStringValue(jobNode, "ServerName");
-		srvrName        = srvrName.trim();
-		String srvrID   = server.getAttribute("serverID");
+		Element server    = DOMHelper.getElement(jobNode, "ServerName");
+		String srvrName   = DOMHelper.getStringValue(jobNode, "ServerName");
+		srvrName          = srvrName.trim();
+		String srvrID     = server.getAttribute("serverID");
+		// Extract the heuristics and filter summary strings.
+		String heuristics = DOMHelper.getStringValue(jobNode, "HeuristicsSummary");
+		String filters    = DOMHelper.getStringValue(jobNode, "FiltersSummary");
 		// Now that we have sufficient information create the job summary
-		JobSummary job = new JobSummary(jobID, srvrID, cpus, srvrName);
+		JobSummary job = new JobSummary(jobID, srvrID, cpus, srvrName, heuristics, filters);
 		// Now update its various other if available.
 		if (DOMHelper.hasElement(jobNode, "RunTime")) { 
 			String runTime  = DOMHelper.getStringValue(jobNode, "RunTime");
@@ -98,11 +101,20 @@ public class JobSummary extends JobBase {
 	 * 
 	 * @param serverName The name (or IP address) of the server on which this job
 	 * was run. 
+	 * 
+	 * @param heuristicsSummary The command line parameter(s) passed to the PEACE
+	 * clustering engine (C++ side) to configure heuristics to accelerate clustering.
+	 * 
+	 * @param filtersSummary The command line parameter(s) passed to the PEACE
+	 * clustering engine (C++ side) to configure filters to improve clustering quality.  
 	 */
-	public JobSummary(String jobID, String serverID, int cpus, String serverName) {
+	public JobSummary(String jobID, String serverID, int cpus, String serverName,
+					  String heuristicsSummary, String filtersSummary) {
 		super(jobID, serverID);
-		this.cpus       = cpus;
-		this.serverName = serverName;
+		this.cpus              = cpus;
+		this.serverName        = serverName;
+		this.heuristicsSummary = heuristicsSummary;
+		this.filtersSummary    = filtersSummary;
 	}
 	
 	/** A convenience constructor.
@@ -120,8 +132,11 @@ public class JobSummary extends JobBase {
 		// Get the server name indirectly using the serverID
 		String srvrID   = job.getServerID();
 		Workspace workspace = Workspace.get();
-		Server server   = workspace.getServerList().getServer(srvrID);
-		this.serverName = server.getName();
+		Server server       = workspace.getServerList().getServer(srvrID);
+		this.serverName     = server.getName();
+		// Save heuristics and filter summary information separately.
+		heuristicsSummary   = job.getHeuristicsCmdLine();
+		filtersSummary      = job.getFiltersCmdLine();
 	}
 	
 	/**
@@ -140,6 +155,30 @@ public class JobSummary extends JobBase {
 	 * @return The total number of CPUs that were used for this job.
 	 */
 	public int getCPUs() { return cpus; }
+	
+	/**
+	 * Obtain a summary of the heuristics run as a part of the data.
+	 * 
+	 * This method can be used to obtain a summary representation of the
+	 * heuristics used in the job to generate the associated data.
+	 * 
+	 * @return A summary information about the heuristics used. This 
+	 * information is stored as the command line parameters passed to the
+	 * PEACE clustering engine.
+	 */
+	public String getHeuristicsSummary() { return heuristicsSummary; }
+
+	/**
+	 * Obtain a summary of the filters run as a part of the data.
+	 * 
+	 * This method can be used to obtain a summary representation of the
+	 * filters used in the job to generate the associated data.
+	 * 
+	 * @return A summary information about the filters used. This 
+	 * information is stored as the command line parameters passed to the
+	 * PEACE clustering engine.
+	 */
+	public String getFiltersSummary() { return filtersSummary; }
 	
 	/**
 	 * Method to marshall the data stored in this object to become part of
@@ -163,6 +202,9 @@ public class JobSummary extends JobBase {
 		if (runtime != null) {
 			DOMHelper.addElement(job, "RunTime", runtime.toString());
 		}
+		// Marshal the heuristics and filter summary information as well.
+		DOMHelper.addElement(job, "HeuristicsSummary", heuristicsSummary);
+		DOMHelper.addElement(job, "FiltersSummary",    filtersSummary);
 	}
 	
 	/**
@@ -187,6 +229,9 @@ public class JobSummary extends JobBase {
 		if (runtime != null) {
 			out.printf(STR_ELEMENT, "RunTime", runtime.toString());
 		}
+		// Display heuristic summary and filter summary strings.
+		out.printf(STR_ELEMENT, "HeuristicsSummary", heuristicsSummary);
+		out.printf(STR_ELEMENT, "FiltersSummary",    filtersSummary);
 		// Close the job tag
 		out.printf("%s</JobSummary>\n", Indent);
 	}
@@ -202,4 +247,18 @@ public class JobSummary extends JobBase {
 	 * running the job.
 	 */
 	private final int cpus;
+	
+	/**
+	 * A string that contains summary of heuristics run as a part of the job
+	 * used to generate the associated data. This string is simply stored as
+	 * the command line parameter passed to the PEACE clustering tool.
+	 */
+	private final String heuristicsSummary;
+	
+	/**
+	 * A string that contains summary of filters run as a part of the job
+	 * used to generate the associated data. This string is simply stored as
+	 * the command line parameter passed to the PEACE clustering tool.
+	 */
+	private final String filtersSummary;
 }

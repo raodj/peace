@@ -35,10 +35,8 @@ package org.peace_tools.workspace;
 
 import java.io.File;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 
 import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
 
 /**
  * <p>This class encapsulates all the data necessary to use a given Minimum
@@ -101,16 +99,6 @@ public class MSTData {
 		// Obtain the FWAnalyzer information into a separate object.
 		Element fwData  = DOMHelper.getElement(mstData, "FWAnalyzer");
 		FWAnalyzer analy= FWAnalyzer.create(fwData);
-		// Parse out the heuristic chain using a helper method.
-		Element chainNode= DOMHelper.getElement(mstData, "HeuristicChain");
-		NodeList chain   = chainNode.getElementsByTagName("Heuristic");
-		ArrayList<Heuristic> heuristics = new ArrayList<Heuristic>(); 
-		for(int idx = 0; (idx < chain.getLength()); idx++) {
-			Element node = (Element) chain.item(idx);
-			// Create a heuristic entry using the DOM data
-			Heuristic heuristic = Heuristic.create(node);
-			heuristics.add(heuristic);
-		}
 		// load up the job summary information.
 		Element jobData    = DOMHelper.getElement(mstData, "JobSummary");
 		JobSummary summary = JobSummary.create(jobData);
@@ -118,7 +106,7 @@ public class MSTData {
 		// MSTData.
 		typeStr = typeStr.toUpperCase();
 		MSTBuilderType type = MSTBuilderType.valueOf(MSTBuilderType.class, typeStr);
-		return new MSTData(id, type, path, desc, analy, heuristics, summary);
+		return new MSTData(id, type, path, desc, analy, summary);
 	}
 	
 	/**
@@ -139,22 +127,17 @@ public class MSTData {
 	 * @param analyzer
 	 *            Information about the distance/similarity analyzer that was
 	 *            used to create this MST data set.
-	 * @param heuristics
-	 *            The list of heuristics that were used to accelerate the MST
-	 *            generation algorithm.
 	 * @param summary
 	 *            The core/useful information about the job that was run to
 	 *            compute the MST.
 	 */
 	public MSTData(String id, MSTBuilderType type, String path,
-			String description, FWAnalyzer analyzer, 
-			ArrayList<Heuristic> heuristics, JobSummary summary) {
+			String description, FWAnalyzer analyzer, JobSummary summary) {
 		this.id          = id;
 		this.type        = type;
 		this.path        = path;
 		this.description = description;
 		this.analyzer    = analyzer;
-		this.heuristics  = heuristics;
 		this.jobSummary  = summary;
 	}
 	
@@ -218,17 +201,6 @@ public class MSTData {
 	 * run to generate the MST. 
 	 */
 	public JobSummary getJobSummary() { return jobSummary; }
-
-	/**
-	 * Obtain the list of heuristics that were used to accelerate the
-	 * process of constructing the MST. Specifically many of these
-	 * heuristics accelerate the frame-word analyzer that was used to
-	 * build the MST.
-	 * 
-	 * @return The list of heuristics that were used to acclerate the
-	 * MST construction process.
-	 */
-	public ArrayList<Heuristic> getHeuristicList() { return heuristics; }
 	
 	/**
 	 * Method to marshall the data stored in this object to become part of
@@ -249,11 +221,6 @@ public class MSTData {
 				(description != null) ? description : "");
 		// Get the fw analyzer add its own information.
 		analyzer.marshall(mstData);
-		// Now marshall the information regarding heuristics.
-		Element chain = DOMHelper.addElement(mstData, "HeuristicChain", null);
-		for(Heuristic heuristic : heuristics) {
-			heuristic.marshall(chain);
-		}
 		// Finally marshall the job summary information.
 		jobSummary.marshall(mstData);
 	}
@@ -279,12 +246,6 @@ public class MSTData {
 				(description != null) ? DOMHelper.xmlEncode(description) : "");
 		// Get the f/w analyzer add its own information.
 		analyzer.marshall(out);
-		// marhsall out the heuristic chain.
-		out.printf("%s\t<HeuristicChain>\n", Indent);
-		for(Heuristic heuristic : heuristics) {
-			heuristic.marshall(out);
-		}
-		out.printf("%s\t</HeuristicChain>\n", Indent);
 		// Marshall the job summary out.
 		jobSummary.marshall(out);
 		// Close the MSTData tag
@@ -309,11 +270,6 @@ public class MSTData {
 		sb.append(indent + "MST Builder: " + type.toString() + "\n");
 		sb.append(indent + "Path: " + path + "\n");
 		sb.append(indent + "Description: " + description + "\n");
-		// Next append the heuristics information.
-		sb.append(indent + "Heuristics: " + "\n");
-		for(Heuristic heur: heuristics) {
-			sb.append(indent + indent + heur + "\n");
-		}
 		return sb.toString();
 	}
 	
@@ -330,15 +286,6 @@ public class MSTData {
 	public String toCmdLine() {
 		String cmdLine = "--clusterMaker " + type.toString().toLowerCase();
 		cmdLine += " " + analyzer.toCmdLine();
-		// Convert heuristic information to command line parameters.
-		String heuristicParams = "";
-		cmdLine += " --heuristics ";
-		for(int i = 0; (i < heuristics.size()); i++) {
-			Heuristic heur = heuristics.get(i);
-			cmdLine += (i > 0 ? "-" : "") + heur.getName();
-			heuristicParams += heur.toCmdLine();
-		}
-		cmdLine += heuristicParams;
 		// Add the mst file name (without path)
 		File mstFile = new File(path);
 		cmdLine += " --output-mst-file " + mstFile.getName();
@@ -434,12 +381,6 @@ public class MSTData {
 	 * to create this MST data set.
 	 */
 	private final FWAnalyzer analyzer;
-	
-	/**
-	 * The list of heuristics that were used to accelerate the MST generation
-	 * algorithm.
-	 */
-	ArrayList<Heuristic> heuristics;
 	
 	/**
 	 * The core/useful information about the job that was run to compute
