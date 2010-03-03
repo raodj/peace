@@ -527,12 +527,13 @@ public class Utilities {
 	 * of the content area is enabled when the mouse rolls over a 
 	 * button.
 	 */
-	public static void makeToolBarButton(JButton button, 
+	public static void makeToolBarButton(AbstractButton button, 
 			final boolean fillContentArea) {
-		// Turn off the border and fill by default.
-		// Setup a more rounded border than usual
-		button.setBorderPainted(false);
-		button.setContentAreaFilled(false);
+		// Turn off the border and fill by default if button is not toggled
+		if (!button.isSelected()) {
+			button.setBorderPainted(false);
+			button.setContentAreaFilled(false);
+		}
 		// Add a mouse adapter to the button.
 		button.addMouseListener(new MouseAdapter() {
 			/**
@@ -564,8 +565,12 @@ public class Utilities {
 				Component component = e.getComponent();
 				if (component instanceof AbstractButton) {
 					AbstractButton button = (AbstractButton) component;
-					button.setBorderPainted(false);
-					button.setContentAreaFilled(false);
+					// If toggle buttons are depressed they look better with border
+					// and content area filled-in.
+					if (!button.isSelected()) {
+						button.setBorderPainted(false);
+						button.setContentAreaFilled(false);
+					}
 				}
 			}
 		});
@@ -1017,7 +1022,7 @@ public class Utilities {
 	 * 
 	 * @return A string containing the exception's stack trace.
 	 */
-	public static String toString(Exception e) {
+	public static String toString(Throwable e) {
 		StringWriter strStream = new StringWriter();
 		PrintWriter  writer    = new PrintWriter(strStream);
 		e.printStackTrace(writer);

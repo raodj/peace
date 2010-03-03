@@ -113,7 +113,7 @@ public class PEACE {
 								if (firstLaunch) {
 									ViewFactory vf = mf.getViewFactory();
 									vf.createView("installFiles/welcome.html", null,
-											ViewFactory.ViewType.HTML_VIEW, false, false);
+											ViewFactory.ViewType.HTML_VIEW, false, false, null);
 								}
 								// First check all the server status.
 								mf.checkAllServerStatus();
@@ -149,9 +149,11 @@ public class PEACE {
 	private PEACE() {
 		// Turn off metal's use of bold fonts
 		UIManager.put("swing.boldMetal", Boolean.FALSE);
-		// try {
-		//	UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		// } catch (Exception e) {}
+		try {
+			// Ensure we prefer to use cross platform look & feel
+			UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+			// UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		} catch (Exception e) {}
 		
 		// Make tool tips show up faster than normal
 		ToolTipManager ttm = ToolTipManager.sharedInstance();

@@ -37,11 +37,15 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.Icon;
+import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -66,14 +70,12 @@ public class AboutDialog extends JDialog {
     	super(owner, "About PEACE", true);
     	setLayout(new BorderLayout(0, 0));
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        this.getContentPane().setBackground(Color.white);
         setResizable(false);
         // Setup icon in title bar.
         this.setIconImage(Utilities.getIcon("images/16x16/PEACE.png").getImage());
         // Create a CustomPanel with the peace logo in it. This panel
         // will contain other components.
         cp = new CustomPanel(new BorderLayout(0, 0));
-        cp.setBackground(Color.white);
         cp.setImage("images/peace_blue_header.png");
         // Use the image width to setup empty border for logo spacer
         JLabel imgHolder = new JLabel(Utilities.getIcon("images/peace_blue_header.png"));
@@ -92,6 +94,42 @@ public class AboutDialog extends JDialog {
         cp.add(tabs, BorderLayout.CENTER);
         // Add the custom pane to the dialog box
         add(cp, BorderLayout.CENTER);
+        // create and add panel with version information and 
+        // the "Close" button to the bottom
+        add(createCloseButtonPanel(), BorderLayout.SOUTH);
+    }
+    
+    /**
+     * Helper method to create and add panel with version information along
+     * with the close button.
+     * 
+     * This method is invoked from the constructor to create the bottom
+     * portion of the about dialog. This method was introduced to streamline
+     * the code in the constructor. This method is rather straightforward.
+     */
+    private Box createCloseButtonPanel() {
+    	// Create the close button.
+    	JButton okButton = new JButton("  Close  ");
+    	okButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				AboutDialog.this.setVisible(false);
+				AboutDialog.this.dispose();
+			}
+    	});
+    	// Create version information
+    	String version = "<html>" + Version.GUI_VERSION + "</html>";
+		version = version.replaceAll("\n", "<br>"); // Convert newline to HTML <br>
+		JLabel versionInfo = new JLabel(version, 
+				Utilities.getIcon("images/24x24/PEACE.png"), JLabel.LEFT);
+		// Pack them horizontally
+		Box buttonPanel = Box.createHorizontalBox();
+		buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+		buttonPanel.add(versionInfo);
+		buttonPanel.add(Box.createHorizontalGlue()); // right align
+		buttonPanel.add(okButton);
+		// Return panel back to caller.
+		return buttonPanel;
     }
     
     /**
