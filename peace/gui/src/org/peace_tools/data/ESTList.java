@@ -61,7 +61,7 @@ public class ESTList {
 	 * Create an empty list of ESTs tagged with a given name.
 	 * 
 	 * @param name An identifier to be associated with this ESTList. 
-	 * Typically the abolute path to the FASTA file from where the data 
+	 * Typically the absolute path to the FASTA file from where the data 
 	 * was loaded is used as the identifier. This information helps to 
 	 * locate ESTs that were loaded from a given file. 
 	 */
@@ -186,7 +186,7 @@ public class ESTList {
 	 * ESTs encapsulated in this list. 
 	 * 
 	 * @return This method returns an array of doubles containing 
-	 * the following information: minLen, maxLen, avgLen, lenSD.
+	 * the following information: estCount, minLen, maxLen, avgLen, lenSD.
 	 */
 	public double[] computeStatistics() {
 		// Compute the basic sequence length statistics.
@@ -202,12 +202,13 @@ public class ESTList {
 			lenSqSum += (seqLen * seqLen);
 		}
 		// Compute the statistics and store them in an array to return back
-		double stats[] = new double[4];
-		stats[0] = minLen;
-		stats[1] = maxLen;
+		double stats[] = new double[5];
+		stats[0] = ests.size();
+		stats[1] = minLen;
+		stats[2] = maxLen;
 		if (ests.size() > 0) {
-			stats[2] = (lenSum / (double) ests.size());
-			stats[3] = Math.sqrt((lenSqSum - (lenSum * stats[2])) / 
+			stats[3] = (lenSum / (double) ests.size());
+			stats[4] = Math.sqrt((lenSqSum - (lenSum * stats[3])) / 
 					(ests.size() -1 ));
 		}
 		return stats;

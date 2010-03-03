@@ -43,6 +43,7 @@ import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
 import org.netbeans.swing.outline.RowModel;
+import org.peace_tools.workspace.MSTClusterData;
 
 /**
  * The tree table model that provides a facade to display 
@@ -73,11 +74,12 @@ public class ClusterTreeTableModel implements TreeModel, RowModel {
 	 * @param ests The set of ESTs that contain information about each 
 	 * EST in the clusters.
 	 */
-	public ClusterTreeTableModel(ClusterFile clusters, ESTList ests) {
+	public ClusterTreeTableModel(ClusterFile clusters, ESTList ests, MSTClusterData wsEntry) {
 		// Save references for future use.
 		this.clusterFile = clusters;
 		this.estList     = ests;
 		this.basesPerCol = 100;
+		this.wsEntry     = wsEntry;
 		// Compute the maximum length of ESTs to determine column count.
 		int maxLen = 0;
 		for(EST est: estList.getESTs()) {
@@ -163,6 +165,12 @@ public class ClusterTreeTableModel implements TreeModel, RowModel {
 			if (start < seq.length()) {
 				retVal = seq.substring(start, stop);
 			}
+		} else {
+			// This is a cluster node. If the column is zero then return the
+			// cluster name.
+			if (column == 0) {
+				retVal = entry.getName(); 
+			}
 		}
 		return retVal;
 	}
@@ -245,6 +253,14 @@ public class ClusterTreeTableModel implements TreeModel, RowModel {
 		fireTableStructureChanged();
 	}
 	
+	/**
+	 * Helper method to broadcast notification to all model listeners.
+	 * 
+	 * This method is a helper method that is used to broadcast notification
+	 * that the tree model has changed to all interested listeners. Typically,
+	 * the listeners are views that refresh their display when the data
+	 * changes.
+	 */
 	protected void fireTableStructureChanged() {
 		TreeModelEvent tme = new TreeModelEvent(clusterFile.getRoot(),
 				new TreePath(clusterFile.getRoot()));
@@ -336,7 +352,7 @@ public class ClusterTreeTableModel implements TreeModel, RowModel {
 	 * @return The top-level root cluster node.
 	 */
 	@Override
-	public Object getRoot() {
+	public ClusterNode getRoot() {
 		return clusterFile.getRoot();
 	}
 	
@@ -371,14 +387,12 @@ public class ClusterTreeTableModel implements TreeModel, RowModel {
 	 * Messaged when the user has altered the value for the 
 	 * item identified by path to newValue.
 	 *
-	 * This method is currently not impelemented because the clsuter
-	 * data is not editable.
+	 * This method is currently not implemented because the cluster
+	 * data cannot be edited.
 	 */
 	public void valueForPathChanged(TreePath path, Object newValue) {
 		// Nothing to be done for now.
 	}
-	
-	//-------------------------------------------------------
 	
 	/**
 	 * Obtain the list of ESTs associated with this model.
@@ -386,13 +400,44 @@ public class ClusterTreeTableModel implements TreeModel, RowModel {
 	 * @return The EST list set for use by this model.
 	 */
 	public ESTList getESTList() { return estList; }
+
+	/**
+	 * Obtain the cluster file from where cluster data was obtained.
+	 * 
+	 * @return The cluster file from where the clustering information
+	 * was obtained.
+	 */
+	public ClusterFile getClusterFile() { return clusterFile; }
 	
+	/**
+	 * Obtain the actual workspace entry whose data is contained in this
+	 * model.
+	 * 
+	 * A handy reference to the workspace entry from which the data for this
+	 * cluster table model was actually obtained. This information can be
+	 * used by "view" classes to create additional views as needed.
+	 * 
+	 * @return The reference to the MSTClusterData workspace entry whose
+	 * data is "modeled" by this class.
+	 */
+	public MSTClusterData getWsEntry() { return wsEntry; }
+	
+	//-------------------------------------------------------
+	
+
 	/**
 	 * Reference to the cluster file that contains the cluster data to
 	 * be adapted and interfaced by this model. This value is set in the
 	 * constructor and is never changed during the life time of this class.
 	 */
 	private final ClusterFile clusterFile;
+	
+	/**
+	 * A handy reference to the workspace entry from which the data for this
+	 * cluster table model was actually obtained. This information can be
+	 * used by "view" classes to create additional views as needed.
+	 */
+	private final MSTClusterData wsEntry;
 	
 	/**
 	 * Reference to the EST file that contains the cluster data to
@@ -416,10 +461,12 @@ public class ClusterTreeTableModel implements TreeModel, RowModel {
 	private int basesPerCol;
 	
 	/**
-	 * This array contains a sorted list of indexes of sub-clusters that
-	 * are direct children of the root cluster. The entries in this array
-	 * are indexes into the original set of clusters in the root. This list
-	 * changes depending on the order of sorting requested by the user.
+	 * This array contains a sorted list of indexes of fragments if a sorting
+	 * scheme has been applied to the data set. If this array is not null then
+	 * this table model returns entries using the order specified in this
+	 * array.  The entries in this array are indexes into the original set 
+	 *  of clusters in the root. This list changes depending on the order 
+	 *  of sorting requested by the user.
 	 */
 	private Integer[] sortedSubClusterIndexs = null;
 	
