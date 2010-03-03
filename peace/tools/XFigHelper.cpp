@@ -92,6 +92,7 @@ XFigHelper::drawText(const std::string& text, const int x, const int y,
 
 void
 XFigHelper::drawRect(int x, int y, int width, int height, int colorCode) {
+    colorCode %= 90;
     os << "2 2 0 1 " << colorCode << " " << colorCode
        << " 50 -1 20 0.000 0 0 -1 0 0 5\n"
        << "\t" << x           << " " << y

@@ -32,6 +32,7 @@ ShowAlignment::main(int argc, char *argv[]) {
     char *estFileName   = NULL; // File with generated ESTs
     char *outFileName   = NULL; // Output file with XFig data.
     char *clstrFileName = NULL; // Flat cluster file
+    char *hilitCls      = NULL; // List of clusters to highlight
     int  srcIndex       = -1;   // index of reference gene in srcFile 
     bool showOptions    = false;
     int  rectHeight     = 100;
@@ -52,6 +53,8 @@ ShowAlignment::main(int argc, char *argv[]) {
          &rectHeight, arg_parser::INTEGER},
         {"--options", "Lists options for this tool",
          &showOptions, arg_parser::BOOLEAN},
+        {"--hilitCls", "Subset of ',' seperated clusters to hilit",
+         &hilitCls, arg_parser::STRING},
         {NULL, NULL, NULL, arg_parser::BOOLEAN}
     };
     
@@ -92,6 +95,11 @@ ShowAlignment::main(int argc, char *argv[]) {
         // Error loading cluster information.
         return 4;
     }
+    // Process and setup cluster coloring list.
+    if (hilitCls != NULL) {
+        sa.setClustersToColor(hilitCls);
+    }
+    
     // Set the output file for XFig rendering.
     if (!sa.xfig.setOutput(outFileName, true)) {
         std::cout << "Unable to open output file " << outFileName
@@ -228,7 +236,7 @@ ShowAlignment::drawEST(const int index, const EST* est, const int rectHeight) {
     sprintf(estIndex, "%05d", index);
     
     // Compute the row where the EST is to be drawn.
-    const int estLen    = strlen(est->getSequence());
+          int estLen    = strlen(est->getSequence());
     const int row       = getRow(startCol, startCol + estLen + 7);
     const int rowHeight = (rectHeight < FontHeight) ?
         FontHeight : (rectHeight * 2);
@@ -254,7 +262,8 @@ ShowAlignment::drawEST(const int index, const EST* est, const int rectHeight) {
     // rendered using several independent entries. The following loop
     // breaks long sequence text into multiple parts of 1000
     // characters each and draws them.
-    std::string seq     = est->getSequence();
+    std::string seq     = est->getInfo(); // est->getSequence();
+    estLen              = seq.length();
     const int MaxSeqLen = 1000;
     for(int i = 0; (i < estLen); i+= MaxSeqLen) {
         // Draw utmost MaxSeqLen characters.
