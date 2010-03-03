@@ -193,6 +193,47 @@
 		</xsd:complexType>
 	</xsd:element>
 
+	<!-- [Filter and Filter chain definitions ] -->
+	<xsd:simpleType name="FilterType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="LengthFilter" />
+			<xsd:enumeration value="LCFilter" />
+		</xsd:restriction>
+	</xsd:simpleType>
+
+	<xsd:element name="Filter">
+		<xsd:annotation>
+			<xsd:documentation>
+				This is a generic filter element that can be used to
+				include information about a filter (such as: the
+				LengthFilter or LCFilter heuristic) along with
+				parameter values that was used for improving quality
+				of clustering.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element name="Name" type="FilterType"/>
+				<xsd:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+	
+	<xsd:element name="FilterChain">
+		<xsd:annotation>
+			<xsd:documentation>
+				A filter chain that simply contains a sequence of zero
+				or more filters that were used for creating a specific
+				set of clusters obtaining a specific set of data.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexType>
+			<xsd:sequence>
+				<xsd:element ref="Filter" minOccurs="0" maxOccurs="unbounded"/>
+			</xsd:sequence>
+		</xsd:complexType>
+	</xsd:element>
+
 	<!--  enumerations defining different status values for jobs -->
 	<xsd:simpleType name="JobStatusType">
 		<xsd:restriction base="xsd:string">
@@ -228,6 +269,12 @@
 				</xsd:element>
 				<xsd:element name="CPUs" type="xsd:positiveInteger"/>
 				<xsd:element name="RunTime" type="xsd:duration" minOccurs="0"/>
+				<!-- The actual parameter string that was passed to PEACE
+					 clustering engine to serve as a simple reference -->
+				<xsd:element name="HeuristicsSummary" type="xsd:string"/>
+				<!-- The actual parameter string that was passed to PEACE
+					 clustering engine as simple reference -->
+				<xsd:element name="FiltersSummary" type="xsd:string"/>
 			</xsd:sequence>
 			<xsd:attribute name="jobID" type="xsd:token"/>
 		</xsd:complexType>
@@ -260,7 +307,6 @@
 				<xsd:element name="Path" type="xsd:string"/>
 				<xsd:element name="Description" type="xsd:string"/>
 				<xsd:element ref="FWAnalyzer"/>
-				<xsd:element ref="HeuristicChain"/>
 				<xsd:element ref="JobSummary"/>
 			</xsd:sequence>
 		</xsd:complexType>
@@ -378,6 +424,11 @@
 				<xsd:element name="Status" type="JobStatusType"/>
 				<xsd:element name="LastUpdateTimestamp" type="xsd:dateTime"/>
 				<xsd:element name="RunTime" type="xsd:duration" minOccurs="0"/>
+				<!-- Now the heuristics and filter details live in the job
+					 which seems to where they belong logically. A summary
+					 string is present in the JobSummary element -->
+				<xsd:element ref="HeuristicChain"/>
+				<xsd:element ref="FilterChain"/>
 			</xsd:sequence>
 		</xsd:complexType>
 	</xsd:element>
