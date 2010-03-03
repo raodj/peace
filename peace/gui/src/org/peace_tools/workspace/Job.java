@@ -34,13 +34,16 @@
 package org.peace_tools.workspace;
 
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.GregorianCalendar;
+
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.peace_tools.generic.ProgrammerLog;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
  * This class corresponds to a "Job" element in a PEACE work space
@@ -77,9 +80,13 @@ public class Job extends JobBase {
 		int    maxTime  = DOMHelper.getIntValue(jobNode, "MaxRunTime");
 		String lastTime = DOMHelper.getStringValue(jobNode, "LastUpdateTimestamp");
 		String statStr  = DOMHelper.getStringValue(jobNode, "Status");
+		// Extract the heuristic and filter lists using helper methods.
+		ArrayList<Heuristic> heuristics = parseHeuristicChain(jobNode);
+		ArrayList<Filter>    filters    = parseFilterChain(jobNode);
 		// Now that we have sufficient information create the core
 		// job object.
-		Job job = new Job(jobID, desc, serverID, path, nodes, cpus, memory, maxTime);
+		Job job = new Job(jobID, desc, serverID, path, nodes, cpus, memory, maxTime, 
+				heuristics, filters);
 		// Now update its various properties
 		statStr = statStr.toUpperCase();
 		job.status = JobBase.JobStatusType.valueOf(JobBase.JobStatusType.class, statStr);
@@ -98,6 +105,67 @@ public class Job extends JobBase {
 		return job;
 	}
 	
+	/**
+	 * Helper method to unmarshall the heuristic list into an in-memory array list.
+	 * 
+	 * This is a helper method that is invoked from the the create() method to 
+	 * unmarshall the XML DOM tree corresponding to the heuristic list node into
+	 * suitable in-memory classes for further processing.
+	 * 
+	 * @param jobNode The top-level job node from where the heuristic chain element
+	 * is to be extracted and processed. 
+	 * 
+	 * @return An array list containing a list of Heuristic objects. 
+	 * 
+	 * @throws Exception This method throws an exception when errors occur
+	 * during reading and processing elements from the DOM node.
+	 */
+	private static ArrayList<Heuristic> parseHeuristicChain(Element jobNode) throws Exception {
+		// Parse out the heuristic chain using a helper method.
+		Element chainNode= DOMHelper.getElement(jobNode, "HeuristicChain");
+		NodeList chain   = chainNode.getElementsByTagName("Heuristic");
+		ArrayList<Heuristic> heuristics = new ArrayList<Heuristic>(); 
+		for(int idx = 0; (idx < chain.getLength()); idx++) {
+			Element node = (Element) chain.item(idx);
+			// Create a heuristic entry using the DOM data
+			Heuristic heuristic = Heuristic.create(node);
+			heuristics.add(heuristic);
+		}
+		// Return the parsed-in heuristic chain for further use.
+		return heuristics;
+	}
+	
+	/**
+	 * Helper method to unmarshall the filter list into an in-memory array list.
+	 * 
+	 * This is a helper method that is invoked from the the create() method to 
+	 * unmarshall the XML DOM tree corresponding to the filter list node into
+	 * suitable in-memory classes for further processing.
+	 * 
+	 * @param jobNode The top-level job node from where the filter chain element
+	 * is to be extracted and processed. 
+	 * 
+	 * @return An array list containing the list of filter objects in the 
+	 * filter chain. 
+	 * 
+	 * @throws Exception This method throws an exception when errors occur
+	 * during reading and processing elements from the DOM node.
+	 */
+	private static ArrayList<Filter> parseFilterChain(Element jobNode) throws Exception {
+		// Parse out the heuristic chain using a helper method.
+		Element chainNode= DOMHelper.getElement(jobNode, "FilterChain");
+		NodeList chain   = chainNode.getElementsByTagName("Filter");
+		ArrayList<Filter> filters = new ArrayList<Filter>(); 
+		for(int idx = 0; (idx < chain.getLength()); idx++) {
+			Element node = (Element) chain.item(idx);
+			// Create a heuristic entry using the DOM data
+			Filter heuristic = Filter.create(node);
+			filters.add(heuristic);
+		}
+		// Return the parsed-in heuristic chain for further use.
+		return filters;
+	}
+
 	/**
 	 * Constructor to create a Job object with the fixed value fields
 	 * initialized to specific values.
@@ -119,10 +187,23 @@ public class Job extends JobBase {
 	 * 
 	 * @param cpusPerNode The number of CPUs on each node that were requested for this
 	 * job. This value must be at least 1.
+	 * 
+	 * @param memory The total memory (sum of all memory used by all processes, in MB) 
+	 * that was allocated for this job.
+	 * 
+	 * @param maxRunTime The maximum runtime (in hours) that was assigned for this job.
+	 * 
+	 * @param heuristics The list of heuristics that were used to accelerate 
+	 * the MST generation algorithm.
+	 * 
+	 * @param filters The list of filters that were used to filter out short ESTs or
+	 * ESTs with low complexity sections to ensure that the resultant clustering is
+	 * high quality.
 	 */
 	public Job(String jobID, String description, String serverID,
 			String path, int nodes, int cpusPerNode,
-			int memory, int maxRunTime) {
+			int memory, int maxRunTime, ArrayList<Heuristic> heuristics, 
+			ArrayList<Filter> filters) {
 		super(jobID, serverID);
 		this.description         = description;
 		this.path                = path;
@@ -137,6 +218,9 @@ public class Job extends JobBase {
 		this.maxRunTime          = maxRunTime;
 		// Set default last update timestamp
 		setLastUpdateTime();
+		// Save information about heuristics and filters
+		this.heuristics          = heuristics;
+		this.filters             = filters;
 	}
 
 	/**
@@ -300,6 +384,88 @@ public class Job extends JobBase {
 	}
 
 	/**
+	 * Command line for PEACE clustering engine to configure heuristics.
+	 * 
+	 * <p>This method can be used to obtain the heuristic information in the form
+	 * of command line parameters that can be readily passed to the PEACE
+	 * clustering engine. The command line parameters are used to configure the
+	 * clustering engine to suit the configuration setup by the user for this
+	 * job.</p>
+	 * 
+	 * <p><b>Note:<b> The return value of this method must be ignored if this
+	 * call is being made in conjunction with the two pass d2 analyzer.</p> 
+	 * 
+	 * @return The command line (to correspondingly setup the heuristics) to
+	 * be passed to the PEACE clustering engine.
+	 */
+	public String getHeuristicsCmdLine() {
+		String cmdLine = "";				
+		// Convert heuristic information to command line parameters.
+		String heuristicParams = "";
+		cmdLine += "--heuristics ";
+		if (heuristics.size() > 0) {
+			for(int i = 0; (i < heuristics.size()); i++) {
+				Heuristic heur = heuristics.get(i);
+				cmdLine += (i > 0 ? "-" : "") + heur.getName();
+				heuristicParams += heur.toCmdLine();
+			}
+		} else {
+			// The command line parameter for no heuristics case is null
+			cmdLine += "null";
+		}
+		cmdLine += heuristicParams;
+		// Return the cmd line for the heuristics
+		return cmdLine;
+	}
+
+	/**
+	 * Command line for PEACE clustering engine to configure filters.
+	 * 
+	 * This method can be used to obtain the filters information in the form
+	 * of command line parameters that can be readily passed to the PEACE
+	 * clustering engine. The command line parameters are used to configure the
+	 * filters used by the clustering engine to mirror the configuration setup 
+	 * by the user for this job.
+	 * 
+	 * @return The command line (to correspondingly setup the filters) to
+	 * be passed to the PEACE clustering engine.
+	 */
+	public String getFiltersCmdLine() {
+		// Next covert filter information to command line parameters.
+		String filterParams = "";
+		String cmdLine = "--filters ";
+		if (filters.size() > 0) {
+			for(int i = 0; (i < filters.size()); i++) {
+				Filter filter = filters.get(i);
+				cmdLine += (i > 0 ? "-" : "") + filter.getName();
+				filterParams += filter.toCmdLine();
+			}
+		} else {
+			// The command line parameter for no heuristics case is null
+			cmdLine += "null";
+		}
+		cmdLine += filterParams;
+		// Return the cmd line.
+		return cmdLine;
+	}
+	
+	/**
+	 * Return the information in the form of a partial PEACE command line 
+	 * parameter.
+	 * 
+	 * This method can be used to obtain the information needed to
+	 * generate the MST and clusters based on the supplied information in the form
+	 * of a command line parameter. 
+	 * 
+	 * @return Return the information as a command line to be passed to the
+	 * PEACE clustering engine.
+	 */
+	public String toCmdLine() {
+		// Use helper method to build the command line.
+		return " " + getHeuristicsCmdLine() + " " + getFiltersCmdLine();
+	}
+
+	/**
 	 * Set the progress status for this job. This method generates 
 	 * notifications to all registered workspace listeners.
 	 * 
@@ -332,6 +498,28 @@ public class Job extends JobBase {
 	}
 	
 	/**
+	 * Obtain the list of heuristics that were used to accelerate the
+	 * process of constructing the MST. Specifically many of these
+	 * heuristics accelerate the frame-word analyzer that was used to
+	 * build the MST.
+	 * 
+	 * @return The list of heuristics that were used to acclerate the
+	 * MST construction process.
+	 */
+	public ArrayList<Heuristic> getHeuristicList() { return heuristics; }
+	
+	/**
+	 * Obtain the list of filters that were used to improve quality of
+	 * clustering. Specifically the filters weed out ESTs that are known
+	 * to interfere with clustering and deteriorate overall quality of 
+	 * results.
+	 * 
+	 * @return The list of filters hat were used to improve quality of
+	 * clustering.
+	 */
+	public ArrayList<Filter> getFilterList() { return filters; }
+	
+	/**
 	 * Method to marshall the data stored in this object to become part of
 	 * a DOM tree element passed in. This method assumes that the element
 	 * passed in corresponds to the parent JobList node in the DOM tree.
@@ -359,6 +547,16 @@ public class Job extends JobBase {
 		DOMHelper.addElement(job, "LastUpdateTimestamp", lastUpdateTimestamp.toString());
 		if (runtime != null) {
 			DOMHelper.addElement(job, "RunTime", runtime.toString());
+		}
+		// Now marshall the information regarding heuristics.
+		Element chain = DOMHelper.addElement(job, "HeuristicChain", null);
+		for(Heuristic heuristic : heuristics) {
+			heuristic.marshall(chain);
+		}
+		// Now marshall the information regarding filters.
+		chain = DOMHelper.addElement(job, "FilterChain", null);
+		for(Filter filter : filters) {
+			filter.marshall(chain);
 		}
 	}
 	
@@ -394,6 +592,20 @@ public class Job extends JobBase {
 		if (runtime != null) {
 			out.printf(STR_ELEMENT, "RunTime", runtime.toString());
 		}
+		// Marhsall out the heuristic chain.
+		out.printf("%s\t<HeuristicChain>\n", Indent);
+		for(Heuristic heuristic : heuristics) {
+			heuristic.marshall(out);
+		}
+		out.printf("%s\t</HeuristicChain>\n", Indent);
+		
+		// marhsall out the filter chain.
+		out.printf("%s\t<FilterChain>\n", Indent);
+		for(Filter filter : filters) {
+			filter.marshall(out);
+		}
+		out.printf("%s\t</FilterChain>\n", Indent);
+		
 		// Close the job tag
 		out.printf("%s</Job>\n", Indent);
 	}
@@ -477,6 +689,19 @@ public class Job extends JobBase {
 	 * running.
 	 */
 	private XMLGregorianCalendar lastUpdateTimestamp;
+	
+	/**
+	 * The list of heuristics configured by the user for this job. These
+	 * heuristics are used to accelerate the MST generation algorithm.
+	 */
+	private ArrayList<Heuristic> heuristics;
+	
+	/**
+	 * The list of filters configured by the user for this job. These
+	 * filters are used to weed out fragments that may interfer with
+	 * clustering and reduce overall quality of clustering.
+	 */
+	private ArrayList<Filter> filters;
 	
 	/**
 	 * A transient (not persisted) progress information about the job.

@@ -41,34 +41,56 @@ import org.w3c.dom.NodeList;
 
 /**
  * This class is meant to encapsulate the information and parameters for various
- * heuristics used to accelerate clustering. Similar to many of the other
- * classes, this class provides a convenient interface to marshall, unmarshall,
- * and use work space configuration information. This class is a generic
- * Heuristic class that is used to store information regarding all the
- * heuristics used within a Job element.
+ * filters used to filter out ESTs that may negatively impact clustering. Similar 
+ * to many of the other classes, this class provides a convenient interface to 
+ * marshall, unmarshall, and use work space configuration information. This 
+ * class is a generic Filter class that is used to store information regarding 
+ * all the filters used within a Job element.
  * 
  */
-public class Heuristic {
+public class Filter {
+	/**
+	 * Different enumerations defining the different types of Filters that are
+	 * currently supported. Note that the enumeration of filter types is identical
+	 * to the names in the schema file to ease marshalling to XML.
+	 */
+	public enum FilterType {
+		/**
+		 * This filter is used to filter out ESTs that are shorter than a 
+		 * given length.
+		 */
+		LengthFilter,
+		/**
+		 * This filter is used to filter out ESTs that have a Low Complexity
+		 * section in them.
+		 */
+		LCFilter,
+	};
+	
 	/**
 	 * Helper method to utilize data from a DOM tree to create a suitable
-	 * Heuristic entry. This method is typically  used to create a suitable
+	 * Filter entry. This method is typically  used to create a suitable
 	 * entry when loading a Work space into the GUI.
 	 * 
-	 * @param heuristic The DOM element to be used for creating the
+	 * @param filter The DOM element to be used for creating the
 	 * entry and populating with the needed data.
 	 * 
-	 * @return The newly created Heuristic entry based on the DOM data.
+	 * @return The newly created filter entry based on the DOM data.
 	 * 
 	 * @throws Exception This method throws an exception when errors occur
 	 * during reading and processing elements from the DOM node.
 	 */
-	public static Heuristic create(Element heuristic) throws Exception {
+	public static Filter create(Element filter) throws Exception {
 		// First extract the necessary information from the DOM tree.
-		String name = DOMHelper.getStringValue(heuristic, "Name");
-		// Create the core heuristic class and then add parameters directly
-		Heuristic node = new Heuristic(name);
-		// Process list of parameters for the heuristic.
-		NodeList params = heuristic.getElementsByTagName("Param");
+		String name = DOMHelper.getStringValue(filter, "Name");
+		// Convert the filter name to suitable enumeration type.
+		FilterType type = FilterType.valueOf(FilterType.class, name);
+		
+		// Create the core filter class and then add parameters directly
+		Filter node = new Filter(type);
+		
+		// Process list of parameters for the filter.
+		NodeList params = filter.getElementsByTagName("Param");
 		// Process each parameter in the list
 		for(int idx = 0; (idx < params.getLength()); idx++) {
 			Element param    = (Element) params.item(idx);
@@ -87,31 +109,37 @@ public class Heuristic {
 	 * @param name The name of the heuristic with which this class is
 	 * associated.
 	 */
-	public Heuristic(String name) {
-		this.name = name;
+	public Filter(FilterType filterType) {
+		this.filterType = filterType;
 		this.parameters = new ArrayList<Param> ();
 	}
 	
 	/**
-	 * Obtain the name of the heuristic associated with this class.
+	 * Obtain the type of filter represented by this class.
 	 * 
-	 * @return This method returns the name of the heuristic associated
-	 * with this class.
+	 * This method provides the name in a form that can be readily 
+	 * dispatched to the PEACE clustering engine.
+	 * 
+	 * @return This method returns the type of filter represented by this 
+	 * class.
 	 */
-	public String getName() { return name; }
+	public String getName() {
+		final String FilterNames[] = {"lengthFilter", "lcFilter"};
+		return FilterNames[filterType.ordinal()]; 
+	}
 	
 	/**
-	 * Obtain the full list of parameters passed to this heuristic.
+	 * Obtain the full list of parameters passed to this filter.
 	 * 
-	 * @return This method returns the full list of parmeters supplied to
+	 * @return This method returns the full list of parameters supplied to
 	 * this heuristic to fine tune its runtime operations.
 	 */
 	ArrayList<Param> getParameters() { return parameters; }
 	
 	/**
-	 * Add a parameter to the heuristic.
+	 * Add a parameter to the filter.
 	 * 
-	 * This method may be used to add a parameter to the heuristic.
+	 * This method may be used to add a parameter to the filter.
 	 * The name of the parameter must be one of the command line 
 	 * parameters in PEACE. The value must be suitably set to be
 	 * compatible with the parameter. This method does not perform
@@ -139,17 +167,17 @@ public class Heuristic {
 			// Add parameter name ":" value information.
 			paramInfo += p.getName() + ":" + p.getValue();
 		}
-		return name + "[Parameters: " + paramInfo + "]";
+		return filterType.toString() + "[Parameters: " + paramInfo + "]";
 	}
 	
 	/**
-	 * Provides a multi-line information about this heuristic.
+	 * Provides a multi-line information about this filter.
 	 * Parameters are displayed on separate lines with each line indented
 	 * by a single tab. This is usually used to display summary information
 	 * to the user.
 	 */
 	public String getSummary() {
-		String summary = "Heuristic: " + name + "\n";
+		String summary = "Filter: " + filterType + "\n";
 		for(Param p: parameters) {
 			// Add parameter name ":" value information.
 			summary += "\t" + p.getName() + ":" + p.getValue() + "\n"; 
@@ -177,18 +205,18 @@ public class Heuristic {
 	/**
 	 * Method to marshall the data stored in this object to become part of
 	 * a DOM tree element passed in. This method assumes that the element
-	 * passed in corresponds to the parent HeuristicList node in the DOM tree.
+	 * passed in corresponds to the parent FilterList node in the DOM tree.
 	 * 
-	 * @param heurList The DOM element corresponding to the "HeuristicList"
+	 * @param filterList The DOM element corresponding to the "FilterList"
 	 * node that contains this entry.
 	 */
-	public final void marshall(Element heurList) {
+	public final void marshall(Element filterList) {
 		// Create a top-level entry for this "Job"
-		Element heur = DOMHelper.addElement(heurList, "Heuristic", null);
+		Element filter = DOMHelper.addElement(filterList, "Filter", null);
 		// Add new sub-elements for each sub-element
-		DOMHelper.addElement(heur, "Name", name);
+		DOMHelper.addElement(filter, "Name", filterType.toString());
 		for(Param param : parameters) {
-			Element paramNode = DOMHelper.addElement(heur, "Param", null);
+			Element paramNode = DOMHelper.addElement(filter, "Param", null);
 			DOMHelper.addElement(paramNode, "Name",  param.getName());
 			DOMHelper.addElement(paramNode, "Value", param.getValue());
 		}
@@ -206,8 +234,8 @@ public class Heuristic {
 		final String STR_ELEMENT = Indent + "\t\t" + "<%1$s>%2$s</%1$s>\n";
 		
 		// Create a top-level server entry for this server
-		out.printf("%s<Heuristic>\n", Indent);
-		out.printf("%s\t<Name>%s</Name>\n", Indent, name);
+		out.printf("%s<Filter>\n", Indent);
+		out.printf("%s\t<Name>%s</Name>\n", Indent, filterType.toString());
 		// Add new sub-elements for each parameter
 		for(Param param : parameters) {
 			out.printf("%s\t<Param>\n", Indent);
@@ -216,14 +244,14 @@ public class Heuristic {
 			out.printf("%s\t</Param>\n", Indent);
 		}
 		// Close the heuristic tag
-		out.printf("%s</Heuristic>\n", Indent);
+		out.printf("%s</Filter>\n", Indent);
 	}
 	
 	/**
-	 * The name of the heuristic. This value is set when this class
+	 * The name/type of this filter. This value is set when this class
 	 * is instantiated and is never changed.
 	 */
-	private final String name;
+	private final FilterType filterType;
 	
 	/**
 	 * The list of parameters that are simply managed as a name-value
