@@ -50,7 +50,7 @@ int   LCFilter::threshold   = -1;
 arg_parser::arg_record LCFilter::argsList[] = {
     {"--lcPatterns", "List of (, separated) patterns to generate dummy ESTs",
      &LCFilter::patternList, arg_parser::STRING},
-    {"--lctTreshold", "Threshold value to detect low complexity sequences",
+    {"--lcThreshold", "Threshold value to detect low complexity sequences",
      &LCFilter::threshold, arg_parser::INTEGER},
     {NULL, NULL, NULL, arg_parser::BOOLEAN}
 };
