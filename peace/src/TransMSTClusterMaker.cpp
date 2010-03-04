@@ -134,7 +134,7 @@ TransMSTClusterMaker::pruneMetricEntries(const SMList& list,
     // If the list has zero entries, then add at least one invalid
     // entry to ensure that the list is not empty.
     if (goodEntries.empty()) {
-        CachedESTInfo dummy(-1, -1, badMetric, -1);
+        CachedESTInfo dummy(-1, -1, badMetric, -1, -1);
         goodEntries.push_back(dummy);
     }
 }
