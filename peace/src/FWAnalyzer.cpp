@@ -43,13 +43,13 @@
 #include <time.h>
 
 // The static instance variables for command line arguments.
-//int FWAnalyzer::frameSize = 50; // 100 is default from WCD implementation
-int FWAnalyzer::wordSize  = 6;   // 6   is default from CLU implementation.
+int FWAnalyzer::argumentFrameSize = 100; // 100 is default from WCD
+int FWAnalyzer::wordSize  = 6;   // 6 is default from WCD implementation.
 
 // The common set of arguments for all FW EST analyzers
 arg_parser::arg_record FWAnalyzer::commonArgsList[] = {
-    //{"--frame", "Frame size (in base pairs, default=100)",
-    // &FWAnalyzer::frameSize, arg_parser::INTEGER},
+    {"--frame", "Frame size (in base pairs, default=100)",
+     &FWAnalyzer::argumentFrameSize, arg_parser::INTEGER},
     {"--word", "Word size (in base pairs, default=6)",
      &FWAnalyzer::wordSize, arg_parser::INTEGER},    
     {NULL, NULL, NULL, arg_parser::BOOLEAN}
@@ -80,6 +80,8 @@ bool
 FWAnalyzer::parseArguments(int& argc, char **argv) {
     arg_parser ap(FWAnalyzer::commonArgsList);
     ap.check_args(argc, argv, false);
+    // Set the frame size to be equal to the supplied argument frame size
+    frameSize = argumentFrameSize;
     // Now let the base class do processing and return the result.
     if (!ESTAnalyzer::parseArguments(argc, argv)) {
         // There are invalid/missing arguments!

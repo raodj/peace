@@ -331,6 +331,17 @@ protected:
     */
     int frameSize;
 
+    /** The frame size supplied by the user as command line input.
+
+        A separate, static frame size variable so that it can be
+	assigned as a command line argument.
+
+	/note Deriving analyzers are not in any way required to
+	utilize the user-supplied frame size -- see specific
+        analyzer classes for those details.
+    */
+    static int argumentFrameSize;
+
     /** The word size to be used by this analyzer.
 
         The word size (in bp) that must be used for comparisons.  The
