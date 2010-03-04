@@ -43,18 +43,18 @@ class EST;
 class ResultLog;
 
 /** \brief EST Analyzer that uses the D2 algorithm in both its
-	symmetric and asymmetric variations to compute distance between
-	two ESTs.
+    symmetric and asymmetric variations to compute distance between
+    two ESTs.
 
     <p>This analyzer provides the mechanism to use D2 algorithm to
     compute the distance values between a pair of ESTs. For improved
-	performance, the analyzer uses D2 asymmetric and symmetric together.
-	It runs a fast "first pass" using D2 asymmetric and finds the minimum
-	D2 score, as well as the two windows between which the score was
-	computed.  The analyzer then computes bounds and runs a bounded
-	version of D2 symmetric.  Ideally this analyzer will provide
-	faster runtime because of the asymmetric pass, and not sacrifice any
-	precision because of the bounded symmetric pass.<p>
+    performance, the analyzer uses D2 asymmetric and symmetric together.
+    It runs a fast "first pass" using D2 asymmetric and finds the minimum
+    D2 score, as well as the two windows between which the score was
+    computed.  The analyzer then computes bounds and runs a bounded
+    version of D2 symmetric.  Ideally this analyzer will provide
+    faster runtime because of the asymmetric pass, and not sacrifice any
+    precision because of the bounded symmetric pass.<p>
 
     \note This D2 analyzer uses a word size of 8 base pairs.  This is
     hard coded into the algorithm in the form of various assumptions
@@ -455,7 +455,7 @@ private:
     */
     int alignmentMetric;
 
-    /** The bitmak to be used when build hash values.
+    /** The bitmask to be used when building hash values.
             
         This bitmask is used to drop higher order bits when building
         hash values for \c wordSize (defined in base class) base pairs
@@ -474,6 +474,12 @@ private:
     */
     static int NHash;
 
+    /** Boolean value indicating whether or not d2 scores should be
+	normalized (converted to a 1.0-based value where 1.0 is equal
+	to the d2 threshold).
+
+	Defaults to false (i.e. scores should be normalized).
+    */
     static bool noNormalize;
 
     /** Instance variable to track the number of words (of \c

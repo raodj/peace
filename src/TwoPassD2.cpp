@@ -54,6 +54,8 @@ int TwoPassD2::bitShift  = 0;
 // sufficiently similar to be clustered.
 int TwoPassD2::minThreshold = 0;
 
+// Indicates whether or not d2 scores should be normalized based on the
+// threshold value.
 bool TwoPassD2::noNormalize = false;
 
 // The set of arguments for this class.
