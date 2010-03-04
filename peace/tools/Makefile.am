@@ -46,6 +46,7 @@ pTools_SOURCES = \
 ../src/arg_parser.h\
 ../src/EST.cpp\
 ../src/EST.h\
+../src/HashMap.h\
 Common.h\
 ShowAlignment.h\
 ShowAlignment.cpp\
