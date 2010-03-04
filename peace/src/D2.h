@@ -436,7 +436,7 @@ private:
     */
     int alignmentMetric;
 
-    /** The bitmak to be used when build hash values.
+    /** The bitmask to be used when build hashing values.
             
         This bitmask is used to drop higher order bits when building
         hash values for \c wordSize (defined in base class) base pairs
