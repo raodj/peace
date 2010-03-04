@@ -130,7 +130,7 @@ void Reconstruction::printConsensus() {
 std::vector<std::string> Reconstruction::reconstruct() {
 	sPosDebug = vector<int> (g->graphNodes.size());
 
-	vector<string> ret = processLeftEnds();
+	vector<string> ret = reconstuctForEachCluster();
 
 	//for debug
 	std::stringstream out;
@@ -146,6 +146,58 @@ std::vector<std::string> Reconstruction::reconstruct() {
 
 	return ret;
 }
+
+/*
+ * Called by reconstruct().
+ * Do reconstruction for all the left ends in each cluster. Then return all the consensus sequences.
+ */
+std::vector<std::string> Reconstruction::reconstuctForEachCluster() {
+	vector<vector<int> > dGraph = genDGraph();
+
+	vector<string> retStr;
+	vector<int> allNodes(g->graphNodes.size(), 0);
+
+	while (true) {
+		int first = -1;
+		bool exit = 1;
+		for (int i=0; i<allNodes.size(); i++) {
+			if (allNodes[i] == 0) { //find the first node which has not been processed
+				first = i;
+				allNodes[first] = 1;
+				exit = 0;
+				break;
+			}
+		}
+		if (exit) break;
+
+		map<int, int> curMSTNodes;
+		curMSTNodes[first] = 0;
+
+		vector<stack<int> > nodes (2);
+		nodes[0].push(first);
+		nodes[1].push(-1);
+		while (true) { //put all the nodes in the same MST with 'first' into curMSTNodes
+			nodes = g->getNodesFromMST(nodes);
+			if (nodes[0].size() == 0) break;
+			stack<int> tmp = nodes[0];
+			while (!tmp.empty()) {
+				int tmpIndex = tmp.top();
+				tmp.pop();
+				curMSTNodes[tmpIndex] = 0;
+				allNodes[tmpIndex] = 1;
+			}
+		}
+
+		if (curMSTNodes.size() > 1) { //if more than 1 nodes in the MST, or else it is a singleton.
+			vector<string> ret = processLeftEnds(curMSTNodes, dGraph); //reconstruct from left ends in the same MST curMSTNodes
+			for (int k=0; k<ret.size(); k++)
+				retStr.push_back(ret[k]);
+		}
+	}
+
+	return retStr;
+}
+
 
 std::vector<std::vector<int> > Reconstruction::genDGraph() {
 	/*
@@ -233,7 +285,6 @@ string Reconstruction::reconstructFromEnds(vector<vector<int> > leftEnds, vector
 	tstr << leftEnds[0][0];
 	printStr = printStr + "Start from node " + tstr.str() + " to do reconstruction" + "\n\n";
 
-
 	vector<StartPos> tmpArray;
 	for (int j=0; j<sPos.size(); j++) {
 		ite = ends.find(j);
@@ -256,29 +307,36 @@ string Reconstruction::reconstructFromEnds(vector<vector<int> > leftEnds, vector
 /*
  * This method is designed to group left ends into independent sets. All the dependent left ends (include one by one) are put
  * into one group.
- * In each group, we find the left end with the longest length and the one which will use the most number of ESTs to reconstruct,
+ * In each group, we put all the nodes which can be connected by any left end in the group,
  * and combine them together to form a consensus by calling the function "processLeftEndsWithInclusion".
 
  * @return all the consensus sequences.
  */
-vector<string>Reconstruction::processLeftEnds() {
+vector<string>Reconstruction::processLeftEnds(map<int, int>& curMSTNodes, vector<vector<int> >& dGraph) {
 	vector<string> allOutputContigs;	//store all the generated sequences
-
-	vector<vector<int> > dGraph = genDGraph();
 	int sizeOfs = leftMostNodes.size();
 	if (sizeOfs == 0) {
 		cout << "zero left ends!" << endl;
-		exit(1);
+		allOutputContigs.push_back("");
+		return allOutputContigs;
 	}
-	vector<LeftEnd> resultArray(sizeOfs); //store the starting positions of ests
+	vector<LeftEnd> resultArray; //store the starting positions of ests
 	for (int i=0; i<sizeOfs; i++) { //start for
 		int idx = leftMostNodes[i]->curNode;
-		resultArray[i] = LeftEnd(idx, g->getSeqOfNode(idx));
+		map<int, int>::iterator ite = curMSTNodes.find(idx);
+		if (ite != curMSTNodes.end()) { //idx is in curMSTNodes
+			resultArray.push_back(LeftEnd(idx, g->getSeqOfNode(idx)));
+		}
 	} //end for
 	sort(resultArray.begin(), resultArray.end());
-
 	vector<LeftEnd> allLeftEnds;
-	for (int i=sizeOfs-1; i>=0; i--) {
+	int sizeResultArray = resultArray.size();
+	if (sizeResultArray == 0) {
+		cout << "zero left ends in the cluster!" << endl;
+		allOutputContigs.push_back("");
+		return allOutputContigs;
+	}
+	for (int i=sizeResultArray-1; i>=0; i--) {
 		allLeftEnds.push_back(resultArray[i]);
 	}
 
@@ -325,8 +383,8 @@ vector<string>Reconstruction::processLeftEnds() {
  * This method is called by "processLeftEnds".
  * This method is used to process those left ends that include each other.
  *
- * We combine the one with the longest first EST and the one using the most number of ESTs together to
- * form a new one and return it.
+ * We put all the nodes together which can be connected by any left end in the group,
+ * and reconstruct a consensus from them.
  */
 string Reconstruction::processLeftEndsWithInclusion(vector<LeftEnd>& includeStrs, vector<vector<int> >& dGraph) {
 	if (includeStrs.size() == 0) {
@@ -377,19 +435,20 @@ string Reconstruction::processLeftEndsWithInclusion(vector<LeftEnd>& includeStrs
  */
 vector<string> Reconstruction::reconstructSeq(vector<StartPos>& a) {
 	vector<string> ret(2);
-	int sizeOfa = a.size();
-	if ((sizeOfa == 0) || (sizeOfa == 1)){
-		//size=1, this node should be a singleton if it is not used in other place. it shouldn't appear as a consensus sequence.
-		//size=1, then usedNodes[this node] will not be set to 1 because addInclusionNodes won't be called.
+	if (a.size() == 0) {
 		return ret;
 	}
 
 	sort(a.begin(), a.end());
 	vector<UsedNode> addedNodes = addInclusionNodes(a);  //add all those related inclusion nodes into it for reconstruction and set usedNodes[related nodes]=1.
+	if (addedNodes.size() == 1){
+		//size=1, this node should be a singleton if it is not used in other place. it shouldn't appear as a consensus sequence.
+		//size=1, then usedNodes[this node] will not be set to 1 in addInclusionNodes method.
+		return ret;
+	}
 	std::stringstream out;
 	out << addedNodes.size();
 	ret[1] = out.str();
-
 	vector<StartPos> resultArray(addedNodes.size());
 	for (int i=0; i<addedNodes.size(); i++) {
 		UsedNode tmpNode = addedNodes[i];
@@ -415,11 +474,14 @@ vector<string> Reconstruction::reconstructSeq(vector<StartPos>& a) {
 		} else  { //use bounded version
 			strs = alignment.getBoundedLocalAlignment(tmpConsensus, curSeq);
 		}
+		if ((strs.str1.size()==0) || (strs.str2.size()==0)) continue;
 		tConsensus = replace(tConsensus, replace(strs.str1, "-", ""), strs.str1);
 		int offset = (int)tConsensus.find(strs.str1);
+		if (offset < 0) continue; //not found
 
 		string tSeq = replace(curSeq, replace(strs.str2, "-", ""), strs.str2);
 		int tmpOff = (int)tSeq.find(strs.str2);
+		if (tmpOff < 0) continue; //not found
 		string firstPartCur = tSeq.substr(0, tmpOff);
 		curSeq = tSeq.substr(tmpOff);
 		if (i == 1) {
@@ -501,12 +563,28 @@ string Reconstruction::getCurConsensus(vector<SingleBase*> bases) {
  * in string 'str', replace 'old' with 'new'.
  */
 string Reconstruction::replace(string str, const string& old, const string& newstr) {
+
+	if (old.size() == 0) return str; //old is ""
+	int newSize = newstr.size();
+	size_t found = str.find(old);
+	while (found != string::npos) { //there is "old" in the sequence
+		str.replace(found, old.size(), newstr);
+		if ((found+newSize)<str.size())
+			found = str.find(old, found+newSize);
+		else
+			found = string::npos;
+	}
+	return str;
+
+/*
 	size_t found = str.find(old);
 	while (found != string::npos) { //there is "old" in the sequence
 		str.replace(found, old.size(), newstr);
 		found = str.find(old, found+old.size()-1);
 	}
 	return str;
+*/
+
 }
 
 
@@ -535,6 +613,8 @@ vector<UsedNode> Reconstruction::addInclusionNodes(vector<StartPos>& input) {
 		retList.push_back(UsedNode(it->first, it->second));
 	}
 	sort(retList.begin(), retList.end());
+	if (retList.size()==1) //if only one node in retList after adding inclusion nodes, this node should be a singleton.
+		usedNodes[retList[0].index] = 0;
 	return retList;
 }
 

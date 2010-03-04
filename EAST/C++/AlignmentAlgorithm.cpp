@@ -101,8 +101,8 @@ int AlignmentAlgorithm::getNWScore(const string& s1, const string& s2) {
 	return score;
 	 */
 	int		r, c, rows, cols, tmp, ins, del, sub, score;
-	rows = s1.length();
-	cols = s2.length();
+	rows = s1.length() + 1;
+	cols = s2.length() + 1;
 	int encodedBases1[rows];
 	int encodedBases2[cols];
 
@@ -164,7 +164,7 @@ int AlignmentAlgorithm::getNWScore(const string& s1, const string& s2) {
 		{
 			// initiate first column (tmp hold values
 			// that will be later moved to the array)
-			tmp = array[0] + gapPenalty * c;
+			tmp = array[0] + gapPenalty * r;
 			int base1 = encodedBases1[r-1];
 
 			for (c = 1; c < cols; c++)
@@ -195,110 +195,68 @@ int AlignmentAlgorithm::getNWScore(const string& s1, const string& s2) {
 int AlignmentAlgorithm::getBoundedNWScore(const string& s1, const string& s2) {
 	int	r, c, rows, cols, tmp, ins, del, sub, score;
 	int band = BAND_WIDTH_NW;
-	rows = s1.length();
-	cols = s2.length();
-	int encodedBases1[rows];
-	int encodedBases2[cols];
-
-	if (rows < cols) {
-		// goes columnwise
-		int array[rows+1];
-
-		// initiate first column
-		array[0] = 0;
-		for (r = 1; r <= rows; r++) {
-			encodedBases1[r-1] = encodeBase(s1[r-1]);
-			array[r] = array[r-1] + gapPenalty * r;
-		}
-		for (r=1; r <= cols; r++)
-			encodedBases2[r-1] = encodeBase(s2[r-1]);
-
-		// calculate the similarity matrix (keep current column only)
-		for (c = 1; c <= cols; c++) {
-			// initiate first row (tmp hold values
-			// that will be later moved to the array)
-			tmp = array[0] + gapPenalty * c;
-			int base2 = encodedBases2[c-1];
-			int start = (c-band) > 1 ? (c-band) : 1;
-			int end = cols > (c+band) ? (c+band) : cols;
-			for (r = start; r < end; r++)
-			{
-				int base1 = encodedBases1[r-1];
-				sub = array[r-1] + (this->scoreMatrix)[base1][base2];
-				if (abs(c-r+1) <= band)
-					ins = array[r] + gapPenalty;
-				else
-					ins = 0;
-				if (abs(c-1-r) <= band)
-					del = tmp + gapPenalty;
-				else
-					del = 0;
-
-				// move the temp value to the array
-				array[r-1] = tmp;
-
-				// choose the greatest
-				if (sub >= ins)
-					tmp = sub >= del ? sub : del;
-				else
-					tmp = ins >= del ? ins : del;
-			}
-
-			// move the temp value to the array
-			array[rows - 1] = tmp;
-		}
-		score = array[rows - 1];
+	string ss1;
+	string ss2;
+	if (s1.length() < s2.length()) {
+		ss1 = s2;
+		ss2 = s1;
 	} else {
-		// goes rowwise
-		int array[cols];
+		ss1 = s1;
+		ss2 = s2;
+	}
+	rows = ss1.length() + 1;
+	cols = ss2.length() + 1;
+	int encodedBases1[rows-1];
+	int encodedBases2[cols-1];
 
-		// initiate first row
-		array[0] = 0;
-		for (c = 1; c <= cols; c++) {
-			encodedBases2[c-1] = encodeBase(s2[c-1]);
-			array[c] = array[c-1] + gapPenalty * c;
-		}
-		for (r=1; r <= rows; r++)
-			encodedBases1[r-1] = encodeBase(s1[r-1]);
+	// goes rowwise
+	int array[cols];
 
-		// calculate the similarity matrix (keep current row only)
-		for (r = 1; r <= rows; r++)
+	// initiate first row
+	array[0] = 0;
+	for (c = 1; c < cols; c++) {
+		encodedBases2[c-1] = encodeBase(ss2[c-1]);
+		array[c] = array[c-1] + gapPenalty * c;
+	}
+	for (r=1; r < rows; r++)
+		encodedBases1[r-1] = encodeBase(ss1[r-1]);
+
+	// calculate the similarity matrix (keep current row only)
+	for (r = 1; r < rows; r++)
+	{
+		tmp = array[0] + gapPenalty * r;;
+		int base1 = encodedBases1[r-1];
+		int start = (r-band) > 1 ? (r-band) : 1;
+		int end = cols > (r+band) ? (r+band) : cols;
+
+		for (c = start; c < end; c++)
 		{
-			// initiate first column (tmp hold values
-			// that will be later moved to the array)
-			tmp = array[0] + gapPenalty * c;
-			int base1 = encodedBases1[r-1];
-			int start = (r-band) > 1 ? (r-band) : 1;
-			int end = cols > (r+band) ? (r+band) : cols;
-
-			for (c = start; c < end; c++)
-			{
-				int base2 = encodedBases2[c-1];
-				sub = array[c-1] + (this->scoreMatrix)[base1][base2];
-				if (abs(c-1-r) <= band)
-					ins = tmp + gapPenalty;
-				else
-					ins = 0;
-				if (abs(r-c+1) <= band)
-					del = array[c] + gapPenalty;
-				else
-					del = 0;
-
-				// move the temp value to the array
-				array[c-1] = tmp;
-
-				// choose the greatest
-				if (sub >= ins)
-					tmp = sub >= del ? sub : del;
-				else
-					tmp = ins >= del ? ins : del;
-			}
+			int base2 = encodedBases2[c-1];
+			sub = array[c-1] + (this->scoreMatrix)[base1][base2];
+			if (abs(r-c+1) <= band) //west
+				ins = tmp + gapPenalty;
+			else
+				ins = 0;
+			if (abs(c-1-r) <= band) //north
+				del = array[c] + gapPenalty;
+			else
+				del = 0;
 
 			// move the temp value to the array
-			array[cols - 1] = tmp;
+			array[c-1] = tmp;
+
+			// choose the greatest
+			if (sub >= ins)
+				tmp = sub >= del ? sub : del;
+			else
+				tmp = ins >= del ? ins : del;
 		}
-		score = array[cols - 1];
+
+		// move the temp value to the array
+		array[cols - 1] = tmp;
 	}
+	score = array[cols - 1];
+
 	return score;
 }
 
@@ -611,18 +569,20 @@ AlignResult AlignmentAlgorithm::getBoundedSWAlignment(const std::string& horizon
 		                                   + (this->scoreMatrix)[base1][base2];
 
 			// See if the second term is larger (WEST).
+			//if ((i <= band) || (j > start)) {
 			if (abs(i-j+1) <= band) {
 				int west = alignMatrix[i][j - 1] + this->gapPenalty;
-				if (max <= west) {
+				if (max < west) {
 					max = west;
 					flag = 2;
 				}
 			}
 
 			// See if the third term is the largest (NORTH)
+			//if (j < end-1) {
 			if (abs(i-1-j) <= band) {
 				int north = alignMatrix[i - 1][j] + this->gapPenalty;
-				if (max <= north) {
+				if (max < north) {
 					max = north;
 					flag = 1;
 				}

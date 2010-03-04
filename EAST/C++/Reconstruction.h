@@ -61,7 +61,6 @@ public:
 	std::string singletonFileName;
 	std::string numOfUsedESTsFileName;
 	std::string printStr;
-	std::vector<std::string> numOfNodes;	//store number of used nodes, corresponds to each element in allConsensus.
 	std::vector<std::string> firstEsts;	//includes all the left end sequence corresponding to each element in allConsensus.
 	std::vector<int> usedNodes;	//index of the array is the index of the node, 1-used, 0-not used. It is used to identify singletons.
 
@@ -73,8 +72,9 @@ public:
 private:
 	void printConsensus();
 	std::vector<std::string> reconstruct();
+	std::vector<std::string> reconstuctForEachCluster();
 	std::vector<std::vector<int> > genDGraph();
-	std::vector<std::string> processLeftEnds();
+	std::vector<std::string> processLeftEnds(std::map<int, int>& curMSTNodes, std::vector<std::vector<int> >& dGraph);
 	std::string reconstructFromEnds(std::vector<std::vector<int> > leftEnds, std::vector<std::vector<int> >& dGraph);
 	std::string processLeftEndsWithInclusion(std::vector<LeftEnd>& includeStrs, std::vector<std::vector<int> >& dGraph);
 	int getNumUsedNodes(std::vector<StartPos>& a);
