@@ -49,8 +49,10 @@ MST::MST(const int maxNodes, const bool alignData) :
 
 void
 MST::addNode(const int parentIdx, const int estIdx,
-             const float similarity, const int alignmentInfo) {
-    nodeList.push_back(MSTNode(parentIdx, estIdx, similarity, alignmentInfo));
+             const float similarity, const int alignmentInfo,
+             const int directionInfo) {
+    nodeList.push_back(MSTNode(parentIdx, estIdx, similarity, alignmentInfo,
+                               directionInfo));
 }
 
 void
@@ -70,7 +72,8 @@ MST::serialize(const char *fileName, const char *srcFile,
             << "# Generated on: "    << getTime(now)
             << "# Generated from source file: " << srcFile << "\n"
             << "# Source file timestamp: " << getTimeStamp(srcFile, srcTimeStr)
-            << "# Data format: <parentESTidx>,<estIdx>,<similarityMetric>\n"
+            << "# Data format: <parentESTidx>,<estIdx>,<similarityMetric>,"
+            << "<alignmentMetric>,<direction>\n"
             << "# Total MST distance: " << getMSTDistance() << "\n"
             << "# Clustering threshold: " << threshold << "\n"
             << "# Command line: " << arg_parser::get_global_args() << "\n";

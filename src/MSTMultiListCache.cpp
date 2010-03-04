@@ -171,9 +171,10 @@ MSTMultiListCache::mergeList(const int estIdx, const SMList& list) {
 
 void
 MSTMultiListCache::getBestEntry(int& srcESTidx, int& destESTidx,
-                                float& metric, int & alignmentData) const {
+                                float& metric, int &alignmentData,
+                                int& directionData) const {
     // Initialize the results to an invalid value first.
-    srcESTidx= destESTidx = -1;
+    srcESTidx= destESTidx = alignmentData = directionData = -1;
     metric   = analyzer->getInvalidMetric();
     
     // Locate the best entry from various lists in this cache.
@@ -194,6 +195,7 @@ MSTMultiListCache::getBestEntry(int& srcESTidx, int& destESTidx,
             destESTidx    = estInfo.estIdx;
             metric        = estInfo.metric;
             alignmentData = estInfo.alignmentData;
+            directionData = estInfo.directionData;
         }
     }
 }

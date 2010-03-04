@@ -80,9 +80,10 @@ MSTHeapCache::mergeList(const int UNREFERENCED_PARAMETER(estIdx),
 
 void
 MSTHeapCache::getBestEntry(int& srcESTidx, int& destESTidx,
-                           float& metric, int & alignmentData) const {
+                           float& metric, int & alignmentData,
+                           int& directionData) const {
     // Initialize the results to an invalid value first.
-    srcESTidx= destESTidx = alignmentData = -1;
+    srcESTidx= destESTidx = alignmentData = directionData = -1;
     metric   = analyzer->getInvalidMetric();
 
     if (!cache.empty()) {
@@ -92,6 +93,7 @@ MSTHeapCache::getBestEntry(int& srcESTidx, int& destESTidx,
         destESTidx    = entry.estIdx;
         metric        = entry.metric;
         alignmentData = entry.alignmentData;
+        directionData = entry.directionData;
     }
 }
 

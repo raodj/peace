@@ -208,21 +208,23 @@ MSTClusterMaker::managerUpdateCaches(int estIdx, const bool refreshEST) {
 
 void
 MSTClusterMaker::computeNextESTidx(int& parentESTidx, int& estToAdd,
-                                   float& similarity, int& alignmentData)const {
+                                   float& similarity, int& alignmentData,
+                                   int& directionData) const {
     // First send request to compute local best EST values to each
     // worker process.
     sendToWorkers(-1, COMPUTE_MAX_SIMILARITY_REQUEST);
     // Now compute local best similarity
-    cache->getBestEntry(parentESTidx, estToAdd, similarity, alignmentData);
+    cache->getBestEntry(parentESTidx, estToAdd, similarity, alignmentData,
+                        directionData);
     // Receive similarity entry from 
     const int ProcessCount = MPI_GET_SIZE();
     for(int rank = 1; (rank < ProcessCount); rank++) {
         // Get the local simlarity information from another worker.
-	int remoteData[4] = {0, 0, 0, 0};
+	int remoteData[5] = {0, 0, 0, 0, 0};
         MPI_CODE({
                 // Choose worker rank depending on strict ordering scheme..
                 const int workerRank = (strictOrder ? rank : MPI_ANY_SOURCE);
-                TRACK_IDLE_TIME(MPI_RECV(remoteData, 4, MPI_TYPE_INT,
+                TRACK_IDLE_TIME(MPI_RECV(remoteData, 5, MPI_TYPE_INT,
                                          workerRank, MAX_SIMILARITY_RESPONSE));
             });
         // Undo the fudge on similarity done at the sender end.
@@ -232,10 +234,11 @@ MSTClusterMaker::computeNextESTidx(int& parentESTidx, int& estToAdd,
             (estToAdd == -1)) {
             // Found a higher similarity or a shorter distance in a
             // remote process or this is the first valid entry thusfar
-            similarity   = remoteSim;
-            parentESTidx = remoteData[0];
-            estToAdd     = remoteData[1];
-            alignmentData= remoteData[3];
+            similarity    = remoteSim;
+            parentESTidx  = remoteData[0];
+            estToAdd      = remoteData[1];
+            alignmentData = remoteData[3];
+            directionData = remoteData[4];
         }
     }
 }
@@ -243,14 +246,15 @@ MSTClusterMaker::computeNextESTidx(int& parentESTidx, int& estToAdd,
 void
 MSTClusterMaker::addMoreChildESTs(const int parentESTidx, int& estToAdd,
                                   float &metric, int& alignmentData,
-                                  int& pendingESTs) {
+                                  int& directionData, int& pendingESTs) {
     // variable to track parent of next EST to be added.
     int newParent = -1;
     
     do {
         // Add the current node to the MST.
         ASSERT ( estToAdd != -1 );
-        mst->addNode(parentESTidx, estToAdd, metric, alignmentData);
+        mst->addNode(parentESTidx, estToAdd, metric, alignmentData,
+                     directionData);
         if (--pendingESTs == 0) {
             // All EST's have been added to the MST.  Nothing more to
             // do.  So break out of the while loop.
@@ -264,7 +268,9 @@ MSTClusterMaker::addMoreChildESTs(const int parentESTidx, int& estToAdd,
         int newChild       = -1;
         float childMetric  = 0;
         int childAlignment = 0;
-        computeNextESTidx(newParent, newChild, childMetric, childAlignment);
+        int childDirection = 0;
+        computeNextESTidx(newParent, newChild, childMetric, childAlignment,
+                          childDirection);
         // Check if we have a child with a useful alignment data.
         if ((newParent == parentESTidx) &&
             (analyzer->compareMetrics(childMetric, (float) maxUse))) {
@@ -273,6 +279,7 @@ MSTClusterMaker::addMoreChildESTs(const int parentESTidx, int& estToAdd,
             estToAdd      = newChild;
             metric        = childMetric;
             alignmentData = childAlignment;
+            directionData = childDirection;
         } else {
             // No more children to add!
             newParent = -1;
@@ -334,13 +341,15 @@ MSTClusterMaker::manager() {
     
     float metric        = analyzer->getValidMetric();
     int   alignmentInfo = 0;
+    int   directionInfo = 0;
     do {
         // Update progress information as needed
         updateProgress(TotalESTcount - pendingESTs, TotalESTcount);
         // Add the EST to the MST vector, if needed.
         if ((maxUse == -1) || (parentESTidx == -1)) {
             ASSERT ( estToAdd != -1 );
-            mst->addNode(parentESTidx, estToAdd, metric, alignmentInfo);
+            mst->addNode(parentESTidx, estToAdd, metric, alignmentInfo,
+                         directionInfo);
             if (--pendingESTs == 0) {
                 // All EST's have been added to the MST.  Nothing more to
                 // do.  So break out of the while loop.
@@ -353,14 +362,15 @@ MSTClusterMaker::manager() {
         // Now broadcast request to all workers to provide their best
         // choice for the next EST id to be added to the MST using a
         // helper method.
-        computeNextESTidx(parentESTidx, estToAdd, metric, alignmentInfo);
+        computeNextESTidx(parentESTidx, estToAdd, metric, alignmentInfo,
+                          directionInfo);
         ASSERT( parentESTidx != -1 );
         ASSERT( estToAdd     != -1 );
         if (maxUse != -1) {
             // Try to add as many ESTs as possible rooted at the given
             // parentESTidx using a helper method.
             addMoreChildESTs(parentESTidx, estToAdd, metric,
-                             alignmentInfo, pendingESTs);
+                             alignmentInfo, directionInfo, pendingESTs);
         }
     } while (pendingESTs > 0);
 
@@ -404,17 +414,17 @@ MSTClusterMaker::worker() {
                     MPI_RECV(&dummy, 1, MPI_TYPE_INT, MANAGER_RANK,
                              COMPUTE_MAX_SIMILARITY_REQUEST);
                 });
-            int   bestEntry[4];
+            int   bestEntry[5];
             float similarity = 0;
             // Get the best possible local similarity match.
             cache->getBestEntry(bestEntry[0], bestEntry[1],
-                                similarity, bestEntry[3]);
+                                similarity, bestEntry[3], bestEntry[4]);
             // Fudge the similarity into the bestEntry array to
             // transmitt the necessary information to the manager.
             // Maybe there is a cleaner way to do it too...
             int *temp    = reinterpret_cast<int*>(&similarity);
             bestEntry[2] = *temp;
-            MPI_SEND(bestEntry, 4, MPI_TYPE_INT, MANAGER_RANK,
+            MPI_SEND(bestEntry, 5, MPI_TYPE_INT, MANAGER_RANK,
                      MAX_SIMILARITY_RESPONSE);
         } else if (msgInfo.Get_tag() == ADD_EST) {
             // The manager has broad casted the next est to be added.
@@ -497,9 +507,14 @@ MSTClusterMaker::populateCache(const int estIdx, SMList* metricList) {
         // Get similarity/distance metric.
         const float metric = analyze(otherIdx);
         ASSERT ( metric >= 0 );
-        // Obtain any alignemnt data that the analyzer may have.
+        // Obtain any alignment data that the analyzer may have.
         int alignmentData = 0;
+        int directionData = 1;
         analyzer->getAlignmentData(alignmentData);
+        HeuristicChain* chain = HeuristicChain::getHeuristicChain();
+        if (chain != NULL) {
+            chain->getHint("MST_RC", directionData);
+        }
         // Add only the first invalid entry. One is enough to do build
         // a valid MST. There is no need for multiple vestigial
         // entries.
@@ -507,7 +522,8 @@ MSTClusterMaker::populateCache(const int estIdx, SMList* metricList) {
         if ((isMetricOK) || (needInvalidMetric)) {
             // Add the information to metric list
             smList.push_back(CachedESTInfo(estIdx, otherIdx,
-                                           metric, alignmentData));
+                                           metric, alignmentData,
+                                           directionData));
             // If this is an invalid entry, then one is enough. Don't
             // add more.
             needInvalidMetric= (needInvalidMetric && isMetricOK);
@@ -527,7 +543,7 @@ MSTClusterMaker::populateCache(const int estIdx, SMList* metricList) {
         
         // First ensure there is at least one entry to work with.
         if (smList.empty()) {
-            smList.push_back(CachedESTInfo(-1, -1, -1.0f, -1));
+            smList.push_back(CachedESTInfo(-1, -1, -1.0f, -1, -1));
         }
         MPI_SEND(&smList[0], smList.size() * sizeof(CachedESTInfo),
                  MPI_TYPE_CHAR, ownerRank, SIMILARITY_LIST);

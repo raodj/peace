@@ -55,6 +55,7 @@ MSTNode::serialize(std::ostream& os, const bool addAlignment) const {
     if (addAlignment) {
         os << "," << alignmentMetric;
     }
+    os << "," << direction;
     os << std::endl;
 }
 
@@ -89,9 +90,9 @@ MSTNode::deSerialize(std::istream& is, MSTNode& node, bool& haveAlignment) {
             done = true;
             int fields = 0;
             // Extract the three fields from the line.
-            if ((fields = sscanf(line, "%d,%d,%f,%d", &node.parentIdx,
+            if ((fields = sscanf(line, "%d,%d,%f,%d,%d", &node.parentIdx,
                                  &node.estIdx, &node.metric,
-                                 &node.alignmentMetric)) < 3) {
+                                 &node.alignmentMetric, &node.direction)) < 3) {
                 // Error occured when processing this line.
                 std::cerr << "Non-comment line with invalid format "
                           << "encountered." << std::endl;
@@ -99,7 +100,7 @@ MSTNode::deSerialize(std::istream& is, MSTNode& node, bool& haveAlignment) {
                 return 3;
             }
             // Set flag to indicate if we have alignment data as well.
-            haveAlignment = (fields == 4);
+            haveAlignment = (fields >= 4);
         }
     } while (!done);
     // Everything went well.

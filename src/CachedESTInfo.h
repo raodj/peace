@@ -78,9 +78,10 @@ public:
         to be stored in this class.
     */
     CachedESTInfo(const int refESTidxValue, const int estIdxValue,
-		  const float metricValue, const int alignmentDataValue) :
+		  const float metricValue, const int alignmentDataValue,
+		  const int directionDataValue) :
         refESTidx(refESTidxValue), estIdx(estIdxValue), metric(metricValue),
-        alignmentData(alignmentDataValue) {}
+        alignmentData(alignmentDataValue), directionData(directionDataValue) {}
     
     /** The destructor.
 
@@ -123,6 +124,13 @@ public:
         (if any) associated with the EST indicated by estIdx.
     */
     int alignmentData;
+
+    /** The direction information for this EST.
+
+        This instance variable is used to maintain the direction data
+        (if any) associated with the EST indicated by estIdx.
+    */
+    int directionData;
 
 protected:
     // Currently this class does not have any protected members.

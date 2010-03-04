@@ -66,7 +66,8 @@ TransCacheEntry::addEntries(const CachedESTInfo& reference,
                 (*peerInfo)[entry.estIdx] =
                     CachedESTInfo(estIdx, entry.estIdx,
                                   tmp,
-                                  entry.alignmentData);
+                                  entry.alignmentData,
+                                  entry.directionData);
                 //}                
         }
     }

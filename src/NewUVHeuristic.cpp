@@ -217,6 +217,8 @@ NewUVHeuristic::computeHash(const int estIdx) {
 
 bool
 NewUVHeuristic::runHeuristic(const int otherEST) {
+    // First clear the hint for the cluster maker
+    HeuristicChain::getHeuristicChain()->setHint("MST_RC", 0);
     // Extra sanity checks on uncommon scenarios.
     VALIDATE({
         if (otherEST == refESTidx) {
@@ -277,6 +279,10 @@ NewUVHeuristic::runHeuristic(const int otherEST) {
         bestMatchIsRC = (numMatches < numRCmatches);
         // Setup a hint for D2.
         HeuristicChain::getHeuristicChain()->setHint(hintKey, bestMatchIsRC);
+        // Setup a hint for the MST Cluster Maker (-1 = RC, 1 = no RC)
+        HeuristicChain::getHeuristicChain()->setHint("MST_RC",
+                                                     ((int)bestMatchIsRC) * -2
+                                                     + 1);
         // return success indication
         return true;
     }

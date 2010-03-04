@@ -168,9 +168,13 @@ public:
 
         \param[out] alignmentData The alignment data associated with
         the srcESTidx and the destESTidx.
+
+	\param[out] directionData The direction data associated with
+	the srcESTidx and the destESTidx.
     */
     virtual void getBestEntry(int& srcESTidx, int& destESTidx,
-                              float& metric, int& alignmentData) const;
+                              float& metric, int& alignmentData,
+			      int& directionData) const;
 
     /** Display cache usage statistics.
 

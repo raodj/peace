@@ -114,9 +114,14 @@ public:
         \param[in] alignmentInfo Additional alignment information
         between the parentIdx and the estIdx to be stored in this
         node.
+
+	\param[in] directionInfo Additional direction information
+        between the parentIdx and the estIdx to be stored in this
+        node.
     */
     void addNode(const int parentIdx, const int estIdx,
-                 const float similarity, const int alignmentInfo);
+                 const float similarity, const int alignmentInfo,
+		 const int directionInfo);
 
     /** Obtain a mutable list of nodes in this MST.
 
