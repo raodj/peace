@@ -30,13 +30,13 @@ public:
 	SixTuple get2CloseNodesFromGrand(int index, const SixTuple sixTuple);
 	SixTuple checkLeftEndFromMST(int index, const SixTuple sixTuple);
 	SixTuple checkRightEndFromMST(int index, const SixTuple sixTuple);
+	std::vector<std::stack<int> > getNodesFromMST(std::vector<std::stack<int> > nodes); //also called by method in reconstruction.cpp
 	inline void setMst(DefGraph& m) {
 		mst = m;
 	}
 private:
 	std::vector<SixTuple*> handleInclusion();
 	SixTuple findAdjacentNode(std::stack<int> nodes, int index, const SixTuple sixTuple);
-	std::vector<std::stack<int> > getNodesFromMST(std::vector<std::stack<int> > nodes);
 
 public:
 	inline void addNode(Node s) {

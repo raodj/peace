@@ -7,7 +7,7 @@ using namespace std;
 
 Graph::Graph(InclusionNodes* in) {
 	numOfLevels = NUMOFLEVELS;
-	treeThreshold = 130;
+	treeThreshold = 40;
 	inc = in;
 }
 
