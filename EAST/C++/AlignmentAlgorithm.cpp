@@ -526,14 +526,14 @@ AlignResult AlignmentAlgorithm::getSWAlignment(const std::string& s1,
 	return result;
 }
 
-AlignResult AlignmentAlgorithm::getBoundedSWAlignment(const std::string& horizontal,
-		const std::string& vertical) {
+AlignResult AlignmentAlgorithm::getBoundedSWAlignment(const std::string& s1,
+		const std::string& s2) {
 	AlignResult result;
 	int band = BAND_WIDTH_SW;
 
 	//calculate the alignment score and record the traceback path
-	int numOfRows = vertical.length();
-	int numOfCols = horizontal.length();
+	int numOfRows = s1.length();
+	int numOfCols = s2.length();
 	//intMatrix trace = createIntMatrix(numOfRows + 1, numOfCols + 1);
 	int trace[numOfRows + 1][numOfCols + 1];
 	trace[0][0] = 0;
@@ -541,12 +541,17 @@ AlignResult AlignmentAlgorithm::getBoundedSWAlignment(const std::string& horizon
 	int alignMatrix[numOfRows + 1][numOfCols + 1];
 	//initialize the matrix
 	alignMatrix[0][0] = 0;
-	int encodedBaseH[numOfCols];
+	int encodedBase2[numOfCols];
 	for (int i = 1; i <= numOfCols; i++) {
 		alignMatrix[0][i] = 0;
 		trace[0][i] = 0; //start point
-		encodedBaseH[i-1] = encodeBase(horizontal[i-1]);
+		encodedBase2[i-1] = encodeBase(s2[i-1]);
 	}
+
+	for (int i=0; i<=numOfRows; i++)
+		for (int j=0; j<=numOfCols; j++)
+			alignMatrix[i][j] = -100;
+	alignMatrix[0][0] = 0;
 
 	int maxScore = 0;
 	int maxRow = 0;
@@ -555,22 +560,22 @@ AlignResult AlignmentAlgorithm::getBoundedSWAlignment(const std::string& horizon
 
 	//build the matrix row by row
 	for (int i = 1; i <= numOfRows; i++) {
-		int base1 = encodeBase(vertical[i - 1]);
+		int base1 = encodeBase(s1[i - 1]);
 		alignMatrix[i][0] = 0;
 		trace[i][0] = 0;
 
 		int start = (i-band) > 1 ? (i-band) : 1;
 		int end = numOfCols > (i+band) ? (i+band) : numOfCols;
 		for (int j = start; j < end; j++) {
-			int base2 = encodedBaseH[j - 1];
+			int base2 = encodedBase2[j - 1];
 			int flag = 3;
 			// Initialize max to the first of the three terms (NORTHWEST).
 			int max = alignMatrix[i - 1][j - 1]
 		                                   + (this->scoreMatrix)[base1][base2];
 
 			// See if the second term is larger (WEST).
-			//if ((i <= band) || (j > start)) {
-			if (abs(i-j+1) <= band) {
+			if ((i <= band) || (j > start)) {
+			//if (abs(i-j+1) <= band) {
 				int west = alignMatrix[i][j - 1] + this->gapPenalty;
 				if (max < west) {
 					max = west;
@@ -579,8 +584,8 @@ AlignResult AlignmentAlgorithm::getBoundedSWAlignment(const std::string& horizon
 			}
 
 			// See if the third term is the largest (NORTH)
-			//if (j < end-1) {
-			if (abs(i-1-j) <= band) {
+			if (j < end-1) {
+			//if (abs(i-1-j) <= band) {
 				int north = alignMatrix[i - 1][j] + this->gapPenalty;
 				if (max < north) {
 					max = north;
@@ -602,6 +607,9 @@ AlignResult AlignmentAlgorithm::getBoundedSWAlignment(const std::string& horizon
 			}
 		}
 	}
+	cout << "maxScore:" << maxScore << endl;
+	cout << "maxRow:" << maxRow << endl;
+	cout << "maxCol:" << maxCol << endl;
 
 	result.score = alignMatrix[maxRow][maxCol];
 
@@ -614,18 +622,18 @@ AlignResult AlignmentAlgorithm::getBoundedSWAlignment(const std::string& horizon
 	while (flag != 0) {
 		switch (flag) {
 		case 1: //i-1, j, north
-			tStr1.append(1, vertical[row-1]);
+			tStr1.append(1, s1[row-1]);
 			tStr2.append(1, '-');
 			row = row - 1;
 			break;
 		case 2: //i, j-1, west
 			tStr1.append(1, '-');
-			tStr2.append(1, horizontal[col-1]);
+			tStr2.append(1, s2[col-1]);
 			col = col - 1;
 			break;
 		case 3: //i-1, j-1, northwest
-			tStr1.append(1, vertical[row-1]);
-			tStr2.append(1, horizontal[col-1]);
+			tStr1.append(1, s1[row-1]);
+			tStr2.append(1, s2[col-1]);
 			row = row - 1;
 			col = col - 1;
 			break;
@@ -636,8 +644,8 @@ AlignResult AlignmentAlgorithm::getBoundedSWAlignment(const std::string& horizon
 	//set str1 and str2 in result, they are reverse of tStr1 and tStr2
 	reverse(tStr1.begin(), tStr1.end());
 	reverse(tStr2.begin(), tStr2.end());
-	result.str1 = tStr2; //result.str1 for the first parameter "horizontal"
-	result.str2 = tStr1; //result.str2 for the second parameter "vertical"
+	result.str1 = tStr1;
+	result.str2 = tStr2;
 	return result;
 }
 
