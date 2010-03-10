@@ -58,7 +58,7 @@ bool NodeHeap::contains(int node) {
   return M[node] != -1;
 }
 
-void NodeHeap::push(int node, int source, int distance) {
+void NodeHeap::push(int node, int source, float distance) {
   assert(node < (int)M.size());
   NodeEntry ne(node, source, distance);
   M[node] = V.size();
@@ -78,7 +78,7 @@ NodeEntry NodeHeap::pop() {
   return ne;
 }
 
-void NodeHeap::update(int node, int source, int newDistance) {
+void NodeHeap::update(int node, int source, float newDistance) {
   int currentNode = M[node];
   assert(currentNode != -1);
   if (newDistance < V[currentNode].distance) {
@@ -138,7 +138,7 @@ void addNode(DefGraph& G) {
   G.push_back(vector<Edge>());
 }
 
-void addEdge(DefGraph& G, int s, int t, int weight, bool directed) {
+void addEdge(DefGraph& G, int s, int t, float weight, bool directed) {
   assert(s < (int)G.size() && t < (int)G.size());
   G[s].push_back(Edge(t,weight));
   if (!directed)

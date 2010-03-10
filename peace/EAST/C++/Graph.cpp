@@ -7,7 +7,7 @@ using namespace std;
 
 Graph::Graph(InclusionNodes* in) {
 	numOfLevels = NUMOFLEVELS;
-	treeThreshold = 40;
+	treeThreshold = 1;
 	inc = in;
 }
 
@@ -25,7 +25,7 @@ vector<SixTuple*> Graph::handleInclusion() {
 			vector<int> ovlDis = calDist.searchDistance(i, index);
 
 			if ((ovlDis[1] == INT_MAX) && (ovlDis[0] == INT_MAX)) {
-				if (abs((*it).weight) > treeThreshold) {
+				if ((*it).weight > treeThreshold) {
 					//add to CalculatedOvlDistance
 					calDist.addDistance(i, index, INT_MAX, 0);
 				} else {
@@ -83,7 +83,7 @@ vector<SixTuple*> Graph::get2CloseNodesFromMST() {
 
 			vector<int> ovlDis = calDist.searchDistance(curIdx, index);
 			if ((ovlDis[1] == INT_MAX) && (ovlDis[0] == INT_MAX)) {
-				if (abs((*it).weight) > treeThreshold) {
+				if ((*it).weight > treeThreshold) {
 					//add to CalculatedOvlDistance
 					calDist.addDistance(curIdx, index, INT_MAX, 0);
 				} else {
@@ -423,7 +423,7 @@ vector<stack<int> > Graph::getNodesFromMST(vector<stack<int> > nodes) {
 
 		for (EdgeIterator it=mst[curIndex].begin(); it!=mst[curIndex].end(); it++) {
 			int index2 = (*it).node;
-			if (abs((*it).weight) <= treeThreshold) {
+			if ((*it).weight <= treeThreshold) {
 				if (index2 != parentIndex) {
 					ret[0].push(index2);
 					ret[1].push(curIndex);

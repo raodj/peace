@@ -5,30 +5,30 @@
 
 class Edge {
 public:
-  Edge(int node, int weight) {this->node = node; this->weight = weight;}
+  Edge(int node, float weight) {this->node = node; this->weight = weight;}
   int node;
-  int weight;
+  float weight;
 };
 
 class NodeEntry {
 public:
-  NodeEntry(int node, int source, int distance) {
+  NodeEntry(int node, int source, float distance) {
     this->node = node;
     this->source = source;
     this->distance = distance;
   }
   int node;       // The number of the node held by the heap element.
   int source;     // The number of the closest node that is part of the MST.
-  int distance;   // The distance to the closest node that is part of the MST (source)
+  float distance;   // The distance to the closest node that is part of the MST (source)
 };
 
 class NodeHeap {
 public:
   NodeHeap(int max_size);
 
-  void push(int node, int source, int distance);
+  void push(int node, int source, float distance);
   NodeEntry pop();
-  void update(int node, int source, int newDistance);
+  void update(int node, int source, float newDistance);
   bool contains(int node);
 
   int size() {return V.size();}
@@ -64,7 +64,7 @@ typedef std::vector<Edge>::iterator EdgeIterator;
 DefGraph Prim(DefGraph G, int source, bool directed = true, bool forrest=false);
 
 void addNode(DefGraph& G);
-void addEdge(DefGraph& G, int s, int t, int weight, bool directed = true);
+void addEdge(DefGraph& G, int s, int t, float weight, bool directed = true);
 int degree(DefGraph G, int n); // "Out degree" if directed
 
 #endif

@@ -99,12 +99,12 @@ void ESTAssembly::readEstFile(const string& inFileName) {
 void ESTAssembly::readMST(const string& inFileName) {
 	int nOfNodes = g->graphNodes.size();
 	if (nOfNodes == 0) {
-		cout << "zero nodes!" << endl;
+		cout << "zero nodes in the peace-generated input MST file!" << endl;
 		exit(1);
 	}
 
 	//vector<vector<int> > nodes(nOfNodes-1, vector<int>(3));	//store edges in MST, there are n-1 edges, n is number of nodes.
-	vector<vector<int> > nodes;
+	vector<vector<float> > nodes;
 
 	//read mst from the input file
 	ifstream in;
@@ -119,10 +119,10 @@ void ESTAssembly::readMST(const string& inFileName) {
 			if (str[0] != '#') {	//comment line begins from '#'
 				vector<string> paras = split(str, ',');
 				if (atoi(paras[0].c_str()) != -1) {	//-1 means root of MST
-					vector<int> tmp(3);
-					tmp[0] = atoi(paras[0].c_str());
-					tmp[1] = atoi(paras[1].c_str());
-					tmp[2] = atoi(paras[2].c_str());
+					vector<float> tmp(3);
+					tmp[0] = atof(paras[0].c_str());
+					tmp[1] = atof(paras[1].c_str());
+					tmp[2] = atof(paras[2].c_str());
 					nodes.push_back(tmp);
 				}
 			}
@@ -134,7 +134,7 @@ void ESTAssembly::readMST(const string& inFileName) {
 	// Make a undirected MST.
 	DefGraph mst(nOfNodes);
 	for (int j=0; j<nodes.size(); j++) {
-		addEdge(mst, nodes[j][0], nodes[j][1], nodes[j][2], false);
+		addEdge(mst, int(nodes[j][0]), int(nodes[j][1]), nodes[j][2], false);
 	}
 
 	g->setMst(mst);
