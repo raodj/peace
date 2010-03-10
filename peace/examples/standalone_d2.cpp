@@ -139,25 +139,31 @@ int main(int argc, char** argv) {
 
 
   std::auto_ptr<ESTAnalyzer> d2(ESTAnalyzerFactory::create("d2", 0, ""));
+  std::auto_ptr<ESTAnalyzer> p2_d2(ESTAnalyzerFactory::create("twopassD2", 0, ""));
   ParameterSetManager::setupParameters();
   char param0[]  = "generate_d2";   
   char param1[]  = "--frame";   
   char param2[]  = "--word";    
   char param3[]  = "--estFile", value3[] = "<none>";
-
+  char param4[]  = "--noNormalize";
 
   char* params[] = {param0, // First param (although not used) is needed as
                             // parser assumes it is exectuable name.
                     param1, frame, param2, word, // Set Window & Word size
-                    param3, value3};  // Last parameter is mandatory
+                    param3, value3, param4};  // Last parameter is mandatory
   int paramCount = sizeof(params) / sizeof(char*);
   d2->parseArguments(paramCount, params);
   d2->initialize();
+  p2_d2->parseArguments(paramCount, params);
+  p2_d2->initialize();
 
   d2->setReferenceEST(0);
   const float metric = d2->analyze(1);
 
-  cout << metric << endl;
+  p2_d2->setReferenceEST(0);
+  const float metric2 = p2_d2->analyze(1);
+
+  cout << metric << "\t" << metric2 << endl;
 
   return 0;
 }

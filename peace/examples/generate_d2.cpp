@@ -31,8 +31,6 @@
 //
 //---------------------------------------------------------------------
 
-#define USE_2PD2
-
 #include <fstream>
 #include <unistd.h>
 
@@ -61,6 +59,7 @@ const int max_string_length = 100000;
 void parse_args(int argc, char** argv);
 
 // Parameters for d2 and heurstics
+double window_fraction = 0; 
 int window_length = 100;
 int word_length = 6;
 
@@ -68,6 +67,8 @@ int uv_u = 8;
 int uv_skip = 8;
 
 int tv_t = 40;
+
+bool use_two_pass = true;
 
 // Parameters for simulaton
 int segmentLength = 500;
@@ -89,10 +90,12 @@ string header_string = "overlap\td2\t2pd2\tuvtv";
 bool header_only = false;
 
 bool help = false;
+bool find_error = false;
 
 string add_errors(double error_rate, string& s) {
   for (string::iterator i=s.begin(); i != s.end(); i++) {
     if (drand48() < N_rate) {
+      cout << "HERE";
       *i = 'N';
     }
     else if (drand48() < error_rate) {
@@ -232,11 +235,9 @@ int main(int argc, char** argv) {
 
   std::auto_ptr<ESTAnalyzer> d2(ESTAnalyzerFactory::create("d2", 0, ""));
 
-#ifdef USE_2PD2
   // Initialize the parameter manager
   // ParameterSetManager::setupParameters();
   std::auto_ptr<ESTAnalyzer> p2_d2(ESTAnalyzerFactory::create("twopassD2", 0, ""));
-#endif
   
   char param0[]  = "generate_d2";   
   char param1[]  = "--frame";   
@@ -244,14 +245,12 @@ int main(int argc, char** argv) {
   char param3[]  = "--estFile", value3[] = "<none>";
   char param4[]  = "--noNormalize";
 
-
   char* params[] = {param0, // First param (although not used) is needed as
                             // parser assumes it is exectuable name.
                     param1, frame, param2, word, // Set Window & Word size
                     param3, value3, param4};  // Last parameter is mandatory
 
-  //char* params[] = {param1, frame, param2, word, // Set Window & Word size
-  //		    param3, value3};  // Last parameter is mandatory
+
   int paramCount = sizeof(params) / sizeof(char*);
   d2->parseArguments(paramCount, params);
   d2->initialize();
@@ -266,10 +265,10 @@ int main(int argc, char** argv) {
   Heuristic* uv_tv = chain->getHeuristic("tv");
 
 
-#ifdef USE_2PD2
-  p2_d2->parseArguments(paramCount, params);
-  p2_d2->initialize();
-#endif
+  if (use_two_pass) {
+    p2_d2->parseArguments(paramCount, params);
+    p2_d2->initialize();
+  }
   
   //*********************
   // Computations and ouput
@@ -280,11 +279,19 @@ int main(int argc, char** argv) {
       chain->setReferenceEST(i);
       bool uv_tv_result = uv_tv->shouldAnalyze(i+1);
       *out << start_coords[i] + segmentLength - start_coords[i+1] << "\t" << metric << "\t";
-#ifdef USE_2PD2
-      p2_d2->setReferenceEST(i);
-      const float metric2 = p2_d2->analyze(i+1);
-      *out << metric2 << "\t";
-#endif
+
+      if (use_two_pass) {
+	p2_d2->setReferenceEST(i);
+	const float metric2 = p2_d2->analyze(i+1);
+	*out << metric2 << "\t";
+	
+	if (find_error && metric2 < metric) {
+	  cerr << EST::getEST(i)->getSequence() << "\n";
+	  cerr << EST::getEST(i+1)->getSequence() << "\n";
+	  cerr << metric << "\t" << metric2 << "\n\n";
+	}
+      }
+
       *out << (uv_tv_result ? "TRUE" : "FALSE") << eol;
   }
   
@@ -295,11 +302,19 @@ int main(int argc, char** argv) {
       chain->setReferenceEST(i);
       bool uv_tv_result = uv_tv->shouldAnalyze(i+1);
       *out << 0 << "\t"  << metric << "\t";
-#ifdef USE_2PD2
-      p2_d2->setReferenceEST(i);
-      const float metric2 = p2_d2->analyze(i+1);
-      *out << metric2 << "\t";
-#endif
+
+      if (use_two_pass) {
+	p2_d2->setReferenceEST(i);
+	const float metric2 = p2_d2->analyze(i+1);
+	*out << metric2 << "\t";
+	
+	if (find_error && metric2 < metric) {
+	  cerr << EST::getEST(i)->getSequence() << "\n";
+	  cerr << EST::getEST(i+1)->getSequence() << "\n";
+	  cerr << metric << "\t" << metric2 << "\n\n";
+	}
+      }
+
       *out << (uv_tv_result ? "TRUE" : "FALSE") << eol;
   }
 
@@ -309,17 +324,19 @@ int main(int argc, char** argv) {
   
 void parse_args(int argc, char** argv) {
   int c;
-  while ( (c = getopt(argc, argv, "U:S:T:r:o:f:s:w:x:t:m:n:e:N:uhiH")) != -1 ) {
+  while ( (c = getopt(argc, argv, "U:S:T:r:o:f:s:w:W:x:t:m:n:e:N:2uhiHF")) != -1 ) {
       switch (c) {
 
 	// Heuristic / distance function parameter selections
-      case 'w' : if (atoi(optarg) != 100) {cerr << "-w not currently enabled\n"; exit(1);} window_length = atoi(optarg); break;
+      case 'w' : window_length = atoi(optarg); use_two_pass = false; break;
+      case 'W' : window_fraction = atof(optarg); use_two_pass = false; break;
       case 'x' : word_length = atoi(optarg); break;
       case 'U' : uv_u = atoi(optarg); break;
       case 'S' : uv_skip = atoi(optarg); break;
       case 'T' : tv_t = atoi(optarg); break;
 
 	// Simulation paramteters
+      case '2' : use_two_pass = false; break;
       case 's' : segmentLength = atoi(optarg); break;
       case 't' : num_trials = atoi(optarg); assert(num_trials >= 0); break;
       case 'm' : min_overlap = atoi(optarg); assert(min_overlap > 0); break;
@@ -339,9 +356,13 @@ void parse_args(int argc, char** argv) {
 
 	// Helo
       case 'h' : help = true; break;
+      case 'F' : find_error = true; break;
       case '?' : cout << argv[0] << ": Bad switch: -" << (char)c << endl; exit(1);
       }
   }
+  if (window_fraction > 0) 
+    window_length = segmentLength * window_fraction;
+
   if (max_overlap < 0) 
     max_overlap = segmentLength;
   assert(min_overlap < max_overlap);
@@ -349,12 +370,14 @@ void parse_args(int argc, char** argv) {
   if (help) {
     cout << argv[0] << " parameters:\n\
 \t Heuristic and distance metric parameters:\n\
-\t\t-w: Set window length (default = 100)\n\
+\t\t-w: Set window length (default = 100); surpress two-pass\n\
+\t\t-W: Set window length as a % of segment size (overrides -w); surpresses two-pass\n\
 \t\t-x: Set word length (default = 6)\n\
 \t\t-U: Set uv parameters u (default = 8)\n\
 \t\t-S: Set uv parameters s (default = 8)\n\
 \t\t-T: Set tv parameter t (default = 40)\n\
 \tSimulation parameters:\n\
+\t\t-2: Turn of two-pass calculations (on by default)\n\
 \t\t-s: Set segment length (default = 500)\n\
 \t\t-t: Set number of trials (defult = 1000)\n\
 \t\t-m: Minimum overlap to be checked (default = 1)\n\
@@ -370,7 +393,8 @@ void parse_args(int argc, char** argv) {
 \t\t-u: End output with linux \\n instead of windows \\r\\n (default = false)\n\
 \t\t-o: Output file (default = standadrd out)\n\
 \t Other parameters:\n\
-\t\t-h: Print help menu\n";
+\t\t-h: Print help menu\n\
+\t\t-F: Print out sequence pair (to stderr) if the X2pd2 < d2\n";
     exit(0);
   }
 }
