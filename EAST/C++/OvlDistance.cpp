@@ -53,6 +53,11 @@ vector<int> OvlDistance::getOVLDistance(const string& tS1, const string& tS2) {
 	vector<int> returnValues(2);
 
 	BestWindowMatches best = d2.matchEndWindows(s1, s2);
+	if ((best.numBestLeftWindows==0) && (best.numBestRightWindows==0)) { //if not overlap, return
+		returnValues[0] = 0;
+		returnValues[1] = INT_MAX;
+		return returnValues;
+	}
 	vector<int> tLeftPos = best.bestLeftStart;
 	vector<int> tRightPos = best.bestRightStart;
 	vector<int> leftPos = reducePos(tLeftPos, best.numBestLeftWindows);
@@ -146,6 +151,10 @@ vector<int> OvlDistance::reducePos(const vector<int>& input, int len) {
  */
 bool OvlDistance::checkInclusion(const string& s1, const string& s2) {
 	BestWindowMatches best = d2.matchEndWindows(s1, s2);
+	if ((best.numBestLeftWindows==0) && (best.numBestRightWindows==0)) { //if not overlap, return false
+		return false;
+	}
+
 	vector<int> tLeftPos = best.bestLeftStart;
 	vector<int> tRightPos = best.bestRightStart;
 	vector<int> leftPos = reducePos(tLeftPos, best.numBestLeftWindows);
