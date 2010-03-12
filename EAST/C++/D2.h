@@ -46,8 +46,8 @@ public:
 	int getHeuristicWordSize();
 
 	// computation methods
-	BestWindowMatches matchEndWindows(std::string s1, std::string s2);
-	bool uv_tv_Heuristic(std::string s1, std::string s2);
+	BestWindowMatches matchEndWindows(std::string s1, std::string s2, bool createNewHash=true);
+	bool uv_tv_Heuristic(std::string s1, std::string s2, bool createNewHash=true);
 
 private:
 	int windowSize;	// the size of window

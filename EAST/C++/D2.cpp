@@ -61,13 +61,15 @@ vector<int> D2::createWindowHash(string s, int leftCoord, int windowSize, int wo
 }
 
 
-BestWindowMatches D2::matchEndWindows(string s1, string s2) {
-	if (!uv_tv_Heuristic(s1, s2))
+BestWindowMatches D2::matchEndWindows(string s1, string s2, bool createNewHash) {
+	if (!uv_tv_Heuristic(s1, s2, createNewHash))
 		return BestWindowMatches(vector<int>(0), 0, 0, vector<int>(0), 0, 0);
 
 	vector<int> H1_left = createWindowHash(s1, 0, windowSize, d2WordSize, d2WordFilter, d2NumWords);
 	vector<int> H1_right = createWindowHash(s1, s1.length() - windowSize, windowSize, d2WordSize, d2WordFilter, d2NumWords);
-	vector<int> H2 = createWindowHash(s2, 0, windowSize, d2WordSize, d2WordFilter, d2NumWords);
+	static vector<int> H2; //retain H2's value between function calls
+	if (createNewHash)
+		H2 = createWindowHash(s2, 0, windowSize, d2WordSize, d2WordFilter, d2NumWords);
 
 	int d2_left = 0;
 	int d2_right = 0;
@@ -152,12 +154,14 @@ BestWindowMatches D2::matchEndWindows(string s1, string s2) {
 }
 
 
-bool D2::uv_tv_Heuristic(string s1, string s2) {
+bool D2::uv_tv_Heuristic(string s1, string s2, bool createNewHash) {
 
 	// The u/v heuristic
 	// Look at every (uv_skip) word on s1 and count the number of instances on s2.
 	// Return false if the value is less than u.
-	vector<int> H = createWindowHash(s2, 0, s2.length(), heuristicWordSize, heuristicWordFilter, heuristicNumWords);
+	static vector<int> H; //retain H's value between function calls
+	if (createNewHash)
+		H = createWindowHash(s2, 0, s2.length(), heuristicWordSize, heuristicWordFilter, heuristicNumWords);
 	int total = 0;
 	for (int i=0; total < u && i <= s1.length() - heuristicWordSize; i += uv_skip) {
 		int code = encodeWord(s1, i, heuristicWordSize, heuristicWordFilter);

@@ -26,7 +26,7 @@ public:
 	D2 d2;
 	OvlDistance();
 	std::vector<int> getOVLDistance(const std::string& tS1, const std::string& tS2);
-	bool checkInclusion(const std::string& s1, const std::string& s2);
+	bool checkInclusion(const std::string& s1, const std::string& s2, bool createNewHash=true);
 
 private:
 	std::vector<int> reducePos(const std::vector<int>& input, int len);
