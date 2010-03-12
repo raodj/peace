@@ -354,7 +354,12 @@ vector<string>Reconstruction::processLeftEnds(map<int, int>& curMSTNodes, vector
 				includedEnds.push_back(allLeftEnds[i]);
 				incNodes->addNode2(allLeftEnds[i].index, s1Idx);
 			} else if ((ovlDis[1] == INT_MAX) && (ovlDis[0] == INT_MAX)) { //have not been calculated
-				bool b = (g->ovl).checkInclusion(allLeftEnds[i].seq, s1);
+				bool b;
+				if (i == 1)
+					b = (g->ovl).checkInclusion(allLeftEnds[i].seq, s1, true); //not keep hash table of s1 in D2.cpp
+				else
+					b = (g->ovl).checkInclusion(allLeftEnds[i].seq, s1, false);//keep hash table of s1 in D2.cpp
+
 				if (b) {
 					includedEnds.push_back(allLeftEnds[i]);
 					incNodes->addNode2(allLeftEnds[i].index, s1Idx);
