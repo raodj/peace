@@ -84,8 +84,11 @@ public class DataStore {
 	 * 
 	 * @param parent The parent component based on which any warning
 	 * dialog boxes are to be displayed.
+	 * 
+	 * @throws This method throws a LowMemoryException if the memory is low
+	 * and the user chooses to cancel a file loading operation.
 	 */
-	public void memoryCheck(File fileToBeLoaded, Component parent) throws Exception {
+	public void memoryCheck(File fileToBeLoaded, Component parent) throws LowMemoryException {
 		Runtime rt = Runtime.getRuntime();
 		float maxMemory      = rt.maxMemory();
 		float reservedMemory = rt.totalMemory();
@@ -113,11 +116,13 @@ public class DataStore {
 				"Low memory warning", JOptionPane.YES_NO_OPTION, 
 				JOptionPane.WARNING_MESSAGE);
 		if (choice == JOptionPane.NO_OPTION) {
-			throw new Exception("User decided to stop file load due to " +
-					"low memory situation.");
+			throw new LowMemoryException("User decided to stop file load " +
+					"due to low memory situation.");
 		}
 		// Try to free up some memory if possible.
 		System.gc();
+		// Return true to indicate user want's to proceed
+		return;
 	}
 	
 	/**
@@ -301,14 +306,17 @@ public class DataStore {
 	 * information) by the memoryCheck() method.
 	 */
 	private static final String LOW_MEMORY_MSG = "<html>" +
-		"Your Java VM is running low on memory and may not be able to open the<br>" +
+		"Your Java VM maybe running low on memory and may not be able to open the<br>" +
 		"file: %s (size=%.1f MB). Conservative memory safety threshold: %.1f MB<br>" +
-		"See details below for current memory usage statistics.<br>" +
+		"See details below for current memory usage statistics. Bear in mind that <br>" +
+		"java garbage collection is lazy (that is memory may be available but the JVM <br>" +
+		"is yet to garbage collect. This is a Java behavior and has nothing to with PEACE).<br>" +
 		"You can proceed with opening the file (<i>but may experience problems</i>)<br>" +
 		"or try closing open files to freeup some memory and then open this file.<br><br>" +
 		"The best solution would be to exit PEACE and restart it with a larger heap<br>" +
 		"as shown in the command line below (set suitable heap value instead of 2G):<br>" +
-		"<b>java -Xmx2G -jar peace.jar<br>" +
+		"<b>java -Xmx2G -jar peace.jar<br><br>" +
+		"Proceed opening the selected file?" +
 		"</html>";
 
 	/**

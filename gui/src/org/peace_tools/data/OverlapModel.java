@@ -96,11 +96,15 @@ public class OverlapModel implements ComboBoxModel {
 	 * 
 	 * @param ests The set of ESTs that contain information about each 
 	 * EST in the clusters.
+	 * 
+	 * @param wsEntry The clustering data work space entry from where the
+	 * overlap view was launched.
 	 */
 	public OverlapModel(ClusterFile clusters, ESTList ests, MSTClusterData wsEntry) {
 		this.estList         = ests;
 		this.clusterFile     = clusters;
 		this.selectedCluster = -1;
+		this.wsEntry         = wsEntry;
 	}
 
 	/**
@@ -111,14 +115,18 @@ public class OverlapModel implements ComboBoxModel {
 	 * 
 	 * @param ests The set of ESTs that contain information about each 
 	 * EST in the clusters.
+	 * 
+	 * @param wsEntry The clustering data work space entry from where the
+	 * overlap view was launched.
 	 */
-	public static OverlapModel create(ClusterFile clusters, ESTList ests, MST mst) {
+	public static OverlapModel create(ClusterFile clusters, ESTList ests, MST mst, 
+									  MSTClusterData wsEntry) {
 		if (!mst.hasAlignmentInfo()) {
 			// Can't use this MST as there is no alignment 
 			return null;
 		}
 		// Create the classs with necessary information.
-		OverlapModel pam    = new OverlapModel(clusters, ests, null);
+		OverlapModel pam    = new OverlapModel(clusters, ests, wsEntry);
 		// Create the list of clusters to operate on.
 		pam.buildClusterList(clusters);
 		int[] clusterIDList = new int[ests.getESTs().size()];
@@ -292,6 +300,19 @@ public class OverlapModel implements ComboBoxModel {
 		}
 		return null;
 	}
+	
+	/**
+	 * Obtain the actual workspace entry whose data is contained in this
+	 * model.
+	 * 
+	 * A handy reference to the workspace entry from which the data for this
+	 * overlap model was actually obtained. This information can be
+	 * used by "view" classes to create additional views as needed.
+	 * 
+	 * @return The reference to the MSTClusterData workspace entry whose
+	 * data is "modeled" by this class.
+	 */
+	public MSTClusterData getWsEntry() { return wsEntry; }
 	
 	//-------------------------------------------------------
 	
@@ -628,6 +649,13 @@ public class OverlapModel implements ComboBoxModel {
 	 * object.
 	 */
 	private final ClusterFile clusterFile;
+	
+	/**
+	 * A handy reference to the workspace entry from which the data for this
+	 * overlap model was partially obtained. This information can be
+	 * used by "view" classes to create additional views as needed.
+	 */
+	private final MSTClusterData wsEntry;
 	
 	/**
 	 * A table (A sparse 2-dimensional array) of ESTEntries.

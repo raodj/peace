@@ -73,6 +73,9 @@ public class ClusterTreeTableModel implements TreeModel, RowModel {
 	 * 
 	 * @param ests The set of ESTs that contain information about each 
 	 * EST in the clusters.
+	 * 
+	 * @param wsEntry The workspace entry corresponding to the clusters being
+	 * adapted by this object.
 	 */
 	public ClusterTreeTableModel(ClusterFile clusters, ESTList ests, MSTClusterData wsEntry) {
 		// Save references for future use.
