@@ -35,12 +35,14 @@ package org.peace_tools.core.job;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.io.File;
 
 import javax.swing.Box;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -146,6 +148,18 @@ public class JobInfoWizardPage extends GenericWizardPage {
 			// The user want's to go back. That's OK.
 			return true;
 		}
+		// Ensure that the file associated with the selected data set
+		// is valid and we can compute its size.
+		DataSet ds = getDataSet();
+		File temporary = new File (ds.getPath());			
+		if (!temporary.exists() || !temporary.isFile() || (temporary.length() < 0)) {
+			// The file is invalid. Report error and ask user to choose a 
+			// different data set.
+			final String msg = String.format(INVALID_ENTRY, ds.getPath());
+			JOptionPane.showMessageDialog(this, msg, "Invalid Data Set", 
+					JOptionPane.WARNING_MESSAGE);
+			return false;
+		}	
 		// Save the necessary information prior to switching to 
 		// the next page in the wizard?
 		return true;
@@ -219,6 +233,17 @@ public class JobInfoWizardPage extends GenericWizardPage {
 		"<font size=\"-2\">If unchecked then lower case and upper case nucleotides<br>" +
 		"are processed in the same manner.</font></html>";
 	
+	/**
+	 * A simple message to be displayed to the user when the user selects
+	 * a data set that currently does not have a valid FASTA file associated
+	 * with it.
+	 */
+	private static final String INVALID_ENTRY = 
+		"<html>The FASTA file %s<br>" +
+		"associated with the currently selected data set is not valid<br>" +
+		"(Either the file does not exist anymore or is a zero byte file)<br><br>" +
+		"Please choose a different data set.</html>";
+		
 	/**
 	 * A serialization UID to keep the compiler happy.
 	 */

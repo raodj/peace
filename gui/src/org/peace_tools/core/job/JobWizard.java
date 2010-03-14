@@ -218,11 +218,11 @@ public class JobWizard extends WizardDialog {
 		// First create a full job entry for this job.
 		job = createJobEntry();
 		// Build a job summary.
-		JobSummary summary = new JobSummary(job);
+		JobSummary summary = new JobSummary(job, getAnalyzerType());
 		// Next create the MSTData entry.
 		mstData = new MSTData(workspace.reserveID(), 
 				MSTData.MSTBuilderType.MST, mwp.getMSTFile(), 
-				"", awp.getAnalyzer(), summary);
+				job.getDescription(), awp.getAnalyzer(), summary);
 		// Finally create the cluster entry.
 		clusterData = cwp.getClusterEntry(workspace.reserveID(), 
 				mstData.getID(), summary);
@@ -266,7 +266,6 @@ public class JobWizard extends WizardDialog {
 				hwp.getHeuristics(), // heuristic list
 				fwp.getFilters()     // Filter list
 				);
-		System.out.println(job.toCmdLine());
 		// Return the newly created job entry.
 		return job;
 	}
