@@ -64,7 +64,7 @@ function submitViaPBS {
 	echo "#PBS -l mem=%memory%MB"                   >> job.sh
 	echo "cd %workDir%"                             >> job.sh
 	echo "time mpiexec %peace% %cmdLine%"           >> job.sh
-	echo "echo $? > exit_status"                    >> job.sh
+	echo 'echo $? > exit_status'                    >> job.sh
 
 	# Ensure that the job.sh was created successfully.
 	if [[ $? -ne 0 || !( -f job.sh ) ]]; then
