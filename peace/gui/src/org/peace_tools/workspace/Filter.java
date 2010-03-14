@@ -134,7 +134,7 @@ public class Filter {
 	 * @return This method returns the full list of parameters supplied to
 	 * this heuristic to fine tune its runtime operations.
 	 */
-	ArrayList<Param> getParameters() { return parameters; }
+	public ArrayList<Param> getParameters() { return parameters; }
 	
 	/**
 	 * Add a parameter to the filter.
