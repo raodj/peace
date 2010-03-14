@@ -46,7 +46,9 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSlider;
+import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
+import javax.swing.JTree;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -55,6 +57,7 @@ import org.peace_tools.data.ClusterFile;
 import org.peace_tools.data.OverlapModel;
 import org.peace_tools.generic.HelpHandler;
 import org.peace_tools.generic.Utilities;
+import org.peace_tools.views.PropertiesTreeMaker;
 
 /**
  * A pre-alignment overlap view of fragments organized based on clusters.
@@ -115,18 +118,22 @@ public class OverlapView extends JPanel implements ChangeListener, ClusterColorM
 		// Add a horizontal ruler to display column numbers
 		horizontalRuler = new Ruler(pam.getMaxCol(), pam.getMaxRow(), 
 				Ruler.Orientation.HORIZONTAL);
-		horizontalRuler.setBackground(Color.orange);
 		horizontalRuler.setScale(panel.getRowScale(), panel.getColScale());
 		jsp.setColumnHeaderView(horizontalRuler);
 		// Add a vertical ruler to display row numbers
 		verticalRuler = new Ruler(pam.getMaxCol(), pam.getMaxRow(), 
 				Ruler.Orientation.VERTICAL);
-		verticalRuler.setBackground(Color.orange);
 		verticalRuler.setScale(panel.getRowScale(), panel.getColScale());
 		jsp.setRowHeaderView(verticalRuler);
-		// Add the scroll pane to the main panel.
-		add(jsp, BorderLayout.CENTER);
 		
+		// Next create the summary information tree...
+		JTree summaryInfo = PropertiesTreeMaker.makeProperties(pam.getWsEntry(), mainFrame);
+		// Create a split pane with the overlap view and summary 
+		JSplitPane contentPane =  
+			PropertiesTreeMaker.createPropertiesLayout("Clustering Information", summaryInfo, 
+					jsp, toolbar, toolbar.getComponentCount() - 2);
+		// Add the scroll pane to the main panel.
+		add(contentPane, BorderLayout.CENTER);
 		// Initialize colors for all clusters to grey
 		clusterList.setColors(null);
 	}

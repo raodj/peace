@@ -46,7 +46,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Hashtable;
 
-import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -54,12 +53,12 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSlider;
-import javax.swing.JTextArea;
+import javax.swing.JSplitPane;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
+import javax.swing.JTree;
 import javax.swing.ProgressMonitor;
 import javax.swing.SwingUtilities;
-import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -68,13 +67,17 @@ import org.peace_tools.data.ClusterFile;
 import org.peace_tools.data.ClusterNode;
 import org.peace_tools.data.ESTList;
 import org.peace_tools.generic.HelpHandler;
-import org.peace_tools.generic.Pair;
 import org.peace_tools.generic.Utilities;
 import org.peace_tools.workspace.DBClassifier;
+import org.peace_tools.workspace.MSTClusterData;
 import org.peace_tools.workspace.Workspace;
 import org.peace_tools.workspace.WorkspaceEvent;
 import org.peace_tools.workspace.WorkspaceListener;
 
+/**
+ * View to display a graph of clusters to provide a summary view. 
+ *
+ */
 public class ClusterSummaryView extends JPanel 
 	implements WorkspaceListener, Runnable {
 	/**
@@ -92,8 +95,12 @@ public class ClusterSummaryView extends JPanel
 	 * 
 	 * @param estList The set of ESTs that contain information about 
 	 * each EST in the clusters.
+	 * 
+	 * @param wsEntry The workspace entry corresponding to the clustering
+	 * file that is being displayed by this view.
 	 */
-	public ClusterSummaryView(MainFrame frame, ClusterFile clusterFile, ESTList estList) {
+	public ClusterSummaryView(MainFrame frame, ClusterFile clusterFile, ESTList estList, 
+							  MSTClusterData wsEntry) {
 		super(new BorderLayout(0, 0));
 		setOpaque(false);
 		// Save references to clusterFile for future use
@@ -105,10 +112,18 @@ public class ClusterSummaryView extends JPanel
 		this.maxClusterSize = clusterFile.getRoot().getLargestClusterSize();
 		// Further configure the tool bar: ** do this first **
 		setupToolBar();
-		// Create and configure the graph pane in the middle
-		setupGraph();
-		// Finally create the informational panel at the bottom
-		setupInfoPanel();
+		// Create and configure the graph pane.
+		createGraph();
+		// Add graph to the main component
+		add(new JScrollPane(graph), BorderLayout.CENTER);
+		
+		// Finally create the properties panel to the right along with button 
+		// (add it before help button spacer) in the tool bar using utility method.
+		JTree summaryInfo = PropertiesTreeMaker.makeProperties(wsEntry, mainFrame);
+		JSplitPane centerPane = PropertiesTreeMaker.createPropertiesLayout("Clustering Information",
+				summaryInfo, graph, toolbar, toolbar.getComponentCount() - 2);
+		add(centerPane, BorderLayout.CENTER);
+		// setupInfoPanel();
 		// Register as work space listener as well.
 		Workspace.get().addWorkspaceListener(this);
 	}
@@ -236,36 +251,6 @@ public class ClusterSummaryView extends JPanel
 		});
 		// Return the slider for further use.
 		return slider;
-	}
-	
-	/**
-	 * Helper method to configure and setup the informational labels
-	 * at the bottom of the graph panel.  The informational panel
-	 * provides information about the cluster and how it was generated.
-	 * This method was introduced to streamline the code
-	 * better and cut down the code clutter in the constructor.
-	 */
-	private void setupInfoPanel() {
-		// Create the information to be displayed to the user
-		JTextArea infoArea = new JTextArea(4, 40);
-		infoArea.setOpaque(false);
-		// Populate info area with meta data from cluster file.
-		ArrayList<Pair> metadata = clusterFile.getMetadata();
-		// Add each name-value (nv) pair to area info.
-		for(Pair nvPair: metadata) {
-			infoArea.append(nvPair.toString());
-			infoArea.append("\n");
-		}
-		// Move back to the top of the 
-		// Add the name-value pair to a scroll pane in case the 
-		// information is large or the window is small.
-		JScrollPane jsp = new JScrollPane(infoArea);
-		jsp.setOpaque(false);
-		jsp.getViewport().setOpaque(false);
-		jsp.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), 
-				"Clustering Parameters", TitledBorder.RIGHT, TitledBorder.TOP));
-		// Add the scroll pane to the main component
-		add(jsp, BorderLayout.SOUTH);
 	}
 	
 	/**
@@ -438,7 +423,7 @@ public class ClusterSummaryView extends JPanel
 	 * of the panel. This method was introduced to streamline the code
 	 * better and cut down the code clutter in the constructor.
 	 */
-	private void setupGraph() {
+	private void createGraph() {
 		// Create a JPanel and intercept the paintComponent call to
 		// actually draw the graph. The call is forwarded to the
 		// ClusterSummaryView.drawGraph() method. If drastically different
@@ -455,8 +440,6 @@ public class ClusterSummaryView extends JPanel
 		graph.setBackground(Color.white);
 		// Let the graph use the initial default as layout
 		resizeGraph();
-		// Add graph to the main component
-		add(new JScrollPane(graph), BorderLayout.CENTER);
 	}
 	
 	/**

@@ -35,14 +35,12 @@ package org.peace_tools.views;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.Cursor;
-import java.awt.Font;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
-import java.util.ArrayList;
 
 import javax.swing.Box;
 import javax.swing.Icon;
@@ -52,10 +50,10 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTable;
-import javax.swing.JTextArea;
-import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
+import javax.swing.JTree;
 import javax.swing.table.TableColumnModel;
 
 import org.netbeans.swing.etable.ETableColumn;
@@ -68,7 +66,6 @@ import org.peace_tools.data.ClusterNode;
 import org.peace_tools.data.ClusterTreeTableModel;
 import org.peace_tools.data.ESTList;
 import org.peace_tools.generic.HelpHandler;
-import org.peace_tools.generic.Pair;
 import org.peace_tools.generic.UserLog;
 import org.peace_tools.generic.Utilities;
 
@@ -119,6 +116,7 @@ public class ClusterTreeTableView extends JPanel implements ActionListener {
 		clusterTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		clusterTable.setGridColor(new Color(0xe0, 0xe0, 0xe0));
 		clusterTable.setRootVisible(false);
+		clusterTable.setMinimumSize(new Dimension(50, 50));
 		// Setup some column properties.
 		TableColumnModel tcm = clusterTable.getColumnModel();
 		for(int colId = 0; (colId < tcm.getColumnCount()); colId++) {
@@ -133,17 +131,18 @@ public class ClusterTreeTableView extends JPanel implements ActionListener {
 		JScrollPane scroller = new JScrollPane(clusterTable);
 		scroller.setBorder(null);
 		scroller.getViewport().setBackground(clusterTable.getBackground());
+		// Create the tool bar at the top
+		createToolbar();
 		// Create summary information.
-		Component summaryPanel = createSummaryInfo();
-		// Place the summary information and the tree-table into a panel.
-		JPanel subPanel = new  JPanel(new BorderLayout(0, 0));
-		subPanel.add(summaryPanel, BorderLayout.NORTH);
-		subPanel.add(scroller, BorderLayout.CENTER);
+		JTree summaryInfo = PropertiesTreeMaker.makeProperties(model.getWsEntry(), mainFrame);
+		// Place the summary information and the tree-table into a split panel using
+		// helper method.
+		contentPane = 
+		PropertiesTreeMaker.createPropertiesLayout("Clustering Information", summaryInfo, 
+				scroller, toolbar, toolbar.getComponentCount() - 2);
 		// Add sub panel to ourselves at the center to it can take up all
 		// the space we have.
-		add(subPanel, BorderLayout.CENTER);
-		// Create the toolbar at the top of the job list
-		createToolbar();
+		add(contentPane, BorderLayout.CENTER);
 	}
 	
 	/**
@@ -177,17 +176,7 @@ public class ClusterTreeTableView extends JPanel implements ActionListener {
 		toolbar.add(Utilities.createToolButton("images/16x16/SaveEST.png",
 				"", "save", this, 
 				"Saves ESTs in currently selected clusters to a given file", true));
-		// Add button to show or hide summary information
-		toolbar.add(Box.createHorizontalStrut(10));
-		JToggleButton summaryButton = 
-			new JToggleButton("Summary ...", 
-					Utilities.getIcon("images/16x16/Information.png"), true);
-		summaryButton.setToolTipText("Show/Hide summary information about this cluster file");
-		summaryButton.addActionListener(this);
-		summaryButton.setActionCommand("summary");
-		// Make button a tool bar button.
-		Utilities.makeToolBarButton(summaryButton, true);
-		toolbar.add(summaryButton);
+
 		// Create the help button to provide some help.
 		toolbar.add(Box.createHorizontalStrut(10));
 		toolbar.add(Utilities.createToolButton("images/16x16/Help.png", 
@@ -196,57 +185,7 @@ public class ClusterTreeTableView extends JPanel implements ActionListener {
 		// Add tool bar to the north
 		add(toolbar, BorderLayout.NORTH);
 	}
-
-	/**
-	 * Method to compute and setup summary information.
-	 * 
-	 * This method is invoked from the constructor to create and populate the 
-	 * summary information tab. The summary information is computed once when
-	 * the view is created. After that the summary information (which is 
-	 * reasonably small) is held in a text area. The user has the option
-	 * to hide the summary information to gain some more screen real estate.
-	 * 
-	 * @return The scroll pane that contains the summary information.
-	 */
-	private JScrollPane createSummaryInfo() {
-		// Obtain the two distinct summary information.
-		double[] fastaStats   = model.getESTList().computeStatistics();
-		double[] clusterStats = model.getRoot().computeStatistics();
-		assert ( fastaStats.length == clusterStats.length );
-		// Build the summary information into a string buffer first.
-		StringBuilder sb = new StringBuilder();
-		for(int idx = 0; (idx < SUMMARY_STATS_STRING.length); idx++) {
-			// Account for unformatted header (3 lines) and trailer (last line)
-			if ((idx > 2) && (idx < SUMMARY_STATS_STRING.length - 1)) {
-				sb.append(String.format(SUMMARY_STATS_STRING[idx], fastaStats[idx - 3], 
-						clusterStats[idx - 3]));
-			} else {
-				// Unformatted static string information
-				sb.append(SUMMARY_STATS_STRING[idx]);
-			}
-		}
-		// Next add general meta data from the cluster file as well
-		sb.append("\nCLUSTERING JOB SUMMARY INFORMATION\n");
-		ArrayList<Pair> metadata = model.getClusterFile().getMetadata();
-		for(Pair info: metadata) {
-			sb.append(String.format("%s: %s\n", info.getName(), info.getValue()));
-		}
-		// Now store all the summary information into a text area.
-		JTextArea summaryInfo = new JTextArea(7, 50);
-		summaryInfo.setBorder(null);
-		summaryInfo.setEditable(false);
-		// summaryInfo.setBackground(new Color(0xe0, 0xe0, 0xe0));
-		// Make the font mono spaced.
-		int fontSize = summaryInfo.getFont().getSize();
-		summaryInfo.setFont(new Font(Font.MONOSPACED, Font.PLAIN, fontSize));
-		// Store information to be displayed.
-		summaryInfo.append(sb.toString());
-		summaryInfo.setCaretPosition(0);
-		// Wrap the text area into a scroll pane to enable scrolling.
-		summaryPane = new JScrollPane(summaryInfo);
-		return summaryPane;
-	}
-	
+		
 	@Override
 	public void actionPerformed(ActionEvent event) {
 		if ("graph".equals(event.getActionCommand())) {
@@ -260,10 +199,6 @@ public class ClusterTreeTableView extends JPanel implements ActionListener {
 			repaint();
 		} else if ("help".equals(event.getActionCommand())) {
 			HelpHandler.showHelp(mainFrame, "http://www.peace-tools.org/downloads/manual.pdf#page=34");
-		} else if ("summary".equals(event.getActionCommand())) {
-			summaryPane.setVisible(!summaryPane.isVisible());
-			revalidate();
-			repaint();
 		}
 	}
 	
@@ -471,14 +406,13 @@ public class ClusterTreeTableView extends JPanel implements ActionListener {
 	 * created in the createToolbar() method.
 	 */
 	private JComboBox sortOrder;
-	
+
 	/**
-	 * The scroll pane that contains a text area that displays summary
-	 * statistics regarding ESTs and the clusters displayed in this 
-	 * view. The summary pane is created by the constructor and can 
-	 * be shown/hidden by the user by clicking on a toggle button.
+	 * The main content pane that contains the summary pane along
+	 * with the tree table. The summary pane may or may not be displayed
+	 * depending on the current user settings.
 	 */
-	private JScrollPane summaryPane;
+	private JSplitPane contentPane;
 	
 	/**
 	 * A simple message that is displayed to the user. 
@@ -487,24 +421,6 @@ public class ClusterTreeTableView extends JPanel implements ActionListener {
 			"You must first select one or more ESTs or Clusters to be<br>" +
 			"exported to another FASTA file. You can select ranges using the<br>" +
 			"control and shift keys while selecting ESTs.</html>";
-	
-	/**
-	 * Various format strings that are formatted (to fill-in values) to
-	 * display summary statistics to the user. These strings are used in
-	 * the createSummaryInfo(). These strings are pulled out of the method
-	 * to keep the code cleaner in the method. 
-	 */
-	private final String SUMMARY_STATS_STRING[] = {
-		"---------------------------------+---------------------------------\n",
-		" FASTA SUMMARY STATISTICS        |       CLUSTER SUMMARY STATISTICS\n",
-		"---------------------------------+---------------------------------\n",
-		" Fragment count      : %-6.0f    |     Cluster count     : %-6.0f\n",
-		" Min fragement length: %-6.0f    |     Min cluster size  : %-6.0f\n",
-		" Max fragement length: %-6.0f    |     Max cluster size  : %-6.0f\n",
-		" Avg fragement length: %-6.2f    |     Avg cluster size  : %-6.2f\n",
-		" Standard deviation  : %-6.2f    |     Standard deviation: %-6.2f\n",
-		"---------------------------------+---------------------------------\n"
-	};
 	
 	/**
 	 * A generated serial version ID for serialization (more

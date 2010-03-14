@@ -35,10 +35,12 @@ package org.peace_tools.views;
 
 import java.awt.BorderLayout;
 import java.awt.Component;
+import java.awt.Dimension;
 
 import javax.swing.Icon;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTree;
 import javax.swing.ToolTipManager;
 import javax.swing.tree.DefaultTreeCellRenderer;
@@ -68,6 +70,7 @@ public class MSTFileView extends JPanel {
 		// Create and set up the tree model to be used.
 		mstTree = new JTree((this.treeModel = mstModel));
 		// Set other GUI behavioral options
+		mstTree.setMinimumSize(new Dimension(50, 50));
 		mstTree.setEditable(false);
 		mstTree.setLargeModel(true);
 		mstTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
@@ -82,7 +85,14 @@ public class MSTFileView extends JPanel {
         // Add tree to the center.
         JScrollPane jsp = new JScrollPane(mstTree);
         jsp.setBorder(null);
-        this.add(jsp, BorderLayout.CENTER);
+		// Create summary information.
+		JTree summaryInfo = PropertiesTreeMaker.makeProperties(treeModel.getWsEntry(), mainFrame);
+		// Place the summary information and the tree-table into a split panel using
+		// helper method.
+		JSplitPane contentPane = 
+		PropertiesTreeMaker.createPropertiesLayout("MST Information", summaryInfo, jsp, null, -1);
+		// Set the content pane as the main component in this view
+        add(contentPane, BorderLayout.CENTER);
 	}
 	
 	/**
