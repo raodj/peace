@@ -313,8 +313,8 @@ implements ActionListener {
 	protected MSTClusterData getClusterEntry(String id, String mstID, 
 			JobSummary summary) {
 		int thresh = ((Number) threshold.getValue()).intValue();
-		return new MSTClusterData(id, mstID, clusterFile.getText(), "", 
-				thresh, summary);
+		return new MSTClusterData(id, mstID, clusterFile.getText(),
+				this.description.getText(), thresh, summary);
 	}
 	
 	/**

@@ -58,6 +58,7 @@ import javax.swing.border.EmptyBorder;
 
 import org.peace_tools.data.DataStore;
 import org.peace_tools.data.ESTList;
+import org.peace_tools.data.LowMemoryException;
 import org.peace_tools.generic.GenericWizardPage;
 import org.peace_tools.generic.Utilities;
 import org.peace_tools.generic.WizardDialog;
@@ -292,12 +293,12 @@ implements Runnable, ActionListener {
 				estFile.setEnabled(!lockPath);
 				browse.setEnabled(!lockPath);
 				// Report error (if any)
-				if (error != null) {
+				if ((error != null) && (error.getClass() != LowMemoryException.class)) {
 					JPanel msg = Utilities.collapsedMessage(INVALID_FASTA_MSG, 
 							Utilities.toString(error));
 					JOptionPane.showMessageDialog(wizard, msg, 
 							"Invalid FASTA File", JOptionPane.ERROR_MESSAGE);
-				} else {
+				} else if (error == null) {
 					// Onto the next wizard page...
 					wizard.changePage(wizard.getCurrentPage(), 
 						wizard.getCurrentPage() + 1);

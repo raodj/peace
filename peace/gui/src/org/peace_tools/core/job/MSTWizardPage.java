@@ -55,6 +55,8 @@ import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import org.peace_tools.generic.GenericWizardPage;
 import org.peace_tools.generic.Utilities;
@@ -76,7 +78,7 @@ import org.peace_tools.workspace.Workspace;
  * does not exist, yet.
  */
 public class MSTWizardPage extends GenericWizardPage 
-implements ActionListener {
+implements ActionListener, ChangeListener {
 	/**
 	 * The constructor. The constructor sets up the various components
 	 * on this wizard page. The components include: a text box and
@@ -152,6 +154,9 @@ implements ActionListener {
 		// Create the spinners for nodes and cpus/node
 		nodeInfo[0] = new JSpinner(new SpinnerNumberModel(1, 1, 1024, 2));
 		nodeInfo[1] = new JSpinner(new SpinnerNumberModel(1, 1, 32, 1));
+		// Add listeners for the first two to update memory
+		nodeInfo[0].addChangeListener(this);
+		nodeInfo[1].addChangeListener(this);
 		// Memory and wall clock time.
 		nodeInfo[2] = new JSpinner(new SpinnerNumberModel(2048, 64, 102400, 256));
 		nodeInfo[3] = new JSpinner(new SpinnerNumberModel(6, 1, 168, 1));
@@ -225,7 +230,10 @@ implements ActionListener {
 	/**
 	 * This method is called just before this page is to be displayed.
 	 * This page essentially updates the list of server entries
-	 * displayed in the combo box.
+	 * displayed in the combo-box. It also suggests a default MST file
+	 * name to the user. However, the user can edit the default suggestion
+	 * and set it to an appropriate value. In addition, it updates the memory
+	 * requirement for running the job. 
 	 */
 	@Override
 	public void pageChanged(WizardDialog dialog, int currPage, int prevPage) {
@@ -263,6 +271,10 @@ implements ActionListener {
 		mstFileName = Workspace.get().getDirectory() + 
 			File.separator + mstFileName;
 		mstFile.setText(mstFileName);
+		
+		// Initialize the default memory requirement for running
+		// this job via the listener method with a null event.
+		stateChanged(null); // event can be null as it is not used.
 	}
 	
 	/**
@@ -364,7 +376,7 @@ implements ActionListener {
 	 * This method must be used to obtain the platform specific job configuration
 	 * information.  This method converts the job information into an array and
 	 * returns it. The returned array has the elements in the order: no. of. nodes,
-	 * cpus/node, total memory (in MB), and runTime (in hours).
+	 * CPUs/node, total memory (in MB), and runTime (in hours).
 	 * 
 	 * @return An array of 4 integers that contains the job information entered
 	 * by the user. The order of the elements in the array is fixed.
@@ -375,6 +387,42 @@ implements ActionListener {
 			configInfo[i] = ((Number) nodeInfo[i].getValue()).intValue();
 		}
 		return configInfo;
+	}
+	
+	/**
+	 * Listener for CPUs and Nodes/CPU spinner input boxes to update memory.
+	 * 
+	 * <p>This method is invoked whenever the user modifies the number of CPUs
+	 * or nodes-per-CPU to be used for the job. This method updates the
+	 * recommended amount of memory to be reserved for this job. The memory
+	 * is computed using the formula:</p>
+	 * 
+	 * <p>Memory = (CPUs * NodesPerCPU * FASTAFileSize) + (CPUs * NodesPerCPU *
+	 * 256MB)</p>
+	 * 
+	 * @param e The change event associated with this call back. Currently,
+	 * this parameters is not used by this method.
+	 */
+	@Override
+	public void stateChanged(ChangeEvent e) {
+		// Couple constants to make code more meaningful
+		final int megaBytes   = 1024 * 1024;
+		final int minMemory   = 256;  // Megabytes
+		// Obtain the needed information from the input fields
+		final int cpus        = ((Number) nodeInfo[0].getValue()).intValue();
+		final int nodesPerCPU = ((Number) nodeInfo[1].getValue()).intValue();
+
+		// Determine FASTA file size in megabytes
+		final String fileName = wizard.getDataSet().getPath();
+		final File   tempFile = new File(fileName);
+		// Ensure file resolves to at least 1 MB to ease computations
+		final long size       = (tempFile.length() / megaBytes) + 1;
+		
+		// Compute minimum memory in MB.
+		final long memorySize = ((cpus * nodesPerCPU * size) + 
+				(cpus * nodesPerCPU * minMemory));
+		// Setup the suggested memory footprint
+		nodeInfo[2].setValue(new Long(memorySize));
 	}
 	
 	/**

@@ -58,6 +58,7 @@ import org.peace_tools.data.ClusterTreeTableModel;
 import org.peace_tools.data.DataStore;
 import org.peace_tools.data.ESTList;
 import org.peace_tools.data.ESTTableModel;
+import org.peace_tools.data.LowMemoryException;
 import org.peace_tools.data.MST;
 import org.peace_tools.data.MSTTreeModel;
 import org.peace_tools.data.OverlapModel;
@@ -266,7 +267,7 @@ public abstract class ViewFactory implements DnDTabListener {
 		// Check and load the data file depending on the view type
 		if (ViewType.MST_FILE.equals(viewType)) {
 			MST mst = DataStore.get().getMSTData(dataFileName, mainFrame);
-			MSTTreeModel mstModel = new MSTTreeModel(mst, ests);
+			MSTTreeModel mstModel = new MSTTreeModel(mst, ests, (MSTData) wsEntry);
 			view = new MSTFileView(mainFrame, mstModel);
 		} else if (ViewType.CLUSTER_FILE.equals(viewType)) {
 			ClusterFile ct = DataStore.get().getClusterData(dataFileName, mainFrame);
@@ -355,7 +356,7 @@ public abstract class ViewFactory implements DnDTabListener {
 					String estFileName = cluster.getDataSet().getPath();
 					ESTList ests = DataStore.get().getFASTA(estFileName, mainFrame);
 					// Create the view.
-					final ClusterSummaryView csv = new ClusterSummaryView(mainFrame, ct, ests);
+					final ClusterSummaryView csv = new ClusterSummaryView(mainFrame, ct, ests, cluster);
 					// Add the view to the center panel in the main frame.
 					SwingUtilities.invokeAndWait(new Runnable() {
 						@Override
@@ -363,6 +364,10 @@ public abstract class ViewFactory implements DnDTabListener {
 							addView(csv, dataFileName, ViewType.CLUSTER_SUMMARY);
 						}
 					});
+				} catch (LowMemoryException lme) {
+					// Do nothing in this case as user canceled file load due to
+					// low memory situation.
+					ProgrammerLog.log(lme);
 				} catch (Exception exp) {
 					// Reset cursor type
 					mainFrame.getContentPane().setCursor(Cursor.getDefaultCursor());
@@ -422,7 +427,7 @@ public abstract class ViewFactory implements DnDTabListener {
 					String estFileName = cluster.getDataSet().getPath();
 					ESTList ests = DataStore.get().getFASTA(estFileName, mainFrame);
 					// Create the view and the model
-					OverlapModel pam = OverlapModel.create(ct, ests, mst);
+					OverlapModel pam = OverlapModel.create(ct, ests, mst, cluster);
 					final OverlapView view = new OverlapView(mainFrame, pam, ct);
 					// Add the view to the center panel in the main frame.
 					SwingUtilities.invokeAndWait(new Runnable() {
@@ -431,6 +436,10 @@ public abstract class ViewFactory implements DnDTabListener {
 							addView(view, dataFileName, ViewType.OVERLAP_VIEW);
 						}
 					});
+				} catch (LowMemoryException lme) {
+					// Do nothing in this case as user canceled file load due to
+					// low memory situation.
+					ProgrammerLog.log(lme);
 				} catch (Exception exp) {
 					// Reset cursor type
 					mainFrame.getContentPane().setCursor(Cursor.getDefaultCursor());
@@ -644,6 +653,10 @@ public abstract class ViewFactory implements DnDTabListener {
 							addView(finalView, finalDataFileName, finalViewType);	
 						}
 					});
+				} catch (LowMemoryException lme) {
+					// Do nothing in this case as user canceled file load due to
+					// low memory situation.
+					ProgrammerLog.log(lme);
 				} catch (Throwable thr) {
 					// Reset cursor type
 					mainFrame.getContentPane().setCursor(Cursor.getDefaultCursor());
