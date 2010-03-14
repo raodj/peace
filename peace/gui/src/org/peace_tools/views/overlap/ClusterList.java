@@ -117,6 +117,7 @@ class ClusterList extends JPanel implements ActionListener {
 				BorderFactory.createLineBorder(borderColor), 
 				BorderFactory.createEmptyBorder(2, 0, 2, 0)));
 		dropDownButton.setDefaultCapable(false);
+		dropDownButton.setFocusable(false);
 		// Create a label to show selected cluster count.
 		selectionStats = new JLabel("0 Selected");
 		Dimension prefSize = selectionStats.getPreferredSize();
@@ -154,7 +155,17 @@ class ClusterList extends JPanel implements ActionListener {
 		if ("popup".equals(cmd)) {
 			// Show or hide the popup menu depending on its visibility
 			if (!popupList.isVisible()) {
-				popupList.show(this, 0, this.getHeight() + 1);
+				// Set suitable size for the pop-up menu depending on 
+				// current dimension of this component.
+				Dimension prefSize = clusterList.getPreferredSize();
+				prefSize.width     = this.getWidth();
+				if (clusterList.getModel().getSize() > 8) {
+					// Account for vertical scroll bar in width to make layout nicer
+					prefSize.width -= clusterListJSP.getVerticalScrollBar().getPreferredSize().getWidth();
+				}
+				clusterList.setPreferredSize(prefSize);
+				// Show the pop-up at the appropriate relative location
+				popupList.show(this, 0, this.getHeight());
 			} else {
 				popupList.setVisible(false);
 			}
@@ -253,9 +264,6 @@ class ClusterList extends JPanel implements ActionListener {
 		// Create the cluster list using given memory model.
 		clusterList = new JList(overlapModel);
 		clusterList.setBorder(null);
-		Dimension prefSize = clusterList.getPreferredSize();
-		prefSize.width     = this.getPreferredSize().width;
-		clusterList.setPreferredSize(prefSize);
 		// Setup a custom cell renderer so that the colors
 		// used for clusters are efficiently rendered
 		clusterList.setCellRenderer(new ClusterListCellRenderer(colorMapper));
@@ -277,10 +285,10 @@ class ClusterList extends JPanel implements ActionListener {
 			}
 		});
 		// Create the pop up for displaying the cluster list.
-		JScrollPane jsp = new JScrollPane(clusterList);
-		jsp.setBorder(null);
+		clusterListJSP = new JScrollPane(clusterList);
+		clusterListJSP.setBorder(null);
 		popupList = new JPopupMenu();
-		popupList.add(jsp);
+		popupList.add(clusterListJSP);
 	}
 
 	/**
@@ -329,6 +337,12 @@ class ClusterList extends JPanel implements ActionListener {
 	 * method. 
 	 */
 	private JList clusterList;
+	
+	/**
+	 * The scroll pane that contains the {@link #clusterList} so that 
+	 * the list can scroll when the there are a large number of clusters.
+	 */
+	private JScrollPane clusterListJSP;
 	
 	/**
 	 * The OverlapModel that provides the necessary information
