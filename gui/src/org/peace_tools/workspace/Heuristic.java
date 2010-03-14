@@ -103,10 +103,10 @@ public class Heuristic {
 	/**
 	 * Obtain the full list of parameters passed to this heuristic.
 	 * 
-	 * @return This method returns the full list of parmeters supplied to
+	 * @return This method returns the full list of parameters supplied to
 	 * this heuristic to fine tune its runtime operations.
 	 */
-	ArrayList<Param> getParameters() { return parameters; }
+	public ArrayList<Param> getParameters() { return parameters; }
 	
 	/**
 	 * Add a parameter to the heuristic.

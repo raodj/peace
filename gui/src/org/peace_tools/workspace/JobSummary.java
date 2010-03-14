@@ -139,6 +139,33 @@ public class JobSummary extends JobBase {
 		filtersSummary      = job.getFiltersCmdLine();
 	}
 	
+	/** A convenience constructor.
+	 * 
+	 * The constructor uses the complete Job object to populate the various 
+	 * summary information that is contained in this class.
+	 * 
+	 * @param job The job object to be used for summarizing the information 
+	 * associated with this job.
+	 * 
+	 * @param analyzer The type of analyzer used for the job. If the analyzer's type
+	 * is TwoPassD2 that uses automatic heuristics, then the heuristic summary
+	 * is set to an empty string.
+	 */
+	public JobSummary(Job job, FWAnalyzer.FWAnalyzerType analyzerType) {
+		super(job);
+		// Set up the non-common data members next.
+		this.cpus       = job.getNodes() * job.getCPUsPerNode();
+		// Get the server name indirectly using the serverID
+		String srvrID   = job.getServerID();
+		Workspace workspace = Workspace.get();
+		Server server       = workspace.getServerList().getServer(srvrID);
+		this.serverName     = server.getName();
+		// Save heuristics and filter summary information separately.
+		boolean isTwoPassD2 = analyzerType.equals(FWAnalyzer.FWAnalyzerType.TWOPASSD2); 
+		heuristicsSummary   = isTwoPassD2 ? "" : job.getHeuristicsCmdLine();  
+		filtersSummary      = job.getFiltersCmdLine();
+	}
+	
 	/**
 	 * The server name that was obtained from the Server entry and stored
 	 * in this summary when the JobSummary object was created.

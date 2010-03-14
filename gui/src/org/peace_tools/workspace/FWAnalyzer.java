@@ -124,7 +124,7 @@ public class FWAnalyzer {
 	 * @return The type of f/w analyzer that was set when this object was 
 	 * created (or loaded from an XML configuration file).
 	 */
-	FWAnalyzerType getType() { return type; }
+	public FWAnalyzerType getType() { return type; }
 	
 	/**
 	 * Determine if this f/w analyzer uses a distance metric or a similarity
@@ -133,7 +133,7 @@ public class FWAnalyzer {
 	 * @return This method returns true if the f/w analyzer uses a distance
 	 * metric.
 	 */
-	boolean isDistance() { return isDistance; }
+	public boolean isDistance() { return isDistance; }
 	
 	/**
 	 * The frame/window size that was used to analyze EST sequences.
@@ -142,7 +142,7 @@ public class FWAnalyzer {
 	 * set when this object was created (or loaded from an XML configuration
 	 * file).
 	 */
-	int getFrameSize() { return windowSize; }
+	public int getFrameSize() { return windowSize; }
 
 	/**
 	 * The word size that was used to analyze EST sequences. The word size
@@ -151,7 +151,7 @@ public class FWAnalyzer {
 	 * @return This method returns the word size that was set when this object
 	 *         was created (or loaded from an XML configuration file).
 	 */
-	int getWordSize() { return wordSize; }
+	public int getWordSize() { return wordSize; }
 
 	/**
 	 * The type of cache that was used to cache distance/similarity metrics
@@ -160,7 +160,7 @@ public class FWAnalyzer {
 	 * @return This method returns the type of cache that was set when this object
 	 *         was created (or loaded from an XML configuration file).
 	 */
-	String getCacheType() { return cacheType; }
+	public String getCacheType() { return cacheType; }
 
 	/**
 	 * The size of each cache entry (per EST) in number of distance/similarity
@@ -169,7 +169,7 @@ public class FWAnalyzer {
 	 * @return This method returns the cache size that was set when this object
 	 *         was created (or loaded from an XML configuration file).
 	 */
-	int getCacheSize() { return cacheSize; }
+	public int getCacheSize() { return cacheSize; }
 
 	/**
 	 * Method to marshall the data stored in this object to become part of
@@ -234,6 +234,11 @@ public class FWAnalyzer {
 		cmdLine += " --cacheType " + cacheType;
 		cmdLine += " --cache " + cacheSize;
 		return cmdLine;
+	}
+	
+	@Override
+	public String toString() {
+		return "FWAnalyzer " + type;
 	}
 	
 	/**
