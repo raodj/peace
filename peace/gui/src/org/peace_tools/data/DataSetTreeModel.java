@@ -304,6 +304,15 @@ public class DataSetTreeModel implements TreeModel, WorkspaceListener {
 
 	@Override
 	public void workspaceChanged(WorkspaceEvent event) {
+		// This data set tree model only cares about events relating to data set, mst
+		// and cluster information. Everything else is ignored.
+		final WorkspaceEvent.EntryType entryType = event.getEntryType();
+		if (!entryType.equals(WorkspaceEvent.EntryType.DATA_SET) &&
+			!entryType.equals(WorkspaceEvent.EntryType.MST_DATA) &&
+			!entryType.equals(WorkspaceEvent.EntryType.MST_CLUSTER_DATA)) {
+			// We don't care bout this update.
+			return;
+		}
 		// Translate work space event to a model event.
 		if (event.getOperation().equals(WorkspaceEvent.Operation.UPDATE)) {
 			fireTreeStructureChanged(event.getSource());

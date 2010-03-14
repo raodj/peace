@@ -219,10 +219,10 @@ public class MST {
 	protected static boolean makeMSTNode(HashMap<Integer, MSTNode> nodeList, 
 			String line) throws IOException {
 		// Extract the ',' separated values. The values are in the form:
-		// <parentIdx>, <estIdx>, <metric>, <alignment>
+		// <parentIdx>, <estIdx>, <metric>, <alignment>, <direction>
 		String[] entries = line.split(",");
-		// Ensure we have 3 or 4 entries exactly
-		if ((entries.length != 3) && (entries.length != 4)) {
+		// Ensure we have 3 to 5 entries
+		if ((entries.length < 3) || (entries.length > 5)) {
 			throw new IOException("Invalid data line in MST file " +
 					"(line: " + line + ")");
 		}
@@ -231,7 +231,7 @@ public class MST {
 		float metric      = Float.parseFloat(entries[2]);
 		int   alignment   = 0;
 		boolean haveAlign = false;
-		if (entries.length == 4) {
+		if (entries.length >= 4) {
 			alignment = Integer.parseInt(entries[3]);
 			haveAlign = true; // Track this node has alignment information
 		}
