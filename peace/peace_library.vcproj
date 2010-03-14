@@ -192,6 +192,18 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\Filter.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\FilterChain.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\FilterFactory.cpp"
+				>
+			</File>
+			<File
 				RelativePath="src\FMWSCA.cpp"
 				>
 			</File>
@@ -209,6 +221,14 @@
 			</File>
 			<File
 				RelativePath="src\HeuristicFactory.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\LCFilter.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\LengthFilter.cpp"
 				>
 			</File>
 			<File
@@ -253,6 +273,10 @@
 			</File>
 			<File
 				RelativePath="src\NewUVHeuristic.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\src\ParameterSetManager.cpp"
 				>
 			</File>
 			<File
@@ -346,6 +370,18 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\Filter.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\FilterChain.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\FilterFactory.h"
+				>
+			</File>
+			<File
 				RelativePath="src\FMWSCA.h"
 				>
 			</File>
@@ -371,6 +407,14 @@
 			</File>
 			<File
 				RelativePath="src\HTMLHeader.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\LCFilter.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\LengthFilter.h"
 				>
 			</File>
 			<File
@@ -415,6 +459,14 @@
 			</File>
 			<File
 				RelativePath="src\NewUVHeuristic.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\ParameterSet.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\ParameterSetManager.h"
 				>
 			</File>
 			<File

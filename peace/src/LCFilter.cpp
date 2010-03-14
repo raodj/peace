@@ -91,7 +91,7 @@ LCFilter::initialize() {
     // Check and update our threshold value if one is not specified.
     if (threshold == -1) {
         // Use the invalid metric from analyzer instead.
-        threshold = clusterMaker->getAnalyzer()->getInvalidMetric();
+        threshold = (int) clusterMaker->getAnalyzer()->getInvalidMetric();
     }
     // Figure out the length of the dummy ESTs
     const int dummyLen = clusterMaker->getAnalyzer()->getPreferredDummyESTLength();
@@ -166,7 +166,7 @@ LCFilter::runFilter(const int estIdx) {
         // Get comparison metric.
         float metric = analyzer->analyze(dummyESTList[i].first);
         // Check if the metric is good/bad
-        if (analyzer->compareMetrics(metric, threshold)) {
+        if (analyzer->compareMetrics(metric, (float) threshold)) {
             // Log for debugging.
             // std::cout << "Filtered est " << EST::getEST(estIdx)->getID()
             //           << " - " << EST::getEST(estIdx)->getInfo() << "\n";

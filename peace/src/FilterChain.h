@@ -231,7 +231,7 @@ public:
         process then this method returns -1.
     */
     inline int applyFilters(const int estIdx) {
-        int clusterID;
+        int clusterID = -1;
         for (size_t i = 0; (i < chain.size()); i++) {
             if ((clusterID = chain[i]->applyFilter(estIdx)) != -1) {
                 // Immediately stop when EST fails a filter clause
