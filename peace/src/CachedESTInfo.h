@@ -76,6 +76,11 @@ public:
         
         \param[in] alignmentDataValue Additional alignment information
         to be stored in this class.
+
+		\param[in] directionDataValue A integer value indicating the
+		direction in which the information is to be
+		considered. Positive values indicate normal comparison while
+		negative values indicate reverse compliment comparison.
     */
     CachedESTInfo(const int refESTidxValue, const int estIdxValue,
 		  const float metricValue, const int alignmentDataValue,

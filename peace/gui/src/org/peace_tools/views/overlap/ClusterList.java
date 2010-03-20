@@ -333,7 +333,7 @@ class ClusterList extends JPanel implements ActionListener {
 	/**
 	 * The list that displays the list of clusters currently present in
 	 * the memory model. This list is created in the constructor and is
-	 * further customized in the {@link #adaptClusterListAndButton(OverlapPanel)}
+	 * further customized in the {@link #createClusterListAndPopup()}
 	 * method. 
 	 */
 	private JList clusterList;

@@ -175,8 +175,7 @@ class ClusterListCellRenderer extends DefaultListCellRenderer {
 	/**
 	 * The icon that is used in the label created by the 
 	 * getListCellRendererComponent method. The same icon is reused 
-	 * over-and-over to try and reduce the  memory footprint. The icon
-	 * wraps the {@link #image} instance variable. 
+	 * over-and-over to try and reduce the  memory footprint.
 	 */
 	private final CustomIcon colorIcon;
 

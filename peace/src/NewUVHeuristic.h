@@ -167,7 +167,8 @@ protected:
 		analysis information is to be written. Currently this
 		parameter is unused.
     */
-    NewUVHeuristic(const std::string& name, const std::string& outputFileName);
+    NewUVHeuristic(const std::string& name,
+				   const std::string& UNREFERENCED_PARAMETER(outputFileName));
     
     /** Determine whether the analyzer should analyze, according to
 	this heuristic.

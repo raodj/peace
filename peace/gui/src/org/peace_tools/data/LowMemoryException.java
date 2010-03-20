@@ -58,9 +58,9 @@ public class LowMemoryException extends Exception {
 	 * Constructor to create an exception with the given message.
 	 *
 	 * A convenience constructor to create an exception with a specific
-	 * mesasge.
+	 * message.
 	 * 
-	 * @message The message to be set for this exception.
+	 * @param message The message to be set for this exception.
 	 */	
 	public LowMemoryException(String message) {
 		super(message);

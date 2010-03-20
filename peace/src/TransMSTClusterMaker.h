@@ -204,7 +204,8 @@ protected:
         this feature is used by TransMSTClusterMaker to obtain the
         list of metrics computed.
     */
-    virtual void populateCache(const int estIdx, SMList* metricList = NULL);
+    virtual void populateCache(const int estIdx,
+							   SMList* UNREFERENCED_PARAMETER(metricList) = NULL);
     
     /** The default constructor.
         

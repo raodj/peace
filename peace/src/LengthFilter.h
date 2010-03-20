@@ -165,6 +165,8 @@ protected:
         of the cluster is determined in the LengthFilter::initialize()
         method.</li>
 
+		</ol>
+		
         \return This method returns -1 if the est must be subject to
         further filteration or core EST analyis and clustering.  If
         the specified est is to be filtered out, then this method

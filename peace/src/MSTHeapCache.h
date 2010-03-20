@@ -146,7 +146,8 @@ public:
         entries to be merged with any existing entries in the cache
         for the given EST (whose zero-based index is \c estIdx).
     */
-    virtual void mergeList(const int estIdx, const SMList& list);
+    virtual void mergeList(const int UNREFERENCED_PARAMETER(estIdx),
+						   const SMList& list);
 
     /** Obtains the top-most similar entry from the MSTCache.
 

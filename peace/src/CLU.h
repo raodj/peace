@@ -358,12 +358,13 @@ protected:
         /** Hash table to accelerate the comparison of all words in a
             sequence.
             
-            <p> Quotation from CLU paper: "To accelerate the comparison all
-            words found in sequence Sq are presented in a table (H). The
-            table H is a linear array, where the offset itself is a hash
-            value of certain oligonucleotide. Each element of this array
-            contains a number, associated with a corresponding
-            oligonucleotide".</p>
+            <p> Quotation from CLU paper: <i>To accelerate the
+            comparison all words found in sequence Sq are presented in
+            a table (H). The table H is a linear array, where the
+            offset itself is a hash value of certain
+            oligonucleotide. Each element of this array contains a
+            number, associated with a corresponding
+            oligonucleotide</i>.</p>
             
             This vector has a size 4^wordSize (for example, if wordSize is
             6, this table has 4096 entries).  These entries are populated
@@ -374,12 +375,13 @@ protected:
         /** Hash table to accelerate the comparison of all words in a
             complement (reverse) sequence.
             
-            <p> Quotation from CLU paper: "To accelerate the comparison all
-            words found in sequence Sq are presented in a table (H). The
-            table H is a linear array, where the offset itself is a hash
-            value of certain oligonucleotide. Each element of this array
-            contains a number, associated with a corresponding
-            oligonucleotide".</p>
+            <p> Quotation from CLU paper: <i>To accelerate the
+            comparison all words found in sequence Sq are presented in
+            a table (H). The table H is a linear array, where the
+            offset itself is a hash value of certain
+            oligonucleotide. Each element of this array contains a
+            number, associated with a corresponding
+            oligonucleotide.</i></p>
             
             This vector has a size 4^wordSize (for example, if wordSize is
             6, this table has 4096 entries).  These entries are populated

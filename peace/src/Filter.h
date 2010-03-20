@@ -203,6 +203,9 @@ public:
 
         \param[in] superList The super list to be processed by this
         method.
+
+		\param[in] clusterMaker The cluster maker object that is being
+		used for analysis.
     */
     static void processFilterData(const std::vector<int>& superList,
                                   ClusterMaker *clusterMaker);
@@ -213,8 +216,8 @@ public:
         this filter and if it must be subjected to the core clustering
         operations.
         
-        \param[in] estIdx The index (zero based) of the EST that must
-        be subject to which the reference EST is to be compared.
+        \param[in] otherEST The index (zero based) of the EST that
+        must be subject to which the reference EST is to be compared.
         
         \return This method returns -1 if the est must be subject to
         further filteration or core EST analyis and clustering.  If
@@ -299,7 +302,7 @@ protected:
         This name is used when generating errors, warnings, and other
         output messages for this filter.
 
-        \param[in] clusterMake The cluster maker class that is being
+        \param[in] clusterMaker The cluster maker class that is being
         used for analysis.  This class can be used by this filter for
         performing specific operations.
     */
@@ -357,7 +360,7 @@ private:
     int runCount;
 
     /** Variable to track the number of times this filter filtered out
-        an EST..
+        an EST.
 
         This instance vairable tracks the number of times the filter
         filtered out an EST.  This value is incremented in the \c

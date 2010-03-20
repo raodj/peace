@@ -38,6 +38,7 @@
 #include "config.h"
 #endif
 
+#include "Utilities.h"
 #include <vector>
 #include <string>
 
@@ -129,7 +130,7 @@ protected:
         \param[in] cmdWords The set of words/tokens from the command
         entered by the user.
     */
-    void printStats(const std::vector<std::string>& cmdWords);
+    void printStats(const std::vector<std::string>& UNREFERENCED_PARAMETER(cmdWords));
 
     /** Mehtod to windup the interactive console.
 
@@ -141,7 +142,7 @@ protected:
         entered by the user. Currently, this list is ignored by this
         method.
     */
-    void exit(const std::vector<std::string>& cmdWords);
+    void exit(const std::vector<std::string>& UNREFERENCED_PARAMETER(cmdWords));
 
     /** List the ESTs curently loaded.
 
@@ -153,7 +154,7 @@ protected:
         entered by the user. Currently, this list is ignored by this
         method.
     */
-    void list(const std::vector<std::string>& cmdWords);
+    void list(const std::vector<std::string>& UNREFERENCED_PARAMETER(cmdWords));
 
     /** Analyze a given pair of ESTs.
 
@@ -181,7 +182,7 @@ protected:
         entered by the user. Currently, this list is ignored by this
         method.
     */
-    void help(const std::vector<std::string>& cmdWords);
+    void help(const std::vector<std::string>& UNREFERENCED_PARAMETER(cmdWords));
 
     /** Display detailed information about a given EST
 
