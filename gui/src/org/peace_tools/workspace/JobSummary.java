@@ -147,7 +147,7 @@ public class JobSummary extends JobBase {
 	 * @param job The job object to be used for summarizing the information 
 	 * associated with this job.
 	 * 
-	 * @param analyzer The type of analyzer used for the job. If the analyzer's type
+	 * @param analyzerType The type of analyzer used for the job. If the analyzer's type
 	 * is TwoPassD2 that uses automatic heuristics, then the heuristic summary
 	 * is set to an empty string.
 	 */

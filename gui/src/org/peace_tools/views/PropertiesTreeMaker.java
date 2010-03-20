@@ -339,12 +339,9 @@ public class PropertiesTreeMaker {
 	 * This is an internal helper method that is used to build the properties
 	 * node for a given MST entry.
 	 * 
-	 * @param mst The MST workspace entry for which the properties sub-tree 
-	 * is to be built
-	 * 
-	 * @param needFileInfo If this flag is true then this method adds a sub-tree
-	 * with properties about the physical MST file.
-	 *  
+	 * @param job The job object to be used to create a suitable property 
+	 * sub-tree for display to the user.
+	 *   
 	 * @return A sub-tree with necessary MST properties information to be included 
 	 * in the main properties tree at an appropriate location.
 	 */
@@ -425,7 +422,7 @@ public class PropertiesTreeMaker {
 	 * This is an internal helper method that is used to build the properties
 	 * node for a given data set entry.
 	 * 
-	 * @param dataSet The data set workspace entry for which the properties sub-tree 
+	 * @param heuristic The heuristic workspace entry for which the properties sub-tree 
 	 * is to be built
 	 * 
 	 * @return A sub-tree with necessary data set properties information to be included 

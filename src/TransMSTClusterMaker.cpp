@@ -141,7 +141,7 @@ TransMSTClusterMaker::pruneMetricEntries(const SMList& list,
 
 void
 TransMSTClusterMaker::populateCache(const int estIdx,
-                                    SMList* UNREFERENCED_PARAMETER(list)) {
+                                   SMList* UNREFERENCED_PARAMETER(metricList)) {
     currRefESTidx = estIdx;
     // Now let the base class do its thing and populate the cache
     // entries for estIdx.

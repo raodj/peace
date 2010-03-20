@@ -52,7 +52,7 @@
 #include <sstream>
 #include <fstream>
 
-/** \fn void showUsage(arg_parser& ap, ESTAnalyzer *analyzer, ClusterMaker *cMaker, HeuristicChain *hChain, FilterChain fChain)
+/** \fn void showUsage(arg_parser& ap, ESTAnalyzer *analyzer, ClusterMaker *cMaker, HeuristicChain *hChain, FilterChain* fChain)
 
     A simple helper method to show usage and clean up the temporarily
     created EST analyzer and cluster Maker objects.

@@ -208,7 +208,7 @@ public:
     /** Determine preferred dummy EST lengths to be used with this
         analyzer.
 
-        <b>Note: For more detailed description of the motivation for
+        \note For more detailed description of the motivation for
         dummy ESTs please refer to the documentation for the
         corresponding method in the base class --
         getPreferredDummyESTLength().

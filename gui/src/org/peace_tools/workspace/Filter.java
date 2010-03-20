@@ -106,8 +106,8 @@ public class Filter {
 	/**
 	 * The only constructor for this class.
 	 * 
-	 * @param name The name of the heuristic with which this class is
-	 * associated.
+	 * @param filterType The type of filter that this object is expected
+	 * to represent.
 	 */
 	public Filter(FilterType filterType) {
 		this.filterType = filterType;

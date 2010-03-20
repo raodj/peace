@@ -1,5 +1,5 @@
 /**
-   \mainpage PEACE: Parallel Environment for Assembly and Clustering of gene Expressions.
+   \mainpage <center>PEACE: Parallel Environment for Assembly and Clustering of gene Expressions.</center>
 
    <center>
    \image html peace_welcome_header.png

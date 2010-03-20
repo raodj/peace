@@ -133,7 +133,8 @@ public:
         owner process is responsible for computing metrics.
     */
     void addEntries(const CachedESTInfo& reference, const SMList& metrics,
-                    const int startIndex, const int endIndex);
+                    const int UNREFERENCED_PARAMETER(startIndex),
+					const int UNREFERENCED_PARAMETER(endIndex));
 
     /** Obtain an existing metric from this cache.
 

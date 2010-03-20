@@ -208,6 +208,8 @@ protected:
 
         </li>
 
+		</ol>
+		
         \param[in] estIdx The index of the EST to be tested and
         filtered by this method.
         

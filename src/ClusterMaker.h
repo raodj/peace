@@ -165,8 +165,8 @@ public:
 		This method is called after the cluster maker has been created
 		but before the ESTs have been loaded into the ESTAnalyzer.
 		
-		\This method must load all the ESTs to be processed via the
-		ESTAnalyzer API methods.
+		\note This method must load all the ESTs to be processed via
+		the ESTAnalyzer API methods.
 
 		\return This method returns zero on success. On errors, this
 		method returns a non-zero value.

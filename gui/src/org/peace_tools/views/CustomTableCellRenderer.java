@@ -49,7 +49,7 @@ import javax.swing.table.DefaultTableCellRenderer;
  * cell renderer. The same column renderer can be used for all objects
  * and the font is also reused.
  * 
- * @see ESTableModel
+ * @see org.peace_tools.data.ESTTableModel
  * @see ClusterTreeTableView
  */
 public class CustomTableCellRenderer extends DefaultTableCellRenderer {
