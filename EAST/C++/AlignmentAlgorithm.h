@@ -39,7 +39,7 @@ public:
 	AlignmentAlgorithm() {scoreMatrix = NULL;};
 	AlignmentAlgorithm(int match, int mismatch, int gap);
 	~AlignmentAlgorithm();
-	inline void setScoringMatrix(const intMatrix& m) {scoreMatrix = m;}
+	void setScoringMatrix(int match, int mismatch);
 	inline void setGapPenalty(int gap) {gapPenalty = gap;}
 	int getNWScore(const std::string& s1, const std::string& s2);
 	int getBoundedNWScore(const std::string& s1, const std::string& s2);

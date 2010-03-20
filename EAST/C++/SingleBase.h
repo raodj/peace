@@ -24,6 +24,8 @@ public:
 
 	char getCurBase();
 
+	int getTotalNumOfBase(); //return the total number of ACGTN at the current base position
+
 private:
 	void changeBaseNum(char base);
 	void changeCurBase();

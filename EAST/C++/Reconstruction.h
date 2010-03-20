@@ -67,14 +67,13 @@ public:
 	Reconstruction();
 	Reconstruction(Graph* graph, std::vector<SixTuple*> align, std::vector<SixTuple*> leftEnds, InclusionNodes* inc, const std::string& con, const std::string& sing, const std::string& numF);
 	void getConsensus();
-	std::vector<std::string> reconstructSeq(std::vector<StartPos>& a);
 
 private:
 	void printConsensus();
 	std::vector<std::string> reconstruct();
 	std::vector<std::string> reconstuctForEachCluster();
 	std::vector<std::vector<int> > genDGraph();
-	std::vector<std::string> processLeftEnds(std::map<int, int>& curMSTNodes, std::vector<std::vector<int> >& dGraph);
+	std::vector<std::string> processLeftEnds(std::vector<int>& curLeftEnds, std::vector<std::vector<int> >& dGraph);
 	std::string reconstructFromEnds(std::vector<std::vector<int> > leftEnds, std::vector<std::vector<int> >& dGraph);
 	std::string processLeftEndsWithInclusion(std::vector<LeftEnd>& includeStrs, std::vector<std::vector<int> >& dGraph);
 	int getNumUsedNodes(std::vector<StartPos>& a);
@@ -84,6 +83,7 @@ private:
 	void getStartPos(int parentNode, DefGraph& tree, std::vector<std::vector<int> >& d);
 	std::string replace(std::string str, const std::string& old, const std::string& newstr);
 	std::string printLeftEndInfo(int leftEnd);
+	std::vector<std::string> reconstructSeq(std::vector<StartPos>& a);
 
 	DefGraph graphForPrim; //this is a graph which is used for generating MST. It is generated once in genDGraph(), then used multiple times.
 };
