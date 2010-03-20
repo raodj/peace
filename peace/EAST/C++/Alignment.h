@@ -21,6 +21,7 @@ public:
 	int getDistance(std::string s1, std::string s2);
 	AlignResult getLocalAlignment(std::string s1, std::string s2);
 	AlignResult getBoundedLocalAlignment(std::string s1, std::string s2);
+	void setScoringSystem(int match, int mismatch, int gap);
 
 private:
 	int getSimlarityScore(std::string s1, std::string s2);

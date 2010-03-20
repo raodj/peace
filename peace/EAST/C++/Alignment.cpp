@@ -49,9 +49,9 @@ int Alignment::getDistance(string s1, string s2) {
  * @return int similarity score(>=0), if the value is less than 0, it's set to be zero.
  */
 int Alignment::getSimlarityScore(string s1, string s2) {
-	if (USE_BOUNDED_SW == 0) { //use ordinary version
+	if (USE_BOUNDED_NW == 0) { //use ordinary version
 		return alignAlgo->getNWScore(s1, s2);
-	} else { ////use bounded version
+	} else { //use bounded version
 		return alignAlgo->getBoundedNWScore(s1, s2);
 	}
 }
@@ -86,4 +86,9 @@ AlignResult Alignment::getBoundedLocalAlignment(string s1, string s2) {
 	end = time(NULL);
 	usedTime += end - start;
 	return ret;
+}
+
+void Alignment::setScoringSystem(int match, int mismatch, int gap) {
+	alignAlgo->setScoringMatrix(match, mismatch);
+	alignAlgo->setGapPenalty(gap);
 }

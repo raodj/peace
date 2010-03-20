@@ -52,6 +52,8 @@ Reconstruction::Reconstruction(Graph* graph, vector<SixTuple*> align, vector<Six
 	numOfUsedESTsFileName = numF;
 
 	usedNodes = vector<int> (g->graphNodes.size(), 0);
+
+	alignment.setScoringSystem(2, -1, -1);
 }
 
 void Reconstruction::getConsensus() {
@@ -157,10 +159,13 @@ std::vector<std::string> Reconstruction::reconstuctForEachCluster() {
 	vector<string> retStr;
 	vector<int> allNodes(g->graphNodes.size(), 0);
 
+	//assign each node a cluster index and store it into a map
+	int clusterIdx = 0;
+	map<int, int> curMSTNodes;
+	int first = 0;
 	while (true) {
-		int first = -1;
 		bool exit = 1;
-		for (int i=0; i<allNodes.size(); i++) {
+		for (int i=first; i<allNodes.size(); i++) {
 			if (allNodes[i] == 0) { //find the first node which has not been processed
 				first = i;
 				allNodes[first] = 1;
@@ -170,8 +175,8 @@ std::vector<std::string> Reconstruction::reconstuctForEachCluster() {
 		}
 		if (exit) break;
 
-		map<int, int> curMSTNodes;
-		curMSTNodes[first] = 0;
+		curMSTNodes[first] = clusterIdx;
+		int sizeOfCurCluster = 1;
 
 		vector<stack<int> > nodes (2);
 		nodes[0].push(first);
@@ -183,16 +188,40 @@ std::vector<std::string> Reconstruction::reconstuctForEachCluster() {
 			while (!tmp.empty()) {
 				int tmpIndex = tmp.top();
 				tmp.pop();
-				curMSTNodes[tmpIndex] = 0;
+				curMSTNodes[tmpIndex] = clusterIdx;
 				allNodes[tmpIndex] = 1;
+				sizeOfCurCluster++;
 			}
 		}
 
-		if (curMSTNodes.size() > 1) { //if more than 1 nodes in the MST, or else it is a singleton.
-			vector<string> ret = processLeftEnds(curMSTNodes, dGraph); //reconstruct from left ends in the same MST curMSTNodes
-			for (int k=0; k<ret.size(); k++)
-				retStr.push_back(ret[k]);
+		if (sizeOfCurCluster <= 1) { //first is a singleton.
+			curMSTNodes[first] = -1;
+			clusterIdx -= 1;
 		}
+
+		clusterIdx++;
+		first++;
+		if (sizeOfCurCluster > 1)
+			cout << "Cluster " << clusterIdx-1 << " , size is " << sizeOfCurCluster << endl;
+	}
+
+	//put those left ends in one cluster into a vector
+	vector<int>  clusterLeftEnds[clusterIdx];
+	int sizeOfs = leftMostNodes.size();
+	for (int i=0; i<sizeOfs; i++) { //start for
+		int idx = leftMostNodes[i]->curNode;
+		map<int, int>::iterator ite = curMSTNodes.find(idx);
+		if ((ite != curMSTNodes.end()) && (ite->second != -1)) { //idx is found and is not a singleton
+			clusterLeftEnds[ite->second].push_back(idx);
+		}
+	} //end for
+
+	//call processLeftEnds to process these left ends cluster by cluster
+	for (int i=0; i<clusterIdx; i++) {
+		cout << "Cluster " << i << ", number of left ends in the cluster is " << clusterLeftEnds[i].size() << endl;
+		vector<string> ret = processLeftEnds(clusterLeftEnds[i], dGraph); //reconstruct from left ends in the cluster
+		for (int k=0; k<ret.size(); k++)
+			retStr.push_back(ret[k]);
 	}
 
 	return retStr;
@@ -252,59 +281,6 @@ std::vector<std::vector<int> > Reconstruction::genDGraph() {
 
 
 /*
- *  Return consensus from this set of left ends.
- *  input: leftEnds[][2] : [][0]-index, [][1]-position of the left end; size-the size of the array
- *
- * 1. Generate dGraph.
- * 2. For each left-end node, starting from it to calculate positions for each node.
- * In order to get starting positions, it constructs a MST. The weight of the Minimum Spanning tree is
- * the overlap distance instead of overlap length.
- * Then reconstruct the sequence from the set of ESTs.
- *
- */
-string Reconstruction::reconstructFromEnds(vector<vector<int> > leftEnds, vector<vector<int> >& dGraph) {
-	string ret = "";
-	int size = leftEnds.size();
-	map<int, int> ends;
-	map<int, int>::iterator ite;
-	sPos = vector<int> (g->graphNodes.size(), 0);	//store starting positions of all the nodes, reset it to the initial state
-
-	for (int i=0; i<size; i++) {
-		int leftEnd = leftEnds[i][0];
-		sPos[leftEnd] = leftEnds[i][1];
-		ends[leftEnd] = 0;
-		// Calculate starting positions using minimum spanning tree starting from this left-end node.
-		DefGraph primMST = constructMinTree(leftEnd); //the first param is the total number of ESTs.
-
-		//get starting positions for the nodes in primMST
-		getStartPos(leftEnd, primMST, dGraph);
-
-		printStr = printStr + printLeftEndInfo(leftEnd); //get information of this left end which is used to start reconstruction.
-	}
-	stringstream tstr;
-	tstr << leftEnds[0][0];
-	printStr = printStr + "Start from node " + tstr.str() + " to do reconstruction" + "\n\n";
-
-	vector<StartPos> tmpArray;
-	for (int j=0; j<sPos.size(); j++) {
-		ite = ends.find(j);
-		if ((ite != ends.end()) || (sPos[j] != 0)) { // is left end or a node which has got its position
-			tmpArray.push_back(StartPos(sPos[j], j));
-		}
-	}
-
-
-	vector<string> tStr = reconstructSeq(tmpArray);
-	if (tStr.size() != 0) {
-		printStr = printStr + tStr[1] + " nodes are used to reconstruct the sequence.\n";
-		printStr = printStr + tStr[0] + "\n\n";
-		ret = tStr[0];
-	}
-
-	return ret;
-}
-
-/*
  * This method is designed to group left ends into independent sets. All the dependent left ends (include one by one) are put
  * into one group.
  * In each group, we put all the nodes which can be connected by any left end in the group,
@@ -312,31 +288,22 @@ string Reconstruction::reconstructFromEnds(vector<vector<int> > leftEnds, vector
 
  * @return all the consensus sequences.
  */
-vector<string>Reconstruction::processLeftEnds(map<int, int>& curMSTNodes, vector<vector<int> >& dGraph) {
+vector<string>Reconstruction::processLeftEnds(vector<int>& curLeftEnds, vector<vector<int> >& dGraph) {
 	vector<string> allOutputContigs;	//store all the generated sequences
-	int sizeOfs = leftMostNodes.size();
+	int sizeOfs = curLeftEnds.size();
 	if (sizeOfs == 0) {
-		cout << "zero left ends!" << endl;
+		cout << "zero left ends in the cluster!" << endl;
 		allOutputContigs.push_back("");
 		return allOutputContigs;
 	}
 	vector<LeftEnd> resultArray; //store the starting positions of ests
 	for (int i=0; i<sizeOfs; i++) { //start for
-		int idx = leftMostNodes[i]->curNode;
-		map<int, int>::iterator ite = curMSTNodes.find(idx);
-		if (ite != curMSTNodes.end()) { //idx is in curMSTNodes
-			resultArray.push_back(LeftEnd(idx, g->getSeqOfNode(idx)));
-		}
+		int idx = curLeftEnds[i];
+		resultArray.push_back(LeftEnd(idx, g->getSeqOfNode(idx)));
 	} //end for
 	sort(resultArray.begin(), resultArray.end());
 	vector<LeftEnd> allLeftEnds;
-	int sizeResultArray = resultArray.size();
-	if (sizeResultArray == 0) {
-		cout << "zero left ends in the cluster!" << endl;
-		allOutputContigs.push_back("");
-		return allOutputContigs;
-	}
-	for (int i=sizeResultArray-1; i>=0; i--) {
+	for (int i=sizeOfs-1; i>=0; i--) {
 		allLeftEnds.push_back(resultArray[i]);
 	}
 
@@ -435,6 +402,59 @@ string Reconstruction::processLeftEndsWithInclusion(vector<LeftEnd>& includeStrs
 }
 
 /*
+ *  Return consensus from this set of left ends.
+ *  input: leftEnds[][2] : [][0]-index, [][1]-position of the left end; size-the size of the array
+ *
+ * For each left-end node, starting from it to calculate positions for each node.
+ * In order to get starting positions, it constructs a MST. The weight of the Minimum Spanning tree is
+ * the overlap distance instead of overlap length.
+ * Then reconstruct the sequence from the set of ESTs.
+ *
+ */
+string Reconstruction::reconstructFromEnds(vector<vector<int> > leftEnds, vector<vector<int> >& dGraph) {
+	string ret = "";
+	int size = leftEnds.size();
+	map<int, int> ends;
+	map<int, int>::iterator ite;
+	sPos = vector<int> (g->graphNodes.size(), 0);	//store starting positions of all the nodes, reset it to the initial state
+
+	for (int i=0; i<size; i++) {
+		int leftEnd = leftEnds[i][0];
+		sPos[leftEnd] = leftEnds[i][1];
+		ends[leftEnd] = 0;
+		// Calculate starting positions using minimum spanning tree starting from this left-end node.
+		DefGraph primMST = constructMinTree(leftEnd); //the first param is the total number of ESTs.
+
+		//get starting positions for the nodes in primMST
+		getStartPos(leftEnd, primMST, dGraph);
+
+		//printStr = printStr + printLeftEndInfo(leftEnd); //get information of this left end which is used to start reconstruction.
+	}
+	stringstream tstr;
+	tstr << leftEnds[0][0];
+	printStr = printStr + "Start from node " + tstr.str() + " to do reconstruction" + "\n\n";
+
+	vector<StartPos> tmpArray;
+	for (int j=0; j<sPos.size(); j++) {
+		ite = ends.find(j);
+		if ((ite != ends.end()) || (sPos[j] != 0)) { // is left end or a node which has got its position
+			tmpArray.push_back(StartPos(sPos[j], j));
+		}
+	}
+
+
+	vector<string> tStr = reconstructSeq(tmpArray);
+	if (tStr.size() != 0) {
+		printStr = printStr + tStr[1] + " nodes are used to reconstruct the sequence.\n";
+		printStr = printStr + tStr[0] + "\n\n";
+		ret = tStr[0];
+	}
+
+	return ret;
+}
+
+
+/*
  * reconstruct a sequence which starts from a left end.
  * return: ret[0]-the consensus, ret[1]-the total number of nodes used for reconstruction.
  */
@@ -483,7 +503,6 @@ vector<string> Reconstruction::reconstructSeq(vector<StartPos>& a) {
 		tConsensus = replace(tConsensus, replace(strs.str1, "-", ""), strs.str1);
 		int offset = (int)tConsensus.find(strs.str1);
 		if (offset < 0) continue; //not found
-
 		string tSeq = replace(curSeq, replace(strs.str2, "-", ""), strs.str2);
 		int tmpOff = (int)tSeq.find(strs.str2);
 		if (tmpOff < 0) continue; //not found
@@ -531,12 +550,22 @@ vector<string> Reconstruction::reconstructSeq(vector<StartPos>& a) {
 		tConsensus = getCurConsensus(bases);
 	}
 
-	ret[0] = replace(tConsensus, "P", "");
+	int totalLen = bases.size();
+	for (int i=bases.size()-1; i>=0; i--) {
+		if (bases[i]->getTotalNumOfBase() > 2) {
+			break;
+		}
+		totalLen--;
+	}
+	tConsensus = tConsensus.substr(0, totalLen);
 
+	ret[0] = replace(tConsensus, "P", "");
 	//release bases
 	for (int i=0; i<bases.size(); i++) {
 		delete bases[i];
 	}
+
+	cout << "reconstructSeq: \n" <<ret[0] << endl;
 	return ret;
 }
 

@@ -6,30 +6,41 @@
 using namespace std;
 
 AlignmentAlgorithm::AlignmentAlgorithm(int match, int mismatch, int gap) {
+	this->setScoringMatrix(match, mismatch);
+	this->setGapPenalty(gap);
+
+}
+
+AlignmentAlgorithm::~AlignmentAlgorithm() {
+	if (scoreMatrix != NULL)
+		deleteIntMatrix(scoreMatrix,6);
+}
+
+void AlignmentAlgorithm::setScoringMatrix(int match, int mismatch) {
 	intMatrix score = createIntMatrix(6,6);
 	score[0][0] =  match;
 	score[0][1] =  mismatch;
 	score[0][2] =  mismatch;
 	score[0][3] =  mismatch;
-	score[0][4] =  mismatch;
+	score[0][4] =  match;
 	score[0][5] =  mismatch;
 	score[1][0] =  mismatch;
 	score[1][1] =  match;
 	score[1][2] =  mismatch;
 	score[1][3] =  mismatch;
-	score[1][4] =  mismatch;
+	score[1][4] =  match;
 	score[1][5] =  mismatch;
 	score[2][0] =  mismatch;
 	score[2][1] =  mismatch;
 	score[2][2] =  match;
 	score[2][3] =  mismatch;
-	score[2][4] =  mismatch;
+	score[2][4] =  match;
 	score[2][5] =  mismatch;
 	score[3][0] =  mismatch;
 	score[3][1] =  mismatch;
 	score[3][2] =  mismatch;
 	score[3][3] =  match;
-	score[3][4] =  mismatch;
+	score[3][4] =  match;
 	score[3][5] =  mismatch;
 	score[4][0] =  mismatch;
 	score[4][1] =  mismatch;
@@ -44,14 +55,7 @@ AlignmentAlgorithm::AlignmentAlgorithm(int match, int mismatch, int gap) {
 	score[5][4] =  mismatch;
 	score[5][5] =  match;
 
-	this->setScoringMatrix(score);
-	this->setGapPenalty(gap);
-
-}
-
-AlignmentAlgorithm::~AlignmentAlgorithm() {
-	if (scoreMatrix != NULL)
-		deleteIntMatrix(scoreMatrix,6);
+	scoreMatrix = score;
 }
 
 int AlignmentAlgorithm::getNWScore(const string& s1, const string& s2) {
@@ -566,7 +570,7 @@ AlignResult AlignmentAlgorithm::getBoundedSWAlignment(const std::string& s1,
 
 		int start = (i-band) > 1 ? (i-band) : 1;
 		int end = numOfCols > (i+band) ? (i+band) : numOfCols;
-		for (int j = start; j < end; j++) {
+		for (int j = start; j <= end; j++) {
 			int base2 = encodedBase2[j - 1];
 			int flag = 3;
 			// Initialize max to the first of the three terms (NORTHWEST).
@@ -574,8 +578,7 @@ AlignResult AlignmentAlgorithm::getBoundedSWAlignment(const std::string& s1,
 		                                   + (this->scoreMatrix)[base1][base2];
 
 			// See if the second term is larger (WEST).
-			if ((i <= band) || (j > start)) {
-			//if (abs(i-j+1) <= band) {
+			if (abs(i-j+1) <= band) {
 				int west = alignMatrix[i][j - 1] + this->gapPenalty;
 				if (max < west) {
 					max = west;
@@ -584,8 +587,7 @@ AlignResult AlignmentAlgorithm::getBoundedSWAlignment(const std::string& s1,
 			}
 
 			// See if the third term is the largest (NORTH)
-			if (j < end-1) {
-			//if (abs(i-1-j) <= band) {
+			if (abs(i-1-j) <= band) {
 				int north = alignMatrix[i - 1][j] + this->gapPenalty;
 				if (max < north) {
 					max = north;
@@ -607,9 +609,6 @@ AlignResult AlignmentAlgorithm::getBoundedSWAlignment(const std::string& s1,
 			}
 		}
 	}
-	cout << "maxScore:" << maxScore << endl;
-	cout << "maxRow:" << maxRow << endl;
-	cout << "maxCol:" << maxCol << endl;
 
 	result.score = alignMatrix[maxRow][maxCol];
 

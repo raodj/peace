@@ -34,6 +34,10 @@ void SingleBase::addOneBase(char base) {
 	changeCurBase();
 }
 
+int SingleBase::getTotalNumOfBase() {
+	return numA+numC+numG+numT+numN;
+}
+
 char SingleBase::getCurBase() {
 	if (curBase == '-') {
 		return 'P';
