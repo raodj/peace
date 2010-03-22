@@ -565,7 +565,6 @@ vector<string> Reconstruction::reconstructSeq(vector<StartPos>& a) {
 		delete bases[i];
 	}
 
-	cout << "reconstructSeq: \n" <<ret[0] << endl;
 	return ret;
 }
 
