@@ -83,7 +83,7 @@ void Reconstruction::printConsensus() {
 		size_t found = str.find('\n');
 
 		if (found != string::npos) { //there is "\n" in the sequence
-			outFile1 << ">contig " << (index++) << endl;
+			outFile1 << ">Contig" << (index++) << endl;
 
 			int start = 0;
 			while (found != string::npos) {
@@ -93,7 +93,7 @@ void Reconstruction::printConsensus() {
 			}
 			outFile1 << str.substr(start) << endl;
 		} else {
-			outFile1 << ">contig " << (index++) << endl;
+			outFile1 << ">Contig" << (index++) << endl;
 			outFile1 << consensus[i] << endl;
 		}
 	}
