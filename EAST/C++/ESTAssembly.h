@@ -22,7 +22,7 @@ public:
 private:
 	std::string estFileName;
 	std::string mstFileName;
-	void readEstFile(const std::string& inFileName);
+	int readEstFile(const std::string& inFileName);
 	void readMST(const std::string& inFileName);
 	std::vector<std::string> split(const std::string& str, char delimit);
 	std::string toUpperCase(const std::string& str);

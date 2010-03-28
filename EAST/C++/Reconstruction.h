@@ -65,10 +65,11 @@ public:
 	std::vector<int> usedNodes;	//index of the array is the index of the node, 1-used, 0-not used. It is used to identify singletons.
 
 	Reconstruction();
-	Reconstruction(Graph* graph, std::vector<SixTuple*> align, std::vector<SixTuple*> leftEnds, InclusionNodes* inc, const std::string& con, const std::string& sing, const std::string& numF);
+	Reconstruction(Graph* graph, std::vector<SixTuple*> align, std::vector<SixTuple*> leftEnds, InclusionNodes* inc, const std::string& con, const std::string& sing, const std::string& numF, int longestEstLen);
 	void getConsensus();
 
 private:
+	int COMPARISON_LENGTH;
 	void printConsensus();
 	std::vector<std::string> reconstruct();
 	std::vector<std::string> reconstuctForEachCluster();

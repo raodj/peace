@@ -13,10 +13,10 @@ ESTAssembly::ESTAssembly(std::string& estF, std::string& mstF) {
 }
 
 void ESTAssembly::assemble(std::string& con, std::string& sing, std::string& numF) {
-	readEstFile(estFileName);
+	int longestEstLen = readEstFile(estFileName);
 	readMST(mstFileName);
 	gen = new SixTuplesGeneration(g, incNodes);
-	rec = new Reconstruction(g, gen->getAlignArray(), gen->getLeftEnds(), incNodes, con, sing, numF);
+	rec = new Reconstruction(g, gen->getAlignArray(), gen->getLeftEnds(), incNodes, con, sing, numF, longestEstLen);
 	rec->getConsensus();
 }
 
@@ -31,6 +31,8 @@ ESTAssembly::~ESTAssembly() {
  * Generate a Graph object, all the ests are considered to be one node in the graph;
  * No edge in the graph. Edges will be added in "createAlignArray" function.
  *
+ * Return the length of the longest EST which will be used as COMPARISON_LENGTH in reconstruction.
+ *
  * FASTA format:
  * A sequence in FASTA format begins with a single-line description, followed by lines of
  * sequence data. The description line is distinguished from the sequence data by a greater-than
@@ -44,8 +46,9 @@ ESTAssembly::~ESTAssembly() {
  * >g001_001169_001679: first one is number of gene, second is index of tarting position, third is
  * 						index of ending position. Index starts from 0.
  */
-void ESTAssembly::readEstFile(const string& inFileName) {
+int ESTAssembly::readEstFile(const string& inFileName) {
 	vector<string> ests; //store all the ests.
+	int longestLen = 0;
 
 	ifstream in;
 	in.open(inFileName.c_str(), ios::in);
@@ -53,12 +56,14 @@ void ESTAssembly::readEstFile(const string& inFileName) {
 	if (in.good()) {
 		string str;
 		getline(in, str);
-		while (str.size() != 0) {
+		while (!in.eof()) {
 			str.erase(str.find_last_not_of(" \n\r\t")+1); //trim str
+			if (str.size()==0) getline(in, str);
 			// first line is comment line which begins from '>'
 			if (str[0] == '>') {	//comment line begins from '>'
-				vector<string> paras = split(str, '_');
-				ests.push_back(paras[1]);
+				//vector<string> paras = split(str, '_');
+				//ests.push_back(paras[1]);
+				ests.push_back("0");
 				ests.push_back(str.substr(1)); //comment
 
 				//get est in the next lines
@@ -71,12 +76,18 @@ void ESTAssembly::readEstFile(const string& inFileName) {
 							estStr.append(str);
 						} else  {
 							ests.push_back(estStr);
+							int theSize = estStr.size();
+							if (theSize > longestLen)
+								longestLen = theSize;
 							break;
 						}
 					}
 					getline(in, str);
 				}
 				if (str.size() == 0) {
+					int theSize = estStr.size();
+					if (theSize > longestLen)
+						longestLen = theSize;
 					ests.push_back(estStr);
 				}
 			}
@@ -91,6 +102,8 @@ void ESTAssembly::readEstFile(const string& inFileName) {
 		g->addNode(Node(ests[i], ests[i+1], toUpperCase(ests[i+2])));
 		i = i+3;
 	}
+
+	return longestLen;
 }
 
 /*
