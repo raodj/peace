@@ -15,7 +15,6 @@
 
 class OvlDistance {
 public:
-	int windowSize;	// the size of window
 	int InclusionThreshold;	// use this value to define overlap distance of two inclusion subsequence.
 	// this value is used in getOVLDistance for judging inclusion(s1 includes s2, or versa).
 	// When there is no error in est, we can set it to be zero;
@@ -24,7 +23,6 @@ public:
 	// the distance which is bigger than the value will be seen as infinity.
 	Alignment alignment;
 	D2 d2;
-	OvlDistance();
 	std::vector<int> getOVLDistance(const std::string& tS1, const std::string& tS2);
 	bool checkInclusion(const std::string& s1, const std::string& s2, bool createNewHash=true);
 

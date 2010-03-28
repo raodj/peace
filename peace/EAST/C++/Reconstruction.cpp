@@ -42,7 +42,7 @@ Reconstruction::Reconstruction() {
 	incNodes = NULL;
 }
 
-Reconstruction::Reconstruction(Graph* graph, vector<SixTuple*> align, vector<SixTuple*> leftEnds, InclusionNodes* inc, const std::string& con, const std::string& sing, const std::string& numF) {
+Reconstruction::Reconstruction(Graph* graph, vector<SixTuple*> align, vector<SixTuple*> leftEnds, InclusionNodes* inc, const std::string& con, const std::string& sing, const std::string& numF, int longestEstLen) {
 	g = graph;
 	alignArray = align;
 	incNodes = inc;
@@ -50,6 +50,7 @@ Reconstruction::Reconstruction(Graph* graph, vector<SixTuple*> align, vector<Six
 	consensusFileName = con;
 	singletonFileName = sing;
 	numOfUsedESTsFileName = numF;
+	COMPARISON_LENGTH = longestEstLen;
 
 	usedNodes = vector<int> (g->graphNodes.size(), 0);
 
@@ -459,21 +460,22 @@ string Reconstruction::reconstructFromEnds(vector<vector<int> > leftEnds, vector
  * return: ret[0]-the consensus, ret[1]-the total number of nodes used for reconstruction.
  */
 vector<string> Reconstruction::reconstructSeq(vector<StartPos>& a) {
+	std::stringstream out;
 	vector<string> ret(2);
 	if (a.size() == 0) {
+		ret[1] = "0";
 		return ret;
 	}
 
 	sort(a.begin(), a.end());
 	vector<UsedNode> addedNodes = addInclusionNodes(a);  //add all those related inclusion nodes into it for reconstruction and set usedNodes[related nodes]=1.
+	out << addedNodes.size();
+	ret[1] = out.str();
 	if (addedNodes.size() == 1){
 		//size=1, this node should be a singleton if it is not used in other place. it shouldn't appear as a consensus sequence.
 		//size=1, then usedNodes[this node] will not be set to 1 in addInclusionNodes method.
 		return ret;
 	}
-	std::stringstream out;
-	out << addedNodes.size();
-	ret[1] = out.str();
 	vector<StartPos> resultArray(addedNodes.size());
 	for (int i=0; i<addedNodes.size(); i++) {
 		UsedNode tmpNode = addedNodes[i];
@@ -646,6 +648,7 @@ vector<UsedNode> Reconstruction::addInclusionNodes(vector<StartPos>& input) {
 		retList.push_back(UsedNode(it->first, it->second));
 	}
 	sort(retList.begin(), retList.end());
+
 	if (retList.size()==1) //if only one node in retList after adding inclusion nodes, this node should be a singleton.
 		usedNodes[retList[0].index] = 0;
 	return retList;

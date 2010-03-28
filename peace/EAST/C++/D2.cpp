@@ -1,15 +1,11 @@
 #include "D2.h"
 #include <math.h>
-#include "Param.h"
 
 using namespace std;
 
 #define MAX_VAL 40000
 
 D2::D2() {
-	this->windowSize = WINDONW_SIZE;
-	this->THRESHOLD = D2_THRESHOLD;
-
 	// d2 parameters
 	this->d2WordSize = D2_WORD_SIZE;
 	d2WordFilter = (1 << (d2WordSize << 1)) - 1; // 2^(2*d2WordSize) - 1
@@ -19,11 +15,6 @@ D2::D2() {
 	this->heuristicWordSize = HEURISTIC_WORD_SIZE;
 	heuristicWordFilter = (1 << (heuristicWordSize << 1)) - 1;
 	heuristicNumWords = 1 << (heuristicWordSize << 1);
-
-	this->u = U;
-	this->uv_skip = UV_SKIP;
-	this->t = T;
-	this->tv_max = TV_MAX;
 }
 
 int D2::getWindowSize() {
@@ -62,8 +53,40 @@ vector<int> D2::createWindowHash(string s, int leftCoord, int windowSize, int wo
 
 
 BestWindowMatches D2::matchEndWindows(string s1, string s2, bool createNewHash) {
+	int s1Len = s1.size();
+	int s2Len = s2.size();
+	int shorterLen = s1Len>s2Len? s2Len : s1Len;
+	if (shorterLen <= SHORT_LEN) { //use parameters for short
+		this->windowSize = WINDONW_SIZE_S;
+		this->THRESHOLD = D2_THRESHOLD_S;
+
+		this->uv_skip = UV_SKIP_S;
+		this->tv_max = TV_MAX_S;
+
+		this->u = U_S;
+		this->t = T_S;
+	} else if (shorterLen <= MEDIUM_LEN) { //use parameters for medium
+		this->windowSize = WINDONW_SIZE_M;
+		this->THRESHOLD = D2_THRESHOLD_M;
+
+		this->uv_skip = UV_SKIP_M;
+		this->tv_max = TV_MAX_M;
+
+		this->u = U_M;
+		this->t = T_M;
+	} else { //use parameters for long
+		this->windowSize = WINDONW_SIZE_L;
+		this->THRESHOLD = D2_THRESHOLD_L;
+
+		this->uv_skip = UV_SKIP_L;
+		this->tv_max = TV_MAX_L;
+
+		this->u = U_L;
+		this->t = T_L;
+	}
+
 	if (!uv_tv_Heuristic(s1, s2, createNewHash))
-		return BestWindowMatches(vector<int>(0), 0, 0, vector<int>(0), 0, 0);
+		return BestWindowMatches(vector<int>(0), 0, 0, vector<int>(0), 0, 0, 0);
 
 	vector<int> H1_left = createWindowHash(s1, 0, windowSize, d2WordSize, d2WordFilter, d2NumWords);
 	vector<int> H1_right = createWindowHash(s1, s1.length() - windowSize, windowSize, d2WordSize, d2WordFilter, d2NumWords);
@@ -150,7 +173,7 @@ BestWindowMatches D2::matchEndWindows(string s1, string s2, bool createNewHash) 
 		numBestRight = 0;
 		bestRightScore = MAX_VAL;
 	}
-	return BestWindowMatches(bestLeftWindow, numBestLeft, bestLeftScore, bestRightWindow, numBestRight, bestRightScore);
+	return BestWindowMatches(bestLeftWindow, numBestLeft, bestLeftScore, bestRightWindow, numBestRight, bestRightScore, windowSize);
 }
 
 

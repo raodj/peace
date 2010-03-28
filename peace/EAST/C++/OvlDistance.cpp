@@ -3,11 +3,6 @@
 
 using namespace std;
 
-OvlDistance::OvlDistance() {
-	windowSize = WINDONW_SIZE;
-	InclusionThreshold = INCLUSION_THRESHOLD;
-}
-
 /**
  * Get the overlap distance of the two strings.
  * This function
@@ -33,6 +28,17 @@ OvlDistance::OvlDistance() {
  * If s1 is included in s2, the distance is INT_MIN.
  */
 vector<int> OvlDistance::getOVLDistance(const string& tS1, const string& tS2) {
+	int s1Len = tS1.size();
+	int s2Len = tS2.size();
+	int shorterLen = s1Len>s2Len? s2Len : s1Len;
+	if (shorterLen <= SHORT_LEN) { //use parameters for short
+		InclusionThreshold = INCLUSION_THRESHOLD_S;
+	} else if (shorterLen <= MEDIUM_LEN) { //use parameters for medium
+		InclusionThreshold = INCLUSION_THRESHOLD_M;
+	} else { //use parameters for long
+		InclusionThreshold = INCLUSION_THRESHOLD_L;
+	}
+
 	string s1 = "";
 	string s2 = "";
 	int flag = 1; //1 - no switch for tS1 and tS2; -1 - switch.
@@ -62,6 +68,7 @@ vector<int> OvlDistance::getOVLDistance(const string& tS1, const string& tS2) {
 	vector<int> tRightPos = best.bestRightStart;
 	vector<int> leftPos = reducePos(tLeftPos, best.numBestLeftWindows);
 	vector<int> rightPos = reducePos(tRightPos, best.numBestRightWindows);
+	int windowSize = best.d2WindowSize;
 
 	int disLeft = INT_MAX;
 	int disRight = INT_MAX;
@@ -150,6 +157,17 @@ vector<int> OvlDistance::reducePos(const vector<int>& input, int len) {
  * @return true or false
  */
 bool OvlDistance::checkInclusion(const string& s1, const string& s2, bool createNewHash) {
+	int s1Len = s1.size();
+	int s2Len = s2.size();
+	int shorterLen = s1Len>s2Len? s2Len : s1Len;
+	if (shorterLen <= SHORT_LEN) { //use parameters for short
+		InclusionThreshold = INCLUSION_THRESHOLD_S;
+	} else if (shorterLen <= MEDIUM_LEN) { //use parameters for medium
+		InclusionThreshold = INCLUSION_THRESHOLD_M;
+	} else { //use parameters for long
+		InclusionThreshold = INCLUSION_THRESHOLD_L;
+	}
+
 	BestWindowMatches best = d2.matchEndWindows(s1, s2, createNewHash);
 	if ((best.numBestLeftWindows==0) && (best.numBestRightWindows==0)) { //if not overlap, return false
 		return false;
@@ -159,6 +177,7 @@ bool OvlDistance::checkInclusion(const string& s1, const string& s2, bool create
 	vector<int> tRightPos = best.bestRightStart;
 	vector<int> leftPos = reducePos(tLeftPos, best.numBestLeftWindows);
 	vector<int> rightPos = reducePos(tRightPos, best.numBestRightWindows);
+	int windowSize = best.d2WindowSize;
 	int disLeft = INT_MAX;
 	int disRight = INT_MAX;
 	int lenOverlap = 0;

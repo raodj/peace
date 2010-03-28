@@ -10,7 +10,7 @@
 
 class BestWindowMatches {
 public:
-	inline BestWindowMatches(const std::vector<int> &leftStart, int numBestLeft, int leftD2, const std::vector<int> &rightStart, int numBestRight, int rightD2) {
+	inline BestWindowMatches(const std::vector<int> &leftStart, int numBestLeft, int leftD2, const std::vector<int> &rightStart, int numBestRight, int rightD2, int windowsize) {
 		bestLeftStart = leftStart;
 		numBestLeftWindows = numBestLeft;
 		bestLeftD2 = leftD2;
@@ -18,6 +18,8 @@ public:
 		bestRightStart = rightStart;
 		numBestRightWindows = numBestRight;
 		bestRightD2 = rightD2;
+
+		d2WindowSize = windowsize;
 	}
 
 	std::vector<int> bestLeftStart;
@@ -27,6 +29,8 @@ public:
 	std::vector<int> bestRightStart;
 	int numBestRightWindows;
 	int bestRightD2;
+
+	int d2WindowSize;
 };
 
 
