@@ -120,7 +120,7 @@ TVHeuristic::setReferenceEST(const int estIdx) {
 bool
 TVHeuristic::runHeuristic(const int otherEST) {    
     // Call updateParameters method to use proper heuristic params
-    otherESTLen = (int)strlen(EST::getEST(otherEST)->getSequence());
+    otherESTLen = EST::getEST(otherEST)->getSequenceLength();
     if (!updateParameters(otherEST)) {
         // This pair need not be analyzed further.
         return false;

@@ -49,7 +49,8 @@ std::vector<EST*> EST::estList;
 size_t EST::maxESTlen = 0;
 
 EST::EST(const int idValue, const char *information, const char* seq,
-         const int fileOffset) : id(idValue), offset(fileOffset),
+         const int fileOffset) : id(idValue), sequenceLen(strlen(seq)),
+                                 offset(fileOffset),
                                  customData(NULL) {
     // Duplicate the information and sequnece data as needed.
     info       = EST::duplicate(information);
@@ -268,7 +269,8 @@ EST::normalizeBases(std::string& sequence, const bool maskBases) {
 }
 
 // A dummy default constructor to keep the compiler happy.
-EST::EST() : id(-1), info(NULL), sequence(NULL), offset(-1), similarity(0) {}
+EST::EST() : id(-1), info(NULL), sequence(NULL), sequenceLen(0), 
+             offset(-1), similarity(0) {}
 
 // A dummy operator=
 EST&
