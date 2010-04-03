@@ -77,9 +77,11 @@ TwoPassD2::TwoPassD2(const int refESTidx, const std::string& outputFileName)
     // Below are formerly static parameters that are now dynamic.
     // Note that the following defaults are meaningless as they will be
     // changed before the first comparison is made.
-    frameShift = 50;
+    frameShift   = 50;
     maxThreshold = 130;
-    threshold = 40;
+    threshold    = 40;
+    // Set up current adaptive parameter set index to an invalid value.
+    currParamSetIndex = -1;
 }
 
 TwoPassD2::~TwoPassD2() {
@@ -125,6 +127,9 @@ TwoPassD2::initialize() {
         // Error occured when initializing.  This is no good.
         return result;
     }
+    // Next let the parameter set manager perform its initialization
+    // and optimization of parameter look-ups.
+    ParameterSetManager::getParameterSetManager()->initialize();
     // Setup the frequency delta table
     const int MapSize = (1 << (wordSize * 2));
     delta = new int[MapSize];
@@ -187,7 +192,7 @@ TwoPassD2::getMetric(const int otherEST) {
     sq2Len = (int)strlen(s2);
 
     // Update the frame size, threshold etc. according to the algorithms
-    updateParameters();
+    updateParameters(otherEST);
 
     // Build the word table for otherEST depending on normal or
     // reverse complement suggestion using hint UVSampleHeuristic.
@@ -227,17 +232,31 @@ TwoPassD2::getMetric(const int otherEST) {
 }
 
 void
-TwoPassD2::updateParameters() {
-    ParameterSet* parameterSet = ParameterSetManager::getParameterSetManager()
-        ->getParameterSet(sq1Len, sq2Len);
-    ASSERT(parameterSet != NULL);
+TwoPassD2::updateParameters(const int otherEST) {
+    const ParameterSetManager* const paramMgr =
+        ParameterSetManager::getParameterSetManager();
+    const int paramSetIndex = paramMgr->getParameterSet(refESTidx, otherEST);
+    if (paramSetIndex == -1) {
+        // These two fragments are very different in lengths. Don't
+        // bother comparing them at all.
+        return;
+    }
+    if (paramSetIndex == currParamSetIndex) {
+        // The parameters that we are currently using are just
+        // fine. No need to update them any further. Analyze the two
+        // fragments using the current parameter set.
+        return;
+    }
+    // Update and move to a new set of parameters.
+    const ParameterSet* const parameterSet = paramMgr->getParameterSet(paramSetIndex);
     // Assign parameters according to parameter set chosen
-    frameSize = parameterSet->frameSize;
-    frameShift = parameterSet->frameShift;
-    threshold = parameterSet->threshold;
-    maxThreshold = parameterSet->maxThreshold;
-
+    frameSize        = parameterSet->frameSize;
+    frameShift       = parameterSet->frameShift;
+    threshold        = parameterSet->threshold;
+    maxThreshold     = parameterSet->maxThreshold;
     numWordsInWindow = frameSize - wordSize + 1;
+    // Save the current parameter index for future short circuiting
+    currParamSetIndex = paramSetIndex;
 }
 
 float

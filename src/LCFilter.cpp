@@ -36,6 +36,7 @@
 
 #include "LCFilter.h"
 #include "ClusterMaker.h"
+#include "ParameterSetManager.h"
 #include "ESTAnalyzer.h"
 #include "EST.h"
 
@@ -133,6 +134,8 @@ LCFilter::addDummyEntry(const std::string& fastaID, const std::string& seq,
     EST *est = EST::create(estIdx, fastaID.c_str(), fullSeq.c_str());
     // Flag EST as having already been processed.
     est->setProcessed(true);
+    // Let the parameter set manager know about this newly added est.
+    ParameterSetManager::getParameterSetManager()->sequenceAppended();
     // Add a dummy cluster for this filter with a suitable name.
     std::ostringstream clsName;
     clsName << "Low Complexity ESTs (filtered by LCFilter Pattern "
@@ -144,6 +147,9 @@ LCFilter::addDummyEntry(const std::string& fastaID, const std::string& seq,
 
 void
 LCFilter::finalize() {
+    // Let parameter set manager know that a bunch of dummy ESTs have
+    // been removed.
+    ParameterSetManager::getParameterSetManager()->sequenceRemoved(dummyESTList.size());
     // First remove all the dummy ESTs we may have added. Note that
     // this one does not really guarantee that we remove the
     // appropiate entry but ultimately all the filters will clear out

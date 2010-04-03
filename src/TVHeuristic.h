@@ -202,11 +202,14 @@ protected:
     virtual bool runHeuristic(const int otherEST);
 
     /** Method to obtain and update the parameters for the heuristic
-	based on the parameter set manager.
+		based on the parameter set manager.
 
-	\return true if we should analyze these ESTs, false otherwise
+        \param[in] otherEST The index (zero based) of the EST with
+        which the reference EST is to be compared.
+		
+		\return true if we should analyze these ESTs, false otherwise
     */
-    bool updateParameters();
+    bool updateParameters(const int otherEST);
 
     /** Templatized-method for counting common woards between two ESTs.
 
@@ -330,6 +333,17 @@ private:
         the printStats() method.
     */
     int uvSuccessCount;
+
+	/** Index of the current parameter set being used for analysis.
+
+		This instance variable is used to track the index of the
+		current parameter set that is being used for analysis.  This
+		instance variable is initialized to -1.  The
+		updateParameters() method sets this value to reflect the
+		current parameter set being used.  The parameters are updated
+		only when a new parameter set needs to be used for analysis.
+	*/
+	int currParamSetIndex;
 };
 
 #endif
