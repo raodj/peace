@@ -257,7 +257,7 @@ public class WorkspaceChooser extends JDialog implements ActionListener {
 		// Create two labels to display some basic prompt for inputs.
 		JLabel info = 
 			new JLabel("<html>PEACE stores your workspace information "    +
-					"and other data files<br/>in a directory. This is directory " +
+					"and other data files<br/>in a directory. This directory " +
 					"is called a <i>workspace</i>.<br/>Choose a workspace " +
 					"folder to use for this GUI session.</html>");
 		info.setIcon(UIManager.getIcon("OptionPane.informationIcon"));
