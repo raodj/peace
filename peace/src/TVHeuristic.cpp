@@ -50,8 +50,10 @@ TVHeuristic::TVHeuristic(const std::string& outputFileName)
     : NewUVHeuristic("tv", outputFileName) {
     matchTable     = NULL;
     uvSuccessCount = 0;
-    t = 18;
-    windowLen = 50;
+    t              = 18;
+    windowLen      = 50;
+    // Set up current adaptive parameter set index to an invalid value.
+    currParamSetIndex = -1;
 }
 
 TVHeuristic::~TVHeuristic() {
@@ -119,7 +121,7 @@ bool
 TVHeuristic::runHeuristic(const int otherEST) {    
     // Call updateParameters method to use proper heuristic params
     otherESTLen = (int)strlen(EST::getEST(otherEST)->getSequence());
-    if (!updateParameters()) {
+    if (!updateParameters(otherEST)) {
         // This pair need not be analyzed further.
         return false;
     }
@@ -152,16 +154,32 @@ TVHeuristic::runHeuristic(const int otherEST) {
 }
 
 bool
-TVHeuristic::updateParameters() {
-    ParameterSet* parameterSet = ParameterSetManager::getParameterSetManager()
-        ->getParameterSet(refESTLen, otherESTLen);
-    if (parameterSet == NULL) return false;
+TVHeuristic::updateParameters(const int otherEST) {
+    const ParameterSetManager* const paramMgr =
+        ParameterSetManager::getParameterSetManager();
+    const int paramSetIndex = paramMgr->getParameterSet(refESTidx, otherEST);
+    if (paramSetIndex == -1) {
+        // These two fragments are very different in lengths. Don't
+        // bother comparing them at all.
+        return false;
+    }
+    if (paramSetIndex == currParamSetIndex) {
+        // The parameters that we are currently using are just
+        // fine. No need to update them any further. Analyze the two
+        // fragments using the current parameter set.
+        return true;
+    }
+    // Update and move to a new set of parameters.
+    const ParameterSet* const parameterSet = paramMgr->getParameterSet(paramSetIndex);
     // Assign parameters according to parameter set chosen
     windowLen = parameterSet->frameSize;
-    t = parameterSet->t;
-    u = parameterSet->u;
+    t         = parameterSet->t;
+    u         = parameterSet->u;
     wordShift = parameterSet->wordShift;
-    passes = (u < 6) ? 2 : 3;
+    passes    = (u < 6) ? 2 : 3;
+    // Save the current parameter index for future short circuiting
+    currParamSetIndex = paramSetIndex;
+    // Analyze the two fragments using the current parameter set.
     return true;
 }
 

@@ -200,48 +200,83 @@ protected:
     */
     void computeHash(const int estIdx);
 
+	/** Instance variable to track the lenght of the reference EST.
+
+		This instance variale is a convenience variable that is used
+		to track the length of the reference EST.  Since EST length is
+		a commonly used operation, possibly this instsance variable
+		can be moved into the EST class.
+	*/
     int refESTLen;
 
-    int otherESTLen;
+	/** Instance variable to track the lenght of the "other" EST with
+		which the reference EST is being analyzed.
 
+		This instance variale is a convenience variable that is used
+		to track the length of a given EST.  Since EST length is a
+		commonly used operation, possibly this instsance variable can
+		be moved into the EST class.
+	*/	
+    int otherESTLen;
+	
+    /** The threshold for number of common words, used by the
+        <i>u/v</i> heuristic.
+		
+        This parameter contains the minimum number of common words
+        that two cDNA fragments must contain in order to "pass" the
+        <i>u/i</i> heuristic.
+    */	
     int u;
 
+	/** Number of base pairs to skip when comparing words.
+
+		The number of base pairs that are to be skipped (in each pass)
+		when building hashes (in the computeHash() method) and checking
+		for common words.
+	*/
     int wordShift;
 
+	/** The number of passes that determines the set of words being
+		compared.
+
+		The passes are useful for longer fragments. Rather than
+		checking each word, the passes permit every other word (or
+		every third word if passes == 3) and using the resulting
+		number of common words to determine if further analysis is
+		required.
+	*/
     int passes;
     
     /** Instance variable to track if a given word (of length \c v)
-	appears in reference EST.
-
-	This instance variable is created in the initialize() method
-	to point to an array of 4<sup>v</sup>
-
+		appears in reference EST.
+		
+		This instance variable is created in the initialize() method
+		to point to an array of 4<sup>v</sup>
     */
     char* s1WordMap;
 
     /** Instance variable to track if a given word (of length \c v)
-	appears in reference EST.
-
-	This instance variable is created in the initialize() method
-	to point to an array of 4<sup>v</sup> 
+		appears in reference EST.
+		
+		This instance variable is created in the initialize() method
+		to point to an array of 4<sup>v</sup> 
     */
     char* s1RCWordMap;
-
+	
     /** Flag to indicate if normal or reverse-complement version
-	provided best match.
-
-	This flag is set at the end of the runHeuristic method in this
-	class to indicate if the normal or the reverse-complement
-	check yielded the best possible match. If this flag is \c
-	false, then the normal check yielded the best match. If this
-	value is \c true, then the reverse-complement check yielded
-	the best match.
+		provided best match.
+		
+		This flag is set at the end of the runHeuristic method in this
+		class to indicate if the normal or the reverse-complement
+		check yielded the best possible match. If this flag is \c
+		false, then the normal check yielded the best match. If this
+		value is \c true, then the reverse-complement check yielded
+		the best match.
     */
     bool bestMatchIsRC;
-
+	
     /** Instance variable to maintain the \em v parameter for the
 		<i>u/v</i> heuristic.
-
     */
     static int v;
 

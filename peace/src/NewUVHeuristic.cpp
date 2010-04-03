@@ -63,10 +63,10 @@ NewUVHeuristic::NewUVHeuristic(const std::string& name,
     s1RCWordMap = NULL;
 
     // Set defaults for the dynamic parameters
-    u = 6;
-    wordShift = 8;
-    passes = 3;
-    refESTLen = 0;
+    u           = 6;
+    wordShift   = 8;
+    passes      = 3;
+    refESTLen   = 0;
     otherESTLen = 0;
 }
 
