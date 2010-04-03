@@ -375,9 +375,9 @@ implements ActionListener {
 	 * on the significance of the threshold value.
 	 */
 	private static final String THRESHOLD_INFO = 
-		"<html>This is an <b>important</b> value. Small values discriminate<br>" +
-		"ESTs more making more clusters. Larger thresholds make larger clusters.<br>" +
-		"Optional threshold value is important  for best results.<br>" +
+		"<html>This is an <b>important</b> value. Small values result in many<br>" +
+		"small clusters. Large thresholds make few, large clusters.<br>" +
+		"Optimal threshold value is important  for best results.<br>" +
 		"See help for more details." +
 		"</html>";
 	
