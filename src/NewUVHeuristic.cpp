@@ -149,7 +149,7 @@ NewUVHeuristic::setReferenceEST(const int estIdx) {
     const EST *estS1 = EST::getEST(refESTidx);
     ASSERT ( estS1 != NULL );
     const char* s1 = estS1->getSequence();
-    refESTLen = strlen(s1);
+    refESTLen = estS1->getSequenceLength();
     
     // First compute the hash for a single word using a suitable
     // generator.
@@ -163,7 +163,7 @@ NewUVHeuristic::setReferenceEST(const int estIdx) {
     // Fill in the word map. But first setup the table to quickly
     // generate reverse complement values.
     codec.setRevCompTable(v);
-    const int End = strlen(s1);
+    const int End = estS1->getSequenceLength();
     for (int i = v - 1; (i <= End); i++) {
         hash = encoder(hash, s1[i], ignoreMask);
         if (!ignoreMask) {

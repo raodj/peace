@@ -93,7 +93,7 @@ ParameterSetManager::initialize() {
     // Now compute the mappings using a helper method.
     for(int index = 0; (index < estCount); index++) {
         const EST* est   = EST::getEST(index);
-        const int estLen = strlen(est->getSequence());
+        const int estLen = est->getSequenceLength();
         lengthToParamSetMap.push_back(getParameterSetIndex(estLen));
     }
     // Now create and populate the look up tables based on the entries
@@ -158,7 +158,7 @@ void
 ParameterSetManager::sequenceAppended() {
     // First get length of last EST; i.e, the newly added one.
     const EST* est   = EST::getEST(EST::getESTCount() - 1);
-    const int estLen = strlen(est->getSequence());
+    const int estLen = est->getSequenceLength();
     // Add new entry to our look-up table.
     lengthToParamSetMap.push_back(getParameterSetIndex(estLen));
 }

@@ -164,7 +164,7 @@ TwoPassD2::setReferenceEST(const int estIdx) {
         // init ref-est word table
         const EST *estS1 = EST::getEST(refESTidx);
         const char* s1   = estS1->getSequence();
-        sq1Len = (int)strlen(s1);
+        sq1Len = estS1->getSequenceLength();
         // Create the word table using our encoder.
         ESTCodec::NormalEncoder<bitShift, BitMask> encoder;
         buildWordTable(s1WordTable, s1, encoder);
@@ -189,7 +189,7 @@ TwoPassD2::getMetric(const int otherEST) {
     // Access information on the comparison sequence
     const EST *estS2 = EST::getEST(otherEST);
     const char* s2   = estS2->getSequence();
-    sq2Len = (int)strlen(s2);
+    sq2Len           = estS2->getSequenceLength(); 
 
     // Update the frame size, threshold etc. according to the algorithms
     updateParameters(otherEST);

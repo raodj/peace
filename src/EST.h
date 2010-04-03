@@ -146,7 +146,7 @@ public:
         file.
     */
     static EST* create(FILE* fastaFile, int& lineNum,
-					   const bool maskBases = true);
+                       const bool maskBases = true);
 
     /** Obtain the list of ESTs.
 
@@ -461,6 +461,17 @@ public:
     */
     inline void setProcessed(const bool processedFlag)
     { processed = processedFlag; }
+
+    /** Obtain the length of the sequence.
+
+        This method is the preferred approach for obtaining the length
+        of the EST sequence.  This method merely returns the
+        pre-computed (computed when the entry was created) length,
+        thereby saving CPU cycles.
+
+        \return The pre-computed length for this EST.
+    */
+    inline int getSequenceLength() const { return sequenceLen; }
     
 protected:
     /** The unique ID for this EST.
@@ -487,6 +498,15 @@ protected:
     */
     char *sequence;
 
+    /** The length of the sequence in number of characters.
+
+        This instance variable essentially maintains the string length
+        of the sequence.  This value is initialized in the create()
+        method and is never changed during the life time of the
+        object.
+    */
+    const int sequenceLen;
+    
     /** The offset in the FASTA file to load the data from.
 
         The offset of in the FASTA file from where this EST was read.

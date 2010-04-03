@@ -162,7 +162,7 @@ UVSampleHeuristic::setReferenceEST(const int estIdx) {
     // Fill in the word map. But first setup the table to quickly
     // generate reverse complement values.
     codec.setRevCompTable(v);
-    const int End = (int) strlen(s1) - v;
+    const int End = (int) estS1->getSequenceLength() - v;
     for (int i = v - 1; (i <= End); i++) {
         hash = encoder(hash, s1[i], ignoreMask);
         if (!ignoreMask) {
@@ -185,7 +185,7 @@ UVSampleHeuristic::computeHash(const int estIdx) {
     ASSERT ( estS2  != NULL );
     const char *sq2  = estS2->getSequence();
     ASSERT ( sq2 != NULL );
-    const int End    = (int) strlen(sq2) - v;
+    const int End    = (int) estS2->getSequenceLength() - v;
     ASSERT ( End > 0 );
     
     // Get the codec for encoding/decoding operations
