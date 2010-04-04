@@ -847,6 +847,15 @@ private:
         objects used in conjunction with clustering.
     */
     MSTCluster root;
+
+    /** The hint key that is used to add hint for normal or
+	reverse-complement D2 computation.
+
+	This hint key is used to obtain a hint for the \c MST_RC in
+	the \c hints hash map. This string is defined as a constant to
+	save compute time in the core \c runHeuristics method.
+    */
+    const std::string hintKey_MST_RC;
 };
 
 #endif
