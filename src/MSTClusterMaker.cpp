@@ -100,7 +100,8 @@ arg_parser::arg_record MSTClusterMaker::argsList[] = {
 MSTClusterMaker::MSTClusterMaker(ESTAnalyzer *analyzer,
                                  const int refESTidx,
                                  const std::string& outputFile)
-    : ClusterMaker("mst", analyzer, refESTidx, outputFile), mst(NULL) {
+    : ClusterMaker("mst", analyzer, refESTidx, outputFile), mst(NULL),
+      hintKey_MST_RC("MST_RC") {
     // Nothing else to be done for now.
 }
 
@@ -513,7 +514,7 @@ MSTClusterMaker::populateCache(const int estIdx, SMList* metricList) {
         analyzer->getAlignmentData(alignmentData);
         HeuristicChain* chain = HeuristicChain::getHeuristicChain();
         if (chain != NULL) {
-            chain->getHint("MST_RC", directionData);
+            chain->getHint(hintKey_MST_RC, directionData);
         }
         // Add only the first invalid entry. One is enough to do build
         // a valid MST. There is no need for multiple vestigial

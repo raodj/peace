@@ -68,7 +68,7 @@ arg_parser::arg_record TwoPassD2::argsList[] = {
 };
 
 TwoPassD2::TwoPassD2(const int refESTidx, const std::string& outputFileName)
-    : FWAnalyzer("twopassD2", refESTidx, outputFileName) {
+    : FWAnalyzer("twopassD2", refESTidx, outputFileName), hintKey("D2_DoRC") {
     s1WordTable     = NULL;
     s2WordTable     = NULL;
     delta           = NULL;
@@ -198,7 +198,7 @@ TwoPassD2::getMetric(const int otherEST) {
     // reverse complement suggestion using hint UVSampleHeuristic.
     int bestMatchIsRC = 0;
     if (chain != NULL) {
-        HeuristicChain::getHeuristicChain()->getHint("D2_DoRC", bestMatchIsRC);
+        HeuristicChain::getHeuristicChain()->getHint(hintKey, bestMatchIsRC);
     }
     if (bestMatchIsRC) {
         ESTCodec::RevCompEncoder<bitShift, BitMask> encoder;
