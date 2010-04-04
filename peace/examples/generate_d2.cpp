@@ -361,7 +361,7 @@ void parse_args(int argc, char** argv) {
       }
   }
   if (window_fraction > 0) 
-    window_length = segmentLength * window_fraction;
+    window_length = (int) (segmentLength * window_fraction);
 
   if (max_overlap < 0) 
     max_overlap = segmentLength;

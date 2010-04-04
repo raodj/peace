@@ -53,8 +53,8 @@
 
 #include <time.h>
 
-const int max_id_length = 1000;
-const int max_string_length = 100000;
+// const int max_id_length = 1000;
+// const int max_string_length = 100000;
 
 int segmentLength = 500;
 int min_overlap = 1;
