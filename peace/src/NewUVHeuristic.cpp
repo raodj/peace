@@ -217,11 +217,12 @@ NewUVHeuristic::computeHash(const int estIdx) {
 
 bool
 NewUVHeuristic::runHeuristic(const int otherEST) {
-    // First clear the hint for the cluster maker
-    HeuristicChain::getHeuristicChain()->setHint("MST_RC", 0);
+    static const std::string MST_RC("MST_RC");
     // Extra sanity checks on uncommon scenarios.
     VALIDATE({
         if (otherEST == refESTidx) {
+            // First clear the hint for the cluster maker
+            HeuristicChain::getHeuristicChain()->setHint(MST_RC, 0);
             return true; // will end up with distance 0, or max similarity
         }
         if ((otherEST < 0) || (otherEST >= EST::getESTCount())) {
@@ -244,6 +245,8 @@ NewUVHeuristic::runHeuristic(const int otherEST) {
     const std::vector<unsigned short>& otherHash = cacheEntry->second;
     const int hashSize = otherHash.size();
     if (hashSize == 0) {
+        // Setup hint
+        HeuristicChain::getHeuristicChain()->setHint(MST_RC, 0);
         // No valid words, therefore this pair need not be analyzed further.
         return false;
     }
@@ -262,6 +265,7 @@ NewUVHeuristic::runHeuristic(const int otherEST) {
             register int numMatchesReq = factor*(pass+1);
             if ((numMatches < numMatchesReq) && (numRCmatches < numMatchesReq)) {
                 // Not enough matches, so break out immediately
+                HeuristicChain::getHeuristicChain()->setHint(MST_RC, 0);
                 return false;
             }
         }
@@ -280,7 +284,7 @@ NewUVHeuristic::runHeuristic(const int otherEST) {
         // Setup a hint for D2.
         HeuristicChain::getHeuristicChain()->setHint(hintKey, bestMatchIsRC);
         // Setup a hint for the MST Cluster Maker (-1 = RC, 1 = no RC)
-        HeuristicChain::getHeuristicChain()->setHint("MST_RC",
+        HeuristicChain::getHeuristicChain()->setHint(MST_RC,
                                                      ((int)bestMatchIsRC) * -2
                                                      + 1);
         // return success indication
