@@ -264,14 +264,14 @@ protected:
     char* s1RCWordMap;
 	
     /** Flag to indicate if normal or reverse-complement version
-		provided best match.
-		
-		This flag is set at the end of the runHeuristic method in this
-		class to indicate if the normal or the reverse-complement
-		check yielded the best possible match. If this flag is \c
-		false, then the normal check yielded the best match. If this
-		value is \c true, then the reverse-complement check yielded
-		the best match.
+	provided best match.
+	
+	This flag is set at the end of the runHeuristic method in this
+	class to indicate if the normal or the reverse-complement
+	check yielded the best possible match. If this flag is \c
+	false, then the normal check yielded the best match. If this
+	value is \c true, then the reverse-complement check yielded
+	the best match.
     */
     bool bestMatchIsRC;
 	
@@ -337,6 +337,15 @@ private:
     */
     UVHashTable uvCache;
 
+    /** Flag to track if the previous hint in bestMatchIsRC was true
+	or false.
+
+	This instance variable is used to reset the flag in the
+	hash_map in a "lazy" manner, only when the hint changes.  This
+	value is set and used in the runHeuristic method.
+    */
+    bool prevHint;
+    
     /** The hint key that is used to add hint for normal or
 	reverse-complement D2 computation.
 
@@ -345,6 +354,15 @@ private:
 	in the core \c runHeuristics method.
     */
     const std::string hintKey;
+
+    /** The hint key that is used to add hint is  normal or
+	reverse-complement match was found.
+
+	This hint key is used to set a hint in the \c hints hash
+	map. This string is defined as a constant to save compute time
+	in the core \c runHeuristics method.
+    */
+    const std::string hintKey_MST_RC;
 };
  
 #endif
