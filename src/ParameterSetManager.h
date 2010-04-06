@@ -216,7 +216,27 @@ public:
     static void setupParameters(int t1 = 20, int u1 = 4, int ws1 = 4,
                                 int t2 = 30, int u2 = 6, int ws2 = 8,
                                 int t3 = 40, int u3 = 8, int ws3 = 8);
-    
+
+	/** Method to setup adaptive parameters to \i fast(er) settings.
+
+		<p>This version of the overloaded method must be used to setup
+		the parameters to a single entry.  The entry is chosen to be
+		optimal for longer reads.  Conseuqently, this option should be
+		used when it is known that the data is from sanger sequences
+		that typically have longer reads.  However, the single entry
+		enables the clustering to run faster.</p>
+
+		<p><b>Note:</b> This method is primarily meant to be used to
+		configure parameters for longer reads.  It does cause the
+		clustering to run faster, but should not be used with short
+		reads.</p>
+
+		\param[in] dummy This is just a dummy parameter to
+		disambiguate the two overloaded version.  This parameter is
+		not used by this method.
+	*/
+	static void setupParameters(const bool dummy);
+	
     /** The destructor.
         
         The destructor frees up all the parameter sets added to this

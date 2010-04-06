@@ -43,7 +43,6 @@
 #include "HeuristicChain.h"
 #include "FilterFactory.h"
 #include "FilterChain.h"
-#include "ParameterSetManager.h"
 #include "MPIHelper.h"
 #include "InteractiveConsole.h"
 #include "EST.h"
@@ -201,13 +200,13 @@ main(int argc, char* argv[]) {
     bool showOptions   = false;
     int  refESTidx     = 0;
     bool interactive   = false;
-
+    
     // Filtering parameters
     char *filterStr      = defFilters;
     char *filterPassFile = NULL;
     char *filterFailFile = NULL;
     bool filterOnly      = false;
-    
+
     // Create the list of valid arguments to be used by the arg_parser.
     arg_parser::arg_record arg_list[] = {
         {"--clusterMaker", "Name of clustering algorithm to use (null for none)",
@@ -278,9 +277,6 @@ main(int argc, char* argv[]) {
     }
     // Create the filter chain using a helper method.
     FilterChain *filterChain = FilterChain::setupChain(filterStr, clusterMaker);
-
-    // Create the parameter set manager using a helper method
-    ParameterSetManager::setupParameters();
     
     // Check if EST analyzer creation was successful.  A valid EST
     // analyzer is needed even to make clusters.

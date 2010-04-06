@@ -406,7 +406,7 @@ protected:
     /** The threshold score to be used for clustering.
 
         note: need to disambiguate from the two scores above;
-	and possibly minThreshold should be made non-static for consistency
+		and possibly minThreshold should be made non-static for consistency
     */
     int threshold;
     
@@ -475,13 +475,41 @@ private:
     static int NHash;
 
     /** Boolean value indicating whether or not d2 scores should be
-	normalized (converted to a 1.0-based value where 1.0 is equal
-	to the d2 threshold).
-
-	Defaults to false (i.e. scores should be normalized).
+		normalized (converted to a 1.0-based value where 1.0 is equal
+		to the d2 threshold).
+		
+		Defaults to false (i.e. scores should be normalized).
     */
     static bool noNormalize;
 
+	/** Boolean command line argument flag to indicate if adaptive
+		configuration (where: window size, thresholds change) must be
+		disabled.
+
+        This instance variable is used to track if adpative or
+        non-adaptive configuration must be used by two pass d2.  The
+        default value is \c false (causing the use of adaptive
+        parameters).  Note that:
+
+		<ul>
+
+		<li> When adaptive configuration is used (default), TwoPassD2
+		analyzer strives to provide best quality clustering by
+		changing parameters like window size, thresholds etc.  This
+		mode must NOT be used for performance profiling, particularly
+		with wcd (for performance profiling use \c --dontAdapt command
+		line argument)</li>
+
+		<li> When non-adaptive configuration is used (\i i.e., \c
+		--dontAdapt command line argument is specified), TwoPassD2
+		analyzer runs in non-adaptive mode with fixed parameters.
+		This mode is best suited for data sets with longer (100+ nt)
+		reads only.
+
+		</ul>
+	*/
+	static bool nonAdaptiveConfig;
+	
     /** Instance variable to track the number of words (of \c
         wordSize) that can fit into a window (of \c frameSize).
 
@@ -493,12 +521,12 @@ private:
     int numWordsInWindow;
 
     /** Length of sequence 1, or the reference sequence.  Stored to
-	avoid making multiple unnecessary strlen() calls.
+		avoid making multiple unnecessary strlen() calls.
      */
     int sq1Len;
 
     /** Length of sequence 2, or the comparison sequence.  Stored to
-	avoid making multiple unnecessary strlen() calls.
+		avoid making multiple unnecessary strlen() calls.
      */
     int sq2Len;
 

@@ -58,12 +58,36 @@ int TwoPassD2::minThreshold = 0;
 // threshold value.
 bool TwoPassD2::noNormalize = false;
 
+// Indicates whether or not two pass d2 should use adaptive
+// configuration or non-adaptive configuration.
+bool TwoPassD2::nonAdaptiveConfig = false;
+
+// Informational message to display to user when adaptive
+// configuration is used.
+#define ADAPTIVE_MSG                                                    \
+    "PEACE (TwoPassD2 analyzer) is running in adaptive mode to\n"       \
+    "provide best quality clustering. This mode must NOT be used\n"     \
+    "for performance profiling with wcd (for performance profiling\n"   \
+    "use --dontAdapt command line argument)"
+
+// Informational message to display to user when non-adaptive
+// configuration is used.
+#define NON_ADAPTIVE_MSG                                             \
+    "PEACE (TwoPassD2 analyzer) is running in non-adaptive mode.\n " \
+    "This mode is best suited for data sets with longer (100+ nt)\n" \
+    "reads only (if you don't want this mode remove --dontAdapt\n"   \
+    "command line argument)"
+
+
+
 // The set of arguments for this class.
 arg_parser::arg_record TwoPassD2::argsList[] = {
     {"--d2Threshold", "Threshold score to break out of D2 (default=0)",
      &TwoPassD2::minThreshold, arg_parser::INTEGER},
     {"--noNormalize", "Signals that threshold scores should not be normalized",
      &TwoPassD2::noNormalize, arg_parser::BOOLEAN},
+    {"--dontAdapt", "Don't use adaptive parameters as data set has long reads",
+     &TwoPassD2::nonAdaptiveConfig, arg_parser::BOOLEAN},
     {NULL, NULL, NULL, arg_parser::BOOLEAN}
 };
 
@@ -121,7 +145,18 @@ TwoPassD2::parseArguments(int& argc, char **argv) {
 
 int
 TwoPassD2::initialize() {
-    // Let the base class initialize any additional heuristics
+    // First setup adaptive or non-adaptive parameters.
+    if (nonAdaptiveConfig) {
+        // Create the parameter set manager with just 1 entry
+        ParameterSetManager::setupParameters(false);
+        // Dump informational message to user
+        std::cerr << NON_ADAPTIVE_MSG << std::endl;
+    } else {
+        // Create the parameter set manager with 3 entries for adaptation
+        ParameterSetManager::setupParameters();
+        std::cerr << ADAPTIVE_MSG << std::endl;
+    }    
+    // Let the base class initialize the heuristics in the chain
     int result = FWAnalyzer::initialize();
     if (result != 0) {
         // Error occured when initializing.  This is no good.
@@ -130,6 +165,7 @@ TwoPassD2::initialize() {
     // Next let the parameter set manager perform its initialization
     // and optimization of parameter look-ups.
     ParameterSetManager::getParameterSetManager()->initialize();
+
     // Setup the frequency delta table
     const int MapSize = (1 << (wordSize * 2));
     delta = new int[MapSize];
