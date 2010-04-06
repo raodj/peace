@@ -63,6 +63,17 @@ ParameterSetManager::setupParameters(int t1, int u1, int ws1, int t2,
 }
 
 void
+ParameterSetManager::setupParameters(const bool UNREFERENCED_PARAMETER(dummy)) {
+    // First validate and create a blank parameter set manager.
+    ASSERT ( ptrInstance == NULL );
+    ptrInstance = new ParameterSetManager;
+
+    // Add the default parameter set to the list of sets.
+    ptrInstance->addParameterSet(new ParameterSet(-1, INT_MAX, 100, 50, 105,
+                                                  130, 40, 8, 8));
+}
+
+void
 ParameterSetManager::addParameterSet(ParameterSet* p) {
     parameterSets.push_back(p);
 }
