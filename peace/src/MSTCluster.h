@@ -131,7 +131,7 @@ public:
     /** Print the cluster tree in a different format.
 
         As above, but prints the cluster tree in a format recognizable
-	by the PEACE GUI and suitable for GUI processing.
+        by the PEACE GUI and suitable for GUI processing.
     */
     void guiPrintClusterTree(std::ostream& os = std::cout,
 			     const char *srcFile = NULL) const;
@@ -153,7 +153,7 @@ protected:
     /** A helper method for the guiPrintClusterTree method.
 
         Works by printing the data for the current cluster
-	and then calling guiPrintTree on the sub-clusters (if any).
+        and then calling guiPrintTree on the sub-clusters (if any).
     */
     void guiPrintTree(std::ostream& os) const;
 	
@@ -174,34 +174,46 @@ private:
     /** A name set to identify filtered clusters.
 
         The name is set when dummy clusters are created to add ESTs
-	that were filtered out based on a specific condition.  The
-	named clusters are typically created by filters.  By default
-	clusters don't have a name.  These indicate regular clusters.
-	
-	\see Filter.
+        that were filtered out based on a specific condition.  The
+        named clusters are typically created by filters.  By default
+        clusters don't have a name.  These indicate regular clusters.
+        
+        \see Filter.
     */
     const std::string name;
 	
     /** Instance variable to track the next available cluster ID.
-
+        
         This instance variable is used to generate unique cluster ID
-	values for each newly created cluster.  It is intialized to
-	zero. Each time a cluster is instantiated, the constructor
-	uses this value to set the clusterID and then increments this
-	value.
+        values for each newly created cluster.  It is intialized to
+        zero. Each time a cluster is instantiated, the constructor
+        uses this value to set the clusterID and then increments this
+        value.
     */
     static int clusterIDSequence;
 
     /** Global list to maintain reference to all the MSTClusters created.
 
-	This list is used to maintain a pointer to all the MST
-	clusters ever created. This list is used to look up clusters
-	given the index of the cluster.
-	
-	\see MSTCluster::getCluster() method
+		This list is used to maintain a pointer to all the MST
+		clusters ever created. This list is used to look up clusters
+		given the index of the cluster.
+		
+        \see MSTCluster::getCluster() method
     */
     static ClusterList globalClusterList;
+    
+    /** A dummy operator=
+        
+        The operator=() is supressed for this class as it has constant
+        members whose value is set when the object is created.  These
+        values cannot be changed during the lifetime of this object.
 
+        \param[in] src The source object from where data is to be copied.
+        Currently this value is ignored.
+        
+        \return Reference to this.
+    */
+    MSTCluster& operator=(const MSTCluster& src);
 };
 
 /** \fn std::ostream& operator<<(std::ostream&, const MSTCluster&)

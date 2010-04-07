@@ -336,33 +336,6 @@ private:
         method.</p>
     */
     UVHashTable uvCache;
-
-    /** Flag to track if the previous hint in bestMatchIsRC was true
-	or false.
-
-	This instance variable is used to reset the flag in the
-	hash_map in a "lazy" manner, only when the hint changes.  This
-	value is set and used in the runHeuristic method.
-    */
-    bool prevHint;
-    
-    /** The hint key that is used to add hint for normal or
-	reverse-complement D2 computation.
-
-	This hint key is used to set a hint in the \c hints hash
-	map. This string is defined as a constant to save compute time
-	in the core \c runHeuristics method.
-    */
-    const std::string hintKey;
-
-    /** The hint key that is used to add hint is  normal or
-	reverse-complement match was found.
-
-	This hint key is used to set a hint in the \c hints hash
-	map. This string is defined as a constant to save compute time
-	in the core \c runHeuristics method.
-    */
-    const std::string hintKey_MST_RC;
 };
  
 #endif

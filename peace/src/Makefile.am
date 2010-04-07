@@ -126,7 +126,9 @@ LCFilter.h \
 LCFilter.cpp \
 ParameterSet.h \
 ParameterSetManager.h \
-ParameterSetManager.cpp
+ParameterSetManager.cpp \
+SFFReader.h \
+SFFReader.cpp
 
 peace_SOURCES = \
 main.cpp\

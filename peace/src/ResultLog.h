@@ -188,7 +188,6 @@ private:
         \return Reference to this.
     */
     ResultLog& operator=(const ResultLog& src);
-
 };
 
 #endif

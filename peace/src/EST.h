@@ -88,7 +88,7 @@ public:
     EST(const int id, const char *info,
         const char* sequence = NULL, const int offset = -1);
   
-    /** Create a valid EST.
+    /** Create and add a valid EST.
         
         This method must be used to create a valid EST in the system.
         The information required to create the EST must be passed in
@@ -115,20 +115,27 @@ public:
         this EST was read.  This information can be used to conditionally
         and rapidly load EST's from a file.
 
+		\param[in] maskBases If this flag is true, then all lowercase
+		bases are converted to 'N' rather than uppercase characters,
+		causing them to be ignored by downstream processing.
+		
         \return If the id is valid and a duplicate EST with the same
         ID is not present, then this method creates a new EST and
         returns a pointer to that EST back to the caller.
     */
     static EST* create(const int id, const char *info,
                        const char* sequence = NULL,
-                       const long offset = -1);
+                       const long offset    = -1,
+					   const bool maskBases = true);
 
     /** Loads data from a FASTA file to create an EST.
 
         This method provides a convenient interface for loading
         information regarding an EST from a given FASTA file and using
         the information to create either a fully populated or
-        partially populated EST.
+        partially populated EST.  This method loads the data from the
+        FASTA file and then creates an entry via the overloaded,
+        static create method.
 
         \param[in,out] fastaFile The FASTA file from where the EST data
         is to be currently loaded.  If this pointer is NULL then this
@@ -137,9 +144,9 @@ public:
         \param[in,out] lineNum A line number counter to be updated to
         provide the user with a more meaningful error message.
 
-	\param[in] maskBases If this flag is true, then all lowercase
-	bases are converted to 'N' rather than uppercase characters,
-	causing them to be ignored by downstream processing.
+		\param[in] maskBases If this flag is true, then all lowercase
+		bases are converted to 'N' rather than uppercase characters,
+		causing them to be ignored by downstream processing.
 		
         \note At the end of this method the fastaFile's file pointer
         will point at the beginning of the next EST (if any) in the
@@ -147,7 +154,7 @@ public:
     */
     static EST* create(FILE* fastaFile, int& lineNum,
                        const bool maskBases = true);
-
+	
     /** Obtain the list of ESTs.
 
         This method may be used to obtain a reference to the list of
@@ -569,6 +576,34 @@ private:
     */
     EST();
 
+    /** Convenience EST Constructor.
+
+        This constructor is used to instantiate an EST method and
+        normalize the base characters.  This constructor is shared by
+        the various overloaded, static create() methods in this class.
+	
+        \param[in] id The unqiue ID value to be set for this EST.
+        
+        \param[in] info The name and other information associated with
+        the EST.  This information is typically the first header line
+        read from a FASTA file.  This information can be NULL.
+        
+        \param[in] sequence The actual sequence of base pairs
+        associated with this EST.  The sequence information that must
+        be used to create this EST.  The sequence information can be
+        NULL.
+        
+        \param[in] offset The offset of in the FASTA file from where
+        this EST was read.  This information can be used to
+        conditionally and rapidly load EST's from a file.
+
+		\param[in] maskBases If this flag is true, then all lowercase
+		bases are converted to 'N' rather than uppercase characters,
+		causing them to be ignored by downstream processing.
+    */
+    EST(const int id, const char *info, const bool maskBases = true,
+        const char* sequence = NULL, const int offset = -1);
+ 	
     /** A utility method to duplicate a c-string.
 
         This msethod is a simple utililty method that can be used to
@@ -584,30 +619,29 @@ private:
     /** Helper method to normalize a given nucleotide sequence.
 
         This method is used to normalize fragments read from a FASTA
-	file. This method normalizes the sequences such that the
-	resulting sequence is over the set {'A', 'T', 'C', 'G', 'N'}
-	in the following manner:
-	
-	<ul>
-	
-	<li>If the maskBases flag is true, then all lowercase
-	nucleotides are converted to 'N'. Otherwise they are converted
-	to uppercase equivalents.</li>
-	
-	<li>All nucleotides that are not in "ATCG" are converted to
-	'N'.</li>
-	
-	</ul>
-	
-	\param[in,out] sequence The sequence of nucleotides to be
-	normalized by this method.
-	
-	\param[in] maskBases If this flag is \c true, then all
-	lowercase "atcg" bases are converted to 'N'. Otherwise they
-	are converted to uppercase letters.
+		file. This method normalizes the sequences such that the
+		resulting sequence is over the set {'A', 'T', 'C', 'G', 'N'}
+		in the following manner:
+		
+		<ul>
+		
+		<li>If the maskBases flag is true, then all lowercase
+		nucleotides are converted to 'N'. Otherwise they are converted
+		to uppercase equivalents.</li>
+		
+		<li>All nucleotides that are not in "ATCG" are converted to
+		'N'.</li>
+		
+		</ul>
+		
+		\param[in,out] sequence The sequence of nucleotides to be
+		normalized by this method.
+		
+		\param[in] maskBases If this flag is \c true, then all
+		lowercase "atcg" bases are converted to 'N'. Otherwise they
+		are converted to uppercase letters.
     */
-    static void normalizeBases(std::string& sequence,
-			       const bool maskBases = true);
+    static void normalizeBases(char* sequence, const bool maskBases = true);
 	
     /** The list of EST's currently being used.
 

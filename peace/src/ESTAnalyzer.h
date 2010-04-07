@@ -140,15 +140,15 @@ public:
     virtual int setReferenceEST(const int estIdx) = 0;
 
     /** Analyze and obtain a similarity metric using the attached
-	heuristic chain (if one exists) followed by the appropriate
-	heavy weight distance/similarity measure associated with
-	this ESTAnalyzer.
+        heuristic chain (if one exists) followed by the appropriate
+        heavy weight distance/similarity measure associated with
+        this ESTAnalyzer.
 		
         This method can be used to compare a given EST with the
         reference EST (set via the call to the setReferenceEST())
         method.
 	
-	\note This method may return -1, if the otherEST is
+        \note This method may return -1, if the otherEST is
         significantly different from the reference EST (possibly
         warranting no further analysis) that a meanigful metric cannot
         be generated.
@@ -156,11 +156,11 @@ public:
         \param[in] otherEST The index (zero based) of the EST with
         which the reference EST is to be compared.
 		
-	\param[in] useHeuristics A directive instructing the ESTAnalyzer
-	on whether or not to use its heuristis chain.  Defaults to true.
+        \param[in] useHeuristics A directive instructing the ESTAnalyzer
+        on whether or not to use its heuristis chain.  Defaults to true.
 		
-	\param[in] useHeavyWeight A directive instructing the ESTAnalyzer
-	on whether or not to use the heavy weight metric.  Defaults to true.
+        \param[in] useHeavyWeight A directive instructing the ESTAnalyzer
+        on whether or not to use the heavy weight metric.  Defaults to true.
 		
         \return This method returns a similarity/distance metric by
         comparing the ESTs. This method may return -1, if the otherEST
@@ -236,6 +236,26 @@ public:
     */
     bool loadFASTAFile(const char *fileName, const bool unpopulate = false);
 
+    /** Method to load fragments from a Standard Flowgram Format (SFF)
+        file.
+
+        This method can be used to load information regarding
+        ESTs/sequences from a SFF file.  This method uses the
+        SFFReader to load the fragments.  The file name from where the
+        data is to be loaded must be passed in as the parameter.
+
+        \param[in] fileName The file name of the SFF file from where
+        the ESTs/454 sequence information is to be loaded.
+
+        \param[in] unpopulate If this parameter is true then the
+        header and sequence information in each EST is discarded to
+        minimize memory foot print.
+
+        \return This method returns true if all the ESTs were
+        successfully loaded from the given file.
+    */
+    bool loadSFFFile(const char *fileName, const bool unpopulate = false);
+    
     /** Obtain the input file name.
 
         This method returns the input file from where the EST data was
@@ -406,15 +426,15 @@ protected:
         analyzer.  This name is used when generating errors, warnings,
         and other output messages for this analyzer.
 		
-	\param[in] refESTidx The reference EST's index in a given
-	multi-FASTA file.  Index values start with 0 (zero).  The
-	refESTidx is supplied as a global argument that is processed
-	in the main() method.  This value is simply copied to the
-	refESTidx member in this class.
+		\param[in] refESTidx The reference EST's index in a given
+		multi-FASTA file.  Index values start with 0 (zero).  The
+		refESTidx is supplied as a global argument that is processed
+		in the main() method.  This value is simply copied to the
+		refESTidx member in this class.
 		
-	\param[in] outputFileName The file name to which output must
-	be written.  If a valid output file is not specified, then
-	results are written to standard output.  The outputFileName is
+		\param[in] outputFileName The file name to which output must
+        be written.  If a valid output file is not specified, then
+        results are written to standard output.  The outputFileName is
         simply copied to the outputFileName member object.
     */
     ESTAnalyzer(const std::string& analyzerName, const int refESTidx,
@@ -453,17 +473,17 @@ protected:
     static bool readAhead;
 
     /** Flag to indicate if lower-case characters must be masked out of
-	reads.
+        reads.
 	
-	Typically lower-case characters ('a', 't', 'c', 'g') are used to
-	indicate bases that must be masked out of reads. This notation
-	is used by DUST (part of NCBI BLAST) utility that identifies
-	and tags low complexity regions with lower-case letters. If this
-	flag is \c false (default) then these lower-case characters are
-	converted to 'N' causing them to ignored by PEACE. If this
-	flag is \c true, then these bases are converted to upper-case
-	equivalents. This flag is passed to EST::create which actually
-	does the conversions.
+        Typically lower-case characters ('a', 't', 'c', 'g') are used to
+        indicate bases that must be masked out of reads. This notation
+        is used by DUST (part of NCBI BLAST) utility that identifies
+        and tags low complexity regions with lower-case letters. If this
+        flag is \c false (default) then these lower-case characters are
+        converted to 'N' causing them to ignored by PEACE. If this
+        flag is \c true, then these bases are converted to upper-case
+        equivalents. This flag is passed to EST::create which actually
+        does the conversions.
     */
     static bool noMaskBases;
 	
@@ -490,12 +510,24 @@ protected:
     /** The FASTA file from where EST data is to be read.
 
         This member object is used to hold the file name from where
-        all the EST data is to be loaded.  This member is initialized
-        in the constructor and is never changed during the life time
-        of this class.
+        all the EST data is to be loaded.  The actual file name is set
+        by the parseArguments method depending on wether the user has
+        specified a file name via the \c --fastaFile comamnd line
+        argument.
     */
     static char* estFileName;
 
+    /** The Standard Flowgram Format (SFF) file from where EST data is
+        to be read.
+
+        This member object is used to hold the SFF file name from
+        where all the EST data is to be loaded.  The actual file name
+        is set by the parseArguments method depending on wether the
+        user has specified a file name via the \c --sffFile comamnd
+        line argument.
+    */
+    static char* sffFileName;
+    
     /** Flag to indicate if output results must be in HTML format.
 
         This member is initialized to false.  However, the value is
