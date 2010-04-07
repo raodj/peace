@@ -213,7 +213,7 @@ protected:
     retType combine(const paramType& msb, const paramType& lsb) {
         retType retVal = msb;
         retVal <<= (sizeof(paramType) << 3); // byteSize * 8 == bits
-        retVal  |= lsb;
+        retVal   = (retType) (retVal | lsb);
         return retVal;
 	}
 
