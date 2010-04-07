@@ -574,15 +574,15 @@ private:
                              int& score, int& minScore,
                              const int windowDistance) {
         // Update score and delta for word moving in
-        // if (wordIn != NHash) {
+        if (wordIn != NHash) {
             score -= (delta[wordIn] << 1) - 1;
             delta[wordIn]--;
-        // }
+        }
         // Update score and delta for word moving out
-        // if (wordOut != NHash) {
+        if (wordOut != NHash) {
             score += (delta[wordOut] << 1) + 1;
             delta[wordOut]++;
-        // }
+        }
         // Track the minimum score.
         if (score < minScore) {
             minScore = score;
