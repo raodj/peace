@@ -166,7 +166,8 @@ D2::runD2(const int otherEST) {
     // reverse complement suggestion using hint UVSampleHeuristic.
     int bestMatchIsRC = 0;
     if (chain != NULL) {
-        HeuristicChain::getHeuristicChain()->getHint("D2_DoRC", bestMatchIsRC);
+        HeuristicChain::getHeuristicChain()->getHint(HeuristicChain::D2_DO_RC,
+                                                     bestMatchIsRC);
     }
     if (bestMatchIsRC == 0) {
         ESTCodec::NormalEncoder<bitShift, BitMask> encoder;

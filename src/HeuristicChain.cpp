@@ -116,7 +116,8 @@ HeuristicChain::~HeuristicChain() {
 }
 
 HeuristicChain::HeuristicChain() {
-    // Nothing to be done for now
+    // Set the last hint to an invalid value
+    hints[LAST_HINT] = -1;
 }
 
 void

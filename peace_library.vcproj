@@ -284,6 +284,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\SFFReader.cpp"
+				>
+			</File>
+			<File
 				RelativePath="src\TransCacheEntry.cpp"
 				>
 			</File>
@@ -475,6 +479,10 @@
 			</File>
 			<File
 				RelativePath="src\ResultLog.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\SFFReader.h"
 				>
 			</File>
 			<File

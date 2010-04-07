@@ -62,7 +62,7 @@ arg_parser::arg_record UVSampleHeuristic::argsList[] = {
 
 UVSampleHeuristic::UVSampleHeuristic(const std::string& name,
                                      const std::string& UNREFERENCED_PARAMETER(outputFileName))
-    : Heuristic(name), hintKey("D2_DoRC") {
+    : Heuristic(name) {
     // Initialize hash table arrays
     s1WordMap   = NULL;
     s1RCWordMap = NULL;
@@ -263,7 +263,8 @@ UVSampleHeuristic::runHeuristic(const int otherEST) {
         // complement version of checks yielded the best result
         bestMatchIsRC = (numMatches < numRCmatches);
         // Setup a hint for D2.
-        HeuristicChain::getHeuristicChain()->setHint(hintKey, bestMatchIsRC);
+        HeuristicChain::getHeuristicChain()->setHint(HeuristicChain::D2_DO_RC,
+                                                     bestMatchIsRC);
         // return success indication
         return true;
     }

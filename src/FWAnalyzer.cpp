@@ -156,14 +156,20 @@ FWAnalyzer::dumpESTList(const std::vector<EST*>& estList,
 int
 FWAnalyzer::initialize() {
     if ((estFileName != NULL) && (!loadFASTAFile(estFileName))) {
-        // Loading EST's was not successful.  Can't do much further.
+        // Loading EST's from FASTA file was not successful.  Can't do
+        // much further.
         return 1;
     }
+    if ((sffFileName != NULL) && (!loadSFFFile(sffFileName))) {
+        // Loading EST's from SFF file was not successful.  Can't do
+        // much further.
+        return 2;
+    }    
     // Now initialize our heuristic chain to prep heuristics for
     // analysis.
     if ((chain != NULL) && (chain->initialize())) {
         // Error occured during initialization. Bail out.
-        return 2;
+        return 3;
     }
     // Initialization successful.
     return 0;

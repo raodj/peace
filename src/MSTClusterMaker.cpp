@@ -514,7 +514,7 @@ MSTClusterMaker::populateCache(const int estIdx, SMList* metricList) {
         analyzer->getAlignmentData(alignmentData);
         HeuristicChain* chain = HeuristicChain::getHeuristicChain();
         if (chain != NULL) {
-            chain->getHint(hintKey_MST_RC, directionData);
+            // chain->getHint(hintKey_MST_RC, directionData);
         }
         // Add only the first invalid entry. One is enough to do build
         // a valid MST. There is no need for multiple vestigial

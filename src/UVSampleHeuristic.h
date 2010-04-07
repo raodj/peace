@@ -295,15 +295,6 @@ private:
         method.</p>
     */
     UVHashTable uvCache;
-
-    /** The hint key that is used to add hint for normal or
-		reverse-complement D2 computation.
-		
-		This hint key is used to set a hint in the \c hints hash
-		map. This string is defined as a constant to save compute time
-		in the core \c runHeuristics method.
-    */
-    const std::string hintKey;
 };
  
 #endif

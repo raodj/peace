@@ -194,7 +194,18 @@ protected:
     }
     
 private:
-    // Currently, this class does not have any private methods.
+    /** A dummy operator=
+
+        The operator=() is supressed for this class as it has constant
+        members whose value is set when the object is created.  These
+        values cannot be changed during the lifetime of this object.
+
+        \param[in] src The source object from where data is to be
+        copied.  Currently this value is ignored.
+
+        \return Reference to this.
+    */
+    ParameterSet& operator=(const ParameterSet& src);		
 };
 
 #endif

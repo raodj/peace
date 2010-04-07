@@ -37,6 +37,7 @@
 #include "ESTAnalyzer.h"
 #include "EST.h"
 #include "MPIHelper.h"
+#include "SFFReader.h"
 
 // Get rid of magic numbers
 #define NO_ERROR 0
@@ -44,6 +45,7 @@
 // The static instance variables for command line arguments.
 bool  ESTAnalyzer::readAhead      = false;
 char* ESTAnalyzer::estFileName    = NULL;
+char* ESTAnalyzer::sffFileName    = NULL;
 bool  ESTAnalyzer::htmlLog        = false;
 bool  ESTAnalyzer::noMaskBases    = false;
 
@@ -51,8 +53,12 @@ bool  ESTAnalyzer::noMaskBases    = false;
 arg_parser::arg_record ESTAnalyzer::commonArgsList[] = {
     {"--readAhead", "Use a read head thread to load next EST data (NYI)",
      &ESTAnalyzer::readAhead, arg_parser::BOOLEAN},
-    {"--estFile", "Name of EST file (in FASTA format) to be processed",
+    {"--fastaFile", "Name of EST file (in FASTA format) to be processed",
      &ESTAnalyzer::estFileName, arg_parser::STRING},
+    {"--sffFile", "Name of SFF (Standard Flowgram Format) file to be processed",
+     &ESTAnalyzer::sffFileName, arg_parser::STRING},    
+    {"--estFile", "Deprecated. Use --fastaFile instead",
+     &ESTAnalyzer::estFileName, arg_parser::STRING},    
     {"--html", "Generate analysis report in HTML format",
      &ESTAnalyzer::htmlLog, arg_parser::BOOLEAN},
     {"--no-mask-bases", "Don't mask out all lower case neucleotides in reads",
@@ -65,7 +71,7 @@ ESTAnalyzer::ESTAnalyzer(const std::string& name, const int estIdx,
     : refESTidx(estIdx), chain(NULL), outputFileName(outputFile),
       analyzerName(name) {
     // Nothing else to be done for now.
-      }
+}
 
 ESTAnalyzer::~ESTAnalyzer() {
     // Empty constructor begets an empty destructor
@@ -108,10 +114,11 @@ ESTAnalyzer::parseArguments(int& argc, char **argv) {
     ap.check_args(argc, argv, false);
 
     // Check if necessary arguments have been specified for processing.
-    if (estFileName == NULL) {
+    if ((estFileName == NULL) && (sffFileName == NULL)) {
         // Necessary argumetns have not been specified.
         std::cerr << analyzerName
-                  << ": EST file not specified (use --estFile option)\n";
+                  << ": Input data file not specified (use either --fastaFile "
+                  << "or --sffFile option)\n";
         return false;
     }
     // Everything went well.
@@ -141,8 +148,6 @@ ESTAnalyzer::loadFASTAFile(const char *fileName, const bool unpopulate) {
     }
     // Track line number in file being processed.
     int lineNum = 1;
-    // Track number of ESTs filtered out of the file
-    int filteredCount = 0;
     // Repeatedly read EST's from the file.
     while (!feof(fastaFile)) {
         EST *est = EST::create(fastaFile, lineNum, !noMaskBases);
@@ -150,13 +155,9 @@ ESTAnalyzer::loadFASTAFile(const char *fileName, const bool unpopulate) {
             // An error occured when reading EST.
             fclose(fastaFile);
             std::cerr << analyzerName << ": Error loading EST from "
-                      << fileName << " at line: " << lineNum << std::endl;
+                      << "FASTA file " << fileName << " at line: "
+                      << lineNum << std::endl;
             return false;
-        }
-        if (est->getID() == -1) {
-            // A place holder entry to represent an EST filtered out
-            // of the dataset
-            filteredCount++;
         }
         if (unpopulate) {
             // For now don't hold onto the sequences in memory to
@@ -166,12 +167,43 @@ ESTAnalyzer::loadFASTAFile(const char *fileName, const bool unpopulate) {
         }
     }
     // All the EST's were succesfully read.
-    if (filteredCount > 0) { // Report on ESTs filtered out, if any
-        std::cerr << analyzerName << ": " << filteredCount << " sequences "
-                  << "with length less than 50 nt were filtered out of "
-                  << "the data set." << std::endl;
-    }
     fclose(fastaFile);
+    return true;
+}
+
+bool
+ESTAnalyzer::loadSFFFile(const char *fileName, const bool unpopulate) {
+    static const std::string IgnoreFileName = "<none>";
+    if (IgnoreFileName == fileName) {
+        // The user does not want to use a file name. This possibly
+        // happens when using peace libary from custom applications.
+        return true;
+    }
+    SFFReader sff(fileName);
+    if (!sff.isValid()) {
+        std::cerr << analyzerName << "(Rank: ";
+        std::cerr << MPI_GET_RANK()
+                  << "): Error opening SFF file "
+                  << fileName << " for reading." << std::endl;
+        return false;
+    }
+    // Repeatedly read EST's from the file.
+    while (sff.getPendingReads() > 0) {
+        EST *est = sff.getNextRead(!noMaskBases);
+        if ((est == NULL) || (!sff.isValid())) {
+            // An error occured when reading EST.
+            std::cerr << analyzerName << ": Error loading reads from "
+                      << "SFF file "  << fileName << std::endl;
+            return false;
+        }
+        if (unpopulate) {
+            // For now don't hold onto the sequences in memory to
+            // reduce memory usage.  These sequences would have to be
+            // loaded on-demand at a later time.
+            est->unpopulate();
+        }
+    }
+    // Done processing the SFF file.
     return true;
 }
 

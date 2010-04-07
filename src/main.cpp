@@ -327,11 +327,12 @@ main(int argc, char* argv[]) {
         console.processCommands();
     } else if (clusterMaker != NULL) {
         // First initialize the cluster maker for use in filters
-        clusterMaker->initialize();
-        // First go through the phase of applying filters if specified.
-        if ((applyFilters(clusterMaker, filterChain, filterPassFile,
-                          filterFailFile) == 0) && (!filterOnly)) {
-            result = clusterMaker->makeClusters();
+        if ((result = clusterMaker->initialize()) == 0) {
+            // First go through the phase of applying filters if specified.
+            if ((applyFilters(clusterMaker, filterChain, filterPassFile,
+                              filterFailFile) == 0) && (!filterOnly)) {
+                result = clusterMaker->makeClusters();
+            }
         }
         delete clusterMaker;
     } else {
@@ -342,7 +343,7 @@ main(int argc, char* argv[]) {
     // Print statistics regarding operation of heuristics. Maybe the
     // printing of stats must be done based on a command line
     // argument.
-    if (heuristicChain != NULL) {
+    if ((result == 0) && (heuristicChain != NULL)) {
         // Display statistics by writing all the data to a string
         // stream and then flushing the stream.  This tries to working
         // around (it is not perfect solution) interspersed data from
@@ -353,7 +354,7 @@ main(int argc, char* argv[]) {
     }
 
     // Print statistics regarding operation of filters.
-    if (filterChain != NULL) {
+    if ((result == 0) && (filterChain != NULL)) {
         // Display statistics by writing all the data to a string
         // stream and then flushing the stream.  This tries to working
         // around (it is not perfect solution) interspersed data from
@@ -366,9 +367,13 @@ main(int argc, char* argv[]) {
     // Delete the analyzer as it is no longer needed.
     delete analyzer;
     // Delete the heuristic chain as it is no longer needed
-    delete heuristicChain;
+    if (heuristicChain != NULL) {
+        delete heuristicChain;
+    }
     // Delete the filter chain as it is no longer needed
-    delete filterChain;    
+    if (filterChain != NULL) {
+        delete filterChain;
+    }
 
     // Shutdown MPI.
     MPI_FINALIZE();

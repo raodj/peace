@@ -57,7 +57,7 @@ arg_parser::arg_record NewUVHeuristic::argsList[] = {
 
 NewUVHeuristic::NewUVHeuristic(const std::string& name,
                                const std::string& UNREFERENCED_PARAMETER(outputFileName))
-    : Heuristic(name), hintKey("D2_DoRC"), hintKey_MST_RC("MST_RC") {
+    : Heuristic(name) {
     // Initialize hash table arrays
     s1WordMap   = NULL;
     s1RCWordMap = NULL;
@@ -175,10 +175,6 @@ NewUVHeuristic::setReferenceEST(const int estIdx) {
             s1RCWordMap[codec.encode2rc(hash)] = 1;
         }
     }
-    // Reset the previous hint appropriately
-    prevHint = false;
-    HeuristicChain::getHeuristicChain()->setHint(hintKey, false);
-    HeuristicChain::getHeuristicChain()->setHint(hintKey_MST_RC, 1);
     return 0; // everything went well
 }
 
@@ -225,7 +221,8 @@ NewUVHeuristic::runHeuristic(const int otherEST) {
     VALIDATE({
         if (otherEST == refESTidx) {
             // First clear the hint for the cluster maker
-            HeuristicChain::getHeuristicChain()->setHint(hintKey_MST_RC, 0);
+            HeuristicChain::getHeuristicChain()->setHint(HeuristicChain::MST_RC,
+                                                         0);
             return true; // will end up with distance 0, or max similarity
         }
         if ((otherEST < 0) || (otherEST >= EST::getESTCount())) {
@@ -282,14 +279,12 @@ NewUVHeuristic::runHeuristic(const int otherEST) {
         // complement version of checks yielded the best result only
         // if needed.
         bestMatchIsRC = (numMatches < numRCmatches);
-        if (prevHint != bestMatchIsRC) {
-            prevHint = bestMatchIsRC;
-            // Setup a hint for D2.
-            HeuristicChain::getHeuristicChain()->setHint(hintKey, bestMatchIsRC);
-            // Setup a hint for the MST Cluster Maker (-1 = RC, 1 = no RC)
-            HeuristicChain::getHeuristicChain()->setHint(hintKey_MST_RC,
-                                                    bestMatchIsRC ? -1 : 1);
-        }
+        // Setup a hint for D2.
+        HeuristicChain::getHeuristicChain()->setHint(HeuristicChain::D2_DO_RC,
+                                                     bestMatchIsRC);
+        // Setup a hint for the MST Cluster Maker (-1 = RC, 1 = no RC)
+        HeuristicChain::getHeuristicChain()->setHint(HeuristicChain::MST_RC,
+                                                     bestMatchIsRC ? -1 : 1);
         // return success indication
         return true;
     }
