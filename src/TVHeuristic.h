@@ -315,6 +315,10 @@ private:
         user via suitable command line arguments.
     */
     int windowLen;
+
+    static int argumentT;
+    
+    static int argumentWindowLen;
     
     /** A large table to track matches.
 

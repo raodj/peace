@@ -282,6 +282,12 @@ protected:
 
     static int BitMask;
 
+    static int argumentU;
+
+    static int argumentWordShift;
+
+    static int argumentPasses;
+
     /** Instance variable to store the number of bits to be shifted to
         create hash values.
 
