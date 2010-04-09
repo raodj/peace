@@ -39,10 +39,17 @@
 #include "EST.h"
 #include "ParameterSetManager.h"
 
+int TVHeuristic::argumentT = 65;
+int TVHeuristic::argumentWindowLen = 100;
+
 // The set of arguments for this class.  Note that some of the base
 // class static instance variables are reused here so that the values
 // are consistently set.
 arg_parser::arg_record TVHeuristic::argsList[] = {
+    {"--tv_t", "t (number of v-word matches) (default=65)",
+     &TVHeuristic::argumentT, arg_parser::INTEGER},
+    {"--tv_win", "Window size for t/v heuristics (default=100)",
+     &TVHeuristic::argumentWindowLen, arg_parser::INTEGER},
     {NULL, NULL, NULL, arg_parser::BOOLEAN}
     };
 
@@ -50,8 +57,8 @@ TVHeuristic::TVHeuristic(const std::string& outputFileName)
     : NewUVHeuristic("tv", outputFileName) {
     matchTable     = NULL;
     uvSuccessCount = 0;
-    t              = 18;
-    windowLen      = 50;
+    t              = 65;
+    windowLen      = 100;
     // Set up current adaptive parameter set index to an invalid value.
     currParamSetIndex = -1;
 }
@@ -81,6 +88,8 @@ TVHeuristic::parseArguments(int& argc, char **argv) {
     // Let's process parameters now.
     arg_parser ap(TVHeuristic::argsList);
     ap.check_args(argc, argv, false);
+    t = argumentT;
+    windowLen = argumentWindowLen;
     // Ensure values are valid.
     if (t < 1) {
         std::cerr << heuristicName

@@ -41,8 +41,11 @@
 #include "ParameterSetManager.h"
 
 // default params
-int NewUVHeuristic::v           = 8;
-int NewUVHeuristic::BitMask     = 0;
+int NewUVHeuristic::v                 = 8;
+int NewUVHeuristic::BitMask           = 0;
+int NewUVHeuristic::argumentU         = 6;
+int NewUVHeuristic::argumentWordShift = 8;
+int NewUVHeuristic::argumentPasses    = 3;
 
 // Instance variable to track number of bits to shift for building
 // hash values.  This is set to 2*(v-1) in initialize method.
@@ -52,6 +55,12 @@ int NewUVHeuristic::bitsToShift = 0;
 arg_parser::arg_record NewUVHeuristic::argsList[] = {
     {"--uv_v", "v (length of common words) (default=8)",
      &NewUVHeuristic::v, arg_parser::INTEGER},
+    {"--uv_u", "u (number of v-word matches) (default=6)",
+     &NewUVHeuristic::argumentU, arg_parser::INTEGER},
+    {"--uv_wordShift", "Word Shift (default=8)",
+     &NewUVHeuristic::argumentWordShift, arg_parser::INTEGER},
+    {"--uv_passes", "Number of Passes (default=3)",
+     &NewUVHeuristic::argumentPasses, arg_parser::INTEGER},
     {NULL, NULL, NULL, arg_parser::BOOLEAN}
 };
 
@@ -93,6 +102,9 @@ bool
 NewUVHeuristic::parseArguments(int& argc, char **argv) {
     arg_parser ap(NewUVHeuristic::argsList);
     ap.check_args(argc, argv, false);
+    u = argumentU;
+    wordShift = argumentWordShift;
+    passes = argumentPasses;
     // Ensure values are valid.
     if (wordShift < 1) {
         std::cerr << heuristicName
