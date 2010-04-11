@@ -254,7 +254,7 @@ TwoPassD2::getMetric(const int otherEST) {
             return distance * normalize;
         }
         // Set boundDist
-        boundDist = frameSize/2;
+        boundDist = frameSize/4;
     } else {
         // If frameshift is 1 we are only running symmetric D2, with no bounds
         // So set the bound distance to be the ends of each sequence
