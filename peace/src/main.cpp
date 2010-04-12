@@ -188,7 +188,7 @@ main(int argc, char* argv[]) {
     // Values of the following variables are processed by the argument
     // parser further below.
     char emptyString[1]     = {'\0'};
-    char defAnalyzer[]      = "twopassD2";
+    char defAnalyzer[]      = "twopassD2adapt";
     char defClusterMaker[]  = "mst";
     char defHeuristic[]     = "tv";
     char defFilters[]       = "lengthFilter-lcFilter";

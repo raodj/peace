@@ -1,5 +1,5 @@
-#ifndef TWOPASS_D2_CPP
-#define TWOPASS_D2_CPP
+#ifndef ADAPTIVETWOPASS_D2_CPP
+#define ADAPTIVETWOPASS_D2_CPP
 
 //--------------------------------------------------------------------
 //
@@ -34,38 +34,38 @@
 //
 //---------------------------------------------------------------------
 
-#include "TwoPassD2.h"
+#include "AdaptiveTwoPassD2.h"
 #include "EST.h"
 #include "ESTCodec.h"
 #include "ParameterSetManager.h"
 #include <algorithm>
 
 // The bitmask to be used when build hash values.
-int TwoPassD2::BitMask   = 0;
+int AdaptiveTwoPassD2::BitMask   = 0;
 
 // The special value used for words containing an 'N'.
-int TwoPassD2::NHash     = 0;
+int AdaptiveTwoPassD2::NHash     = 0;
 
 // Instance variable to store the number of bits to be shifted to
 // create hash values. This value is initialized to 2*(wordSize-1)
-int TwoPassD2::bitShift  = 0;
+int AdaptiveTwoPassD2::bitShift  = 0;
 
 // The threshold score below which two ESTs are considered
 // sufficiently similar to be clustered.
-int TwoPassD2::minThreshold = 0;
+int AdaptiveTwoPassD2::minThreshold = 0;
 
 // Indicates whether or not d2 scores should be normalized based on the
 // threshold value.
-bool TwoPassD2::noNormalize = false;
+bool AdaptiveTwoPassD2::noNormalize = false;
 
 // Indicates whether or not two pass d2 should use adaptive
 // configuration or non-adaptive configuration.
-bool TwoPassD2::nonAdaptiveConfig = false;
+bool AdaptiveTwoPassD2::nonAdaptiveConfig = false;
 
 // Informational message to display to user when adaptive
 // configuration is used.
 #define ADAPTIVE_MSG                                                    \
-    "PEACE (TwoPassD2 analyzer) is running in adaptive mode to\n"       \
+    "PEACE (AdaptiveTwoPassD2 analyzer) is running in adaptive mode to\n"       \
     "provide best quality clustering. This mode must NOT be used\n"     \
     "for performance profiling with wcd (for performance profiling\n"   \
     "use --dontAdapt command line argument)"
@@ -73,7 +73,7 @@ bool TwoPassD2::nonAdaptiveConfig = false;
 // Informational message to display to user when non-adaptive
 // configuration is used.
 #define NON_ADAPTIVE_MSG                                             \
-    "PEACE (TwoPassD2 analyzer) is running in non-adaptive mode.\n " \
+    "PEACE (AdaptiveTwoPassD2 analyzer) is running in non-adaptive mode.\n " \
     "This mode is best suited for data sets with longer (100+ nt)\n" \
     "reads only (if you don't want this mode remove --dontAdapt\n"   \
     "command line argument)"
@@ -81,18 +81,18 @@ bool TwoPassD2::nonAdaptiveConfig = false;
 
 
 // The set of arguments for this class.
-arg_parser::arg_record TwoPassD2::argsList[] = {
+arg_parser::arg_record AdaptiveTwoPassD2::argsList[] = {
     {"--d2Threshold", "Threshold score to break out of D2 (default=0)",
-     &TwoPassD2::minThreshold, arg_parser::INTEGER},
+     &AdaptiveTwoPassD2::minThreshold, arg_parser::INTEGER},
     {"--noNormalize", "Signals that threshold scores should not be normalized",
-     &TwoPassD2::noNormalize, arg_parser::BOOLEAN},
+     &AdaptiveTwoPassD2::noNormalize, arg_parser::BOOLEAN},
     {"--dontAdapt", "Don't use adaptive parameters as data set has long reads",
-     &TwoPassD2::nonAdaptiveConfig, arg_parser::BOOLEAN},
+     &AdaptiveTwoPassD2::nonAdaptiveConfig, arg_parser::BOOLEAN},
     {NULL, NULL, NULL, arg_parser::BOOLEAN}
 };
 
-TwoPassD2::TwoPassD2(const int refESTidx, const std::string& outputFileName)
-    : FWAnalyzer("twopassD2", refESTidx, outputFileName) {
+AdaptiveTwoPassD2::AdaptiveTwoPassD2(const int refESTidx, const std::string& outputFileName)
+    : FWAnalyzer("twopassD2adapt", refESTidx, outputFileName) {
     s1WordTable     = NULL;
     s2WordTable     = NULL;
     delta           = NULL;
@@ -108,7 +108,7 @@ TwoPassD2::TwoPassD2(const int refESTidx, const std::string& outputFileName)
     currParamSetIndex = -1;
 }
 
-TwoPassD2::~TwoPassD2() {
+AdaptiveTwoPassD2::~AdaptiveTwoPassD2() {
     if (s1WordTable != NULL) {
         delete [] s1WordTable;
     }
@@ -121,16 +121,16 @@ TwoPassD2::~TwoPassD2() {
 }
 
 void
-TwoPassD2::showArguments(std::ostream& os) {
+AdaptiveTwoPassD2::showArguments(std::ostream& os) {
     FWAnalyzer::showArguments(os);
     // Use a arg parser object to conveniently display common options.
-    arg_parser ap(TwoPassD2::argsList);
+    arg_parser ap(AdaptiveTwoPassD2::argsList);
     os << ap;
 }
 
 bool
-TwoPassD2::parseArguments(int& argc, char **argv) {
-    arg_parser ap(TwoPassD2::argsList);
+AdaptiveTwoPassD2::parseArguments(int& argc, char **argv) {
+    arg_parser ap(AdaptiveTwoPassD2::argsList);
     ap.check_args(argc, argv, false);
     // Ensure frameshift is valid.
     if (frameShift < 1) {
@@ -144,7 +144,7 @@ TwoPassD2::parseArguments(int& argc, char **argv) {
 }
 
 int
-TwoPassD2::initialize() {
+AdaptiveTwoPassD2::initialize() {
     // First setup adaptive or non-adaptive parameters.
     if (nonAdaptiveConfig) {
         // Create the parameter set manager with just 1 entry
@@ -190,7 +190,7 @@ TwoPassD2::initialize() {
 }
 
 int
-TwoPassD2::setReferenceEST(const int estIdx) {
+AdaptiveTwoPassD2::setReferenceEST(const int estIdx) {
     // Call corresponding method in heuristic chain
     if (chain != NULL) {
         chain->setReferenceEST(estIdx);
@@ -211,7 +211,7 @@ TwoPassD2::setReferenceEST(const int estIdx) {
 }
 
 float
-TwoPassD2::getMetric(const int otherEST) {
+AdaptiveTwoPassD2::getMetric(const int otherEST) {
     VALIDATE({
             if (otherEST == refESTidx) {
                 return 0; // distance to self will be 0
@@ -269,7 +269,7 @@ TwoPassD2::getMetric(const int otherEST) {
 }
 
 void
-TwoPassD2::updateParameters(const int otherEST) {
+AdaptiveTwoPassD2::updateParameters(const int otherEST) {
     const ParameterSetManager* const paramMgr =
         ParameterSetManager::getParameterSetManager();
     const int paramSetIndex = paramMgr->getParameterSet(refESTidx, otherEST);
@@ -297,7 +297,7 @@ TwoPassD2::updateParameters(const int otherEST) {
 }
 
 float
-TwoPassD2::runD2Asymmetric(int* s1MinScoreIdx, int* s2MinScoreIdx) {    
+AdaptiveTwoPassD2::runD2Asymmetric(int* s1MinScoreIdx, int* s2MinScoreIdx) {    
     // Currently, the bounds on the word compares in d2 is set to the
     // sizes of the two ESTs to compare. However, the bounds can be
     // reduced based on hints from the <i>t/v</i> heuristic.
@@ -397,7 +397,7 @@ TwoPassD2::runD2Asymmetric(int* s1MinScoreIdx, int* s2MinScoreIdx) {
 }
 
 float
-TwoPassD2::runD2Bounded(int sq1Start, int sq1End, int sq2Start, int sq2End) {
+AdaptiveTwoPassD2::runD2Bounded(int sq1Start, int sq1End, int sq2Start, int sq2End) {
     // Perform sanity checks on bounds (invalid bounds may be passed in)
     if (sq1Start < 0) sq1Start = 0;
     if (sq2Start < 0) sq2Start = 0;
@@ -490,7 +490,7 @@ TwoPassD2::runD2Bounded(int sq1Start, int sq1End, int sq2Start, int sq2End) {
 }
 
 bool
-TwoPassD2::getAlignmentData(int &alignmentData) {
+AdaptiveTwoPassD2::getAlignmentData(int &alignmentData) {
     // Simply copy the alignment metric that was computed by the last
     // successful call to the analyze() method.
     alignmentData = alignmentMetric;
