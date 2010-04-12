@@ -69,7 +69,7 @@ ParameterSetManager::setupParameters(const bool UNREFERENCED_PARAMETER(dummy)) {
     ptrInstance = new ParameterSetManager;
 
     // Add the default parameter set to the list of sets.
-    ptrInstance->addParameterSet(new ParameterSet(-1, INT_MAX, 100, 50, 105,
+    ptrInstance->addParameterSet(new ParameterSet(-1, INT_MAX, 100, 50, 40,
                                                   130, 40, 8, 8));
 }
 
