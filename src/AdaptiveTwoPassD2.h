@@ -1,5 +1,5 @@
-#ifndef TWOPASS_D2_H
-#define TWOPASS_D2_H
+#ifndef ADAPTIVETWOPASS_D2_H
+#define ADAPTIVETWOPASS_D2_H
 
 //--------------------------------------------------------------------
 //
@@ -62,7 +62,7 @@ class ResultLog;
     other D2 implementations as well.  This is a compromise between
     performance and flexibility of the implementation.
 */
-class TwoPassD2 : public FWAnalyzer {
+class AdaptiveTwoPassD2 : public FWAnalyzer {
     friend class ESTAnalyzerFactory;
 public:
     /** The destructor.
@@ -70,7 +70,7 @@ public:
         The destructor frees up all any dynamic memory allocated by
         this object for its operations.
     */
-    virtual ~TwoPassD2();
+    virtual ~AdaptiveTwoPassD2();
     
     /** Display valid command line arguments for this analyzer.
 	
@@ -442,7 +442,7 @@ private:
        the empty string then output is written to standard output.
        This value is simply passed onto the base class.
     */
-    TwoPassD2(const int refESTidx, const std::string& outputFileName);
+    AdaptiveTwoPassD2(const int refESTidx, const std::string& outputFileName);
 
     /** Instance variable to track alignment metric computed by the
         analyze() method.
