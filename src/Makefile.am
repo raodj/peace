@@ -103,6 +103,8 @@ D2Zim.h\
 D2Zim.cpp\
 AdaptiveTwoPassD2.h\
 AdaptiveTwoPassD2.cpp\
+TwoPassD2.h\
+TwoPassD2.cpp\
 MSTMultiListCache.h\
 MSTMultiListCache.cpp\
 MSTHeapCache.h\
