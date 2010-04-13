@@ -204,12 +204,11 @@ TwoPassD2::runD2Asymmetric(const int otherEST, int* s1MinScoreIdx,
                            int* s2MinScoreIdx) {    
     // Get basic information about the reference EST
     const EST * estS1  = EST::getEST(refESTidx);
-    const char* sq1    = estS1->getSequence();
-    const int   sq1Len = strlen(sq1);
+    const int   sq1Len = estS1->getSequenceLength();
     // Get basic information about the otherEST EST
     const EST * estS2  = EST::getEST(otherEST);
     const char* sq2    = estS2->getSequence();
-    const int   sq2Len = strlen(sq2);
+    const int   sq2Len = estS2->getSequenceLength();
     
     // Build the word table for otherEST depending on normal or
     // reverse complement suggestion using hint UVSampleHeuristic.
@@ -324,12 +323,10 @@ TwoPassD2::runD2Bounded(const int otherEST, int sq1Start, int sq1End,
                         int sq2Start, int sq2End) {
     // Get basic information about the reference EST
     const EST * estS1  = EST::getEST(refESTidx);
-    const char* sq1    = estS1->getSequence();
-    const int   sq1Len = strlen(sq1);
+    const int   sq1Len = estS1->getSequenceLength();
     // Get basic information about the otherEST EST
     const EST * estS2  = EST::getEST(otherEST);
-    const char* sq2    = estS2->getSequence();
-    const int   sq2Len = strlen(sq2);
+    const int   sq2Len = estS2->getSequenceLength();
     
     // sanity checks on bounds (invalid bounds may be passed in)
     if (sq1Start < 0) sq1Start = 0;
