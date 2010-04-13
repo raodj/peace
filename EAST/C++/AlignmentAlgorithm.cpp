@@ -17,45 +17,34 @@ AlignmentAlgorithm::~AlignmentAlgorithm() {
 }
 
 void AlignmentAlgorithm::setScoringMatrix(int match, int mismatch) {
-	intMatrix score = createIntMatrix(6,6);
-	score[0][0] =  match;
-	score[0][1] =  mismatch;
-	score[0][2] =  mismatch;
-	score[0][3] =  mismatch;
-	score[0][4] =  match;
-	score[0][5] =  mismatch;
-	score[1][0] =  mismatch;
-	score[1][1] =  match;
-	score[1][2] =  mismatch;
-	score[1][3] =  mismatch;
-	score[1][4] =  match;
-	score[1][5] =  mismatch;
-	score[2][0] =  mismatch;
-	score[2][1] =  mismatch;
-	score[2][2] =  match;
-	score[2][3] =  mismatch;
-	score[2][4] =  match;
-	score[2][5] =  mismatch;
-	score[3][0] =  mismatch;
-	score[3][1] =  mismatch;
-	score[3][2] =  mismatch;
-	score[3][3] =  match;
-	score[3][4] =  match;
-	score[3][5] =  mismatch;
-	score[4][0] =  mismatch;
-	score[4][1] =  mismatch;
-	score[4][2] =  mismatch;
-	score[4][3] =  mismatch;
-	score[4][4] =  match;
-	score[4][5] =  mismatch;
-	score[5][0] =  mismatch;
-	score[5][1] =  mismatch;
-	score[5][2] =  mismatch;
-	score[5][3] =  mismatch;
-	score[5][4] =  mismatch;
-	score[5][5] =  match;
+	scoreMatrix = createIntMatrix(17, 17);
+	int m = match;
+	int n = mismatch;
+					   //A, C, G, T, N, P, Y, R, W, S, K, M, D, V, H, B, X
+	int score[17][17] = {m, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n,  //A
+						 n, m, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n,  //C
+						 n, n, m, n, n, n, n, n, n, n, n, n, n, n, n, n, n,  //G
+						 n, n, n, m, n, n, n, n, n, n, n, n, n, n, n, n, n,  //T
+						 n, n, n, n, m, n, n, n, n, n, n, n, n, n, n, n, n,  //N
+						 n, n, n, n, n, m, n, n, n, n, n, n, n, n, n, n, n,  //P: gap
+						 n, m, n, m, n, n, m, n, n, n, n, n, n, n, n, n, n,  //Y: C, T
+						 m, n, m, n, n, n, n, m, n, n, n, n, n, n, n, n, n,  //R: A, G
+						 m, n, n, m, n, n, n, n, m, n, n, n, n, n, n, n, n,  //W: A, T
+						 n, m, m, n, n, n, n, n, n, m, n, n, n, n, n, n, n,  //S: G, C
+						 n, n, m, m, n, n, n, n, n, n, m, n, n, n, n, n, n,  //K: T, G
+						 m, m, n, n, n, n, n, n, n, n, n, m, n, n, n, n, n,  //M: C, A
+						 m, n, m, m, n, n, n, n, n, n, n, n, m, n, n, n, n,  //D: not C
+						 m, m, m, n, n, n, n, n, n, n, n, n, n, m, n, n, n,  //V: not T
+						 m, m, n, m, n, n, n, n, n, n, n, n, n, n, m, n, n,  //H: not G
+						 n, m, m, m, n, n, n, n, n, n, n, n, n, n, n, m, n,  //B: not A
+						 n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, m   //X: unknown
+				};
 
-	scoreMatrix = score;
+	for (int i=0; i<17; i++) {
+		for (int j=0; j<17; j++) {
+			scoreMatrix[i][j] = score[i][j];
+		}
+	}
 }
 
 int AlignmentAlgorithm::getNWScore(const string& s1, const string& s2) {
