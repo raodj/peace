@@ -20,7 +20,7 @@ struct AlignResult {
  */
 class AlignmentAlgorithm {
 private:
-	intMatrix scoreMatrix; //A, C, G, T, N
+	intMatrix scoreMatrix; //A, C, G, T, N, P, Y, R, W, S, K, M, D, V, H, B, X
 	int gapPenalty;
 	inline int encodeBase(char c) {
 	    switch (c) {
@@ -30,6 +30,17 @@ private:
 	       case 'T' : return 3;
 	       case 'N' : return 4;
 	       case 'P' : return 5;
+	       case 'Y' : return 6;
+	       case 'R' : return 7;
+	       case 'W' : return 8;
+	       case 'S' : return 9;
+	       case 'K' : return 10;
+	       case 'M' : return 11;
+	       case 'D' : return 12;
+	       case 'V' : return 13;
+	       case 'H' : return 14;
+	       case 'B' : return 15;
+	       case 'X' : return 16;
 	   }
 	   return -1;
 	}
