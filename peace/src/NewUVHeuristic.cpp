@@ -199,7 +199,6 @@ NewUVHeuristic::computeHash(const int estIdx) {
     const char *sq2  = estS2->getSequence();
     ASSERT ( sq2 != NULL );
     const int End    = otherESTLen - v;
-    ASSERT ( End > 0 );
     
     // Get the codec for encoding/decoding operations
 
