@@ -5,7 +5,6 @@ citecolor=black, %color of the in-text citation numbers
 urlcolor=blue %color of the url links
 ]{hyperref}
 \usepackage{wrapfig}
-
 \bibliographystyle{unsrt}
 
 % Enter dates of publication
@@ -14,6 +13,10 @@ urlcolor=blue %color of the url links
 \pubyear{}
 \jvolume{}
 \jissue{}
+
+\usepackage[usenames,dvipsnames]{color}
+\definecolor{red}{rgb}{1,0,0}
+\newcommand{\mc}[1]{\textcolor{red}{#1}}
 
 % \articlesubtype{This is the article type (optional)}
 
@@ -143,7 +146,7 @@ of the clusters as input to assembly tools such as \capthree\/
 performed in the following manner (see Figure~\ref{fig:workflow}):
 
 \begin{figure}
-  \centerline{\includegraphics[width=3in]{screen.d/workflow.pdf}}
+  \centerline{\includegraphics[width=3in]{workflow.eps}}
   \caption{Overview of the procedure for clustering and analysis using
     PEACE.}\label{fig:workflow}
 \end{figure}
@@ -162,29 +165,29 @@ on the target machine as needed.
 
 \begin{figure*}
   \begin{minipage}{3in}
-    \includegraphics[width=3in]{screen.d/install_page_big.png}
+    \includegraphics[width=3in]{install_page_big.eps}
     \centerline{\small{(a)}}
   \end{minipage}
   \begin{minipage}{2in}
     \vspace{0.47in}
-    \includegraphics[width=2in]{screen.d/add_server_big.png}
+    \includegraphics[width=2in]{add_server_big.eps}
     \centerline{\small{(b)}}
   \end{minipage}
   \begin{minipage}{2in}
-    \vspace{0.66in}
-    \includegraphics[width=2in]{screen.d/processor_assignment_big.png}
+    \vspace{0.47in}
+    \includegraphics[width=2in]{processor_assignment_big.eps}
     \centerline{\small{(c)}}
   \end{minipage}
 
   \begin{minipage}{3in}
-    \includegraphics[width=3in]{screen.d/cluster_list_big.png}
+    \includegraphics[width=3in]{cluster_list_big.eps}
     \centerline{\small{(d)}}
   \end{minipage}
   \begin{minipage}{1in}
     \hspace{1in}
   \end{minipage}
   \begin{minipage}{3in}
-    \includegraphics[width=3in]{screen.d/classifier_big.png}
+    \includegraphics[width=3in]{classifier_big.eps}
     \centerline{\small{(e)}}
   \end{minipage}
 
@@ -282,7 +285,7 @@ Sections~A and B of the Supplementary Materials for more details).
 
 \peace\/ has been tested on both simulated and real data from NGS and
 Sanger Sequencing technologies, comparing results against those
-produced by the \wcd\/ clustering tool \cite{Hazelhurst08a} and the
+produced by the \wcd\/ clustering tool \wc{(version 0.5.1)}\cite{Hazelhurst08a} and the
 \capthree\/ assembly tool \cite{Huang99} (the latter of which
 implicitly calculates a clustering in the process of assembly).  For our
 simulation tests we used the {\bf ESTSim} tool \cite{Hazelhurst03} to
@@ -311,7 +314,7 @@ The sequential runtime of \peace\/ is slightly improved over that of
 \wcd\/ (see Supplementary Materials, Figure~S4).
 
 \begin{figure}
-  \centerline{\includegraphics[width=3.35in]{pics.d/SeT1.pdf}}
+  \centerline{\includegraphics[width=3.35in]{SeT1.eps}}
   \caption{Comparisons of Sensitivity and Type 1 error, based on the
     average over 30 simulated Sanger Sequence ESTs sets derived from 100 zebra
     fish genes  (see
@@ -323,7 +326,7 @@ The sequential runtime of \peace\/ is slightly improved over that of
 \end{figure}
 
 \begin{figure}
-  \centerline{\includegraphics[width=3in]{pics.d/singletons.pdf}}
+  \centerline{\includegraphics[width=3in]{singletons.eps}}
   \caption{Average number of fragments flagged as singletons by each tool
     when run on the simulated sequences; correct answer in all cases is
     zero.  Blue/Solid = \peace, Green/Dash = \wcd,
@@ -337,7 +340,7 @@ sensitivity we used the {\it gmap} tool \cite{Wu05} to map the
 fragment set to the genome, taking this as our reference clustering.
 We see slight improvements in \peace\/ over \wcd\/ in both sensitivity
 and Type 1 error (both significantly outperforming \capthree).  Using
-the mouse data set used in Hazelhurst {\it et al.}
+the \mc{Arabidopsis} data set used in Hazelhurst {\it et al.}
 \cite{Hazelhurst08a} \peace\/ again shows slight improvements in
 sensitivity and Type 1 error rates, with an 18\% speedup for \peace\/ 
 (see Supplementary Materials, Section~D, for more details).
@@ -347,16 +350,17 @@ distributed implementation is unable to handle such data without an
 adjustment to the code.  Hence, while \peace\/ was run on both
 simulated and real NGS fragment sets, there was no cluster tool to
 which the results could be compared.  \peace\/ did well, achieving a
-sensitivity of 0.75 when applied to a simulated short-read set subjected to
-a sequencing error rate of 2\% (with comparable {\it Jaccard Index}
-values reflecting both sensitivity {\it and} specificity
-\cite{Kalyanaraman03,Hazelhurst08a}).  Runtime was approximately 17.6
-minutes to process the 7.9 Mb of data when run in sequential mode on a
-3.2 GHz Intel Xeon CPU.  When applied to a 64 Mb set of 165,490 {\it
-  Chlamydomonas reinhardtii} transcript fragments sequenced by 454
-pyrosequencing technology (ranging in size from 50 bases to several
-hundred), \peace\/ completed the job in 49 minutes using 30 of the
-Xeon processors.
+sensitivity of 0.75 when applied to a simulated short-read set
+subjected to a sequencing error rate of 2\% (with comparable {\it
+  Jaccard Index} values reflecting both sensitivity {\it and}
+specificity \cite{Kalyanaraman03,Hazelhurst08a}).  Runtime was
+approximately 17.6 minutes to process the 7.9 Mb of data when run in
+sequential mode on a \mc{3.2 GHz Intel Xeon EM64T CPU with a 2 MB
+  cache and 800 MHz font side bus}.  When applied to a 64 Mb set of
+165,490 {\it Chlamydomonas reinhardtii} transcript fragments
+sequenced by 454 pyrosequencing technology (ranging in size from 50
+bases to several hundred), \peace\/ completed the job in 49 minutes
+using 30 of the Xeon processors.
 
 \section{Conclusions}
 
