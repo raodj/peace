@@ -80,7 +80,8 @@ static void showUsage(arg_parser& ap,
                       ESTAnalyzer *analyzer, ClusterMaker *cMaker,
                       HeuristicChain *hChain,
                       FilterChain *fChain) {
-    std::cout << "Usage: PEACE [options]\n"
+    std::cout << "PEACE Version 0.95 (Released April 19 2010)\n"
+              << "Usage: PEACE [options]\n"
               << "where options are:\n";
     std::cout << ap;
     std::cout << "Names of EST analyzers available are:\n";
