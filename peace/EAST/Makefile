@@ -13,7 +13,7 @@ Main: Main.cpp ${O_FILES}
 Alignment.o: Alignment.cpp Alignment.h Param.h AlignmentAlgorithm.h
 	${CC} -c Alignment.cpp ${OPTS}
 
-AlignmentAlgorithm.o: AlignmentAlgorithm.cpp AlignmentAlgorithm.h IntMatrix.h
+AlignmentAlgorithm.o: AlignmentAlgorithm.cpp AlignmentAlgorithm.h
 	${CC} -c AlignmentAlgorithm.cpp ${OPTS}
 
 CalculatedOvlDistance.o: CalculatedOvlDistance.cpp CalculatedOvlDistance.h
