@@ -233,7 +233,7 @@ implements ServerHostKeyVerifier {
 		if (purpose != null) {
 			JLabel info = new JLabel(purpose, Utilities.getIcon("images/32x32/Information.png"), 
 									 JLabel.LEFT);
-			 JPanel outer = new JPanel(new BorderLayout(0, 0));
+			 JPanel outer = new JPanel(new BorderLayout(0, 10));
 			 outer.add(info, BorderLayout.CENTER);
 			 outer.add(msgPanel, BorderLayout.SOUTH);
 			 // Set message panel to be the outer most one now.

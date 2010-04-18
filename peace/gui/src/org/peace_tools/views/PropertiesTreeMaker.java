@@ -484,10 +484,15 @@ public class PropertiesTreeMaker {
 		// Get the helper method to populate physical information about
 		// the FASTA file for this data set.
 		dsetNode.add(makeFileProperties(dataSet.getPath(), "FASTA File Properties"));
-		// If the FASTA file exists then let's also make summary information.
+		// If the FASTA/SFF file exists then let's also make summary information.
 		DefaultMutableTreeNode summary = null;
 		try {
-			ESTList estList = DataStore.get().getFASTA(dataSet.getPath(), parent);
+			ESTList estList = null;
+			if (dataSet.isFASTAFile()) {
+				estList = DataStore.get().getFASTAx(dataSet.getPath(), parent);
+			} else {
+				estList = DataStore.get().getSFF(dataSet.getPath(), parent);
+			}
 			if (estList != null) {
 				double[] fastaStats = estList.computeStatistics();
 				summary = new DefaultMutableTreeNode("Summary Statistics");

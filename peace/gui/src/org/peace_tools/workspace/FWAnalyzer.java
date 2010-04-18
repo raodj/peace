@@ -50,7 +50,7 @@ public class FWAnalyzer {
 	 * distance/similarity metric.
 	 */
 	public enum FWAnalyzerType {
-		TWOPASSD2, D2, D2ZIM, CLU
+		TWOPASSD2, TWOPASSD2_DONT_ADAPT, D2, D2ZIM, CLU
 	};
 
 	/**
@@ -227,7 +227,7 @@ public class FWAnalyzer {
 	 * @return Return the information as a command line parameter.
 	 */
 	public String toCmdLine() {
-		final String[] AnalyzerName = {"twopassD2", "d2", "d2zim", "clu"};
+		final String[] AnalyzerName = {"twopassD2", "twopassD2 --dontAdapt", "d2", "d2zim", "clu"};
 		String cmdLine = "--analyzer " + AnalyzerName[type.ordinal()];
 		cmdLine += " --frame " + windowSize;
 		cmdLine += " --word "  + wordSize;

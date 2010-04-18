@@ -252,7 +252,7 @@ public class MSTClusterData {
 	 * @return Return the information as a command line parameter.
 	 */
 	public String toCmdLine() {
-		String cmdLine = "";
+		String cmdLine = " --clsThreshold " + threshold;
 		File file = new File(path);
 		cmdLine += " --gui-print --output " + file.getName(); 
 		return cmdLine;

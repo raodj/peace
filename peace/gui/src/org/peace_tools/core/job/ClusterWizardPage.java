@@ -388,7 +388,7 @@ implements ActionListener {
 	 * used in the {@link #pageChanged(WizardDialog, int, int)} method.
 	 */
 	private static final String TWO_PASS_INFO = "<html>" +
-		"Two Pass D2 analyzer is adaptive and normalizes thresholds.<br>" +
+		"Two Pass D2 analyzer uses normalized distances and thresholds.<br>" +
 		"This value must be set to 1 (one) for Two Pass D2 (and it <br>" +
 		"cannot be changed). See help for more details." +
 		"</html>";

@@ -240,7 +240,7 @@ public class ESTTableView extends JPanel implements ActionListener, ChangeListen
 	public void actionPerformed(ActionEvent event) {
 		if ("text".equals(event.getActionCommand())) {
 			String fileName = model.getESTList().getName();
-			mainFrame.getViewFactory().createView(fileName, fileName, ViewFactory.ViewType.TEXT_VEIW, false, true, null);
+			mainFrame.getViewFactory().createView(fileName, fileName, null, ViewFactory.ViewType.TEXT_VEIW, false, true, null);
 		} else if ("save".equals(event.getActionCommand())) {
 			saveSelectedESTs();
 		} else if ("resort".equals(event.getActionCommand())) {

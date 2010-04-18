@@ -34,6 +34,7 @@
 package org.peace_tools.core.dataset;
 
 import java.awt.BorderLayout;
+import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedInputStream;
@@ -43,12 +44,14 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import javax.swing.Box;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
@@ -59,6 +62,7 @@ import javax.swing.border.EmptyBorder;
 import org.peace_tools.data.DataStore;
 import org.peace_tools.data.ESTList;
 import org.peace_tools.data.LowMemoryException;
+import org.peace_tools.data.SFFReader;
 import org.peace_tools.generic.GenericWizardPage;
 import org.peace_tools.generic.Utilities;
 import org.peace_tools.generic.WizardDialog;
@@ -110,7 +114,9 @@ implements Runnable, ActionListener {
 		JComponent dirBox =
 			Utilities.createLabeledComponents("Enter EST FASTA File Name:",
 					"(FASTA file must exist and must be valid)",
-					0, false, horizBox);		
+					0, false, horizBox);
+		// Create the file type information and box
+		JPanel fileTypeBox = createFileTypeRadioButtons();
 		// Create panels with description, install folder, and
 		// polling time.
 		description = new JTextArea(4, 4);
@@ -134,7 +140,8 @@ implements Runnable, ActionListener {
 		}
 		// Create a sub panel with all the components
 		JPanel subPanel = Utilities.createLabeledComponents(null, null, 0, true,
-				dirBox, Box.createVerticalStrut(10),
+				dirBox, Box.createVerticalStrut(5),
+				fileTypeBox, Box.createVerticalStrut(10),
 				descBox, Box.createVerticalStrut(10),
 				infoLabel);
 		subPanel.setBorder(new EmptyBorder(5, 15, 10, 10));
@@ -142,6 +149,42 @@ implements Runnable, ActionListener {
 		add(subPanel, BorderLayout.NORTH);
 	}
 
+	/**
+	 * Helper method used to create the radio buttons used to indicate
+	 * file types.
+	 * 
+	 * This method is invoked from the constructor. It creates a button
+	 * group with various radio buttons used to indicate file type. 
+	 * It then sets the {@link #fileType} instance variable to point
+	 * to the newly created buttons. It creates a informational label
+	 * and packs everything into a panel and returns the panel.
+	 * 
+	 * @return The {@link #fileType} button group referring to the
+	 * various radio buttons in this page.
+	 */
+	private JPanel createFileTypeRadioButtons() {
+		// Panel to Pack the radio buttons into
+		JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 10, 0));
+		// The labels for the three radio buttons.
+		final String Labels[] = {"Auto Detect", "FASTA", "SFF"};
+		// Pack the radio buttons into a button group to permit only one
+		// of them to be selected at any given time.
+		ButtonGroup btnGroup = new ButtonGroup();
+		
+		// Create the three radio buttons for the types we currently support.
+		for(int i = 0; (i < Labels.length); i++) {
+			fileType[i] = new JRadioButton(Labels[i], i == 0);
+			btnPanel.add(fileType[i]);
+			btnGroup.add(fileType[i]);
+		}
+		// Pack buttons with a label together into another panel
+		JPanel fileTypeBox = 
+			Utilities.createLabeledComponents("Select data file format:",
+					"(Auto detect chooses the appropriate format)", 0, 
+					false, btnPanel); 
+		// Return the containing panel for further use.
+		return fileTypeBox;
+	}
 	/**
 	 * This is a refactored utility method to create informational
 	 * labels. This method was introduced to keep the code clutter in
@@ -154,7 +197,7 @@ implements Runnable, ActionListener {
 		// they click the "Next>" button.
 		JLabel info = new JLabel("<html>EST file will be verified when " + 
 				"the<br>Next button is clicked</html>", 
-				Utilities.getIcon("images/16x16/Information.png"),
+				Utilities.getIcon("images/32x32/Information.png"),
 				JLabel.LEFT);
 		return info;
 	}
@@ -175,6 +218,80 @@ implements Runnable, ActionListener {
 		browse.setEnabled(!lockPath);
 	}
 
+	/**
+	 * Helper method to auto detect file format.
+	 * 
+	 * This is a helper method that is used in the 
+	 * {@link #pageChanging(WizardDialog, int, int)} method to perform
+	 * basic validation on the selected data file to ensure that the
+	 * file appears to be in one of the formats supported by PEACE.
+	 * 
+	 * @param fileName The file name whose physical file format is to
+	 * be validated.
+	 * 
+	 * @return This method returns true if the file format is valid and
+	 * further processing can be done. If the file format is invalid or
+	 * if errors occur during validation, then this method returns false
+	 * signalling a problem.
+	 */
+	private boolean validateFileFormat(String fileName) {
+		// Some flags to make the code below more readable.
+		final boolean auto  = fileType[0].isSelected();
+		final boolean fasta = fileType[1].isSelected();
+		final boolean sff   = fileType[2].isSelected();
+		// Validate the physical file format.
+		try {
+			// Check if the file is a SFF file if indicated by the user.
+			if (auto || sff) {
+				// User wants auto detection or has indicated sff file
+				// Validate the file using a SFFReader.
+				SFFReader sffFile = null;
+				try {
+					sffFile = new SFFReader(fileName);
+				} catch (IOException ioe) {
+					// Currently we ignore the exception in case this is a
+					// FASTA file and not a SFF file for auto detection.
+				}
+				if (((sffFile == null) || !sffFile.isValid()) && sff) {
+					// The user says it should be an sff file but it is not.
+					throw new IOException("The selected file does not have a valid<br>" +
+							"Standard Flowgram Format (SFF) header.");
+				} else if ((sffFile != null) && sffFile.isValid()) {
+					// It is a valid SFF file. Ensure that the correct radio button
+					// is selected and return true to indicate the file is valid.
+					fileType[2].setSelected(true);
+					return true;
+				}
+			}
+			// Check if the file is a FASTA file
+			if (auto || fasta) {
+				// User wants auto detection or has indicated fasta file
+				// Validate the file to check if it has a ">" character first.
+				FileInputStream fis = new FileInputStream(fileName);
+				final int firstChar = fis.read();
+				if ((firstChar != '>') && fasta) {
+					// The user says it should be an sff file but it is not.
+					throw new IOException("The selected file is not a valid<br>" +
+							"FASTA file as it does not begin with a '>' character.");
+				} else if (firstChar == '>') {
+					// It is a valid FASTA file. Ensure that the correct radio button
+					// is selected and return true to indicate the file is valid.
+					fileType[1].setSelected(true);
+					return true;
+				}
+			}
+			// When control drops here that mean auto detection failed.
+			throw new IOException("Unable to auto detect the file format.<br>" +
+				"The file is not a valid FASTA or SFF file");
+		} catch (Exception exp) {
+			JPanel msg = Utilities.collapsedMessage("<html>" + exp.getMessage() + "</html>", 
+					Utilities.toString(exp));
+			JOptionPane.showMessageDialog(wizard, msg, 
+					"Invalid data file", JOptionPane.ERROR_MESSAGE);
+		}
+		return false;
+	}
+	
 	/**
 	 * Method to intercept page change and trigger FASTA validation.
 	 * 
@@ -211,7 +328,12 @@ implements Runnable, ActionListener {
 					"Invalid EST File", JOptionPane.ERROR_MESSAGE);
 			return false;
 		}
-		// OK, the file at least exists.
+		// Next do some basic checks on the file format as needed.
+		if (!validateFileFormat(estFileName)) {
+			// The file format does not seem valid.
+			return false;
+		}
+		// OK, the file at least exists and seems valid.
 		dataSet.setPath(est.getAbsolutePath());
 		// Next let's do a more
 		// through check on the FASTA file. This is done on a 
@@ -260,17 +382,25 @@ implements Runnable, ActionListener {
 			// Wrap file input stream into a buffered stream to make loading faster
 			fis = new BufferedInputStream(fis);
 			// Create a progress monitor in case the FASTA file is large
-			String msg = "Verifying FASTA File: " + file.getName();
+			String msg = "Verifying data File: " + file.getName();
 			ProgressMonitorInputStream pmis =
 				new ProgressMonitorInputStream(this, msg, fis);
 			pmis.getProgressMonitor().setNote("Please wait...");
-			// Load the FASTA file.
-			ESTList ests = ESTList.loadESTs(estFileName, pmis);
+			// Load the FASTA or SFF file.
+			ESTList ests = null;
+			if (fileType[1].isSelected()) {
+				ests = ESTList.loadESTs(estFileName, pmis);
+			} else {
+				ests = ESTList.loadSFF(estFileName, pmis);
+			}
 			if (ests.getESTs().size() < 1) {
 				throw new Exception("The FASTA file did not have any ESTs");
 			}
 			// EST data was loaded successfully. That is good.
 			wizard.setESTList(ests);
+			// Update the file type in the data set.
+			this.dataSet.setFileType(fileType[1].isSelected() ? DataSet.DataFileType.FASTA : 
+				DataSet.DataFileType.SFF);
 			// Do the page change in from the main AWT thread.
 		} catch (Exception e) {
 			exp = e;
@@ -320,7 +450,7 @@ implements Runnable, ActionListener {
 		JFileChooser jfc = new JFileChooser();
 		jfc.setDialogTitle("Choose EST File");
 		jfc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-		if (jfc.showDialog(this, "Use FASTA File") == JFileChooser.APPROVE_OPTION) {
+		if (jfc.showDialog(this, "Use File") == JFileChooser.APPROVE_OPTION) {
 			// Copy the chosen directory to the work space combo box.
 			String wsPath = jfc.getSelectedFile().getAbsolutePath();
 			// Set the selected item in this path.
@@ -366,6 +496,14 @@ implements Runnable, ActionListener {
 	 */
 	private JButton browse;
 
+	/**
+	 * The set of radio buttons that permit the user to set the
+	 * file format of the data file. The array contains the
+	 * the various radio buttons (such as: "Auto Detect" "FASTA"
+	 * "SFF") used to indicate file format.
+	 */
+	private JRadioButton fileType[] = new JRadioButton[3];
+	
 	/**
 	 * Just a simple error message that is displayed when connection
 	 * to the remote host could not be successfully established.

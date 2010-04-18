@@ -241,6 +241,8 @@ public abstract class ViewFactory implements DnDTabListener {
 	 * @param estFileName The EST file name from where the FASTA data is
 	 * to be loaded.
 	 * 
+	 * @param fileType The physical file format for the EST file.
+	 * 
 	 * @param dataFileName The name of the file where the additional data for
 	 * this view is stored.
 	 * 
@@ -256,13 +258,17 @@ public abstract class ViewFactory implements DnDTabListener {
 	 * @throws Exception This method throws various exceptions when errors
 	 * occur during view creation.
 	 */
-	private JComponent createDefaultView(String estFileName, 
+	private JComponent createDefaultView(String estFileName, DataSet.DataFileType fileType,  
 			String dataFileName, ViewType viewType, final Object wsEntry) throws Exception {
 		// Check and load the FASTA file
 		JComponent view = null;
 		ESTList ests = null;
 		if (estFileName != null) {
-			ests = DataStore.get().getFASTA(estFileName, mainFrame);
+			if (DataSet.DataFileType.FASTA.equals(fileType)) {
+				ests = DataStore.get().getFASTAx(estFileName, mainFrame);
+			} else {
+				ests = DataStore.get().getSFF(estFileName, mainFrame);
+			}
 		}
 		// Check and load the data file depending on the view type
 		if (ViewType.MST_FILE.equals(viewType)) {
@@ -352,9 +358,15 @@ public abstract class ViewFactory implements DnDTabListener {
 					// Set cursor to indicate longer operations
 					mainFrame.getContentPane().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 					ClusterFile ct = DataStore.get().getClusterData(dataFileName, mainFrame);
-					// Load the ESt file as well if needed.
+					// Load the EST file as well if needed.
 					String estFileName = cluster.getDataSet().getPath();
-					ESTList ests = DataStore.get().getFASTA(estFileName, mainFrame);
+					// Load FASTA or EST file based on the file type.
+					ESTList ests = null;
+					if (cluster.getDataSet().isFASTAFile()) {
+						 ests = DataStore.get().getFASTAx(estFileName, mainFrame);
+					} else {
+						ests = DataStore.get().getSFF(estFileName, mainFrame);
+					}
 					// Create the view.
 					final ClusterSummaryView csv = new ClusterSummaryView(mainFrame, ct, ests, cluster);
 					// Add the view to the center panel in the main frame.
@@ -425,7 +437,13 @@ public abstract class ViewFactory implements DnDTabListener {
 					MST mst = DataStore.get().getMSTData(mstEntry.getPath(), mainFrame);
 					// Load the EST file as well if needed.
 					String estFileName = cluster.getDataSet().getPath();
-					ESTList ests = DataStore.get().getFASTA(estFileName, mainFrame);
+					// Load FASTA or SFF file depending on file type.
+					ESTList ests = null;
+					if (cluster.getDataSet().isFASTAFile()) {
+						ests = DataStore.get().getFASTAx(estFileName, mainFrame);
+					} else {
+						ests = DataStore.get().getSFF(estFileName, mainFrame);
+					}
 					// Create the view and the model
 					OverlapModel pam = OverlapModel.create(ct, ests, mst, cluster);
 					final OverlapView view = new OverlapView(mainFrame, pam, ct);
@@ -564,24 +582,28 @@ public abstract class ViewFactory implements DnDTabListener {
 		String estFileName   = null;
 		String dataFileName  = null;
 		ViewType viewType    = ViewType.EST_FILE;
+		DataSet.DataFileType fileType = null;
 		// Setup the above variables based on entry type
 		if (wsEntry instanceof DataSet) {
 			DataSet ds   = (DataSet) wsEntry;
 			dataFileName = ds.getPath();
 			estFileName  = dataFileName;
+			fileType     = ds.getFileType();
 		} else if (wsEntry instanceof MSTData) {
 			MSTData mst  = (MSTData) wsEntry;
 			estFileName  = mst.getDataSet().getPath();
 			dataFileName = mst.getPath();
 			viewType     = ViewType.MST_FILE;
+			fileType     = mst.getDataSet().getFileType();
 		} else if (wsEntry instanceof MSTClusterData) {
 			MSTClusterData cluster = (MSTClusterData) wsEntry;
 			estFileName            = cluster.getDataSet().getPath();
 			dataFileName           = cluster.getPath();
 			viewType               = ViewType.CLUSTER_FILE;
+			fileType               = cluster.getDataSet().getFileType();
 		}
 		// Now get the other public method do the view creation.
-		createView(dataFileName, estFileName, viewType, duplicate, textView, wsEntry);
+		createView(dataFileName, estFileName, fileType, viewType, duplicate, textView, wsEntry);
 	}
 
 	/**
@@ -595,9 +617,11 @@ public abstract class ViewFactory implements DnDTabListener {
 	 * @param dataFileName The full path to the data file that is to be
 	 * loaded and displayed in the specified view.
 	 * 
-	 * @param estFileName An optional EST (FASTA) file that is associated
+	 * @param estFileName An optional EST file that is associated
 	 * with the data file. The EST file name is typically used to obtain
 	 * additional information to be displayed to the user.
+	 * 
+	 * @param fileType The physical storage file type of the EST data file.
 	 * 
 	 * @param viewType The type of view to be created. This value must be
 	 * from one of the predefined enumerations. Note that the view type and
@@ -613,7 +637,8 @@ public abstract class ViewFactory implements DnDTabListener {
 	 * This value is set for some of the views (like: ClusterTreeTableView and
 	 * ClusterSummaryView).
 	 */
-	public void createView(String dataFileName, String estFileName, ViewType viewType,
+	public void createView(String dataFileName, String estFileName, 
+			final DataSet.DataFileType fileType, ViewType viewType,
 			boolean duplicate, final boolean textView, final Object wsEntry) {
 		// Check and handle duplicate file name & view type.
 		String viewSignature = dataFileName + "_" + (textView ? ViewType.TEXT_VEIW : viewType);
@@ -639,7 +664,7 @@ public abstract class ViewFactory implements DnDTabListener {
 					if (textView) {
 						view = createTextView(finalDataFileName);
 					} else {
-						view = createDefaultView(finalEstFileName, finalDataFileName, finalViewType, wsEntry);
+						view = createDefaultView(finalEstFileName, fileType, finalDataFileName, finalViewType, wsEntry);
 					}
 					// Now we should have a valid view.
 					if (view == null) {
