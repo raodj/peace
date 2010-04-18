@@ -24,6 +24,7 @@ urlcolor=blue %color of the url links
 \newcommand{\peace} {{\small PEACE}}
 \newcommand{\wcd} {{\small WCD}}
 \newcommand{\capthree} {{\small Cap3}}
+\newcommand{\easycluster} {{\small EasyCluster}}
 
 \begin{document}
 
@@ -334,17 +335,27 @@ Materials).  \mc{The most important method of quality assessment is
 \end{figure}
 
 
-In applying the tools to real data, we started with a set of
-approximately $190,000$ clean Sanger ESTs derived from the {\it
-  Chlamydomonas reinhardtii} genome \cite{Liang2008}.  To compute
-sensitivity we used the {\it gmap} tool \cite{Wu05} to map the
-fragment set to the genome, taking this as our reference clustering.
-We see slight improvements in \peace\/ over \wcd\/ in both sensitivity
-and Type 1 error (both significantly outperforming \capthree).  Using
-the \mc{Arabidopsis} data set used in Hazelhurst {\it et al.}
-\cite{Hazelhurst08a} \peace\/ again shows slight improvements in
-sensitivity and Type 1 error rates, with an 18\% speedup for \peace\/ 
-(see Supplementary Materials, Section~D, for more details).
+\mc{In applying the tools to real data Sanger data, we used the Human
+Benchmark Dataset used to test \easycluster\/ \cite{Picardi09}, and
+the A076941.fa {\it Arabidopsis thaliana} dataset used to test WCD
+\cite{Hazelhurst08,Hazelhurst08a}.  For the first, we find an almost
+exact match in results in quality between PEACE and WCD (both
+out-preforming Cap3), but a significant gain in runtime for PEACE over
+WCD, as shown in Tabe\ref{XXX}}.  For the A076941.fa...}
+
+
+
+% we started with a set of
+% approximately $190,000$ clean Sanger ESTs derived from the {\it
+%   Chlamydomonas reinhardtii} genome \cite{Liang2008}.  To compute
+% sensitivity we used the {\it gmap} tool \cite{Wu05} to map the
+% fragment set to the genome, taking this as our reference clustering.
+% We see slight improvements in \peace\/ over \wcd\/ in both sensitivity
+% and Type 1 error (both significantly outperforming \capthree).  Using
+% the \mc{Arabidopsis} data set used in Hazelhurst {\it et al.}
+% \cite{Hazelhurst08a} \peace\/ again shows slight improvements in
+% sensitivity and Type 1 error rates, with an 18\% speedup for \peace\/ 
+% (see Supplementary Materials, Section~D, for more details).
 
 We were unable to run \wcd\/ on short-read sequences, as the
 distributed implementation is unable to handle such data without an
