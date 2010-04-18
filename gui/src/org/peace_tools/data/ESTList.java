@@ -95,7 +95,7 @@ public class ESTList {
 	 *  
 	 * @param fastaFile The FASTA file from where the ESTs are to be loaded.
 	 * 
-	 * @return The newly cerated EST list containing all the ESTs in the
+	 * @return The newly created EST list containing all the ESTs in the
 	 * FASTA file.
 	 * 
 	 * @exception IOException This method throws an IO exception on errors.
@@ -138,6 +138,65 @@ public class ESTList {
 			EST est = new EST(ests.size(), null, null);
 			// Get EST to load itself.
 			est.read(fasta);
+			// Add est to the list of ESTs
+			ests.add(est);
+		}
+		// Close the stream.
+		is.close();
+		// Let the caller deal with this list of ESTs.
+		return list;
+	}
+	
+	/**
+	 * Load ESTs from a Standard Flowgram Format (SFF).
+	 * 
+	 * This method can be used to load ESTs from a given input SFF file
+	 * into a new ESTList. The absolute path to the SFF file to be used to 
+	 * name/tag the newly created ESTList must be provided. This method
+	 * uses the SFFReader class to read the SFF file. 
+	 * 
+	 * @param sffFile The SFF file from where the ESTs are to be loaded.
+	 * 
+	 * @return The newly created EST list containing all the ESTs in the
+	 * SFF file.
+	 * 
+	 * @exception IOException This method throws an IO exception on errors.
+	 */
+	public static ESTList loadSFF(File sffFile) throws IOException {
+		// Create a new input stream to read ESTs
+		InputStream is = new FileInputStream(sffFile);
+		// Use the helper method to load the data.
+		return loadSFF(sffFile.getAbsolutePath(), is);
+	}
+	
+	/**
+	 * Load ESTs from a Standard Flowgram Format (SFF).
+	 * 
+	 * This method can be used to load ESTs from a given input SFF file
+	 * into a new ESTList. The absolute path to the SFF file to be used to 
+	 * name/tag the newly created ESTList must be provided. This method
+	 * uses the SFFReader class to read the SFF file. 
+	 * 
+	 * @param fileName The absolute path to the FASTA file to be used to
+	 * name/tag the newly created ESTList.
+	 * 
+	 * @param is The input stream from where the EST data is to be read.
+	 * 
+	 * @return The newly created EST list containing all the ESTs in the
+	 * SFF file.
+	 * 
+	 * @exception IOException This method throws an IO exception on errors.
+	 */
+	public static ESTList loadSFF(String fileName, InputStream is) throws IOException {
+		// First create an empty list.
+		ESTList list = new ESTList(fileName);
+		// Get the ests from the list for handy reference
+		ArrayList<EST> ests = list.getESTs();
+		// Create an SFFReader to load the fragments
+		SFFReader sff = new SFFReader(is);
+		while (sff.isValid() && (sff.getPendingReads() > 0)) {
+			// Read the next entry from the file
+			EST est = sff.getNextRead(ests.size());
 			// Add est to the list of ESTs
 			ests.add(est);
 		}

@@ -259,6 +259,18 @@ implements ActionListener {
 		} else {
 			// Update the fixed window size
 			tvParams[0].setValue(awp.getFrameSize());
+			// Disable check box to enable/disable heuristics in twopass d2
+			// non-adaptive as as it uses uv and tv heuristics no-matter what.
+			if (awp.getAnalyzerType().equals(FWAnalyzer.FWAnalyzerType.TWOPASSD2_DONT_ADAPT)) {
+				enableUV.setSelected(true);
+				enableUV.setEnabled(false);
+				enableTV.setSelected(true);
+				enableTV.setEnabled(false);
+			} else {
+				// Let user decide if heuristics should be used.
+				enableUV.setEnabled(true);
+				enableTV.setEnabled(true);
+			}
 			// Display the panel for configuring heuristics
 			add(heuristicPanel, BorderLayout.CENTER);
 		}
@@ -278,6 +290,7 @@ implements ActionListener {
 	protected ArrayList<Heuristic> getHeuristics() {
 		ArrayList<Heuristic> heurList = new ArrayList<Heuristic>(2);
 		final boolean useHeuristics = 
+			awp.getAnalyzerType().equals(FWAnalyzer.FWAnalyzerType.TWOPASSD2_DONT_ADAPT) ||
 			awp.getAnalyzerType().equals(FWAnalyzer.FWAnalyzerType.D2) ||
 			awp.getAnalyzerType().equals(FWAnalyzer.FWAnalyzerType.D2ZIM);
 		// Populate list with necessary entries.

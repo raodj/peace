@@ -158,12 +158,12 @@ implements ActionListener, ChangeListener {
 		nodeInfo[0].addChangeListener(this);
 		nodeInfo[1].addChangeListener(this);
 		// Memory and wall clock time.
-		nodeInfo[2] = new JSpinner(new SpinnerNumberModel(2048, 64, 102400, 256));
+		nodeInfo[2] = new JSpinner(new SpinnerNumberModel(2048, 64, 102400, 16));
 		nodeInfo[3] = new JSpinner(new SpinnerNumberModel(6, 1, 168, 1));
 		
 		// Place them in a 2x2 grid pattern.
 		final String Labels[] = {"Compute Nodes:", "CPUs per Nodes:", 
-								 "Max Memory (in MB):", "Max Run time (hours):"};
+								 "Memory per Node (in MB):", "Esti. Run time (hours):"};
 		JPanel grid = new JPanel(new GridLayout(2, 2, 10, 3));
 		grid.setAlignmentX(0);
 		for(int i = 0; (i < nodeInfo.length); i++) {
@@ -177,14 +177,15 @@ implements ActionListener, ChangeListener {
 			// Second add the cpu, nodes/cpu spinners
 			Box.createVerticalStrut(5),
 			grid,
+			Box.createVerticalStrut(5),
 			// Add information at bottom.
 			new JLabel(CPU_INFO_MSG, 
-						Utilities.getIcon("images/16x16/Information.png"), JLabel.LEFT)
+						Utilities.getIcon("images/32x32/Information.png"), JLabel.LEFT)
 		);
 		// Set border to to make things look good.
  		bigBox.setBorder(BorderFactory.createCompoundBorder(
 				BorderFactory.createTitledBorder("Server Info:"),
-				BorderFactory.createEmptyBorder(5, 5, 5, 5)));
+				BorderFactory.createEmptyBorder(1, 5, 5, 5)));
  		// Return the panel to the caller
 		return bigBox;
 	}
@@ -351,23 +352,30 @@ implements ActionListener, ChangeListener {
 	}
 	
 	/**
-	 * Obtain the name of the server that the user has selected.
+	 * Obtain information about the server and job that the user has 
+	 * configured.
 	 *  
 	 * @param indent A simple indent string for indenting the data
 	 * displayed by this server.
 	 * 
-	 * @return This method is used to obtain the name of the server
-	 * that the user has selected to run the job.
+	 * @return A multi-line string containing various information about
+	 * the job including: name of server, nodes, cpus/node, memory/node,
+	 * and estimated run time.
 	 */
 	protected String getSummary(String indent) {
 		// Obtain the ID of the server from the selected list.
 		Server server   = getSelectedServer();
+		// Compute total memory for the job and display it for convenience
+		final int[] config = getPlatformConfiguration();
+		// Compute total memory as: #Nodes * #CPUsPerNode * MemPerNode
+		final int   totalMemory = config[0] * config[1] * config[2];
 		return "Server Information:\n" +
 			indent + "Server: " + server.getName() + "\n" +
 			indent + "Nodes: " + nodeInfo[0].getValue() + "\n" +
 			indent + "CPUs per Node: " + nodeInfo[1].getValue() + "\n" +
-			indent + "Max Memory (MB): " + nodeInfo[2].getValue() +  "\n" + 
-			indent + "Max run time (hours): " + nodeInfo[3].getValue();
+			indent + "Memory per Node (MB): " + nodeInfo[2].getValue() +  "\n" +
+			indent + "Total memory (MB)   : " + totalMemory +  "\n" + 
+			indent + "Esti. run time (hours): " + nodeInfo[3].getValue();
 	}
 	
 	/**
@@ -397,8 +405,14 @@ implements ActionListener, ChangeListener {
 	 * recommended amount of memory to be reserved for this job. The memory
 	 * is computed using the formula:</p>
 	 * 
-	 * <p>Memory = (CPUs * NodesPerCPU * FASTAFileSize) + (CPUs * NodesPerCPU *
-	 * 256MB)</p>
+	 * <p>Memory = (2 * FASTAFileSize) + 256MB</p>
+	 * 
+	 * <p>Note: Earlier the memory field represented the total aggregate memory
+	 * to be allocated for the job. This value was directly passed on as part of
+	 * PBS job script. However, this was confusing to users. So this field
+	 * has now been revised to max memory per node.  The net memory is computed
+	 * by multiplying this value with number of CPUs and number of nodes just before
+	 * the job is submitted.</p> 
 	 * 
 	 * @param e The change event associated with this call back. Currently,
 	 * this parameters is not used by this method.
@@ -408,9 +422,6 @@ implements ActionListener, ChangeListener {
 		// Couple constants to make code more meaningful
 		final int megaBytes   = 1024 * 1024;
 		final int minMemory   = 256;  // Megabytes
-		// Obtain the needed information from the input fields
-		final int cpus        = ((Number) nodeInfo[0].getValue()).intValue();
-		final int nodesPerCPU = ((Number) nodeInfo[1].getValue()).intValue();
 
 		// Determine FASTA file size in megabytes
 		final String fileName = wizard.getDataSet().getPath();
@@ -419,8 +430,7 @@ implements ActionListener, ChangeListener {
 		final long size       = (tempFile.length() / megaBytes) + 1;
 		
 		// Compute minimum memory in MB.
-		final long memorySize = ((cpus * nodesPerCPU * size) + 
-				(cpus * nodesPerCPU * minMemory));
+		final long memorySize = size + size + minMemory;
 		// Setup the suggested memory footprint
 		nodeInfo[2].setValue(new Long(memorySize));
 	}
@@ -462,8 +472,9 @@ implements ActionListener, ChangeListener {
 	 * to provide information about the u/v heuristic.
 	 */
 	private static final String CPU_INFO_MSG = 
-		"<html>The CPUs selected and nodes per CPU must match<br>" +
-		"the configuration of the server.</html>";
+		"<html>The CPUs selected and nodes per CPU must match the<br>" +
+		"server configuration. Refer to user manual or help for setting<br>" +
+		"up hostfile for non-PBS jobs using openmpi or mpich.</html>";
 
 	/**
 	 * A generic informational message that is displayed to the user

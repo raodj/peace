@@ -95,6 +95,13 @@
 	
 	<!-- The ESTFile is the FASTA file that provides the core sequence
 		data that is used to do all the analysis in this data set.  -->
+	<xsd:simpleType name="DataFileType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="fasta" />
+			<xsd:enumeration value="sff" />
+		</xsd:restriction>
+	</xsd:simpleType>
+		
 	<xsd:element name="ESTData">
 		<xsd:complexType>
 			<xsd:sequence>
@@ -102,6 +109,7 @@
 				<xsd:element name="Path" type="xsd:string" />
 				<xsd:element name="Description" type="xsd:string" />
 			</xsd:sequence>
+			<xsd:attribute name="fileType" type="DataFileType" default="fasta"/>
 		</xsd:complexType>
 	</xsd:element>
 
@@ -119,6 +127,7 @@
 			<xsd:enumeration value="d2zim" />
 			<xsd:enumeration value="twopassd2" />
 			<xsd:enumeration value="clu" />
+			<xsd:enumeration value="twopassd2_dont_adapt" />
 		</xsd:restriction>
 	</xsd:simpleType>
 

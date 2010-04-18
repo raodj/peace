@@ -212,7 +212,7 @@ public class JobDetailsView extends DetailView {
 		"\tServer: %s\n" + 
 		"\tNodes: %d\n" +
 		"\tCPUs per Node: %d\n" +
-		"\tMax Memory (GB): %d\n" + 
+		"\tMax Memory (MB): %d\n" + 
 		"\tMax run time (hours): %d\n";
 	
 	/**

@@ -77,7 +77,7 @@ public class DataSetWizard extends WizardDialog {
 		setSequenceBackground("images/peace_wizard_column.png");
 		// Create the data set that this wizard is going to be
 		// modifying.
-		dataSet = new DataSet("", null, "");
+		dataSet = new DataSet("", null, "", DataSet.DataFileType.FASTA);
 		// First setup the overview page.
 		createOverview();
 		// Create page to read/edit EST FASTA File

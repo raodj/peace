@@ -50,6 +50,24 @@ import org.w3c.dom.NodeList;
  */
 public class DataSet {
 	/**
+	 * Enumeration of the type of data file associated with this data set.
+	 * 
+	 * The following enumerations are used to indicate the file format of
+	 * the data file associated with this data set.
+	 */
+	public enum DataFileType {
+		/**
+		 * This enumeration is used to indicate a FASTA (text) file. This
+		 * is the default data type that is associated with a data file.
+		 */
+		FASTA,
+		/**
+		 * This enumeration is used to indicate a Standard Flowgram Format
+		 * (SFF) file.
+		 */
+		SFF };
+	
+	/**
 	 * Helper method to utilize data from a DOM tree to create a suitable
 	 * DataSet entry. This method is typically  used to create a suitable
 	 * entry when loading a work space into the GUI.
@@ -65,12 +83,16 @@ public class DataSet {
 	public static DataSet create(Element data) throws Exception {
 		// First extract the necessary information from the DOM tree.
 		Element estData= DOMHelper.getElement(data, "ESTData");
-		String id     = DOMHelper.getStringValue(estData, "ID"); 
-		String path   = DOMHelper.getStringValue(estData, "Path");
-		String desc   = DOMHelper.getStringValue(estData, "Description", true);
-		desc          = (desc != null) ? desc : "";
+		String id      = DOMHelper.getStringValue(estData, "ID"); 
+		String path    = DOMHelper.getStringValue(estData, "Path");
+		String desc    = DOMHelper.getStringValue(estData, "Description", true);
+		String type    = estData.getAttribute("fileType");
+		desc           = (desc != null) ? desc : "";
+		// Convert file type to a suitable enumeration for further use
+		DataFileType fileType= ((type != null) && (type.length() > 0)) ? 
+				DataFileType.valueOf(type.toUpperCase()) : DataFileType.FASTA; 
 		// Create the data set entry.
-		DataSet dataSet= new DataSet(id, path, desc);
+		DataSet dataSet= new DataSet(id, path, desc, fileType);
 		// Now parse in any MSTData elements for this DataSet
 		NodeList mstNodes = data.getElementsByTagName("MSTData");
 		for(int idx = 0; (idx < mstNodes.getLength()); idx++) {
@@ -107,11 +129,15 @@ public class DataSet {
 	 *            referred by this entry.
 	 * @param description
 	 *            A user defined description for the EST data file.
+	 *            
+	 * @param fileType The physical file format of the data file associated with
+	 * this data set.
 	 */
-	public DataSet(String id, String path, String description) {
+	public DataSet(String id, String path, String description, DataFileType fileType) {
 		this.id          = id;
 		this.path        = path;
 		this.description = description;
+		this.fileType    = fileType;
 		this.mstList     = new ArrayList<MSTData>();
 		this.clusterList = new ArrayList<MSTClusterData>();
 	}
@@ -184,6 +210,42 @@ public class DataSet {
 	public void setDescription(String desc) { description = desc; }
 
 	/**
+	 * Obtain information about the physical file format of the data file.
+	 * 
+	 * This method must be used to determine the file format of the physical
+	 * data file.
+	 * 
+	 * @return One of the pre-defined (and supported) file formats.
+	 */
+	public DataFileType getFileType() { return fileType; }
+	
+	/**
+	 * Set the information about the physical file format of the data file.
+	 * 
+	 * This method must be used to set the format of the physical data file
+	 * associated with this data set.
+	 * 
+	 * @param fileType A pre-defined enumerated value indicating the physical
+	 * format of the data file associated with this data set.
+	 */
+	public void setFileType(DataFileType fileType) {
+		this.fileType = fileType;
+	}
+	
+	/**
+	 * Convenience method to detect if the file type is a FASTA file.
+	 * 
+	 * This method must provides a convenient mechanism to determine if the
+	 * data file associated with this data set is a FASTA file. 
+	 * 
+	 * @return This method returns true if the data file is in FASTA file 
+	 * format. Otherwise it returns false.
+	 */
+	public boolean isFASTAFile() {
+		return fileType.equals(DataFileType.FASTA);
+	}
+	
+	/**
 	 * Obtain the list of MST data files encapsulated by this data set.
 	 * 
 	 * @return The list (zero or more) of MST data files that are associated
@@ -250,6 +312,7 @@ public class DataSet {
 		Element dataset = DOMHelper.addElement(workspace, "DataSet", null);
 		// Add new sub-element for the ESTData node
 		Element estData = DOMHelper.addElement(dataset, "ESTData", null);
+		estData.setAttribute("fileType", fileType.toString().toLowerCase());
 		DOMHelper.addElement(estData, "ID", id);
 		DOMHelper.addElement(estData, "Path", path);
 		DOMHelper.addElement(estData, "Description", description);
@@ -278,7 +341,7 @@ public class DataSet {
 		// Create a top-level server entry for this server
 		out.printf("%s<DataSet>\n", Indent); 
 		// Add new sub-elements for the ESTData element
-		out.printf("%s\t<ESTData>\n", Indent);
+		out.printf("%s\t<ESTData fileType=\"%s\">\n", Indent, fileType.toString().toLowerCase());
 		out.printf(STR_ELEMENT, "ID", id);
 		out.printf(STR_ELEMENT, "Path", path);
 		out.printf(STR_ELEMENT, "Description", DOMHelper.xmlEncode(description));
@@ -389,7 +452,7 @@ public class DataSet {
 	@Override
 	public String toString() {
 		File tmpData = new File(path);
-		return "Data Set [EST file: " + tmpData.getName() + "]";
+		return "Data Set [" + fileType + " file: " + tmpData.getName() + "]";
 	}
 	
 	/**
@@ -427,4 +490,12 @@ public class DataSet {
 	 * generated via  a call to Workspace.reserveID() method.
 	 */
 	private String id;
+
+	/**
+	 * Enumeration to indicate the physical file format of the data file
+	 * associated with this data set. This value is persisted in the
+	 * work space configuration. It enables loading the necessary
+	 * sequences for viewing and analysis.
+	 */
+	private DataFileType fileType;
 }

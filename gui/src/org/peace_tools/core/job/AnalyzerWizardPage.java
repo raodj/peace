@@ -119,7 +119,7 @@ public class AnalyzerWizardPage extends GenericWizardPage implements ActionListe
 		frameSize.setVisible(false);
 		Utilities.adjustDimension(frameSize, 0, 6); // Adjust size to look right
 		// Create the dummy "Auto" label that is used instead of the frameSize 
-		// spinner when the analyzer is two pass d2
+		// spinner when the analyzer is two pass d2 based analyzers
 		frameSizeAuto = new JLabel("Auto/Adaptive", Utilities.getIcon("images/16x16/Job.png"), JLabel.LEFT);
 		frameSizeAuto.setBackground(frameSize.getBackground());
 		frameSizeAuto.setOpaque(true);
@@ -187,9 +187,9 @@ public class AnalyzerWizardPage extends GenericWizardPage implements ActionListe
 	 */
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		final boolean isTwoPassD2 = analyzerList.getSelectedIndex() == 0;
-		// The TwoPassD2 analyzer has been selected. The user cannot
-		// modify the frame size here.
+		final boolean isTwoPassD2 = (analyzerList.getSelectedIndex() == 0);
+		// The adaptive TwoPassD2 analyzer has been selected. 
+		// The user cannot modify the frame size here.
 		frameSize.setVisible(!isTwoPassD2);
 		frameSizeAuto.setVisible(isTwoPassD2);
 	}
@@ -308,7 +308,8 @@ public class AnalyzerWizardPage extends GenericWizardPage implements ActionListe
 	 * two ESTs to determine similarity or distance. 
 	 */
 	private static final String ANALYZERS[] = {
-		"Two Pass D2 (Best Choice)", 
+		"Adaptive Two Pass D2 (safe & best choice)", 
+		"Non-adaptive Two Pass D2 (Sanger sequences)",
 		"D2 Optimized (similar to wcd)", 
 		"D2 Standard",
 		"CLU (similarity metric)"

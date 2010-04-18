@@ -252,6 +252,9 @@ public class JobWizard extends WizardDialog {
 		int platformInfo[] = mwp.getPlatformConfiguration();
 		// Get an unique ID for this job.
 		JobList   jobList   = Workspace.get().getJobList();
+		// Compute the total memory to be used for the job by:
+		// #Nodes * #CPUs/Node * #Memory/CPU
+		final int totalMemory = platformInfo[0] * platformInfo[1] * platformInfo[2];
 		// Now we have all the info to create the new job entry. The
 		// only thing critical thing that is not yet finalized is
 		// the path where the job files are stored on the remote 
@@ -260,8 +263,8 @@ public class JobWizard extends WizardDialog {
 				jiwp.getDescription(),
 				server.getID(),	null, 
 				platformInfo[0],     // number of nodes, 
-				platformInfo[1],     // cpus per node, 
-				platformInfo[2],     // memory, 
+				platformInfo[1],     // CPUs per node, 
+				totalMemory,         // memory, 
 				platformInfo[3],     // runTime
 				hwp.getHeuristics(), // heuristic list
 				fwp.getFilters()     // Filter list
@@ -378,13 +381,17 @@ public class JobWizard extends WizardDialog {
 	 * <p><b>Note:</b>The command line arguments does not include the executable
 	 * path.</p>
 	 * 
-	 * @param estFile The path to the est file to be used when generating
+	 * @param estFile The path to the EST file to be used when generating
 	 * the command line.
 	 * 
+	 * @param fileType The type of file that is being used for analysis. This
+	 * information is used to generate suitable command line parameter.
+	 *  
 	 * @return Return the information as a command line parameter.
 	 */
-	public String toCmdLine(String estFile) {
-		String cmdLine = "--estFile " + estFile;
+	public String toCmdLine(String estFile, DataSet.DataFileType fileType) {
+		String cmdLine = (fileType.equals(DataSet.DataFileType.SFF) ? 
+				"--sffFile " : "--fastaFile ") + estFile;
 		// Check and suppress base masking.
 		if (!jiwp.isMaksBasesSet()) {
 			// Disable base masking. That is atcg is

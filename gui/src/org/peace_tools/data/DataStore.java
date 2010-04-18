@@ -146,7 +146,7 @@ public class DataStore {
 	 * @exception Exception This method throws exceptions if the 
 	 * specified file could not be loaded due to various reasons.
 	 */
-	public ESTList getFASTA(String fileName, Component parent) throws Exception {
+	public ESTList getFASTAx(String fileName, Component parent) throws Exception {
 		// First check if entry is in cache.
 		Object entry = cache.get(fileName);
 		// If entry is present then check and return it. 
@@ -180,6 +180,63 @@ public class DataStore {
 		// Now the caller gets a reference to hold on to.
 		return ests;
 	}
+	
+	/**
+	 * Method to load/get a given SFF data file.
+	 * 
+	 * This method can be used to obtain the ESTs loaded from a given
+	 * SFF file. The full path to the SFF file must be supplied
+	 * as the parameter to this method. If the specified file is not
+	 * found in cache, then this method loads the file from disk,
+	 * places the entry in cache, and returns a reference to the 
+	 * ESTList.
+	 * 
+	 * @param fileName The SFF file containing ESTs to be loaded.
+	 * 
+	 * @param parent If this parameter is not null then this method
+	 * displays a progress monitor.
+	 * 
+	 * @return This method returns the list of ESTs from the given
+	 * file.
+	 * 
+	 * @exception Exception This method throws exceptions if the 
+	 * specified file could not be loaded due to various reasons.
+	 */
+	public ESTList getSFF(String fileName, Component parent) throws Exception {
+		// First check if entry is in cache.
+		Object entry = cache.get(fileName);
+		// If entry is present then check and return it. 
+		if (entry != null) {
+			if (entry instanceof ESTList) {
+				return (ESTList) entry;
+			} else {
+				throw new IllegalArgumentException("The specified file did not map to an EST file.");
+			}
+		}
+		// The entry was not found. It must be loaded. So do it now.
+		File file = new File(fileName);
+		if (!file.exists()) {
+			throw new IOException("The file " + fileName + " was not found.");
+		}
+		// Do a memory check to ensure we have sufficient memory
+		memoryCheck(file, parent);
+		InputStream fis = new FileInputStream(file);
+		// Wrap input stream in a buffered stream to make IO faster
+		fis = new BufferedInputStream(fis, 32768);
+		// Wrap the input stream in progress monitor if requested.
+		if (parent != null) {
+			fis = new ProgressMonitorInputStream(parent, 
+					"Please wait while the file is loaded...\n" +
+					"(file: " + fileName + ")", fis);
+		}
+		// Load the ESTs
+		ESTList ests = ESTList.loadSFF(fileName, fis);
+		// Put entry in cache for future reference.
+		cache.put(fileName, ests);
+		// Now the caller gets a reference to hold on to.
+		return ests;
+	}
+
 	
 	/**
 	 * Method to load/get a given cluster file.

@@ -35,7 +35,7 @@ package org.peace_tools.core;
 
 /**
  * This is a non-instantiable class that serves as a central point to
- * hold various version, copyright, and lisence information associated
+ * hold various version, copyright, and license information associated
  * with PEACE and its GUI.  
  */
 public class Version {
@@ -44,7 +44,7 @@ public class Version {
 	   This constant provides a convenient way to track and log the version
 	   information of the software for tracking version changes.
 	*/
-	public static final String GUI_VERSION = "Version 0.95 (Beta)\n(March 20 2010)";
+	public static final String GUI_VERSION = "Version 0.95 \n(April 19 2010)";
 	
 	/** A simple copyright message.
 

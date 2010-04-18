@@ -52,6 +52,7 @@ import javax.swing.border.EmptyBorder;
 
 import org.peace_tools.core.FileInfo;
 import org.peace_tools.core.JobMonitor;
+import org.peace_tools.core.Version;
 import org.peace_tools.core.session.ServerSession;
 import org.peace_tools.core.session.SessionFactory;
 import org.peace_tools.generic.GenericWizardPage;
@@ -328,7 +329,8 @@ implements Runnable {
 		Server srvr = Workspace.get().getServerList().getServer(job.getServerID());
 		// Now compute the PEACE executable path and arguments.
 		ServerSession.OSType os = server.getOSType();
-		String cmdLineParams    = wizard.toCmdLine(getServerESTFile());
+		String cmdLineParams    = wizard.toCmdLine(getServerESTFile(), 
+												   wizard.getDataSet().getFileType());
 		String exePath          = srvr.getInstallPath();
 		String launcherPath     = exePath;
 		String jobRunnerPath    = null;
@@ -363,6 +365,7 @@ implements Runnable {
 		runnerScript = runnerScript.replace("%cpusPerNode%", "" + job.getCPUsPerNode());
 		runnerScript = runnerScript.replace("%memory%", "" + job.getMemory());
 		runnerScript = runnerScript.replace("%maxRunTime%", "" + job.getMaxRunTime());
+		runnerScript = runnerScript.replace("%peaceVersion%", Version.GUI_VERSION.replace('\n', ' '));
 		
 		log.append("Command line arguments: " + cmdLineParams + "\n");
 		// Now copy the runnerScript to a remote file.
