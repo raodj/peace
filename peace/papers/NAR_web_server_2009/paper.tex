@@ -146,7 +146,7 @@ of the clusters as input to assembly tools such as \capthree\/
 performed in the following manner (see Figure~\ref{fig:workflow}):
 
 \begin{figure}
-  \centerline{\includegraphics[width=3in]{workflow.eps}}
+  \centerline{\includegraphics[width=3in]{pics.d/workflow.eps}}
   \caption{Overview of the procedure for clustering and analysis using
     PEACE.}\label{fig:workflow}
 \end{figure}
@@ -285,36 +285,44 @@ Sections~A and B of the Supplementary Materials for more details).
 
 \peace\/ has been tested on both simulated and real data from NGS and
 Sanger Sequencing technologies, comparing results against those
-produced by the \wcd\/ clustering tool \wc{(version 0.5.1)}\cite{Hazelhurst08a} and the
-\capthree\/ assembly tool \cite{Huang99} (the latter of which
-implicitly calculates a clustering in the process of assembly).  For our
-simulation tests we used the {\bf ESTSim} tool \cite{Hazelhurst03} to
-generate simulated transcript fragments of varying length under
-different models of error (Supplementary Materials, Section~C.1),
-generating the fragments from the list of 100 zebra fish genes used in
-the \wcd\/ testing \cite{Hazelhurst08a}.  Tool parameters were taken
-to match, as closely as possible, those used in the \wcd\/ study (see
-Supplementary Materials).  Our primary methods of quality assessment
-were {\it sensitivity} (the fraction of fragment pairs from the same
-gene that were correctly clustered together) and {\it Type 1 error}
-(the fraction of genes that were divided between clusters)
-\cite{Wang04,Hazelhurst08a}.  Specificity was not an issue in
-simulated tests, as both \peace\/ and \wcd\/ were completely successful
-in separating unrelated ESTs (save when dealing with recently
-duplicated genes).  Other measurements are also discussed in the
-supplementary materials.  In Figure~\ref{SeT1} (left), reflecting
-tests done on simulated Sanger EST sets, we see a
-significant improvement of \peace\/ (blue) over \wcd\/ (green) and
-\capthree\/ (black) in its sensitivity to sequencing errors, while in
-Figure~\ref{SeT1} (right) we see a comparable improvement in Type 1
-error.  In Figure~\ref{singletons} we look at the number of singleton
-clusters (fragments not joined to any cluster), which should not occur
-in our simulated sets.  We again see significant improvement in \peace.
-The sequential runtime of \peace\/ is slightly improved over that of
-\wcd\/ (see Supplementary Materials, Figure~S4).
+produced by the \wcd\/ clustering tool \mc{(version
+  0.5.1)}\cite{Hazelhurst08a} and the \capthree\/ assembly tool
+\cite{Huang99} (the latter of which implicitly calculates a clustering
+in the process of assembly).  For our simulation tests we used the
+{\bf ESTSim} tool \cite{Hazelhurst03} to generate simulated transcript
+fragments of varying length under different models of error
+(Supplementary Materials, Section~C.1), generating the fragments from
+the list of 100 zebra fish genes used in the \wcd\/ testing
+\cite{Hazelhurst08a}.  Tool parameters were taken to match, as closely
+as possible, those used in the \wcd\/ study (see Supplementary
+Materials).  \mc{The most important method of quality assessment is
+  {\it sensitivity} (the fraction of fragment pairs from the same gene
+  that were correctly clustered together).  But we also look at the
+  {\it Jaccard Index} (which balances sensitivity with the number of
+  false positives by looking at the ratio of true positives to the sum
+  of true positives, false positives, and true negitives), {\it Type 1
+    error} (the fraction of genes that were divided between clusters),
+  and {\it Type 2 error} (the fraction of clusters containing two or
+  more genes).  Specificity was not an issue in simulated tests, as
+  both \peace\/ and \wcd\/ were completely successful in separating
+  unrelated ESTs (save when dealing with recently duplicated genes).
+  Other measurements are also discussed in the supplementary
+  materials.  In Figure~\ref{SeJiT1T2} (left) we see these four tests,...}
+
+
+% , reflecting tests done on
+%   simulated Sanger EST sets, we see a significant improvement of
+%   \peace\/ (blue) over \wcd\/ (green) and \capthree\/ (black) in its
+%   sensitivity to sequencing errors, while in Figure~\ref{SeT1} (right)
+%   we see a comparable improvement in Type 1 error.  In
+%   Figure~\ref{singletons} we look at the number of singleton clusters
+%   (fragments not joined to any cluster), which should not occur in our
+%   simulated sets.  We again see significant improvement in \peace.
+%   The sequential runtime of \peace\/ is slightly improved over that of
+%   \wcd\/ (see Supplementary Materials, Figure~S4).
 
 \begin{figure}
-  \centerline{\includegraphics[width=3.35in]{SeT1.eps}}
+  \centerline{\includegraphics[width=3.35in]{pics.d/SeJiT1T2.40.eps}}
   \caption{Comparisons of Sensitivity and Type 1 error, based on the
     average over 30 simulated Sanger Sequence ESTs sets derived from 100 zebra
     fish genes  (see
@@ -322,16 +330,9 @@ The sequential runtime of \peace\/ is slightly improved over that of
     = \peace, Green/Dash = \wcd, Black/Dot-Dash = \capthree; vertical
     tics = 95\% confidence intervals on estimates.  Intervals are not
     presented for Type 1 error due to the extremely small
-    variance.}\label{SeT1}
+    variance.}\label{SeJiT1T2}
 \end{figure}
 
-\begin{figure}
-  \centerline{\includegraphics[width=3in]{singletons.eps}}
-  \caption{Average number of fragments flagged as singletons by each tool
-    when run on the simulated sequences; correct answer in all cases is
-    zero.  Blue/Solid = \peace, Green/Dash = \wcd,
-    Black/Dot-Dash = \capthree.}\label{singletons}
-\end{figure}
 
 In applying the tools to real data, we started with a set of
 approximately $190,000$ clean Sanger ESTs derived from the {\it
