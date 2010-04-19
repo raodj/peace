@@ -308,41 +308,84 @@ Materials).  \mc{The most important method of quality assessment is
   both \peace\/ and \wcd\/ were completely successful in separating
   unrelated ESTs (save when dealing with recently duplicated genes).
   Other measurements are also discussed in the supplementary
-  materials.  In Figure~\ref{SeJiT1T2} (left) we see these four tests,...}
+  materials.  In Figure~\ref{SeJiT1T2} we plot these four tests as a
+  function of erro rate, and observe the almost identical results
+  between \peace\/ and \wcd\/.  In Figure~\ref{seq_parallel} we plot
+  the runtime for \peace\/ and \wcd\/, again observing almost identical
+  results when run sequentially -- but signifcantly faster runtime for
+  PEACE on multiple processer when holding the EST/processor ratio
+  constant (ranging from a 65\% improvement for two processors too a
+  17\% improvement for 12 processors).}
 
-
-% , reflecting tests done on
-%   simulated Sanger EST sets, we see a significant improvement of
-%   \peace\/ (blue) over \wcd\/ (green) and \capthree\/ (black) in its
-%   sensitivity to sequencing errors, while in Figure~\ref{SeT1} (right)
-%   we see a comparable improvement in Type 1 error.  In
-%   Figure~\ref{singletons} we look at the number of singleton clusters
-%   (fragments not joined to any cluster), which should not occur in our
-%   simulated sets.  We again see significant improvement in \peace.
-%   The sequential runtime of \peace\/ is slightly improved over that of
-%   \wcd\/ (see Supplementary Materials, Figure~S4).
 
 \begin{figure}
-  \centerline{\includegraphics[width=3.35in]{pics.d/SeJiT1T2.40.eps}}
-  \caption{Comparisons of Sensitivity and Type 1 error, based on the
+  \centerline{\includegraphics[width=3.35in]{pics.d/SeJiT1T2x40.pdf}}
+  \caption{Comparisons of Sensitivity, Jiccard Index, Type 1 error and
+    Type 1 error, based on the
     average over 30 simulated Sanger Sequence ESTs sets derived from 100 zebra
     fish genes  (see
     Supplementary Materials, Section C, for more details).  Blue/Solid
     = \peace, Green/Dash = \wcd, Black/Dot-Dash = \capthree; vertical
     tics = 95\% confidence intervals on estimates.  Intervals are not
-    presented for Type 1 error due to the extremely small
+    presented for Type 1 error due to the effective lack of
     variance.}\label{SeJiT1T2}
 \end{figure}
 
+\begin{figure}
+   \centerline{\includegraphics[width=3.35in]{pics.d/seq_parallel.pdf}}
+   \caption{Comparisons of Runtime: On left, we compare the sequential
+     runtime of \peace\/ (blue) and \wcd\/ (green) on simulate sets
+     ranging in size from 10K sequences to 100K sequences.  (\capthree\/
+     runtime is not reported, as the time spent on clustering cannot
+     be differentiated from the time spent on assembly.)  On right,
+     a comparison when run in parallel, ranging the number of
+     processors from 2 to 12 while holding the EST/Processor ratio
+     steady at the constant 8888.  All values represent the average
+     of 30 runs; vertical tics = 95\% confidence intervals on
+     estimates.  All runs were done on a 3.0 GHz Intel Xeon EM64T CPU with a 2 MB
+     cache and 800 MHz front side bus, model number Xeon LV 3.0 (2005).}\label{seq_parallel}
+\end{figure}
 
 \mc{In applying the tools to real data Sanger data, we used the Human
 Benchmark Dataset used to test \easycluster\/ \cite{Picardi09}, and
 the A076941.fa {\it Arabidopsis thaliana} dataset used to test WCD
-\cite{Hazelhurst08,Hazelhurst08a}.  For the first, we find an almost
-exact match in results in quality between PEACE and WCD (both
-out-preforming Cap3), but a significant gain in runtime for PEACE over
-WCD, as shown in Tabe\ref{XXX}}.  For the A076941.fa...}
+\cite{Hazelhurst08,Hazelhurst08a}, with results in
+Table~\ref{SangerReal}.  We notice essentially identical
+results for PEACE and WCD in quality, both significantly better than
+Cap3 in Sensitivity and Type 1 error rate, while slightly worse in the
+Jaccard Index and Type 2 error.  In runtime we see some inconsistency,
+with PEACE showing a 60\% runtime improvement in the smaller dataset,
+requiring 20\% more time in the Arabidopsis dataset.}
 
+
+\begin{table*}[tbp]
+\begin{center}
+\begin{tabular} {| c || c || c | c | c | c | c | c | c |}
+\hline
+ & 
+& Sensitivity & Jaccard & \begin{tabular}{c} Type 1 \\
+  error \end{tabular} & \begin{tabular}{c} Type 2 \\
+  error \end{tabular} &
+\begin{tabular}{c} Number \\ of  \\
+    Clusters \end{tabular} & \begin{tabular}{c} Number \\ of \\
+    Singletons \end{tabular}
+    & \begin{tabular}{c} Single \\ processor \\ runtime (s) \end{tabular}\\
+\hline EasyCluster Human & \peace & 0.998 & 0.672 & 0.153 & 0.042 & 118 & 21 & 293 \\
+\cline{2-9} Benchmark & \wcd & 0.998 & 0.672 & 0.144 & 0.044 & 113 & 16 & 804 \\
+\cline{2-9} (111 Genes) & \capthree & 0.657 & 0.643 & 1 & 0.001 & 2269 & 1827 & \mbox{NA} \\
+\hline
+\hline WCD A076941 & \peace & 0.932 & 0.475 & 0.351 & 0.027 & 18825 & 8951 & 1166\\
+\cline{2-9} Benchmark & \wcd & 0.933 & 0.476 & 0.350 &  0.027 & 18787 & 8553 & 966 \\
+\cline{2-9} (13240 genes) & \capthree & 0.826 & 0.802 & 0.486 & 0.014 & 25042 & 14916 &
+\mbox{NA} \\
+\hline
+\end{tabular}
+\label{SangerReal}
+\end{center}
+\caption{Comparisons of runs on the EasyCluster human Benchmark
+  Dataset and the WCD A076941 Arabidopsis thaliana dataset using the
+  standard quality measurments.}
+\end{table*}
 
 
 % we started with a set of
@@ -367,8 +410,7 @@ subjected to a sequencing error rate of 2\% (with comparable {\it
   Jaccard Index} values reflecting both sensitivity {\it and}
 specificity \cite{Kalyanaraman03,Hazelhurst08a}).  Runtime was
 approximately 17.6 minutes to process the 7.9 Mb of data when run in
-sequential mode on a \mc{3.2 GHz Intel Xeon EM64T CPU with a 2 MB
-  cache and 800 MHz font side bus}.  When applied to a 64 Mb set of
+sequential mode on a .  When applied to a 64 Mb set of
 165,490 {\it Chlamydomonas reinhardtii} transcript fragments
 sequenced by 454 pyrosequencing technology (ranging in size from 50
 bases to several hundred), \peace\/ completed the job in 49 minutes
