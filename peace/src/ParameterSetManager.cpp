@@ -54,11 +54,11 @@ ParameterSetManager::setupParameters(int t1, int u1, int ws1, int t2,
 
     // Add the default parameter sets to the list of sets.
     // Line 1 is Two-Pass D2, Line 2 is heuristic parameters
-    ptrInstance->addParameterSet(new ParameterSet(-1, 150, 50, 1, 45, 45,
+    ptrInstance->addParameterSet(new ParameterSet(-1, 150, 50, 1, 40, 40,
                                                   t1, u1, ws1));
-    ptrInstance->addParameterSet(new ParameterSet(150, 400, 75, 25, 75, 100,
+    ptrInstance->addParameterSet(new ParameterSet(150, 400, 75, 25, 60, 100,
                                                   t2, u2, ws2));
-    ptrInstance->addParameterSet(new ParameterSet(400, INT_MAX, 100, 50, 105,
+    ptrInstance->addParameterSet(new ParameterSet(400, INT_MAX, 100, 50, 80,
                                                   130, t3, u3, ws3));
 }
 
