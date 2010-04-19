@@ -42,7 +42,7 @@ urlcolor=blue %color of the url links
 
 
 
-\history{Received Feb. 13, 2010}
+\history{Received Feb. 13, 2010 \\ Resubmitted April 20, 2010}
 
 \maketitle
 
@@ -301,7 +301,7 @@ Materials).  \mc{The most important method of quality assessment is
   that were correctly clustered together).  But we also look at the
   {\it Jaccard Index} (which balances sensitivity with the number of
   false positives by looking at the ratio of true positives to the sum
-  of true positives, false positives, and true negitives), {\it Type 1
+  of true positives, false positives, and true negatives), {\it Type 1
     error} (the fraction of genes that were divided between clusters),
   and {\it Type 2 error} (the fraction of clusters containing two or
   more genes).  Specificity was not an issue in simulated tests, as
@@ -309,18 +309,18 @@ Materials).  \mc{The most important method of quality assessment is
   unrelated ESTs (save when dealing with recently duplicated genes).
   Other measurements are also discussed in the supplementary
   materials.  In Figure~\ref{SeJiT1T2} we plot these four tests as a
-  function of erro rate, and observe the almost identical results
+  function of error rate, and observe the almost identical results
   between \peace\/ and \wcd\/.  In Figure~\ref{seq_parallel} we plot
   the runtime for \peace\/ and \wcd\/, again observing almost identical
-  results when run sequentially -- but signifcantly faster runtime for
-  PEACE on multiple processer when holding the EST/processor ratio
+  results when run sequentially -- but significantly faster runtime for
+  PEACE on multiple processor when holding the EST/processor ratio
   constant (ranging from a 65\% improvement for two processors too a
   17\% improvement for 12 processors).}
 
 
 \begin{figure}
   \centerline{\includegraphics[width=3.35in]{pics.d/SeJiT1T2x40.pdf}}
-  \caption{Comparisons of Sensitivity, Jiccard Index, Type 1 error and
+  \caption{Comparisons of Sensitivity, Jaccard Index, Type 1 error and
     Type 1 error, based on the
     average over 30 simulated Sanger Sequence ESTs sets derived from 100 zebra
     fish genes  (see
@@ -347,18 +347,18 @@ Materials).  \mc{The most important method of quality assessment is
 \end{figure}
 
 \mc{In applying the tools to real data Sanger data, we used the Human
-Benchmark Dataset used to test \easycluster\/ \cite{Picardi09}, and
-the A076941.fa {\it Arabidopsis thaliana} dataset used to test WCD
-\cite{Hazelhurst08,Hazelhurst08a}, with results in
+Benchmark Data Set used to test \easycluster\/ \cite{Picardi09}, and
+the A076941.fa {\it Arabidopsis thaliana} data set used to test WCD
+\cite{Hazelhurst08a,Hazelhurst08b}, with results in
 Table~\ref{SangerReal}.  We notice essentially identical
 results for PEACE and WCD in quality, both significantly better than
 Cap3 in Sensitivity and Type 1 error rate, while slightly worse in the
 Jaccard Index and Type 2 error.  In runtime we see some inconsistency,
-with PEACE showing a 60\% runtime improvement in the smaller dataset,
-requiring 20\% more time in the Arabidopsis dataset.  In Section~D.1
+with PEACE showing a 60\% runtime improvement in the smaller data set,
+requiring 20\% more time in the Arabidopsis data set.  In Section~D.1
 of the Supplementary Materials we present runtimes several more
 sets, observing that while \peace\/ appears to be significantly more
-faster on the smaller sets, \wcd\/ does overtake it for larger sets.
+faster on the smaller sets, \wcd\/ does overtake it for larger sets.}
 
 
 \begin{table*}[tbp]
@@ -374,7 +374,7 @@ faster on the smaller sets, \wcd\/ does overtake it for larger sets.
     Singletons \end{tabular}
     & \begin{tabular}{c} Single \\ processor \\ runtime (s) \end{tabular}\\
 \hline
-\hline EasyCluster Human & \peace & 0.998 & 0.672 & 0.153 & 0.042 & 118 & 21 & 293 \\
+\hline Bicyclist Human & \peace & 0.998 & 0.672 & 0.153 & 0.042 & 118 & 21 & 293 \\
 \cline{2-9} Benchmark & \wcd & 0.998 & 0.672 & 0.144 & 0.044 & 113 & 16 & 804 \\
 \cline{2-9} (111 Genes) & \capthree & 0.657 & 0.643 & 1.000 & 0.001 & 2269 & 1827 & \mbox{NA} \\
 \hline
@@ -387,8 +387,8 @@ faster on the smaller sets, \wcd\/ does overtake it for larger sets.
 \label{SangerReal}
 \end{center}
 \caption{Comparisons of runs on the EasyCluster human Benchmark
-  Dataset and the WCD A076941 Arabidopsis thaliana dataset using the
-  standard quality measurments.}
+  Data Set and the WCD A076941 Arabidopsis thaliana data set using the
+  standard quality measurements.}
 \end{table*}
 
 
@@ -404,26 +404,27 @@ faster on the smaller sets, \wcd\/ does overtake it for larger sets.
 % sensitivity and Type 1 error rates, with an 18\% speedup for \peace\/ 
 % (see Supplementary Materials, Section~D, for more details).
 
-\mc{We tested the three tools on short-read data using the MetaSim tool of
-{\it Richter et al.} [\cite{Richter2008}].  Encoded into MetaSim are
-modules configured to emulate the outpspecific tecnology,
-including the 454 and Illumina sequences.  For 454, the simulator  }
-
-We were unable to run \wcd\/ on short-read sequences, as the
-distributed implementation is unable to handle such data without an
-adjustment to the code.  Hence, while \peace\/ was run on both
-simulated and real NGS fragment sets, there was no cluster tool to
-which the results could be compared.  \peace\/ did well, achieving a
-sensitivity of 0.75 when applied to a simulated short-read set
-subjected to a sequencing error rate of 2\% (with comparable {\it
-  Jaccard Index} values reflecting both sensitivity {\it and}
-specificity \cite{Kalyanaraman03,Hazelhurst08a}).  Runtime was
-approximately 17.6 minutes to process the 7.9 Mb of data when run in
-sequential mode on a .  When applied to a 64 Mb set of
-165,490 {\it Chlamydomonas reinhardtii} transcript fragments
-sequenced by 454 pyrosequencing technology (ranging in size from 50
-bases to several hundred), \peace\/ completed the job in 49 minutes
-using 30 of the Xeon processors.
+\mc{We tested the three tools on short-read data using the MetaSim
+  tool of {\it Richter et al.} \cite{Richter2008}.  Encoded into
+  MetaSim are sequence generation and error models corresponding to
+  several technologies, including the 454 short-read technology.
+  Leaving \capthree\/ and \metasim\/ at their default values, but
+  employing the {\it adaptive $d^2$} strategy for short read sequences
+  (see Section~C in the supplementary materials), we find a that
+  \peace\/ performs significantly better than the other two tools on
+  454 data using the default MetaSim model (with sequence sizes
+  ranging in size from 200bp to 370bp, at an average size of 250bp and
+  a standard deviation of 17bp).  Over thirty runs, we see an average
+  sensitivity 0.884 for \peace, 0.331\/ for \wcd, and 0.004 for
+  \capthree.  For the Jaccard Index we get essentially the same
+  numbers.  For 100 transcript \peace creates 128 clusters (as opposed
+  to 6,370 and 19245 clusters for \wcd and \capthree), and creates
+  only 3 singletons (as opposed to 5,850 and 15432).  We find it
+  likely that the \wcd results could be considerably improved by the
+  simple adjustment of a few parameters, but were unable to determine
+  how to do that.  (Runtime of \peace\/ was somewhat slower than that
+  of \wcd, but given the significant improvement in quality results we
+  do not find this to be very troubling.)}
 
 \section{Conclusions}
 
@@ -478,4 +479,5 @@ Scoville at Miami University for their help with this project.
 % LocalWords:  reinhartdii conifergdb DNAc bp wcd reinhardtii PhRMA Iddo fasta
 % LocalWords:  Friedberg Scoville OpenMPI initio multi Screenshots nvironment
 % LocalWords:  ssembly xpression GenBank dbEST pyrosequencing ESTsim sim mRNAs
-% LocalWords:  NGS polyA set's GHz Xeon Bikun
+% LocalWords:  NGS polyA set's GHz Xeon Bikun Arabidopsis JVM Jaccard LV
+% LocalWords:  Data Set thaliana data set EasyCluster MetaSim
