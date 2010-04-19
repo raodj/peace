@@ -227,7 +227,7 @@ public class FWAnalyzer {
 	 * @return Return the information as a command line parameter.
 	 */
 	public String toCmdLine() {
-		final String[] AnalyzerName = {"twopassD2", "twopassD2 --dontAdapt", "d2", "d2zim", "clu"};
+		final String[] AnalyzerName = {"twopassD2adapt", "twopassD2", "d2", "d2zim", "clu"};
 		String cmdLine = "--analyzer " + AnalyzerName[type.ordinal()];
 		cmdLine += " --frame " + windowSize;
 		cmdLine += " --word "  + wordSize;

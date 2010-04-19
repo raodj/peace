@@ -309,7 +309,7 @@ public class AnalyzerWizardPage extends GenericWizardPage implements ActionListe
 	 */
 	private static final String ANALYZERS[] = {
 		"Adaptive Two Pass D2 (safe & best choice)", 
-		"Non-adaptive Two Pass D2 (Sanger sequences)",
+		"Non-adaptive Two Pass D2 (for Sanger sequences)",
 		"D2 Optimized (similar to wcd)", 
 		"D2 Standard",
 		"CLU (similarity metric)"
