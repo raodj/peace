@@ -5,14 +5,20 @@
 \usepackage{amsthm}  %% proof enviroment
 \usepackage{natbibOrig}
 
+%\usepackage[pdftex,
+%colorlinks=true, %makes the links show up in color, rather than in a box
+%citecolor=black, %color of the in-text citation numbers
+%urlcolor=blue %color of the url links
+%]{hyperref}
+
 \sloppy 
 \usepackage{graphicx}
 \bibliographystyle{natbib}
 
 % Using the following to mark changes for review
 \usepackage{color}
-\definecolor{blue}{rgb}{0,0,1}
-\newcommand{\mc}[1]{\textcolor{blue}{#1}}
+\definecolor{red}{rgb}{0,0,1}
+\newcommand{\mc}[1]{\textcolor{red}{#1}}
 %\newcommand{\mc}[1]{#1}   % Replace above line with this to eliminate all coloring
 
 \input{epsf}
@@ -169,27 +175,27 @@ the effects of changing this).}
 
 \subsection{Adaptive $d^2$}
 
-In the above discussion of $d^2$ we assume sequences of at least 100 bp, and
-in pratice use a window of size 100.  While the technique should be,
-in principle, adaptable to short-read sequences (decreasing window
-size as necessary), there are some problems in the details.
+In the above discussion of $d^2$ we assume sequences of at least 100
+bp, and in pratice use a window of size 100.  While the technique
+should be, in principle, adaptable to short-read sequences (decreasing
+window size as necessary), there are some problems in the details.
 Diminishing window sizes implies both diminishing accuracy (requiring
 the thrshold be adjusted) and increasing runtime (as there are
 potenitally more window pairs).  More importantly, there is the
 problem of non-homogonous sequence lengths: short-read technologies
-tend to produce short reads, but can still include quite long reads in
-their output.  Hence it is not immediately clear how to compare a very
-short read against a very long one.
+tend to produce short reads, but some technologiges can still include
+long reads in their output.  Hence it is not immediately clear how to
+compare a very short read against a very long one.
 
 We address these issues with our {\it adaptive $d^2$} strategy that
-works as follows: we put sequences, based on length, into three {\it
-  overlapping} groups (i.e. sequences less than length XXX, sequences
-between length YYY and ZZZ, and seqeunces greater than AAA).  For each
+works as follows: we partition sequences by length into disjoint groups.  For each
 group we pick a constant windowsize and threshold tailored to the
 length range of the group (as well as filtering heurstic constants),
 and use those values when computing the $d^2$ distance for two
 sequences in the same group.  We do not compute distances between
-sequences in different groups. Once computed, we assign to the MST
+sequences in non-adjaecent groups (i.e. a member of the ``shortest
+groups'' against a member of the ``longest groups'' if there is an
+interviening sized group).  Once computed, we assign to the MST
 edge the ratio of the $d^2$ score to the group threshold, thus
 normalizing the weight for comparisons ``between groups'' and
 effectivally giving us an edge-removal threhold of 1.
@@ -206,7 +212,11 @@ long and short sequences in terms of the resulting path of the minimum
 spanning tree that makes use of these ``linking'' nodes.
 
 In the \textsc{peace} implementation, we subdevide into three groups:
-NEED INFO.
+\begin{itemize}
+\item Less than 150 ($w=50$, $T=40$, $t=20$, $u=4$).
+\item Between 150 and 400 ($w=75$, $T=60$, $t=35$, $u=6$)
+\item Greater than 400 ($w=100$, $T=80$, $t=50$, $t=50$).
+\end{itemize}
 
 
 
@@ -250,7 +260,7 @@ calculated at a 95\% level of significance.
 
 \subsection{Result Quality}
 
-\mc{ Our primary measurement tools if mesurement are sensitivity, the
+\mc{Our primary measurement tools if mesurement are sensitivity, the
 Jaccard Index, Type 1 error and Type 2 error
 (Figure~\ref{sensitivityFig}).  Sensitivity is the ratio for true
 positives to actual positives ($tp / (tp + fn)$) -- the fraction of
@@ -260,14 +270,14 @@ calculated as the ratio of true positives to the sum of true
 positives, true negatives, and false positives ($tp / (tp+fn+fp)$)
 [\cite{Hazelhurst08a}].  Notably, when we removed duplicated genes
 before generating the simulated EST sets, we found all three tools to
-have 100\% specificity: no false positives. }
+have 100\% specificity: no false positives.}
 
 \mc{Type 1 and Type 2 errors, as defined in {\it Wang et al.}
 [\cite{Wang04}], measure quality at the level of the genes from which
 the ESTs were derived.  For Type 1 error, we look at the fraction of genes
 that were broken into two or more partitions, while in
 Type 2 error we look at the fraction of clusters that contain two or
-more genes.   }
+more genes.}
 
 \mc{A fifth metric is to look at the number of singletons produce by a
   tool:  sequences that  could not  be  assigned to  any cluster.   In
@@ -322,6 +332,7 @@ unable to distinguish sharing a similarity of $~88\%$ or more.
 \end{figure}
 
 \subsection{Raising the Threshold}
+\label{sim_thresh}
 \mc{ 
   The \wcd\/ tool uses a $d^2$ threshold of $40$ to determine whether
   two sequences are in the same cluster.  As this is equivilent to our
@@ -349,7 +360,7 @@ unable to distinguish sharing a similarity of $~88\%$ or more.
   real data, the level of similarity is consierably higher then in the
   simulations, thus making the reduced specificity of the higher
   threshold considerably more of a problem.
-XXX}
+}
 
 
 \begin{figure}
@@ -421,8 +432,56 @@ again seeing an improvement in \textsc{peace} over \textsc{wcd}.
 \end{figure}
 %%%%%%%%%%%%%
 
-\section{Raising the Threshold Real Data Sets}
+\section{Real Data}
 
+\subsection{Runtimes}
+
+In Table~\ref{RunTime} we show the runtime of \peace\/ and \wcd\/ on
+five different benckmark sets obtained from the WCD and EasyCluster
+studies [\cite{Hazelhurst08a,Picardi09}]. 
+
+\begin{table}[tbp]
+\begin{center}
+\begin{tabular} {|c|| c | c || c | c |}
+\hline
+ Bencmark & \begin{tabular}{c} Number of \\ Sequences \end{tabular}
+ & \begin{tabular}{c} Number of \\ Bases \end{tabular} & Peace Runtme (s)&
+ WCD Runtime (s) \\
+\hline
+\hline
+ Human Cluster & 17733 & 11.7 Mb & 293 & 804 \\
+\hline
+ Cotton & 29,995 & 17.1 Mb & 222 & 339 \\
+\hline
+ Ricinus & 57,690 & 40.9 Mb & 1344 & 2356 \\
+\hline
+ A076941 & 76,941 & 32.8 Mb & 1166 & 966 \\
+\hline
+\hline
+ A686903 & 686,904 & 294.7 Mb & 9449 & 2481 \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Runtime for \peace\/ and \wcd\/ on benchmarks from the
+  WCD and EasyCluster studies [\cite{Hazelhurst08a, Picardi09}].
+  Runtimes for the first four sets are sequential, while that last was
+  run over thirty processors.}\label{RunTime}
+\end{table}
+
+\subsection{Higer Threshold}
+
+
+In Table~\ref{SangerReal130} we see the effect on the application of
+\peace\/ to the data sets from Table~\ref{SangerReal} when raising the
+threshold $T$ to 130 (see pervious discussion in
+Section~\ref{sim_thresh}.  While doing this appeared to be fairly
+effective in simulation, it did not hold up in pracice.  We see
+essentially no change in the sensitivity, but significant changes in
+the Jaccard Index (and a corresponding decrease in the total number of
+clusters).  We suspect that this is due to a higher number of more
+closely related genes than are present in the simulated data.  We can
+conclude that, without considerably more investigation, we should be
+settig $T$ to 40.
 
 
 \begin{table}[tbp]
@@ -436,10 +495,12 @@ again seeing an improvement in \textsc{peace} over \textsc{wcd}.
 \begin{tabular}{c} Number \\ of  \\
     Clusters \end{tabular} & \begin{tabular}{c} Number \\ of \\
     Singletons \end{tabular}
-    & \begin{tabular}{c} Single \\ processor \\ runtime (s) \end{tabular} \\
+    & \begin{tabular}{c} Single \\ processor \\ runtime
+      (s) \end{tabular} \\
+\hline
 \hline EasyCluster Human & \peace & 0.999 & 0.106 & 0.027 & 0.030 & 67 & 2 & 295 \\
 \cline{2-9} Benchmark & \wcd & 0.998 & 0.672 & 0.144 & 0.044 & 113 & 16 & 804 \\
-\cline{2-9} (111 Genes) & \capthree & 0.657 & 0.643 & 1 & 0.001 & 2269 & 1827 & \mbox{NA} \\
+\cline{2-9} (111 Genes) & \capthree & 0.657 & 0.643 & 1.000 & 0.001 & 2269 & 1827 & \mbox{NA} \\
 \hline
 \hline WCD A076941 & \peace & 0.937 & 0.345 & 0.337 & 0.0342 & 18256 & 8135 & 1293 \\
 \cline{2-9} Benchmark & \wcd & 0.933 & 0.476 & 0.350 &  0.027 & 18787 & 8553 & 966 \\
