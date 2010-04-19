@@ -214,8 +214,8 @@ public:
         of data sets.
     */
     static void setupParameters(int t1 = 20, int u1 = 4, int ws1 = 4,
-                                int t2 = 30, int u2 = 6, int ws2 = 8,
-                                int t3 = 40, int u3 = 8, int ws3 = 8);
+                                int t2 = 35, int u2 = 6, int ws2 = 8,
+                                int t3 = 50, int u3 = 8, int ws3 = 8);
 
 	/** Method to setup adaptive parameters to \i fast(er) settings.
 
