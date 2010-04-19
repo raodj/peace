@@ -355,7 +355,10 @@ results for PEACE and WCD in quality, both significantly better than
 Cap3 in Sensitivity and Type 1 error rate, while slightly worse in the
 Jaccard Index and Type 2 error.  In runtime we see some inconsistency,
 with PEACE showing a 60\% runtime improvement in the smaller dataset,
-requiring 20\% more time in the Arabidopsis dataset.}
+requiring 20\% more time in the Arabidopsis dataset.  In Section~D.1
+of the Supplementary Materials we present runtimes several more
+sets, observing that while \peace\/ appears to be significantly more
+faster on the smaller sets, \wcd\/ does overtake it for larger sets.
 
 
 \begin{table*}[tbp]
@@ -370,9 +373,10 @@ requiring 20\% more time in the Arabidopsis dataset.}
     Clusters \end{tabular} & \begin{tabular}{c} Number \\ of \\
     Singletons \end{tabular}
     & \begin{tabular}{c} Single \\ processor \\ runtime (s) \end{tabular}\\
+\hline
 \hline EasyCluster Human & \peace & 0.998 & 0.672 & 0.153 & 0.042 & 118 & 21 & 293 \\
 \cline{2-9} Benchmark & \wcd & 0.998 & 0.672 & 0.144 & 0.044 & 113 & 16 & 804 \\
-\cline{2-9} (111 Genes) & \capthree & 0.657 & 0.643 & 1 & 0.001 & 2269 & 1827 & \mbox{NA} \\
+\cline{2-9} (111 Genes) & \capthree & 0.657 & 0.643 & 1.000 & 0.001 & 2269 & 1827 & \mbox{NA} \\
 \hline
 \hline WCD A076941 & \peace & 0.932 & 0.475 & 0.351 & 0.027 & 18825 & 8951 & 1166\\
 \cline{2-9} Benchmark & \wcd & 0.933 & 0.476 & 0.350 &  0.027 & 18787 & 8553 & 966 \\
@@ -399,6 +403,11 @@ requiring 20\% more time in the Arabidopsis dataset.}
 % \cite{Hazelhurst08a} \peace\/ again shows slight improvements in
 % sensitivity and Type 1 error rates, with an 18\% speedup for \peace\/ 
 % (see Supplementary Materials, Section~D, for more details).
+
+\mc{We tested the three tools on short-read data using the MetaSim tool of
+{\it Richter et al.} [\cite{Richter2008}].  Encoded into MetaSim are
+modules configured to emulate the outpspecific tecnology,
+including the 454 and Illumina sequences.  For 454, the simulator  }
 
 We were unable to run \wcd\/ on short-read sequences, as the
 distributed implementation is unable to handle such data without an
