@@ -304,17 +304,18 @@ the \wcd\/ testing \cite{Hazelhurst08a}.  Tool parameters were taken
 to match, as closely as possible, those used in the \wcd\/ study (see
 Supplementary Materials).  \mc{The most important method of quality
   assessment is {\it sensitivity} (the fraction of fragment pairs from
-  the same gene that were} \mc{correctly clustered together).  But we also
-  look at the {\it Jaccard Index} (which balances sensitivity with the
-  number of false positives by looking at the ratio of true positives
-  to the sum of true positives, false positives, and true negatives),
-  {\it Type 1 error} (the fraction of genes that were divided between
-  clusters), and {\it Type 2 error} (the fraction of clusters
-  containing two or more genes).  Specificity was not an issue in
-  simulated tests, as both \peace\/ and \wcd\/ were completely
-  successful in separating unrelated ESTs (save when dealing with
-  recently duplicated genes).  In Figure~\ref{SeJiT1T2} we plot
-  these four tests as a function of error rate, and observe the almost
+  the same gene that were} \mc{correctly clustered together).  But we
+  also look at the {\it Jaccard Index} (which balances sensitivity
+  with the number of false positives by looking at the ratio of true
+  positives to the sum of true positives, false positives, and true
+  negatives), {\it Type 1 error} (the fraction of genes that were
+  divided between clusters), and {\it Type 2 error} (the fraction of
+  clusters containing two or more genes).  Specificity was not an
+  issue in simulated tests, as both \peace\/ and \wcd\/ were
+  completely successful in separating unrelated ESTs (with the
+  exception of recently duplicated genes, as discussed in the
+  Supplementary Materials).  In Figure~\ref{SeJiT1T2} we plot these
+  four tests as a function of error rate, and observe the almost
   identical results between \peace\/ and \wcd\/.  In
   Figure~\ref{seq_parallel} we plot the runtime for \peace\/ and
   \wcd\/, again observing almost identical results when run
@@ -394,7 +395,7 @@ Supplementary Materials).  \mc{The most important method of quality
     Singletons \end{tabular}
     & \begin{tabular}{c} Single \\ processor \\ runtime (s) \end{tabular}\\
 \hline
-\hline Bicyclist Human & \peace & 0.998 & 0.672 & 0.153 & 0.042 & 118 & 21 & 293 \\
+\hline EasyCluster Human & \peace & 0.998 & 0.672 & 0.153 & 0.042 & 118 & 21 & 293 \\
 \cline{2-9} Benchmark & \wcd & 0.998 & 0.672 & 0.144 & 0.044 & 113 & 16 & 804 \\
 \cline{2-9} (111 Genes) & \capthree & 0.657 & 0.643 & 1.000 & 0.001 & 2269 & 1827 & \mbox{NA} \\
 \hline
@@ -445,21 +446,52 @@ Supplementary Materials).  \mc{The most important method of quality
   than that of \wcd, but given the significant improvement in quality
   of results this is unimportant.)}
 
+\begin{table*}[tbp]
+\begin{center}
+\begin{tabular} {| c || c || c | c | c | c | c | c | c |}
+\hline
+ & 
+& Sensitivity & Jaccard & \begin{tabular}{c} Type 1 \\
+  error \end{tabular} & \begin{tabular}{c} Type 2 \\
+  error \end{tabular} &
+\begin{tabular}{c} Number \\ of  \\
+    Clusters \end{tabular} & \begin{tabular}{c} Number \\ of \\
+    Singletons \end{tabular}
+    & \begin{tabular}{c} Single \\ processor \\ runtime (s) \end{tabular}\\
+\hline
+\hline EasyCluster Human & \peace & 0.871 & 0.809 &
+\cline{2-9} Benchmark & \wcd &  0.020 & 0.020 &
+\cline{2-9} (111 Genes) & \capthree & 0.005 & 0.004 &
+\hline
+\hline WCD A076941 & \peace & 0.932 & 0.475 & 0.351 & 0.027 & 18825 & 8951 & 1166\\
+\cline{2-9} Benchmark & \wcd & 0.933 & 0.476 & 0.350 &  0.027 & 18787 & 8553 & 966 \\
+\cline{2-9} (13240 genes) & \capthree & 0.826 & 0.802 & 0.486 & 0.014 & 25042 & 14916 &
+\mbox{NA} \\
+\hline
+\end{tabular}
+\end{center}
+\caption{Comparisons of runs on the EasyCluster human Benchmark
+  Data Set and the WCD A076941 Arabidopsis thaliana data set using the
+  standard quality measurements.}\label{SangerReal}
+\end{table*}
+
+
 \section{Conclusions}
 
 \mc{Here we have presented \peace, a stand alone tool for the
-high-throughput clustering of transcript fragments capable of dealing
-with sequences as short as 50 bases.  \peace\/, available at
-\href{http://www.peace-tools.org}{www.peace-tools.org}, is open-source
-and managed through a user friendly GUI that enables both local and
-remote installation and execution in sequential or parallel mode.
-Based on a novel algorithm for the clustering of the fragments by gene
-association, \peace\/ shows significant improvement in sensitivity,
-over the competing \wcd\/ tool \cite{Hazelhurst08a} when applied to
-NGS reads, matches \wcd\/ when applied to Traditional Sanger
-Sequencing output, and shows an order of magnitude in improvement over
-the clustering performed in the course of assembly by the \capthree\/
-tool \cite{Huang99}.}
+  high-throughput clustering of transcript fragments capable of
+  dealing with sequences as short as 50 bases.  \peace\/, available at
+  \href{http://www.peace-tools.org}{www.peace-tools.org}, is
+  open-source and managed through a user friendly GUI that enables
+  both local and remote installation and execution in sequential or
+  parallel mode.  Based on a novel minimum-spanning-tree based
+  algorithm for the clustering of the fragments by gene association,
+  \peace\/ shows significant improvement in sensitivity, over the
+  competing \wcd\/ tool \cite{Hazelhurst08a} when applied to NGS
+  reads, matches \wcd\/ when applied to Traditional Sanger Sequencing
+  output, and shows an order of magnitude in improvement over the
+  clustering performed in the course of assembly by the \capthree\/
+  tool \cite{Huang99}.}
 
 As a clustering tool based on sequence distance, \peace\/ faces
 certain inherent limitations. For example, \peace\/ cannot handle
@@ -473,6 +505,13 @@ cause similar effects in these clustering tools.  The problems can be
 handled through the application of the assembler, and the ability to
 apply any assembler to small cluster (as opposed to the data set as a
 whole) results in a significant reduction in overall assembly time.
+
+Peace can be downloaded from
+\href{http://www.peace-tools.org}{www.peace-tools.org}, where we are
+committed to maintaining and improving the tool.  The underlying PEACE
+architecture is configured to support a variety of tasks, including the
+possibility of a minimum spanning tree based assembly tool we hope to
+add to the tool in a future study.
 
 \section{Acknowledgements}
 
