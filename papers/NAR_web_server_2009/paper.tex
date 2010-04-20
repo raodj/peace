@@ -25,6 +25,7 @@ urlcolor=blue %color of the url links
 \newcommand{\wcd} {{\small WCD}}
 \newcommand{\capthree} {{\small Cap3}}
 \newcommand{\easycluster} {{\small EasyCluster}}
+\newcommand{\metasim} {{\small MetaSim}}
 
 \begin{document}
 
@@ -47,24 +48,31 @@ urlcolor=blue %color of the url links
 \maketitle
 
 \begin{abstract}
-  We present \peace, a stand alone tool for the high-throughput {\it
-    ab initio} clustering of transcript fragment sequences produced by
-  Next Generation or Sanger Sequencing technologies, freely available
-  from \href{http://www.peace-tools.org}{www.peace-tools.org}.
-  Installed and run through an easily downloaded GUI, \peace\/ can
-  process large data sets of transcript fragments of length 50 bases
-  or greater, grouping the fragments by gene association and achieving
-  a greater sensitivity (without sacrificing runtime) than the
-  competing clustering tools.  Once clustered, the user can employ the
-  GUI to collect statistics and single out specific clusters for more
-  comprehensive study.  \peace\/, when used as a ``pre-assembly''
-  tool, enables any assembly tool to work with individual small
-  clusters of closely related sequences.  For a 5\% sequencing error
-  rate, we see a 52\% improvement in sensitivity over the leading
-  cluster tool, \wcd\/, and 184\% improvement in sensitivity over the
-  assembly tool \capthree.  When applied to a 361 Mb set of
-  Arabidopsis transcriptome fragments, we see a 40\% speedup over
-  \wcd.
+  \mc{We present \peace, a stand alone tool for the high-throughput
+    {\it ab initio} clustering of transcript fragment sequences
+    produced by Next Generation or Sanger Sequencing technologies,
+    freely available from
+    \href{http://www.peace-tools.org}{www.peace-tools.org}.  Installed
+    and managed through a download-able user-friendly GUI, \peace\/ can
+    process large data sets of transcript fragments of length 50 bases
+    or greater, grouping the fragments by gene associations with a
+    sensitivity compatible to leading clustering tools.  Once
+    clustered, the user can employ the GUI's analysis functions,
+    allowing the easy collection of statistics and single out specific
+    clusters for more comprehensive study or assembly.  Using a novel
+    minimum spanning tree based clustering method, \peace is the equal of
+    other leading tools in the literature.  It produces results of
+    quality virtually identical to those of the \wcd\/ tool when
+    applied to Sanger sequences, significantly improved results over
+    \wcd when applied the products Next Generate Sequencing
+    Technology, and significantly improved results over \capthree in
+    both cases.  In short, \peace provides an easily accessible user interface
+    for interface with a clustering engine that is the match of the
+    leading clustering tools in the literature.}
+
+
+
+
 \end{abstract}
 
 
@@ -93,7 +101,7 @@ higher rate of coverage than Sanger Sequencing
 \cite{Cheung2006,Emrich2007}.  From a computational perspective, this
 is a mixed blessing: while NGS provides immense quantities of new
 information, it also provides immensely larger data sets -- and thus a
-need for faster, more efficient analysis algorithms.
+need for fast, efficient analysis algorithms.
 
 \enlargethispage{-65.1pt}
 
@@ -122,7 +130,7 @@ other tools designed for the same purpose
   Ptitsyn05,Hazelhurst08a,Picardi09}, \peace\/ proves to be both more
 sensitive and more robust to sequencing error without sacrificing
 runtime.  Nor are any of these tools designed for the ease of installation
-and use that \peace provides.
+and use that \peace\/ provides.
 
 In short, \peace\/ is a computational tool for the {\it ab initio}
 clustering of transcript fragments by gene association, applicable to
@@ -147,7 +155,7 @@ of the clusters as input to assembly tools such as \capthree\/
 performed in the following manner (see Figure~\ref{fig:workflow}):
 
 \begin{figure}
-  \centerline{\includegraphics[width=3in]{pics.d/workflow.eps}}
+  \centerline{\includegraphics[width=3in]{pics.d/workflow.png}}
   \caption{Overview of the procedure for clustering and analysis using
     PEACE.}\label{fig:workflow}
 \end{figure}
@@ -166,29 +174,29 @@ on the target machine as needed.
 
 \begin{figure*}
   \begin{minipage}{3in}
-    \includegraphics[width=3in]{install_page_big.eps}
+    \includegraphics[width=3in]{screen.d/install_page_big.png}
     \centerline{\small{(a)}}
   \end{minipage}
   \begin{minipage}{2in}
     \vspace{0.47in}
-    \includegraphics[width=2in]{add_server_big.eps}
+    \includegraphics[width=2in]{screen.d/add_server_big.png}
     \centerline{\small{(b)}}
   \end{minipage}
   \begin{minipage}{2in}
     \vspace{0.47in}
-    \includegraphics[width=2in]{processor_assignment_big.eps}
+    \includegraphics[width=2in]{screen.d/processor_assignment_big.png}
     \centerline{\small{(c)}}
   \end{minipage}
 
   \begin{minipage}{3in}
-    \includegraphics[width=3in]{cluster_list_big.eps}
+    \includegraphics[width=3in]{screen.d/cluster_list_big.png}
     \centerline{\small{(d)}}
   \end{minipage}
   \begin{minipage}{1in}
     \hspace{1in}
   \end{minipage}
   \begin{minipage}{3in}
-    \includegraphics[width=3in]{classifier_big.eps}
+    \includegraphics[width=3in]{screen.d/classifier_big.png}
     \centerline{\small{(e)}}
   \end{minipage}
 
@@ -286,49 +294,61 @@ Sections~A and B of the Supplementary Materials for more details).
 
 \peace\/ has been tested on both simulated and real data from NGS and
 Sanger Sequencing technologies, comparing results against those
-produced by the \wcd\/ clustering tool \mc{(version
-  0.5.1)}\cite{Hazelhurst08a} and the \capthree\/ assembly tool
-\cite{Huang99} (the latter of which implicitly calculates a clustering
-in the process of assembly).  For our simulation tests we used the
-{\bf ESTSim} tool \cite{Hazelhurst03} to generate simulated transcript
-fragments of varying length under different models of error
-(Supplementary Materials, Section~D.1), generating the fragments from
-the list of 100 zebra fish genes used in the \wcd\/ testing
-\cite{Hazelhurst08a}.  Tool parameters were taken to match, as closely
-as possible, those used in the \wcd\/ study (see Supplementary
-Materials).  \mc{The most important method of quality assessment is
-  {\it sensitivity} (the fraction of fragment pairs from the same gene
-  that were correctly clustered together).  But we also look at the
-  {\it Jaccard Index} (which balances sensitivity with the number of
-  false positives by looking at the ratio of true positives to the sum
-  of true positives, false positives, and true negatives), {\it Type 1
-    error} (the fraction of genes that were divided between clusters),
-  and {\it Type 2 error} (the fraction of clusters containing two or
-  more genes).  Specificity was not an issue in simulated tests, as
-  both \peace\/ and \wcd\/ were completely successful in separating
-  unrelated ESTs (save when dealing with recently duplicated genes).
-  Other measurements are also discussed in the supplementary
-  materials.  In Figure~\ref{SeJiT1T2} we plot these four tests as a
-  function of error rate, and observe the almost identical results
-  between \peace\/ and \wcd\/.  In Figure~\ref{seq_parallel} we plot
-  the runtime for \peace\/ and \wcd\/, again observing almost identical
-  results when run sequentially -- but significantly faster runtime for
-  PEACE on multiple processor when holding the EST/processor ratio
-  constant (ranging from a 65\% improvement for two processors too a
-  17\% improvement for 12 processors).}
+produced by the \wcd\/ clustering tool \cite{Hazelhurst08a} and the
+\capthree\/ assembly tool \cite{Huang99} (the latter of which
+implicitly calculates a clustering in the process of assembly).  For
+our simulation tests we used the {\bf ESTSim} tool \cite{Hazelhurst03}
+to generate simulated transcript fragments of varying length under
+different models of error (Supplementary Materials, Section~D.1),
+generating the fragments from the list of 100 zebra fish genes used in
+the \wcd\/ testing \cite{Hazelhurst08a}.  Tool parameters were taken
+to match, as closely as possible, those used in the \wcd\/ study (see
+Supplementary Materials).  \mc{The most important method of quality
+  assessment is {\it sensitivity} (the fraction of fragment pairs from
+  the same gene that were} \mc{correctly clustered together).  But we also
+  look at the {\it Jaccard Index} (which balances sensitivity with the
+  number of false positives by looking at the ratio of true positives
+  to the sum of true positives, false positives, and true negatives),
+  {\it Type 1 error} (the fraction of genes that were divided between
+  clusters), and {\it Type 2 error} (the fraction of clusters
+  containing two or more genes).  Specificity was not an issue in
+  simulated tests, as both \peace\/ and \wcd\/ were completely
+  successful in separating unrelated ESTs (save when dealing with
+  recently duplicated genes).  In Figure~\ref{SeJiT1T2} we plot
+  these four tests as a function of error rate, and observe the almost
+  identical results between \peace\/ and \wcd\/.  In
+  Figure~\ref{seq_parallel} we plot the runtime for \peace\/ and
+  \wcd\/, again observing almost identical results when run
+  sequentially -- but significantly faster runtime for PEACE on
+  multiple processor when holding the EST/processor ratio constant
+  (ranging from a 65\% improvement for two processors too a 17\%
+  improvement for 12 processors).}
+
+\mc{We further note, as a point of interest that, we can significantly
+  improve the quality of \peace simulation results through the
+  increase of the threshold value (see Supplementary Materials,
+  Section C) -- achieving a significant improved in PEACE sensitivity
+  without an adverse effect on the Jaccard index (i.e. a significant
+  increase in the incorrect merging of clusters).  However, the
+  improvement does not carry over to the application of real data,
+  where we observe a significant drop in the Jaccard Index.  Due to
+  this drop we have opted to leave the lower threshold value as the
+  default, but users might consider the higher value, thus decreasing
+  the risk of incorrectly splitting clusters, if planning on
+  using on the subsequent use of a assembly tool that capable of
+  breaking up the incorrectly merged clusters during transcript reconstruction.}
 
 
 \begin{figure}
   \centerline{\includegraphics[width=3.35in]{pics.d/SeJiT1T2x40.pdf}}
   \caption{Comparisons of Sensitivity, Jaccard Index, Type 1 error and
-    Type 1 error, based on the
-    average over 30 simulated Sanger Sequence ESTs sets derived from 100 zebra
-    fish genes  (see
+    Type 1 error, based on the average over 30 simulated Sanger
+    Sequence ESTs sets derived from 100 zebra fish genes (see
     Supplementary Materials, Section C, for more details).  Blue/Solid
-    = \peace, Green/Dash = \wcd, Black/Dot-Dash = \capthree; vertical
-    tics = 95\% confidence intervals on estimates.  Intervals are not
-    presented for Type 1 error due to the effective lack of
-    variance.}\label{SeJiT1T2}
+    = \peace, Green/Dash = \wcd \mc{(version 0.5.1)}, Black/Dot-Dash =
+    \capthree; vertical tics = 95\% confidence intervals on estimates.
+    Intervals are not presented for Type 1 error due to the effective
+    lack of variance.}\label{SeJiT1T2}
 \end{figure}
 
 \begin{figure}
@@ -349,13 +369,12 @@ Materials).  \mc{The most important method of quality assessment is
 \mc{In applying the tools to real data Sanger data, we used the Human
 Benchmark Data Set used to test \easycluster\/ \cite{Picardi09}, and
 the A076941.fa {\it Arabidopsis thaliana} data set used to test WCD
-\cite{Hazelhurst08a,Hazelhurst08b}, with results in
-Table~\ref{SangerReal}.  We notice essentially identical
+\cite{Hazelhurst08a,Hazelhurst08b}, (see Table~\ref{SangerReal}).  We notice essentially identical
 results for PEACE and WCD in quality, both significantly better than
 Cap3 in Sensitivity and Type 1 error rate, while slightly worse in the
 Jaccard Index and Type 2 error.  In runtime we see some inconsistency,
-with PEACE showing a 60\% runtime improvement in the smaller data set,
-requiring 20\% more time in the Arabidopsis data set.  In Section~D.1
+with PEACE showing a 60\% runtime improvement in the first data set,
+but requiring 20\% more time in the Arabidopsis data set.  In Section~D.1
 of the Supplementary Materials we present runtimes several more
 sets, observing that while \peace\/ appears to be significantly more
 faster on the smaller sets, \wcd\/ does overtake it for larger sets.}
@@ -384,11 +403,10 @@ faster on the smaller sets, \wcd\/ does overtake it for larger sets.}
 \mbox{NA} \\
 \hline
 \end{tabular}
-\label{SangerReal}
 \end{center}
 \caption{Comparisons of runs on the EasyCluster human Benchmark
   Data Set and the WCD A076941 Arabidopsis thaliana data set using the
-  standard quality measurements.}
+  standard quality measurements.}\label{SangerReal}
 \end{table*}
 
 
@@ -404,31 +422,31 @@ faster on the smaller sets, \wcd\/ does overtake it for larger sets.}
 % sensitivity and Type 1 error rates, with an 18\% speedup for \peace\/ 
 % (see Supplementary Materials, Section~D, for more details).
 
-\mc{We tested the three tools on short-read data using the MetaSim
+\mc{We tested the three tools on short-read data using the \metasim\/
   tool of {\it Richter et al.} \cite{Richter2008}.  Encoded into
-  MetaSim are sequence generation and error models corresponding to
+  \metasim\/ are sequence generation and error models corresponding to
   several technologies, including the 454 short-read technology.
-  Leaving \capthree\/ and \metasim\/ at their default values, but
+  Leaving \capthree\/ and \wcd\/ at their default values, but
   employing the {\it adaptive $d^2$} strategy for short read sequences
   (see Section~C in the supplementary materials), we find a that
   \peace\/ performs significantly better than the other two tools on
-  454 data using the default MetaSim model (with sequence sizes
+  454 data using the default \metasim\/ model (with sequence sizes
   ranging in size from 200bp to 370bp, at an average size of 250bp and
   a standard deviation of 17bp).  Over thirty runs, we see an average
   sensitivity 0.884 for \peace, 0.331\/ for \wcd, and 0.004 for
   \capthree.  For the Jaccard Index we get essentially the same
-  numbers.  For 100 transcript \peace creates 128 clusters (as opposed
-  to 6,370 and 19245 clusters for \wcd and \capthree), and creates
-  only 3 singletons (as opposed to 5,850 and 15432).  We find it
-  likely that the \wcd results could be considerably improved by the
-  simple adjustment of a few parameters, but were unable to determine
-  how to do that.  (Runtime of \peace\/ was somewhat slower than that
-  of \wcd, but given the significant improvement in quality results we
-  do not find this to be very troubling.)}
+  numbers.  For 100 transcript \peace\/ creates 128 clusters (as
+  opposed to 6,370 and 19245 clusters for \wcd\/ and \capthree), and
+  creates only 3 singletons (as opposed to 5,850 and 15432).  We do
+  note that it is likely that the \wcd results could be considerably
+  improved by the adjustment of a few parameters, but were unable to
+  determine how to do that.  (Runtime of \peace\/ was somewhat slower
+  than that of \wcd, but given the significant improvement in quality
+  of results this is unimportant.)}
 
 \section{Conclusions}
 
-Here we have presented \peace, a stand alone tool for the
+\mc{Here we have presented \peace, a stand alone tool for the
 high-throughput clustering of transcript fragments capable of dealing
 with sequences as short as 50 bases.  \peace\/, available at
 \href{http://www.peace-tools.org}{www.peace-tools.org}, is open-source
@@ -436,10 +454,11 @@ and managed through a user friendly GUI that enables both local and
 remote installation and execution in sequential or parallel mode.
 Based on a novel algorithm for the clustering of the fragments by gene
 association, \peace\/ shows significant improvement in sensitivity,
-without sacrificing runtime, over the competing \wcd\/ tool
-\cite{Hazelhurst08a}, and shows an order of magnitude in improvement
-over the clustering performed in the course of assembly by the
-\capthree\/ tool \cite{Huang99}.
+over the competing \wcd\/ tool \cite{Hazelhurst08a} when applied to
+NGS reads, matches \wcd\/ when applied to Traditional Sanger
+Sequencing output, and shows an order of magnitude in improvement over
+the clustering performed in the course of assembly by the \capthree\/
+tool \cite{Huang99}.}
 
 As a clustering tool based on sequence distance, \peace\/ faces
 certain inherent limitations. For example, \peace\/ cannot handle
@@ -479,5 +498,5 @@ Scoville at Miami University for their help with this project.
 % LocalWords:  reinhartdii conifergdb DNAc bp wcd reinhardtii PhRMA Iddo fasta
 % LocalWords:  Friedberg Scoville OpenMPI initio multi Screenshots nvironment
 % LocalWords:  ssembly xpression GenBank dbEST pyrosequencing ESTsim sim mRNAs
-% LocalWords:  NGS polyA set's GHz Xeon Bikun Arabidopsis JVM Jaccard LV
+% LocalWords:  NGS polyA set's GHz Xeon Bikun Arabidopsis JVM Jaccard LV GUI's
 % LocalWords:  Data Set thaliana data set EasyCluster MetaSim
