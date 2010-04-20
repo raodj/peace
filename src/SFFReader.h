@@ -142,7 +142,12 @@ public:
 		\param[in] maskBases If this flag is true, then all lowercase
 		bases are converted to 'N' rather than uppercase characters,
 		causing them to be ignored by downstream processing.
-		
+
+		\param[in] randomizeNbase If this value is \c false the \c 'N'
+        characters are \b preserved.  However, if the flag is set to
+        \c true then the 'N' characters are randomly converted to a
+        regular base character from the list \c ATCG.
+
         \return A newly created (on the heap) EST object containing
         the next read in the SFF file.  The number of pending reads is
         decremented after this method call.  On errors this method
@@ -150,7 +155,8 @@ public:
         invalidating the file (causing isValid() method to return \c
         false).
     */
-    EST* getNextRead(const bool maskBases = true);
+    EST* getNextRead(const bool maskBases = true,
+					 const bool randomizeNbases = false);
     
 protected:
     /** Helper method to read the SFF common header.

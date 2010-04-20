@@ -206,13 +206,41 @@ public:
         \param[out] alignmentData The alignment data associated with
         the srcESTidx and the destESTidx.
 
-	\param[out] directionData The direction data associated with
-	the srcESTidx and the destESTidx.
+		\param[out] directionData The direction data associated with
+		the srcESTidx and the destESTidx.
     */
     virtual void getBestEntry(int& srcESTidx, int& destESTidx,
                               float& metric, int& alignmentData,
-			      int& directionData) const = 0;
+							  int& directionData) const = 0;
 
+    /** Obtains the top-most similar entry from the MSTCache.
+
+        This method searches the similarity metrics stored in this
+        cache for various ESTs to locate the best entry with the
+        highest similarity.  It populates the parameters with the
+        appropriate value.  Note that the parameters are initialized
+        to -1, -1, -1.0f, and -1 respectively.
+
+        \param[out] srcESTidx The source EST index from where the
+        similarity metric is being measured.  The srcESTidx is already
+        present in the MST.
+
+        \param[out] destESTidx The destination EST index that is the
+        best choice to be added to the MST (based on the local
+        information).
+
+        \param[out] metric The similarity/distance metric between the
+        srcESTidx and the destESTidx.
+
+        \param[out] alignmentData The alignment data associated with
+        the srcESTidx and the destESTidx.
+    */
+    inline void getBestEntry(int& srcESTidx, int& destESTidx,
+                             float& metric, int& alignmentData) const {
+        int direction;
+        getBestEntry(srcESTidx, destESTidx, metric, alignmentData, direction);
+    }
+    
     /** Display cache usage statistics.
 
         This method can be used to print the current cache usage

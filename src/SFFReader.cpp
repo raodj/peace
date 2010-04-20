@@ -143,7 +143,7 @@ SFFReader::loadSFFHeader() {
     }
 
 EST*
-SFFReader::getNextRead(const bool maskBases) {
+SFFReader::getNextRead(const bool maskBases, const bool randomizeNbases) {
     if (!isValid() || (pendingReads <= 0)) {
         // Can't read more data from the SFF file.
         return NULL;
@@ -217,7 +217,7 @@ SFFReader::getNextRead(const bool maskBases) {
     sequence[rightIndex] = '\0';     // Logically terminate C-string
     // Convert the information to a valid EST entry.
     return EST::create(EST::getESTCount(), &name[0], &sequence[leftIndex],
-                       offset, maskBases);
+                       offset, maskBases, randomizeNbases);
 }
 
 #endif

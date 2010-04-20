@@ -406,6 +406,27 @@ public:
         be written.
     */
     virtual void displayStats(std::ostream& UNREFERENCED_PARAMETER(os)) {}
+
+    /** Indicate how 'N' base characters in ESTs must be handled.
+
+        <p>Typically 'N' characters in reads are retained and are
+        masked over by the analyzers. However, in certain analyzers,
+        the assumption is that these 'N' characters are randomly
+        converted to a suitable base character.  This flag controls
+        the behavior whether 'N' characters should be randomly
+        converted.</p>
+
+        \param[in] flag If this value is \c false the \c 'N'
+        characters are \b not converted.  However, if the flag is set
+        to \c true then the 'N' characters are randomly converted to
+        regular bases.
+
+        \note This method must be called before the \c initialize
+        method in this class is invoked.
+    */
+    static void setRandomizeNbases(const bool flag) {
+        randomizeNbases = flag;
+    }
     
     /** The destructor.
 
@@ -486,7 +507,22 @@ protected:
         does the conversions.
     */
     static bool noMaskBases;
+
+	/** Flag to indicate if all 'N's must be randomly converted to
+        a valid base.
 	
+        Typically 'N' characters in reads are retained and are masked
+        over by the analyzers. However, in certain analyzers, the
+        assumption is that these 'N' characters are randomly converted
+        to a suitable base character.  This flag controls the behavior
+        whether 'N' characters should be randomly converted.  If this
+        value is \c false (the default) the characters are \b not
+        converted.  However, if the flag is set to \c true (either via
+        a command line parameter or through the static method), then
+        the 'N' characters are randomly converted to regular bases.
+    */
+    static bool randomizeNbases;
+
     /** The index of the reference EST in a given file. 
 
         This member object is used to hold the index of a reference

@@ -43,11 +43,12 @@
 #define NO_ERROR 0
 
 // The static instance variables for command line arguments.
-bool  ESTAnalyzer::readAhead      = false;
-char* ESTAnalyzer::estFileName    = NULL;
-char* ESTAnalyzer::sffFileName    = NULL;
-bool  ESTAnalyzer::htmlLog        = false;
-bool  ESTAnalyzer::noMaskBases    = false;
+bool  ESTAnalyzer::readAhead       = false;
+char* ESTAnalyzer::estFileName     = NULL;
+char* ESTAnalyzer::sffFileName     = NULL;
+bool  ESTAnalyzer::htmlLog         = false;
+bool  ESTAnalyzer::noMaskBases     = false;
+bool  ESTAnalyzer::randomizeNbases = false;
 
 // The common set of arguments for all EST analyzers
 arg_parser::arg_record ESTAnalyzer::commonArgsList[] = {
@@ -150,7 +151,8 @@ ESTAnalyzer::loadFASTAFile(const char *fileName, const bool unpopulate) {
     int lineNum = 1;
     // Repeatedly read EST's from the file.
     while (!feof(fastaFile)) {
-        EST *est = EST::create(fastaFile, lineNum, !noMaskBases);
+        EST *est = EST::create(fastaFile, lineNum, !noMaskBases,
+                               randomizeNbases);
         if ((est == NULL) && (!feof(fastaFile) || ferror(fastaFile))) {
             // An error occured when reading EST.
             fclose(fastaFile);
@@ -189,7 +191,7 @@ ESTAnalyzer::loadSFFFile(const char *fileName, const bool unpopulate) {
     }
     // Repeatedly read EST's from the file.
     while (sff.getPendingReads() > 0) {
-        EST *est = sff.getNextRead(!noMaskBases);
+        EST *est = sff.getNextRead(!noMaskBases, randomizeNbases);
         if ((est == NULL) || (!sff.isValid())) {
             // An error occured when reading EST.
             std::cerr << analyzerName << ": Error loading reads from "

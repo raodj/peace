@@ -151,8 +151,8 @@ public:
     /** A functor to generate a encoded word (serves as a hash entry).
         
         This functor must be used to generate an encoded word from a
-	"normal" (rather than reverse complement) fragment. This
-	me thod handles 'n' entries in the EST in the following manner:
+        "normal" (rather than reverse complement) fragment. This
+        me thod handles 'n' entries in the EST in the following manner:
 
         <ul>
 
@@ -203,11 +203,25 @@ public:
     */
     template <const int& Shift, const int& Mask>
     struct NormalEncoder : public std::binary_function<int, char, int> {
+        /**
+           The newer-version of this method that explicitly tracks and
+           sets igoreMask to enable ignoring 'N' bases.
+        */
         inline int operator()(const int w, const char bp, int& ignoreMask) const {
             // Setup the ignore mask if base pair is 'n' otherwise
             // drop off the lowest 2 bits.
             ignoreMask = (bp != 'N') ? (ignoreMask >> 2) : Mask;
             // Compute the hash for the word. Encoding for 'n' is 0.
+            return ((w >> 2) | (ESTCodec::encode(bp) << Shift)) & Mask;
+        }
+
+        /**
+           The earlier-version of this method does not track ignoring
+           bases.  This method assumes that all 'N' characters have
+           been suitably replaced with a random base letter.
+        */
+        inline int operator()(const int w, const char bp) const {
+            // Compute the hash for the word.
             return ((w >> 2) | (ESTCodec::encode(bp) << Shift)) & Mask;
         }
     };
@@ -267,11 +281,24 @@ public:
     */
     template <const int& Shift, const int& Mask>
     struct RevCompEncoder : public std::binary_function<int, char, int> {
+        /**
+           The newer-version of this method that explicitly tracks and
+           sets igoreMask to enable ignoring 'N' bases.
+        */        
         inline int operator()(const int w, const char bp, int& ignoreMask) const {
             // Setup the ignore mask if base pair is 'n' otherwise
             // drop off the lowest 2 bits.
             ignoreMask = (bp != 'N') ? (ignoreMask >> 2) : Mask;
             // Compute the hash for the word. 'n' becomes 0.
+            return ((w << 2) | ESTCodec::encode2rc(bp)) & Mask;
+        }
+        /**
+           The earlier-version of this method does not track ignoring
+           bases.  This method assumes that all 'N' characters have
+           been suitably replaced with a random base letter.
+        */
+        inline int operator()(const int w, const char bp) const {
+            // Compute the hash for the word.
             return ((w << 2) | ESTCodec::encode2rc(bp)) & Mask;
         }
     };

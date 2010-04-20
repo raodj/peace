@@ -41,6 +41,7 @@
 #include <cctype>
 #include <cstring>
 #include <cstdio>
+#include <cstdlib>
 
 // The shared static list of ESTs currently available.
 std::vector<EST*> EST::estList;
@@ -60,7 +61,7 @@ EST::EST(const int idValue, const char *information, const char* seq,
 }
 
 EST::EST(const int idValue, const char *information, const bool maskBases,
-         const char* seq, const int fileOffset) :
+         const bool randomizeNbases, const char* seq, const int fileOffset) :
     id(idValue), sequenceLen(strlen(seq)), offset(fileOffset),
     customData(NULL) {
     // Duplicate the information and sequnece data as needed.
@@ -69,7 +70,7 @@ EST::EST(const int idValue, const char *information, const bool maskBases,
     similarity = 0;
     processed  = false;
     // Now normalize the base
-    normalizeBases(sequence, maskBases);
+    normalizeBases(sequence, maskBases, randomizeNbases);
 }
 
 EST::~EST() {
@@ -112,7 +113,8 @@ EST::getLine(FILE *fastaFile) {
 
 EST*
 EST::create(const int id, const char *info, const char* sequence,
-            const long offset, const bool maskBases) {
+            const long offset, const bool maskBases,
+            const bool randomizeNbase) {
     if (id != (int) estList.size()) {
         // This id is not acceptable. Sorry.
         return NULL;
@@ -120,7 +122,8 @@ EST::create(const int id, const char *info, const char* sequence,
     // Compute new max EST length
     maxESTlen = std::max(maxESTlen, strlen(sequence));
     // Instantiate new EST
-    EST *newEST = new EST(id, info, maskBases, sequence, offset);
+    EST *newEST = new EST(id, info, maskBases, randomizeNbase,
+                          sequence, offset);
     // Add est to end of the est list.
     estList.push_back(newEST);
     // return the newly created EST back tot he caller
@@ -128,7 +131,8 @@ EST::create(const int id, const char *info, const char* sequence,
 }
 
 EST*
-EST::create(FILE* fastaFile, int& lineNum, const bool maskBases) {
+EST::create(FILE* fastaFile, int& lineNum, const bool maskBases,
+            const bool randomizeNbase) {
     // Some basic validation on the fastFile first.
     if (feof(fastaFile) || ferror(fastaFile)) {
         // Can't read information from the fasta file.
@@ -173,7 +177,7 @@ EST::create(FILE* fastaFile, int& lineNum, const bool maskBases) {
         // Create a new est with all the information using other
         // overloaded method.
         return EST::create((int) estList.size(), headerLine.c_str(),
-                           sequence.c_str(), offset, maskBases);
+                           sequence.c_str(), offset, maskBases, randomizeNbase);
     }
     
     // Can't create a valid EST
@@ -254,7 +258,8 @@ EST::duplicate(const char *src) {
 }
 
 void
-EST::normalizeBases(char* sequence, const bool maskBases) {
+EST::normalizeBases(char* sequence, const bool maskBases,
+                    const bool randomizeNbases) {
     const size_t seqLen = strlen(sequence);
     static const std::string LowCaseBases = "atcg";
     static const std::string UpCaseBases  = "ATCG";
@@ -267,7 +272,13 @@ EST::normalizeBases(char* sequence, const bool maskBases) {
             nt = (maskBases ? 'N' : UpCaseBases[index]);
         } else if (UpCaseBases.find(nt) == std::string::npos) {
             // An entry other than "atcgATCG" to be ignored
-            nt= 'N';
+            nt = 'N';
+        }
+        // Check and randomize 'N' bases as directed.
+        if (randomizeNbases) {
+            // Randomly select a base here.
+            register int index = (random() >> 5) & 3;
+            nt = UpCaseBases[index];
         }
         // Store normalize character
         sequence[i] = nt;
