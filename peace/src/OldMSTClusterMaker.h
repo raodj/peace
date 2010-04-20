@@ -1,5 +1,5 @@
-#ifndef MST_CLUSTER_MAKER_H
-#define MST_CLUSTER_MAKER_H
+#ifndef OLD_MST_CLUSTER_MAKER_H
+#define OLD_MST_CLUSTER_MAKER_H
 
 //--------------------------------------------------------------------
 //
@@ -36,9 +36,8 @@
 
 #include "ClusterMaker.h"
 #include "MSTCache.h"
-#include "MSTCluster.h"
 #include "MST.h"
-
+#include "MSTCluster.h"
 #include <fstream>
 
 /** A Minimum Spanning Tree (MST) based parallel cluster maker.
@@ -54,7 +53,7 @@
     documentation on the various method for detailed description on
     their functionality and usage.
 */
-class MSTClusterMaker : public ClusterMaker {
+class OldMSTClusterMaker : public ClusterMaker {
     friend class ClusterMakerFactory;
 public:
     /** The set of tags exchanged between various processes.
@@ -65,16 +64,16 @@ public:
         parallel/distributed manner.
     */
     enum MessageTags{REPOPULATE_REQUEST, COMPUTE_SIMILARITY_REQUEST,
-                     SIMILARITY_LIST, SIMILARITY_COMPUTATION_DONE,
-                     COMPUTE_MAX_SIMILARITY_REQUEST, MAX_SIMILARITY_RESPONSE,
-                     ADD_EST, TRANSITIVITY_LIST, COMPUTE_TOTAL_ANALYSIS_COUNT};
+		     SIMILARITY_LIST, SIMILARITY_COMPUTATION_DONE,
+		     COMPUTE_MAX_SIMILARITY_REQUEST, MAX_SIMILARITY_RESPONSE,
+		     ADD_EST, TRANSITIVITY_LIST, COMPUTE_TOTAL_ANALYSIS_COUNT};
     
     /** The destructor.
         
         The destructor frees up all any dynamic memory allocated by
         this object for its operations.
     */
-    virtual ~MSTClusterMaker();
+    virtual ~OldMSTClusterMaker();
 
     /** Display valid command line arguments for this cluster maker.
 
@@ -133,7 +132,7 @@ public:
     */
     virtual void displayStats(std::ostream& os);
 
-    /** Add a dummy cluster to the cluster maker.
+	    /** Add a dummy cluster to the cluster maker.
         
         This method can be used to add a dummy cluster to the cluster
         maker. The dummy clusters are added as direct descendants of
@@ -291,12 +290,12 @@ protected:
         the parseArguments() method if the user has specified an
         option to override the default.</p>
 
-	<p> If this parameter is not specified then the MSTCache will
-	request lists to be repopulated when needed.  Repopulating
-	lists guarantees that ultimately a MST will be developed.  If
-	repopulation is suppressed via this parameter then the
-	resulting spanning tree may not be a MST; however computation
-	time decreases. </p>
+		<p> If this parameter is not specified then the MSTCache will
+		request lists to be repopulated when needed.  Repopulating
+		lists guarantees that ultimately a MST will be developed.  If
+		repopulation is suppressed via this parameter then the
+		resulting spanning tree may not be a MST; however computation
+		time decreases. </p>
     */
     static bool noCacheRepop;
 
@@ -304,7 +303,7 @@ protected:
         scores for building MST.
 
         <p>If this member variable is set to a value other than -1,
-        then the MSTClusterMaker will try to use all the ESTs that
+        then the OldMSTClusterMaker will try to use all the ESTs that
         have a metric better than the value specified for
         maxUse. Maximally using good metrics will ultimately reduce
         the total number of analysis that need to be performed,
@@ -316,17 +315,9 @@ protected:
         used in deriving clusters from the MST.
         
         This member variable is used to set the clustering threshold.
-        There are two "special" options here:
-        
-        1.0 -- Corresponds to the TwoPassD2 analyzer which uses different
-        window lengths, each with different thresholds.  If TwoPassD2
-        is used then clsThreshold must be set to 1.0.
-        
-        -1 -- Corresponds to the mean/variance-based threshold.  Intended
-        to be used with the CLU analyzer.
     */
     static float clsThreshold;
-
+    
     /** Command line option to set the type of cache to be used by
         PEACE.
 
@@ -352,9 +343,9 @@ protected:
     /** Helper method to perform manager tasks.
 
         This method has been introduced to streamline the operations
-        of the MSTClusterMaker when it operates as the manager. The
+        of the OldMSTClusterMaker when it operates as the manager. The
         MPI process with Rank 0 (zero) acts as the manager and
-        coordinates all the activities of the MSTClusterMaker.  This
+        coordinates all the activities of the OldMSTClusterMaker.  This
         method is invoked from the makeClusters() method.
 
         \return This method returns 0 (zero) if clusters were created
@@ -366,10 +357,10 @@ protected:
     /** Helper method to perform worker tasks.
 
         This method has been introduced to streamline the operations
-        of the MSTClusterMaker when it operates as a worker. All the
+        of the OldMSTClusterMaker when it operates as a worker. All the
         MPI processes with non-zero rank act as a worker and
         collaborate with the manager to assist in various activities
-        of the MSTClusterMaker.  This method is invoked from the
+        of the OldMSTClusterMaker.  This method is invoked from the
         makeClusters() method.
 
         \return This method returns 0 (zero) if clusters were created
@@ -378,13 +369,13 @@ protected:
     */
     virtual int worker();
 
-    /** A method to handle initialization tasks for the MSTClusterMaker.
-	This method is called after the ESTs have been loaded into the
-	ESTAnalyzer, in the makeClusters method.
+    /** A method to handle initialization tasks for the OldMSTClusterMaker.
+		This method is called after the ESTs have been loaded into the
+		ESTAnalyzer, in the makeClusters method.
 		
-	This method does nothing as the MSTClusterMaker does not need
-	to do any initialization.  It is provided as a convenience
-	method for inheriting subclasses to use for initialization.
+		This method does nothing as the OldMSTClusterMaker does not need
+		to do any initialization.  It is provided as a convenience
+		method for inheriting subclasses to use for initialization.
     */
     virtual int initialize();
 
@@ -437,7 +428,7 @@ protected:
         populateCache() method to obtain the relationship metric
         (either via CLU or d2) between the current parent EST and the
         given otherEST. This method was introduced to enable chlid
-        classes (such as TransMSTClusterMaker) to conveniently
+        classes (such as TransOldMSTClusterMaker) to conveniently
         intercept analyzer calls and potentially shortcircuit them
         using concepts of conditional-transitivity.
 
@@ -486,7 +477,7 @@ protected:
         for estIdx <b>only on the owner process</b>.  This list
         contains the metrics collated from all the processes
         participating in the distributed computing process. Currently,
-        this feature is used by TransMSTClusterMaker to obtain the
+        this feature is used by TransOldMSTClusterMaker to obtain the
         list of metrics computed.
     */
     virtual void populateCache(const int estIdx, SMList* metricList = NULL);
@@ -579,14 +570,9 @@ protected:
         \param[out] alignmentData The alignment information between
         the two ESTs represented by their index values in parentESTidx
         and estToAdd.
-
-	\param[out] directionData The direction information between
-        the two ESTs represented by their index values in parentESTidx
-        and estToAdd.
     */
     void computeNextESTidx(int& parentESTidx, int& estToAdd,
-                           float &similarity, int& alignmentData,
-			   int& directionData) const;
+                           float &similarity, int& alignmentData) const;
     
     /** Determine the owner process Rank for a given estIdx.
 
@@ -756,11 +742,6 @@ protected:
         the two ESTs represented by their index values in parentESTidx
         and estToAdd.  This method updates this value if additional
         ESTs are added to the MST by this method.
-
-	\param[in,out] directionData The direction information between
-        the two ESTs represented by their index values in parentESTidx
-        and estToAdd.  This method updates this value if additional
-        ESTs are added to the MST by this method.
         
         \param[in,out] pendingESTs The number of pending ESTs that
         have not yet been added to the MST.  This value is used and
@@ -768,7 +749,7 @@ protected:
     */
     void addMoreChildESTs(const int parentESTidx, int& estToAdd,
                           float &metric, int& alignmentData,
-			  int& directionData, int& pendingESTs);
+                          int& pendingESTs);
     
     /** The default constructor.
 
@@ -781,19 +762,19 @@ protected:
         \param[in,out] analyzer The EST analyzer to be used for
         obtaining similarity metrics between two ESTs.  This parameter
         is simply passed onto the base class.
-        
-        \param[in] refESTidx The reference EST index value to be used
-        to root the spanning tree created by this method.  This
-        parameter should be >= 0.  This value is simply passed onto
-        the base class.
-
-        \param[in] outputFile The name of the output file to which the
-        raw MST cluster information is to be written.  If this
-        parameter is the empty string then output is written to
-        standard output.  This value is simply passed onto the base
-        class.
+		
+		\param[in] refESTidx The reference EST index value to be used
+		to root the spanning tree created by this method.  This
+		parameter should be >= 0.  This value is simply passed onto
+		the base class.
+		
+		\param[in] outputFile The name of the output file to which the
+		raw MST cluster information is to be written.  If this
+		parameter is the empty string then output is written to
+		standard output.  This value is simply passed onto the base
+		class.
     */
-    MSTClusterMaker(ESTAnalyzer *analyzer, const int refESTidx,
+    OldMSTClusterMaker(ESTAnalyzer *analyzer, const int refESTidx,
                     const std::string& outputFile);
 
     /** The set of common arguments for the MST cluster maker.
@@ -820,14 +801,14 @@ protected:
     */
     MSTCache *cache;
 
-    /** File stream to log progress information.
+	/** File stream to log progress information.
 
-        This output stream is created when the first progress information
-	is logged and closed after the last progress information has been
-	logged. The progress information is generated by the updateProgress
-	method if progressFileName is not NULL.
-    */
-    std::ofstream progressFile;
+		This output stream is created when the first progress information
+		is logged and closed after the last progress information has been
+		logged. The progress information is generated by the updateProgress
+		method if progressFileName is not NULL.
+	*/
+	std::ofstream progressFile;
 	
 private:    
     /** The Minimum Spanning Tree (MST) built by this class.
@@ -839,23 +820,14 @@ private:
     */
     MST* mst;
 
-    /** The top-level root cluster that contains all other clusters.
-
+	/** The top-level root cluster that contains all other clusters.
+		
         This member represents the top-level root cluster that contain
         all other clusters created by this cluster maker. This cluster
         also contains dummy clusters that are created by Filter
         objects used in conjunction with clustering.
     */
     MSTCluster root;
-
-    /** The hint key that is used to add hint for normal or
-		reverse-complement D2 computation.
-		
-		This hint key is used to obtain a hint for the \c MST_RC in
-		the \c hints hash map. This string is defined as a constant to
-		save compute time in the core \c runHeuristics method.
-    */
-    const std::string hintKey_MST_RC;
 };
 
 #endif

@@ -39,6 +39,7 @@
 #include "arg_parser.h"
 
 #include "MSTClusterMaker.h"
+#include "OldMSTClusterMaker.h"
 #include "TransMSTClusterMaker.h"
 
 void
@@ -47,6 +48,8 @@ ClusterMakerFactory::displayList(std::ostream &os) {
     // easier.
     arg_parser::arg_record dummy_args[] = {
         {"mst", "MST-based Cluster Maker",
+         NULL, arg_parser::STRING},
+        {"na-mst", "Non-adaptive MST-based Cluster Maker for Sanger Sequences",
          NULL, arg_parser::STRING},
         {"tmst", "MST-based Cluster Maker with Transitivity",
          NULL, arg_parser::STRING},
@@ -78,6 +81,8 @@ ClusterMakerFactory::create(const char* name, ESTAnalyzer *analyzer,
         return new MSTClusterMaker(analyzer, refESTidx, outputFileName);
     } else if (!strcmp("tmst", name)) {
         return new TransMSTClusterMaker(analyzer, refESTidx, outputFileName);
+    } else if (!strcmp("na-mst", name)) {
+        return new OldMSTClusterMaker(analyzer, refESTidx, outputFileName);
     }
     
     // invalid analyzer name!

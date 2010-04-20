@@ -118,7 +118,12 @@ public:
 		\param[in] maskBases If this flag is true, then all lowercase
 		bases are converted to 'N' rather than uppercase characters,
 		causing them to be ignored by downstream processing.
-		
+
+        \param[in] randomizeNbase If this value is \c false the \c 'N'
+        characters are \b preserved.  However, if the flag is set to
+        \c true then the 'N' characters are randomly converted to
+        a regular base character from the list \c ATCG.
+        
         \return If the id is valid and a duplicate EST with the same
         ID is not present, then this method creates a new EST and
         returns a pointer to that EST back to the caller.
@@ -126,7 +131,8 @@ public:
     static EST* create(const int id, const char *info,
                        const char* sequence = NULL,
                        const long offset    = -1,
-					   const bool maskBases = true);
+					   const bool maskBases = true,
+                       const bool randomizeNbases = false);
 
     /** Loads data from a FASTA file to create an EST.
 
@@ -147,13 +153,19 @@ public:
 		\param[in] maskBases If this flag is true, then all lowercase
 		bases are converted to 'N' rather than uppercase characters,
 		causing them to be ignored by downstream processing.
-		
+
+        \param[in] randomizeNbase If this value is \c false the \c 'N'
+        characters are \b preserved.  However, if the flag is set to
+        \c true then the 'N' characters are randomly converted to a
+        regular base character from the list \c ATCG.
+        
         \note At the end of this method the fastaFile's file pointer
         will point at the beginning of the next EST (if any) in the
         file.
     */
     static EST* create(FILE* fastaFile, int& lineNum,
-                       const bool maskBases = true);
+                       const bool maskBases = true,
+                       const bool randomizeNbases = false);
 	
     /** Obtain the list of ESTs.
 
@@ -166,17 +178,17 @@ public:
 
     /** Obtain count of ESTs that have been flagged as being processed.
 
-	This method can be used to determine the number of ESTs that
-	have been flagged as being processed. Subtracting this number
-	from the total number of ESTs indicates the number of ESTs to
-	be processed.
-	
-	\note This method iterates over the list of ESTs to determine
-	the current number of processed ESTs. So use this method
-	sparingly.
+        This method can be used to determine the number of ESTs that
+        have been flagged as being processed. Subtracting this number
+        from the total number of ESTs indicates the number of ESTs to
+        be processed.
+        
+        \note This method iterates over the list of ESTs to determine
+        the current number of processed ESTs. So use this method
+        sparingly.
 	    
-	\return The number of ESTs that have been flagged as having
-	been processed.
+        \return The number of ESTs that have been flagged as having
+        been processed.
     */
     static int getProcessedESTCount();
 	
@@ -235,10 +247,10 @@ public:
         \param[out] os The output stream to which EST data is to be
         dumped.
 
-	\param[in] processed If this flag is \c true, then this method
-	dumps only those ESTs that have been flagged as having been
-	processed. If this flag is \c false, then this method dumps
-	only un-processed ESTs.
+        \param[in] processed If this flag is \c true, then this method
+        dumps only those ESTs that have been flagged as having been
+        processed. If this flag is \c false, then this method dumps
+        only un-processed ESTs.
     */
     static void dumpESTList(std::ostream& os, const bool processed);
 
@@ -262,13 +274,13 @@ public:
     /** Delete and clear out the last EST in the list.
 	    
         This method can be used to delete the last EST in the
-	list. This method rests the maximum EST length instance
-	variable as needed.  This method is typically used to remove
-	dummy ESTs that are added to the end of the list by some
-	filters.
-	
-	\param[in] count The number of ESTs to be removed from the
-	list.
+        list. This method rests the maximum EST length instance
+        variable as needed.  This method is typically used to remove
+        dummy ESTs that are added to the end of the list by some
+        filters.
+        
+        \param[in] count The number of ESTs to be removed from the
+        list.
     */
     static void deleteLastESTs(const int count);
 	
@@ -434,11 +446,11 @@ public:
     /** Helper method to read a line from a given file.
 		
         This is a helper method that can be used to read a long line
-	from a given file.
-	
-	\param[in] fp The file from where the line is to be read.
-	
-	\return The string read from the file.
+        from a given file.
+        
+        \param[in] fp The file from where the line is to be read.
+        
+        \return The string read from the file.
     */
     static std::string getLine(FILE *fp);
 
@@ -587,7 +599,16 @@ private:
         \param[in] info The name and other information associated with
         the EST.  This information is typically the first header line
         read from a FASTA file.  This information can be NULL.
+
+		\param[in] maskBases If this flag is true, then all lowercase
+		bases are converted to 'N' rather than uppercase characters,
+		causing them to be ignored by downstream processing.
         
+        \param[in] randomizeNbase If this value is \c false the \c 'N'
+        characters are \b preserved.  However, if the flag is set to
+        \c true then the 'N' characters are randomly converted to
+        a regular base character from the list \c ATCG.
+
         \param[in] sequence The actual sequence of base pairs
         associated with this EST.  The sequence information that must
         be used to create this EST.  The sequence information can be
@@ -602,7 +623,8 @@ private:
 		causing them to be ignored by downstream processing.
     */
     EST(const int id, const char *info, const bool maskBases = true,
-        const char* sequence = NULL, const int offset = -1);
+        const bool randomizeNbases = false, const char* sequence = NULL,
+        const int offset = -1);
  	
     /** A utility method to duplicate a c-string.
 
@@ -640,8 +662,14 @@ private:
 		\param[in] maskBases If this flag is \c true, then all
 		lowercase "atcg" bases are converted to 'N'. Otherwise they
 		are converted to uppercase letters.
+
+        \param[in] randomizeNbase If this value is \c false the \c 'N'
+        characters are \b preserved.  However, if the flag is set to
+        \c true then the 'N' characters are randomly converted to
+        a regular base character from the list \c ATCG.
     */
-    static void normalizeBases(char* sequence, const bool maskBases = true);
+    static void normalizeBases(char* sequence, const bool maskBases = true,
+                               const bool randomizeNbases = false);
 	
     /** The list of EST's currently being used.
 

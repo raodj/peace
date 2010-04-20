@@ -43,6 +43,7 @@
 #include "D2Zim.h"
 #include "AdaptiveTwoPassD2.h"
 #include "TwoPassD2.h"
+#include "OldTwoPassD2.h"
 #include "MatrixFileAnalyzer.h"
 
 void
@@ -60,9 +61,9 @@ ESTAnalyzerFactory::displayList(std::ostream &os) {
          NULL, arg_parser::STRING},
         {"d2zim", "Use D2 (Zimmerman) distance metric generation algorithm",
          NULL, arg_parser::STRING},
-	{"twopassD2", "Use two-pass asymmetric/bounded symmetric D2",
-	 NULL, arg_parser::STRING},
-	{"twopassD2adapt", "Use two-pass asymmetric/bounded symmetric D2, adaptive mode",
+        {"twopassD2", "Use two-pass asymmetric/bounded symmetric D2",
+         NULL, arg_parser::STRING},
+        {"twopassD2adapt", "Use two-pass asymmetric/bounded symmetric D2, adaptive mode",
          NULL, arg_parser::STRING},
         //        {"d2sim", "Use special version of D2 for simulation project",
         //         NULL, arg_parser::STRING},
@@ -96,8 +97,10 @@ ESTAnalyzerFactory::create(const char* name, const int refESTidx,
         return new D2Zim(refESTidx, outputFileName);        
     } else if (!strcmp("twopassD2", name)) {
         return new TwoPassD2(refESTidx, outputFileName);
+    } else if (!strcmp("oldTwopassD2", name)) {
+        return new OldTwoPassD2(refESTidx, outputFileName);
     } else if (!strcmp("twopassD2adapt", name)) {
-	return new AdaptiveTwoPassD2(refESTidx, outputFileName);
+        return new AdaptiveTwoPassD2(refESTidx, outputFileName);
         //    } else if (!strcmp("d2sim", name)) {
         //        return new SimulationD2(refESTidx, outputFileName);
     }

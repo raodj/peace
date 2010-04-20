@@ -130,7 +130,15 @@ ParameterSet.h \
 ParameterSetManager.h \
 ParameterSetManager.cpp \
 SFFReader.h \
-SFFReader.cpp
+SFFReader.cpp \
+OldTVHeuristic.cpp \
+OldTVHeuristic.h \
+OldUVHeuristic.h \
+OldUVHeuristic.cpp \
+OldTwoPassD2.cpp \
+OldTwoPassD2.h \
+OldMSTClusterMaker.h \
+OldMSTClusterMaker.cpp
 
 peace_SOURCES = \
 main.cpp\
