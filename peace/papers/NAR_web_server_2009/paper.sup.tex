@@ -5,6 +5,14 @@
 \usepackage{amsthm}  %% proof enviroment
 \usepackage{natbibOrig}
 
+\usepackage[pdftex,
+colorlinks=true, %makes the links show up in color, rather than in a box
+citecolor=black, %color of the in-text citation numbers
+urlcolor=blue %color of the url links
+]{hyperref}
+\usepackage{wrapfig}
+\bibliographystyle{unsrt}
+
 %\usepackage[pdftex,
 %colorlinks=true, %makes the links show up in color, rather than in a box
 %citecolor=black, %color of the in-text citation numbers
@@ -13,11 +21,11 @@
 
 \sloppy 
 \usepackage{graphicx}
-\bibliographystyle{natbib}
+%\bibliographystyle{natbib}
 
 % Using the following to mark changes for review
 \usepackage{color}
-\definecolor{red}{rgb}{0,0,1}
+\definecolor{red}{rgb}{1,0,0}
 \newcommand{\mc}[1]{\textcolor{red}{#1}}
 %\newcommand{\mc}[1]{#1}   % Replace above line with this to eliminate all coloring
 
@@ -49,7 +57,8 @@
 \evensidemargin -0.1cm
 
 \newlabel{sensitivityFig}{3}
-\newlabel{SangerTable}{1}
+\newlabel{seq_runtime}{4}
+\newlabel{SangerReal}{1}
 
 
 \begin{document}
@@ -70,8 +79,8 @@
 
 \section{Distance metrics, heuristics and filters}
 
-\subsection{The $d^2$ distance metric}
-$d^2$, as outlined by {\it Hide et al.} [\cite{Hide94}], is an {\it
+\subsection{The distance metric}
+$d^2$, as outlined by {\it Hide et al.} \cite{Hide94}, is an {\it
   alignment free} distance pseudo-metric which quantifies local
 similarity between sequences based on a simple word count.  Let
 $c_x(w)$ denote the number of times word $w$ occurs in string $x$.  We
@@ -99,11 +108,11 @@ Defined as such, $d^2$ is, in a mathematical sense, a {\it
   pseudo-metric}: $d^2(x,y) = 0$ does not imply $x=y$.
 
 The \textsc{peace} implementation of $d^2$ was initially based on the description from
-{\it Hazelhurst} [\cite{Hazelhurst04}].  For parameters
-we adapted those used by the \textsc{wcd} clustering tool [\cite{Hazelhurst08a}]:
+{\it Hazelhurst} \cite{Hazelhurst04}.  For parameters
+we adapted those used by the \textsc{wcd} clustering tool \cite{Hazelhurst08a}:
 a word size $k=6$ and a window size $r=100$.
 
-\subsection{Two-pass $d^2$}
+\subsection{Improved Distance Matrix}
 Our ``two-pass $d^2$'' algorithm works by sampling a subset of window
 pairs evenly distributed across the sequences, narrowing down a
 smaller region in which to search for the best scoring window-pair.
@@ -117,7 +126,7 @@ In \textsc{peace}, we use $k=6$, $r=100$, and $s=50$.
 
 \subsection{Filtering heuristics}
 \textsc{peace} uses the $u/v$ and $t/v$ heuristics, roughly as described by {\it
-  Hazelhurst et al.} [\cite{Hazelhurst08a}] as filters that allows us to avoid
+  Hazelhurst et al.} \cite{Hazelhurst08a} as filters that allows us to avoid
 over 99\% of the potential $d^2$ calculations.  Each heuristic takes two
 sequences and estimates whether it is worth proceeding to the $d^2$
 computation by sampling and comparing word frequency across the two
@@ -142,11 +151,11 @@ then removing larger edges, we are left with connected components
 corresponding to the gene-based clusters.  The MST-based clustering
 method has been used effectively in other applications, but to our
 knowledge this is the first such use for the  EST
-clustering problem [\cite{Jain99,Wan08}].
+clustering problem \cite{Jain99,Wan08}.
 
 \subsection{Calculation of the MST}
 
-To calculate this MST we use Prim's algorithm [\cite{Prim57}].  For a
+To calculate this MST we use Prim's algorithm \cite{Prim57}.  For a
 graph of $n$ nodes and $e$ edges, Prim's can be implemented such that
 the algorithm has an $O(e + n \log n)$ worst-case runtime.  However,
 the {\it narrow-band} nature of the model allows us to reduce this
@@ -157,8 +166,7 @@ majority of the data set members.  Since we can quickly eliminate most
 of these excess edges with the $u/v$ and $t/v$ heuristics (removing
 more than 99\% of all edges before applying Prim's), we find in
 practice that $e$ is a very small fraction of $n^2$.  In the
-runtime results (see Section~\ref{rt_section} and
-Figure~\ref{seq_runtime}), we find that when holding the EST size
+runtime results (Figure~4), we find that when holding the EST size
 distribution constant, the tool as a whole has a runtime of $O(n^2)$
 -- appearing to dominated by the time required to apply
 the filtering heuristics to every EST pair.
@@ -173,71 +181,71 @@ with a $d^2$ distance of greater than 40 are unlikely to overlap.  \mc{We
 have set our threshold to the same $T=40$ (with discussion below on
 the effects of changing this).}
 
-\subsection{Adaptive $d^2$}
+\section{Adaptive $d^2$}
 
-In the above discussion of $d^2$ we assume sequences of at least 100
-bp, and in pratice use a window of size 100.  While the technique
+\mc{In the above discussion of $d^2$ we assume sequences of at least 100
+bp, and in practice use a window of size 100.  While the technique
 should be, in principle, adaptable to short-read sequences (decreasing
 window size as necessary), there are some problems in the details.
 Diminishing window sizes implies both diminishing accuracy (requiring
-the thrshold be adjusted) and increasing runtime (as there are
-potenitally more window pairs).  More importantly, there is the
-problem of non-homogonous sequence lengths: short-read technologies
-tend to produce short reads, but some technologiges can still include
+the threshold be adjusted) and increasing runtime (as there are
+potentially more window pairs).  More importantly, there is the
+problem of non-homogeneous sequence lengths: short-read technologies
+tend to produce short reads, but some technologies can still include
 long reads in their output.  Hence it is not immediately clear how to
-compare a very short read against a very long one.
+compare a very short read against a very long one.}
 
-We address these issues with our {\it adaptive $d^2$} strategy that
+\mc{We address these issues with our {\it adaptive $d^2$} strategy that
 works as follows: we partition sequences by length into disjoint groups.  For each
-group we pick a constant windowsize and threshold tailored to the
-length range of the group (as well as filtering heurstic constants),
+group we pick a constant window size and threshold tailored to the
+length range of the group (as well as filtering heuristic constants),
 and use those values when computing the $d^2$ distance for two
 sequences in the same group.  We do not compute distances between
-sequences in non-adjaecent groups (i.e. a member of the ``shortest
+sequences in non-adjacent groups (i.e. a member of the ``shortest
 groups'' against a member of the ``longest groups'' if there is an
-interviening sized group).  Once computed, we assign to the MST
+intervening sized group).  Once computed, we assign to the MST
 edge the ratio of the $d^2$ score to the group threshold, thus
 normalizing the weight for comparisons ``between groups'' and
-effectivally giving us an edge-removal threhold of 1.
+effectively giving us an edge-removal threshold of 1.}
 
-By restricting $d^2$ comparisons to within a group, we minimize the
-effets of the hetrogenous sequences lengths by restricting our
-comparisons to only sequences of similar lengths.  By not restrcicting
+\mc{By restricting $d^2$ comparisons to within a group, we minimize the
+effects of the heterogeneous sequences lengths by restricting our
+comparisons to only sequences of similar lengths.  By not restricting
 ourselves to a single window size, we allow ourselves to, when possible, avoid the
-preformance hit of using a small window.  As we are not comparing
+performance hit of using a small window.  As we are not comparing
 sequences from different groups we bypass the question of how to
-compare a largelong sequence against a short one.  And because the
+compare a long sequence against a short one.  And because the
 groups overlap in content, we still get implicit comparisons between
 long and short sequences in terms of the resulting path of the minimum
-spanning tree that makes use of these ``linking'' nodes.
+spanning tree that makes use of these ``linking'' nodes.}
 
-In the \textsc{peace} implementation, we subdevide into three groups:
+\mc{In the \textsc{peace} implementation, we subdivide into three groups:
 \begin{itemize}
 \item Less than 150 ($w=50$, $T=40$, $t=20$, $u=4$).
 \item Between 150 and 400 ($w=75$, $T=60$, $t=35$, $u=6$)
 \item Greater than 400 ($w=100$, $T=80$, $t=50$, $t=50$).
-\end{itemize}
+\end{itemize}}
 
 
 
 
 \section{Simulated Test Results}
 
-In {\it Hazelhurst et al.} [\cite{Hazelhurst08a}] the authors conduct
+In {\it Hazelhurst et al.} \cite{Hazelhurst08a} the authors conduct
 an investigation of \textsc{wcd} \mc{(version 0.5.1)} against a number of clustering
 tools.  As they make a convincing argument that \textsc{wcd} is returning
 better results then the tools against which they compare, we limit our
 analysis to a comparison of \textsc{peace} against \textsc{wcd} and the \textsc{cap3} assembly
-tool [\cite{Huang99}] -- a tool which implicitly clusters while
+tool \cite{Huang99} -- a tool which implicitly clusters while
 performing assembly.  We do so by applying all three tools to a number
 of data sets, both simulated and real.
 
 \subsection{Simulation Tool and Parameters}
 
 For simulated data sets we use the {\bf ESTsim} tool to generate
-simulated EST data sets [\cite{Hazelhurst03}], using the collection of
+simulated EST data sets \cite{Hazelhurst03}, using the collection of
 zebra fish genes that served as a basis for the \textsc{wcd} simulations
-[\cite{Hazelhurst08a}].  In generating the ESTs, ESTsim models three
+\cite{Hazelhurst08a}.  In generating the ESTs, ESTsim models three
 types of error (general base read errors, errors due to
 polymerase decay, and primer interference), and allows those errors to
 take the form of substitutions, deletions, and insertions (of bases
@@ -255,51 +263,51 @@ Each estimate given in the main paper, or in the following, is
 averaged over 30 trials.  Each trial consists of the application of
 all three tools to a simulated data set, the set having been derived
 from the application of the ESTsim tool to a set of 100 zebra fish
-gene sequences [\cite{Hazelhurst03}].  All confidence intervals are
+gene sequences \cite{Hazelhurst03}.  All confidence intervals are
 calculated at a 95\% level of significance.
 
 \subsection{Result Quality}
 
-\mc{Our primary measurement tools if mesurement are sensitivity, the
+\mc{Our primary measurement tools if measurement are sensitivity, the
 Jaccard Index, Type 1 error and Type 2 error
-(Figure~\ref{sensitivityFig}).  Sensitivity is the ratio for true
+(Figure~3).  Sensitivity is the ratio for true
 positives to actual positives ($tp / (tp + fn)$) -- the fraction of
 sequences from the same transcript that are identified as such.  The
 {\it Jaccard} index combines both sensitivity and specificity,
 calculated as the ratio of true positives to the sum of true
 positives, true negatives, and false positives ($tp / (tp+fn+fp)$)
-[\cite{Hazelhurst08a}].  Notably, when we removed duplicated genes
+\cite{Hazelhurst08a}.  Notably, when we removed duplicated genes
 before generating the simulated EST sets, we found all three tools to
-have 100\% specificity: no false positives.}
+have perfect specificity: no false positives.}
 
 \mc{Type 1 and Type 2 errors, as defined in {\it Wang et al.}
-[\cite{Wang04}], measure quality at the level of the genes from which
+\cite{Wang04}, measure quality at the level of the genes from which
 the ESTs were derived.  For Type 1 error, we look at the fraction of genes
 that were broken into two or more partitions, while in
 Type 2 error we look at the fraction of clusters that contain two or
 more genes.}
 
-\mc{A fifth metric is to look at the number of singletons produce by a
+\mc{A fifth metric is the number of singletons produce by a
   tool:  sequences that  could not  be  assigned to  any cluster.   In
-  practice such a sequence could represent compelte coverage of a very
+  practice such a sequence could represent complete coverage of a very
   short transcript (one that may be otherwise had to identify), but is
   more likely to be an error in the clustering algorithm.  In order to
   identify  the first  it is  important  to minimize  the second.   In
   Figure~\ref{singletons} we look at the number of singletons produced
   by each tool when run on  simulated data in which there should be no
-  singletons produced,  seeing a very slight improvment  of PEACE over
+  singletons produced,  seeing a very slight improvement  of PEACE over
   WCD in certain error ranges.}
 
 \begin{figure}[tbp]
 \centerline{
-\label{dups}
 \includegraphics[scale=0.35]{pics.d/singletons_40.pdf}
 }
 \caption{Number of singletons produced by each tool in a simulated run
   where a fully correct clustering would have no singletons.  Values
-  average over 30 triles.  Blue/Solid = \textsc{peace}, Green/Dashed =
+  average over 30 trials.  Blue/Solid = \textsc{peace}, Green/Dashed =
   \textsc{wcd}, Black/Dot-Dashed = \textsc{cap3}.}\label{singletons}
 \end{figure}
+
 
 One of the difficulties in clustering EST data is dealing with
 highly similar genes.  Genes with a high degree of similarity will
@@ -314,35 +322,35 @@ duplicates as a function of the \% divergence between the
 duplications.  Unsurprisingly, \textsc{cap3} (the assembler) does the best
 here, able to effectively separate duplicates at $~92\%$ similarity
 or less.  \textsc{peace} and \textsc{wcd} are roughly comparable, both clearly able to
-separate duplicates out at a similarity level of $83\%$ -- but completely 
+separate duplicates out at a similarity level of $78\%$ -- but completely 
 unable to distinguish sharing a similarity of $~88\%$ or more. 
 
 \begin{figure}[tbp]
 \centerline{
-\label{dups}
 \includegraphics[scale=0.35]{pics.d/duplicates_40.pdf}
 }
 \caption{Ability to distinguish duplicates as a function of
   divergence.  Estimates averaged over 30 trials; one trial consists
-  of taking a random gene, copying it and stochastically changing bases
-  at the specified rate, then using the two genes as the bases for
-  generating a simulated set. Blue/Solid = \textsc{peace}, Green/Dashed = \textsc{wcd}, Black/Dot-Dashed = \textsc{cap3};
-  variance was too small for visible plotting of
-  confidence intervals.}
+  of taking a random gene, copying it and stochastically changing
+  bases at the specified rate, then using the two genes as the bases
+  for generating a simulated set. Blue/Solid = \peace, Green/Dashed =
+  \wcd\/ (mostly obscured by the blue line), Black/Dot-Dashed =
+  \capthree; variance was too small for visible plotting of
+  confidence intervals.}\label{dups}
 \end{figure}
 
 \subsection{Raising the Threshold}
 \label{sim_thresh}
 \mc{ 
   The \wcd\/ tool uses a $d^2$ threshold of $40$ to determine whether
-  two sequences are in the same cluster.  As this is equivilent to our
+  two sequences are in the same cluster.  As this is equivalent to our
   $T$ threshold for dismissing MST edges, we have set it to the same
   default value when used for Sanger sequences.  However, we did
   experiment with higher values, to interesting results.  A basic
   analysis indicated that a $T$ value as high as 130 should not have a
-  significant impact on its effectivness as a descriminator.  And in
+  significant impact on its effectiveness as a discriminator.  And in
   fact this was born out in simulation, as shown in
-  Figure~\label{SiJiT1T2130}.  In contrast with the equivilent results
+  Figure~\label{SiJiT1T2130}.  In contrast with the equivalent results
   for a threshold of $T=40$, as shown in the manuscript, we see
   considerable improvement in \peace\/ over \wcd\/ in all metrics
   except Type 2 error, in which \wcd\/ slightly
@@ -354,10 +362,10 @@ unable to distinguish sharing a similarity of $~88\%$ or more.
 \mc{
   Most importantly, while the higher threshold appeared to be better
   in theory and in analysis, it did not hold in practice.  In
-  Table~\ref{SangerTable130} we show the match to the manuscript
-  Table~\ref{SangerTable}, and observe the poor performance of
+  Table~\ref{SangerReal130} we show the match to the manuscript
+  Table~1, and observe the poor performance of
   \peace\/ when looking at the Jaccard index.  It is clear that in the
-  real data, the level of similarity is consierably higher then in the
+  real data, the level of similarity is considerably higher then in the
   simulations, thus making the reduced specificity of the higher
   threshold considerably more of a problem.
 }
@@ -365,7 +373,7 @@ unable to distinguish sharing a similarity of $~88\%$ or more.
 
 \begin{figure}
   \centerline{\includegraphics[width=3.35in]{pics.d/SeJiT1T2x40.pdf}}
-  \caption{Comparisons of Sensitivity, Jiccard Index, Type 1 error and
+  \caption{Comparisons of Sensitivity, Jaccard Index, Type 1 error and
     Type 1 error, based on the
     average over 30 simulated Sanger Sequence ESTs sets derived from 100 zebra
     fish genes  (see
@@ -378,7 +386,6 @@ unable to distinguish sharing a similarity of $~88\%$ or more.
 
 \begin{figure}[tbp]
 \centerline{
-\label{dups130}
 \includegraphics[scale=0.35]{pics.d/duplicates_130.pdf}
 }
 \caption{Ability to distinguish duplicates as a function of
@@ -387,64 +394,23 @@ unable to distinguish sharing a similarity of $~88\%$ or more.
   at the specified rate, then using the two genes as the bases for
   generating a simulated set. Blue/Solid = \textsc{peace}, Green/Dashed = \textsc{wcd}, Black/Dot-Dashed = \textsc{cap3};
   variance was too small for visible plotting of
-  confidence intervals.}
+  confidence intervals.}\label{dups130}
 \end{figure}
 
-
-\subsection{Runtime}
-\label{rt_section}
-
-In Figure~\ref{seq_runtime} we see give a runtime comparison of \textsc{peace} and \textsc{wcd},
-seeing a slight improvement in \textsc{peace}.  (As \textsc{cap3} performs both
-clustering and assembly, runtime comparisons are not meaningful.)  As
-stated, we see an almost perfectly quadratic curve ($r > 0.99$),
-indicating that the runtime is dominated by the time required to look
-at every EST pair (either filtering or computing $d^2$).
-As both \textsc{peace} and \textsc{wcd} can be run in a parallel mode, we also
-examined runtime as a function of the ratio of EST set sizes to number
-of processors used.  In Figure~\ref{par_runtime} we show two such ratios,
-again seeing an improvement in \textsc{peace} over \textsc{wcd}.
-
-\mc{All tests were run on the University of Miami Redhawk cluster,
-  made up of 3.2 GHz Intel Xeon EM64T CPUs, each with a 2MB cache and
-  800 MHz side bus, model number Xeon LV 3.0 (2005).}
-
-%%%%%%%%%%%%%
-\begin{figure}[tbp]
-\centerline{
-\includegraphics[scale=0.35]{pics.d/seq_time.pdf}
-\label{seq_runtime}
-}
-\caption{Single Processor Runtime as a function of input size,
-  averaged over 50 simulated EST sets; Blue/Solid = \textsc{peace},
-  Green/Dashed = \textsc{wcd}; vertical tics represent= 95\% confidence
-  intervals on estimates.}
-\end{figure}
-\begin{figure}[tbp]
-\centerline{
-\includegraphics[scale=0.5]{pics.d/par_time.pdf}
-\label{par_runtime}
-}
-\caption{Runtime of a function of input size when holding constant the
-  ratio of set size to number of processors used; averaged over 30
-  simulated EST sets.  Blue/Solid = \textsc{peace}, Green/Dashed = \textsc{wcd};
-  vertical tics represent= 95\% confidence intervals on estimates.}
-\end{figure}
-%%%%%%%%%%%%%
 
 \section{Real Data}
 
 \subsection{Runtimes}
 
 In Table~\ref{RunTime} we show the runtime of \peace\/ and \wcd\/ on
-five different benckmark sets obtained from the WCD and EasyCluster
-studies [\cite{Hazelhurst08a,Picardi09}]. 
+five different benchmark sets obtained from the WCD and EasyCluster
+studies \cite{Hazelhurst08a,Picardi09}. 
 
 \begin{table}[tbp]
 \begin{center}
 \begin{tabular} {|c|| c | c || c | c |}
 \hline
- Bencmark & \begin{tabular}{c} Number of \\ Sequences \end{tabular}
+ Benchmark & \begin{tabular}{c} Number of \\ Sequences \end{tabular}
  & \begin{tabular}{c} Number of \\ Bases \end{tabular} & Peace Runtme (s)&
  WCD Runtime (s) \\
 \hline
@@ -463,25 +429,25 @@ studies [\cite{Hazelhurst08a,Picardi09}].
 \end{tabular}
 \end{center}
 \caption{Runtime for \peace\/ and \wcd\/ on benchmarks from the
-  WCD and EasyCluster studies [\cite{Hazelhurst08a, Picardi09}].
+  WCD and EasyCluster studies \cite{Hazelhurst08a, Picardi09}.
   Runtimes for the first four sets are sequential, while that last was
   run over thirty processors.}\label{RunTime}
 \end{table}
 
-\subsection{Higer Threshold}
+\subsection{Higher Threshold}
 
-
-In Table~\ref{SangerReal130} we see the effect on the application of
-\peace\/ to the data sets from Table~\ref{SangerReal} when raising the
-threshold $T$ to 130 (see pervious discussion in
-Section~\ref{sim_thresh}.  While doing this appeared to be fairly
-effective in simulation, it did not hold up in pracice.  We see
-essentially no change in the sensitivity, but significant changes in
-the Jaccard Index (and a corresponding decrease in the total number of
-clusters).  We suspect that this is due to a higher number of more
-closely related genes than are present in the simulated data.  We can
-conclude that, without considerably more investigation, we should be
-settig $T$ to 40.
+\mc{ In Table~\ref{SangerReal130} we see the effect on the application
+  of \peace\/ to the data sets from Table~1 when
+  raising the threshold $T$ to 130 (see previous discussion in
+  Section~\ref{sim_thresh}).  While doing this appeared to be fairly
+  effective in simulation, it did not hold up in practice.  We see
+  essentially no change in the sensitivity, but significant changes in
+  the Jaccard Index (and a corresponding decrease in the total number
+  of clusters).  We suspect that this is due to a higher number of
+  more closely related genes than are present in the simulated
+  data. Regardless, without considerably more investigation, these
+  results indicated we should be leaving $T$ at a default rate of 40.
+}
 
 \begin{table}[tbp]
 \begin{center}
@@ -510,7 +476,7 @@ settig $T$ to 40.
 \end{center}
 \caption{Comparisons of runs on the EasyCluster human Benchmark
   Dataset and the WCD A076941 Arabidopsis thaliana dataset using the
-  standard quality measurments with $T=130$.}\label{SangerReal130}
+  standard quality measurements with $T=130$.}\label{SangerReal130}
 
 \end{table}
 
@@ -525,5 +491,6 @@ settig $T$ to 40.
 % LocalWords:  overline TpG li lj lk ijk i'j'k jj kk trinucleotides rb Arndt et
 % LocalWords:  transversion Arndt's dinucleotides transversions RepBase arallel
 % LocalWords:  nalysis lustering ngine al substring Hazelhurst \textsc{wcd}  ESTsim ESTs
-% LocalWords:  polymearse Methodoloy Jaccard tp fn fp  wcd th Prim's Ns
-% LocalWords:  Chlamydomonas reinhartdii
+% LocalWords:  polymearse Methodoloy Jaccard tp fn fp  wcd th Prim's Ns ssembly
+% LocalWords:  Chlamydomonas reinhartdii nvironment xpression runtime bp Runtme
+% LocalWords:  stochastically Runtimes EasyCluster Ricinus Dataset 
