@@ -140,7 +140,7 @@ website, the \peace\/ GUI allows the user to both easily install
 enabling transparent parallel processing and providing various tools
 for result analysis.
 
-\section{\peace\/: Installation and Use}
+\section{\peace: Installation and Use}
 
 The \peace\/ GUI can be launched by downloading and executing the
 Jar file available on the \peace\/ website
@@ -324,20 +324,23 @@ Supplementary Materials).  \mc{The most important method of quality
   (ranging from a 65\% improvement for two processors too a 17\%
   improvement for 12 processors).}
 
-\mc{We further note, as a point of interest that, we can significantly
-  improve the quality of \peace simulation results through the
-  increase of the threshold value (see Supplementary Materials,
-  Section C) -- achieving a significant improved in PEACE sensitivity
-  without an adverse effect on the Jaccard index (i.e. a significant
-  increase in the incorrect merging of clusters).  However, the
-  improvement does not carry over to the application of real data,
-  where we observe a significant drop in the Jaccard Index.  Due to
-  this drop we have opted to leave the lower threshold value as the
-  default, but users might consider the higher value, thus decreasing
-  the risk of incorrectly splitting clusters, if planning on
-  using on the subsequent use of a assembly tool that capable of
-  breaking up the incorrectly merged clusters during transcript reconstruction.}
+\mc{In the course of our simulations we also invetigated the memory
+  footprint -- of particular concern for large data sets.  We find
+  that, as with \wcd, the required memory for an execution is linear
+  in the size of the dataset.}
 
+  \mc{We note, as a point of interest, that we can significantly
+    improve the quality of \peace\/ simulation results through the
+    increase of the threshold value (see Supplementary Materials,
+    Section C) -- achieving a significant improved in PEACE
+    sensitivity without an adverse effect on the Jaccard index (i.e. a
+    significant increase in the incorrect merging of clusters).
+    However, the improvement does not carry over to the application of
+    real data (Supplementary Materials, Section E.2), where we observe
+    a significant increase in the incorrect merging of clusters.
+    While this might be acceptable to a user planning to employ an
+    assembl capbable of breaking up the clusters, we have choosed to
+    base our analysis (and set out default values) at the lower threshold.}
 
 \begin{figure}
   \centerline{\includegraphics[width=3.35in]{pics.d/SeJiT1T2x40.png}}
@@ -427,54 +430,21 @@ Supplementary Materials).  \mc{The most important method of quality
 \mc{We tested the three tools on short-read data using the \metasim\/
   tool of {\it Richter et al.} \cite{Richter2008}.  Encoded into
   \metasim\/ are sequence generation and error models corresponding to
-  several technologies, including the 454 short-read technology.
-  Leaving \capthree\/ and \wcd\/ at their default values, but
-  employing the {\it adaptive $d^2$} strategy for short read sequences
-  (see Section~C in the supplementary materials), we find a that
-  \peace\/ performs significantly better than the other two tools on
-  454 data using the default \metasim\/ model (with sequence sizes
-  ranging in size from 200bp to 370bp, at an average size of 250bp and
-  a standard deviation of 17bp).  Over thirty runs, we see an average
-  sensitivity 0.884 for \peace, 0.331\/ for \wcd, and 0.004 for
-  \capthree.  For the Jaccard Index we get essentially the same
-  numbers.  For 100 transcript \peace\/ creates 128 clusters (as
-  opposed to 6,370 and 19245 clusters for \wcd\/ and \capthree), and
-  creates only 3 singletons (as opposed to 5,850 and 15432).  We do
-  note that it is likely that the \wcd results could be considerably
-  improved by the adjustment of a few parameters, but were unable to
-  determine how to do that.  (Runtime of \peace\/ was somewhat slower
-  than that of \wcd, but given the significant improvement in quality
-  of results this is unimportant.)}
-
-\begin{table*}[tbp]
-\begin{center}
-\begin{tabular} {| c || c || c | c | c | c | c | c | c |}
-\hline
- & 
-& Sensitivity & Jaccard & \begin{tabular}{c} Type 1 \\
-  error \end{tabular} & \begin{tabular}{c} Type 2 \\
-  error \end{tabular} &
-\begin{tabular}{c} Number \\ of  \\
-    Clusters \end{tabular} & \begin{tabular}{c} Number \\ of \\
-    Singletons \end{tabular}
-    & \begin{tabular}{c} Single \\ processor \\ runtime (s) \end{tabular}\\
-\hline
-\hline EasyCluster Human & \peace & 0.871 & 0.809 &
-\cline{2-9} Benchmark & \wcd &  0.020 & 0.020 &
-\cline{2-9} (111 Genes) & \capthree & 0.005 & 0.004 &
-\hline
-\hline WCD A076941 & \peace & 0.932 & 0.475 & 0.351 & 0.027 & 18825 & 8951 & 1166\\
-\cline{2-9} Benchmark & \wcd & 0.933 & 0.476 & 0.350 &  0.027 & 18787 & 8553 & 966 \\
-\cline{2-9} (13240 genes) & \capthree & 0.826 & 0.802 & 0.486 & 0.014 & 25042 & 14916 &
-\mbox{NA} \\
-\hline
-\end{tabular}
-\end{center}
-\caption{Comparisons of runs on the EasyCluster human Benchmark
-  Data Set and the WCD A076941 Arabidopsis thaliana data set using the
-  standard quality measurements.}\label{SangerReal}
-\end{table*}
-
+  several technologies, including the 454 short-read technology
+  (producing reads ranging in size from 200bp to 370bp with a mean of
+  250bp and a standard deviation of 17bp), and the Illumina short-read
+  technology (producing reads of exactly 62bp).  Experiements were run
+  using two sets of \wcd\/ parameters (the default paramters, and
+  setting window size to 75 and threshold to 75 -- thus matching the
+  \peace\/ parameters for this size squence), and using default values
+  of \capthree.  Only with \peace were we able to get reasonable
+  results, seeing a sensitivity of 0.871 for the 454 reads and
+  0.583 or the shorter Illumina reads, a Jaccard Index of 0.809 and
+  0.372 respectivally, and other comperable figures.  (See Table~S3 in
+  the Supplementary Materials.)  In short, \peace performs quite well
+  for 454 reads and provides some useful information for Illumina
+  reads, while \wcd\. and \capthree are unable to produce working
+  results.}
 
 \section{Conclusions}
 
@@ -508,10 +478,11 @@ whole) results in a significant reduction in overall assembly time.
 
 Peace can be downloaded from
 \href{http://www.peace-tools.org}{www.peace-tools.org}, where we are
-committed to maintaining and improving the tool.  The underlying PEACE
-architecture is configured to support a variety of tasks, including the
-possibility of a minimum spanning tree based assembly tool we hope to
-add to the tool in a future study.
+committed to keep maintaining and improving the tool in the future.
+Meanwhile, we are developing our own assembly tool that can seamlessly
+integrate with PEACE.  The underlying modular design of PEACE offers
+users many possibilities to expand and incorporate the MST algorithm
+for other bioinformatics application.
 
 \section{Acknowledgements}
 
