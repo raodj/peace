@@ -69,4 +69,9 @@ const int BAND_WIDTH_SW=100;
 //1-use, 0-not use. Use bounded version may reduce the precision.
 const int USE_BOUNDED_SW=0;
 
+//If generate output files for SNP analysis. 0: not, 1: generate.
+const int OUTPUT_SNP=0;
+//The prefix of the output files for SNP analysis. The number of SNP output files is equal to the number of consensus sequences.
+//They are named as snaAnalysis.0, snaAnalys.1, ...
+//std::string SNP_FILE="snpAnalysis";
 #endif

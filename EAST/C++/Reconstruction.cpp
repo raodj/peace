@@ -40,6 +40,7 @@ bool operator< (const LeftEnd& k1, const LeftEnd& k2) {
 Reconstruction::Reconstruction() {
 	g = NULL;
 	incNodes = NULL;
+	idxOfSNPFile = 0;
 }
 
 Reconstruction::Reconstruction(Graph* graph, vector<SixTuple*> align, vector<SixTuple*> leftEnds, InclusionNodes* inc, const std::string& con, const std::string& sing, const std::string& numF, int longestEstLen) {
@@ -51,6 +52,7 @@ Reconstruction::Reconstruction(Graph* graph, vector<SixTuple*> align, vector<Six
 	singletonFileName = sing;
 	numOfUsedESTsFileName = numF;
 	COMPARISON_LENGTH = longestEstLen;
+	idxOfSNPFile = 0;
 
 	usedNodes = vector<int> (g->graphNodes.size(), 0);
 
@@ -562,6 +564,11 @@ vector<string> Reconstruction::reconstructSeq(vector<StartPos>& a) {
 	tConsensus = tConsensus.substr(0, totalLen);
 
 	ret[0] = replace(tConsensus, "P", "");
+
+	if (OUTPUT_SNP == 1) { //write output files for SNP analysis
+		writeToSNPFile(bases, totalLen);
+	}
+
 	//release bases
 	for (int i=0; i<bases.size(); i++) {
 		delete bases[i];
@@ -584,6 +591,20 @@ int Reconstruction::getNumUsedNodes(vector<StartPos>& a) {
 	return addedNodes.size();
 }
 
+void Reconstruction::writeToSNPFile(vector<SingleBase*> bases, int totalLen) {
+	if (totalLen <= 0) return;
+	stringstream ss;
+	ss << idxOfSNPFile++;
+	string outFileName = "snpAnalysis." + ss.str();
+	ofstream outFile1;
+	outFile1.open(outFileName.c_str(),ios::trunc);
+
+	outFile1 << "A\tG\tC\tT" << endl;
+	for (int i=0; i<totalLen; i++) {
+		outFile1 << bases[i]->numA << "\t" << bases[i]->numG << "\t" << bases[i]->numC << "\t" << bases[i]->numT << endl;
+	}
+	outFile1.close();
+}
 
 string Reconstruction::getCurConsensus(vector<SingleBase*> bases) {
 	int len = bases.size();
