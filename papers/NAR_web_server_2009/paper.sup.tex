@@ -174,9 +174,9 @@ the filtering heuristics to every EST pair.
 
 \subsection{Removing edges}
 
-Once the MST is has been calculated, our last step is to remove all
+Once the MST has been calculated, our last step is to remove all
 edges exceeding a threshold weight $T$, taking the resulting
-components as our clusters.  \textsc{wcd}, when faced with a similar
+components as our clusters.  \wcd, when faced with a similar
 challenge, sets the threshold at $T=40$, hypothesizing that EST pairs
 with a $d^2$ distance of greater than 40 are unlikely to overlap.  \mc{We
 have set our threshold to the same $T=40$ (with discussion below on
@@ -209,22 +209,24 @@ edge the ratio of the $d^2$ score to the group threshold, thus
 normalizing the weight for comparisons ``between groups'' and
 effectively giving us an edge-removal threshold of 1.}
 
-\mc{By restricting $d^2$ comparisons to within a group, we minimize the
-effects of the heterogeneous sequences lengths by restricting our
-comparisons to only sequences of similar lengths.  By not restricting
-ourselves to a single window size, we allow ourselves to, when possible, avoid the
-performance hit of using a small window.  As we are not comparing
-sequences from different groups we bypass the question of how to
-compare a long sequence against a short one.  And because the
-groups overlap in content, we still get implicit comparisons between
-long and short sequences in terms of the resulting path of the minimum
-spanning tree that makes use of these ``linking'' nodes.}
+\mc{By restricting $d^2$ comparisons to within a group, we minimize
+  the effects of the heterogeneous sequences lengths by restricting
+  our comparisons to only sequences of similar lengths.  By not
+  restricting ourselves to a single window size, we allow ourselves
+  to, when possible, avoid the performance hit of using a small
+  window.  As we are not comparing sequences from groups corresponding
+  to radically different sizes we bypass the question of how to
+  compare a long sequence against a short one.  And because we allow
+  for the comparison of sequences in neighboring groups, we still get
+  implicit comparisons between long and short sequences in terms of
+  the resulting path of the minimum spanning tree that makes use of
+  these ``linking'' nodes.}
 
 \mc{In the \textsc{peace} implementation, we subdivide into three groups:
 \begin{itemize}
-\item Less than 150 ($w=50$, $T=50$, $t=20$, $u=4$).
-\item Between 150 and 400 ($w=75$, $T=75$, $t=35$, $u=6$)
-\item Greater than 400 ($w=100$, $T=100$, $t=50$, $t=50$).
+\item Less than 150bp ($w=50$, $T=50$, $t=20$, $u=4$).
+\item Between 150bp and 400bp ($w=75$, $T=75$, $t=35$, $u=6$)
+\item Greater than 400bp ($w=100$, $T=100$, $t=50$, $t=50$).
 \end{itemize}}
 
 
@@ -272,14 +274,12 @@ calculated at a 95\% level of significance.
 \mc{Our primary measurement tools if measurement are sensitivity, the
 Jaccard Index, Type 1 error and Type 2 error
 (Figure~3).  Sensitivity is the ratio for true
-positives to actual positives ($tp / (tp + fn)$) -- the fraction of
-sequences from the same transcript that are identified as such.  The
-{\it Jaccard} index combines both sensitivity and specificity,
-calculated as the ratio of true positives to the sum of true
+positives to actual positives ($tp / (tp + fn)$) -- the} \mc{fraction} \mc{of}
+\mc{sequences} \mc{from} \mc{the} \mc{same} \mc{transcript} \mc{that} \mc{are} \mc{identified} \mc{as} \mc{such.}  \mc{The}
+\mc{{\it Jaccard}} \mc{index} \mc{combines} \mc{both} \mc{sensitivity} \mc{and} \mc{specificity,}
+\mc{calculated} \mc{as} \mc{the} \mc{ratio} \mc{of} \mc{true} \mc{positives} \mc{to} \mc{the sum of true
 positives, true negatives, and false positives ($tp / (tp+fn+fp)$)
-\cite{Hazelhurst08a}.  Notably, when we removed duplicated genes
-before generating the simulated EST sets, we found all three tools to
-have perfect specificity: no false positives.}
+\cite{Hazelhurst08a}.}
 
 \mc{Type 1 and Type 2 errors, as defined in {\it Wang et al.}
 \cite{Wang04}, measure quality at the level of the genes from which
@@ -332,12 +332,36 @@ unable to distinguish sharing a similarity of $~88\%$ or more.
 }
 \caption{Ability to distinguish duplicates as a function of
   divergence.  Estimates averaged over 30 trials; one trial consists
-  of taking a random gene zebra-fish gene, copying it and stochastically changing
+  of taking a random gene zebra fish gene, copying it and stochastically changing
   bases at the specified rate, then using the two genes as the bases
   for generating a simulated set. Blue/Solid = \peace, Green/Dashed =
   \wcd\/ (mostly obscured by the blue line), Black/Dot-Dashed =
   \capthree; variance was too small for visible plotting of
   confidence intervals.}\label{dups}
+\end{figure}
+
+\subsection{Runtime and Memory Footprint}
+
+\mc{Runtime of the tool is analyzed in Figure~4 of the main paper.  In
+Figure~\ref{memory} we present a plot of the memory footprint of each tool
+as a function of input size.  Data points were generated by the application of
+each tool to simulated sets of a specified size (generated by ESTSim),
+measuring the maximum amount of memory required for the run.  We see that while
+all tools require memory linear in the input size, \wcd\/ requires
+slightly less than does \peace, while both require significantly less
+memory than \capthree.  In general we find the footprint of \peace\/
+to be relativily small, as compared to other clustering tools
+(discussed in {\it Hazelhurst et al.} \cite{Hazelhurst08a}).}
+
+\begin{figure}[tbp]
+\centerline{
+\includegraphics[scale=0.35]{pics.d/memory.pdf}
+}
+\caption{Plots of memory footprint against sequence set size for a
+  single processor run on simulated data for each tool: \peace\/
+  (blue), \wcd\/ (green) and \capthree\/ (balck), along with the
+  lesat-squares fit for each.  For each fit we have an associated
+  regression coefficient of $r > 0.99$.}\label{memory}
 \end{figure}
 
 \subsection{Raising the Threshold}
@@ -346,12 +370,12 @@ unable to distinguish sharing a similarity of $~88\%$ or more.
   The \wcd\/ tool uses a $d^2$ threshold of $40$ to determine whether
   two sequences are in the same cluster.  As this is equivalent to our
   $T$ threshold for dismissing MST edges, we have set it to the same
-  default value when used for Sanger sequences.  However, we did
-  experiment with higher values, to interesting results.  A basic
-  analysis indicated that a $T$ value as high as 130 should not have a
+  default value when used for Sanger} \mc{sequences.}  \mc{However,} \mc{we} \mc{did}
+  \mc{experiment} \mc{with} \mc{higher} \mc{values,} \mc{with} \mc{interesting} \mc{results.  An
+  analysis of the preformance of $d^2$ indicated that a $T$ value as high as 130 should not have a
   significant impact on its effectiveness as a discriminator.  And in
   fact this was born out in simulation, as shown in
-  Figure~\label{SiJiT1T2130}.  In contrast with the equivalent results
+  Figure~\ref{SeJiT1T2130}.  In contrast with the equivalent results
   for a threshold of $T=40$, as shown in the manuscript, we see
   considerable improvement in \peace\/ over \wcd\/ in all metrics
   except Type 2 error, in which \wcd\/ slightly
@@ -360,28 +384,27 @@ unable to distinguish sharing a similarity of $~88\%$ or more.
   performance in Figure~\ref{dups130}.  
 }
 
-\mc{
-  Most importantly, while the higher threshold appeared to be better
-  in theory and in analysis, it did not hold in practice.  In
-  Table~\ref{SangerReal130} we show the match to the manuscript
-  Table~1, and observe the poor performance of
-  \peace\/ when looking at the Jaccard index.  It is clear that in the
-  real data, the level of similarity is considerably higher then in the
-  simulations, thus making the reduced specificity of the higher
-  threshold considerably more of a problem.
-}
+\mc{ Most importantly, while the higher threshold appeared to be
+  better in theory and in analysis, the result did not hold in
+  practice.  In Table~\ref{SangerReal130} we show the figures
+  corresponding to the manuscript Table~1 when raising the threshold
+  to $130$, and observe the poor performance of \peace\/ when looking
+  at the Jaccard index.  It is clear that in the real data, the level
+  of transcript similarity is considerably higher then in the simulations, thus
+  making the reduced specificity of the higher threshold considerably
+  more of a problem.  }
 
 
 \begin{figure}
   \centerline{\includegraphics[width=3.35in]{pics.d/SeJiT1T2x130.pdf}}
   \caption{Comparisons of Sensitivity, Jaccard Index, Type 1 error and
-    Type 1 error using the elevated threhold ($T=130$).  Based on the average
-    over 30 simulated Sanger Sequence ESTs sets derived from 100 zebra
-    fish genes (see Supplementary Materials, Section C, for more
-    details).  Blue/Solid = \peace, Green/Dash = \wcd, Black/Dot-Dash
-    = \capthree; vertical tics = 95\% confidence intervals on
-    estimates.  Intervals are not presented for Type 1 error due to
-    the effective lack of variance.}\label{SeJiT1T2130}
+    Type 1 error using the elevated threhold ($T=130$), providing a
+    contrast against Figure 3 ($T=40$).  Based on the average over 30
+    simulated Sanger Sequence ESTs sets derived from 100 zebra fish
+    genes.  Blue/Solid = \peace, Green/Dash = \wcd, Black/Dot-Dash =
+    \capthree; vertical tics = 95\% confidence intervals on estimates.
+    Intervals are not presented for Type 1 error due to the effective
+    lack of variance.}\label{SeJiT1T2130}
 \end{figure}
 
 \begin{figure}[tbp]
@@ -390,7 +413,7 @@ unable to distinguish sharing a similarity of $~88\%$ or more.
 }
 \caption{Ability to distinguish duplicates as a function of
   divergence.  Estimates averaged over 30 trials; one trial consists
-  of taking a random zebra-fish gene, copying it and stochastically changing bases
+  of taking a random zebra fish gene, copying it and stochastically changing bases
   at the specified rate, then using the two genes as the bases for
   generating a simulated set. Blue/Solid = \textsc{peace}, Green/Dashed = \textsc{wcd}, Black/Dot-Dashed = \textsc{cap3};
   variance was too small for visible plotting of
@@ -414,7 +437,7 @@ studies \cite{Hazelhurst08a,Picardi09}.
  WCD Runtime (s) \\
 \hline
 \hline
- Human Cluster & 17733 & 11.7 Mb & 293 & 804 \\
+ Human Cluster & 17,733 & 11.7 Mb & 293 & 804 \\
 \hline
  Cotton & 29,995 & 17.1 Mb & 222 & 339 \\
 \hline
@@ -438,8 +461,8 @@ studies \cite{Hazelhurst08a,Picardi09}.
 \mc{ In Table~\ref{SangerReal130} we see the effect on the application
   of \peace\/ to the data sets from Table~1 when
   raising the threshold $T$ to 130 (see previous discussion in
-  Section~\ref{sim_thresh}).  While doing this appeared to be fairly
-  effective in simulation, it did not hold up in practice.  We see
+  Section~\ref{sim_thresh}).  While raising $T$ is  
+  effective in simulations, it did not hold up in practice.  We see
   essentially no change in the sensitivity, but significant changes in
   the Jaccard Index (and a corresponding decrease in the total number
   of clusters).  We suspect that this is due to a higher number of
@@ -483,6 +506,10 @@ studies \cite{Hazelhurst08a,Picardi09}.
 
 \section{Short Read Analysis}
 
+\mc{In Table~\ref{SRSim} we present the results of application of the
+tools to \metasim\/ generated simulated short read data, as discussed in
+the results section of the paper.}
+
 \begin{table}[tbp]
 \begin{center}
 \begin{tiny}
@@ -497,13 +524,13 @@ studies \cite{Hazelhurst08a,Picardi09}.
     Singletons \end{tabular}
     & \begin{tabular}{c} Single \\ processor \\ runtime (s) \end{tabular}\\
 \hline
-\hline   & \peace & 0.871 & 0.809 & 0.186 & 0.049 & 129 & 4 & 129 \\
-\cline{2-9}  MetaSim 454 & \wcd(1) & 0.073 & 0.073 & 0.014 & 0.082 & 7028.500 & 5296.533 & 74 \\
-\cline{2-9}  Simulation & \wcd(2) &  0.020 & 0.020 & 0.008 & 0.198 & 13085 & 10610 & 64 \\
-\cline{2-9}  & \capthree & 0.005 & 0.005 & 0.005 & 0.565 & 19222 & 15425 & 132 \\
+\hline   & PEACE & 0.871 & 0.809 & 0.186 & 0.049 & 129 & 4 & 129 \\
+\cline{2-9}  MetaSim 454 & WCD(1) & 0.073 & 0.073 & 0.014 & 0.082 & 7028.500 & 5296.533 & 74 \\
+\cline{2-9}  Simulation & WCD(2) &  0.020 & 0.020 & 0.008 & 0.198 & 13085 & 10610 & 64 \\
+\cline{2-9}  & Cap3 & 0.005 & 0.005 & 0.005 & 0.565 & 19222 & 15425 & 132 \\
 \hline
-\hline Metasim  & \peace & 0.583 & 0.372 & 0.230 & 0.111 & 392.914 & 149.257 & 3454 \\
-\cline{2-9} Illumina  & \capthree & 0.006 & 0.006 & 0.002 & 1.766 & 51663.057 & 30107.429 & 291 \\
+\hline Metasim  & PEACE & 0.583 & 0.372 & 0.230 & 0.111 & 392.914 & 149.257 & 3454 \\
+\cline{2-9} Illumina  & Cap3 & 0.006 & 0.006 & 0.002 & 1.766 & 51663.057 & 30107.429 & 291 \\
 \hline
 \end{tabular}
 \end{tiny}
