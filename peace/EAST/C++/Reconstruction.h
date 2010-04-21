@@ -70,6 +70,7 @@ public:
 
 private:
 	int COMPARISON_LENGTH;
+	int idxOfSNPFile; //used to record the index of the current output file for SNP analysis
 	void printConsensus();
 	std::vector<std::string> reconstruct();
 	std::vector<std::string> reconstuctForEachCluster();
@@ -85,6 +86,7 @@ private:
 	std::string replace(std::string str, const std::string& old, const std::string& newstr);
 	std::string printLeftEndInfo(int leftEnd);
 	std::vector<std::string> reconstructSeq(std::vector<StartPos>& a);
+	void writeToSNPFile(std::vector<SingleBase*> bases, int totalLen);
 
 	DefGraph graphForPrim; //this is a graph which is used for generating MST. It is generated once in genDGraph(), then used multiple times.
 };
