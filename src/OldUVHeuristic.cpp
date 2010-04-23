@@ -185,7 +185,6 @@ OldUVHeuristic::computeHash(const int estIdx) {
     const char *sq2  = estS2->getSequence();
     ASSERT ( sq2 != NULL );
     const int End    = strlen(sq2) - v;
-    ASSERT ( End > 0 );
     
     // Get the codec for encoding/decoding operations
 
@@ -234,7 +233,9 @@ OldUVHeuristic::runHeuristic(const int otherEST) {
     // Obtain a reference to the hash list from the cache.
     const std::vector<unsigned short>& otherHash = cacheEntry->second;
     const int hashSize = otherHash.size();
-    ASSERT ( hashSize > 0 );
+    if ( hashSize <= 0 ) {
+	return false;
+    }
     // go through the otherHash and track number of matching words
     // Initialize local variables.
     register int numMatches = 0, numRCmatches = 0;
