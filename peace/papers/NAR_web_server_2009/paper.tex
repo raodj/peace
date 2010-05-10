@@ -16,7 +16,7 @@ urlcolor=blue %color of the url links
 
 \usepackage[usenames,dvipsnames]{color}
 \definecolor{red}{rgb}{1,0,0}
-\newcommand{\mc}[1]{\textcolor{red}{#1}}
+\newcommand{\mc}[1]{#1}
 
 % \articlesubtype{This is the article type (optional)}
 
@@ -26,6 +26,7 @@ urlcolor=blue %color of the url links
 \newcommand{\capthree} {{\small Cap3}}
 \newcommand{\easycluster} {{\small EasyCluster}}
 \newcommand{\metasim} {{\small MetaSim}}
+\newcommand{\tgicl} {{\small TGICL}}
 
 \begin{document}
 
@@ -65,7 +66,7 @@ urlcolor=blue %color of the url links
     the literature in quality with an interface making it
     accessible to any user.  It produces results of quality virtually
     identical to those of the \wcd\/ tool when applied to Sanger
-    sequences, significantly improved results over \wcd\/ when applied
+    sequences, significantly improved results over \wcd\/ and \tgicl\/ when applied
     the products of Next Generation Sequencing Technology, and
     significantly improved results over \capthree\/ in both cases.  In
     short, \peace\/ provides an intuitive graphical user interface and
@@ -87,17 +88,15 @@ controlled by the genome \cite{Nagaraj07}.  However, to access those
 transcripts, we must deal with the fragmented data produced by
 both Next Generation and traditional Sanger sequencing technology.
 
-In the past, access to a transcriptome sequence was primarily
-through the use of Expressed Sequence Tags (ESTs), single-pass cDNA
-sequences derived from transcribed mRNAs and sequenced by Sanger
-Sequencing technology.  More recently, Next Generation Sequencing
-(NGS) technology has begun to rapidly replace Sanger Sequencing,
-allowing for more comprehensive coverage of the transcriptome.  For
+In the past, access to a transcriptome sequence was primarily through
+the use of Expressed Sequence Tags (ESTs), single-pass cDNA sequences
+derived from transcribed mRNAs and sequenced by Sanger Sequencing
+technology.  More recently, Next Generation Sequencing (NGS)
+technology has begun to rapidly replace Sanger Sequencing.  For
 example, ESTs now being added to the GenBank dbEST are increasingly
 the product of NGS technologies such as 454 pyrosequencing, which
 enables the sequencing of novel and rare transcripts at a considerably
-higher rate of coverage than Sanger Sequencing
-\cite{Cheung2006,Emrich2007}.  From a computational perspective, this
+higher \cite{Cheung2006,Emrich2007}.  From a computational perspective, this
 is a mixed blessing: while NGS provides immense quantities of new
 information, it also provides immensely larger data sets -- and thus a
 need for fast, efficient analysis algorithms.
@@ -105,7 +104,7 @@ need for fast, efficient analysis algorithms.
 \enlargethispage{-65.1pt}
 
 Given a set of transcript fragments sampled from across the genome, a
-necessary first step of the set's analysis is that of clustering: separating
+necessary first step of the set's analysis is clustering: separating
 the fragments according to the transcript from which they were
 derived.  Frequently performed implicitly by assembly tools,
 clustering the data as a ``pre-assembly'' step has a number of
@@ -113,24 +112,21 @@ advantages.  Most significantly: performing this step will
 allow the application of the assembly tool to individual clusters --
 saving significant amounts of time \cite{Hazelhurst08a}.  
 
-However, clustering is a computationally challenging problem.  Even
-with the smaller number of ESTs produced using Sanger Sequencing, the
-runtime and memory requirements to cluster on the basis of pair-wise
-sequence alignments make such an approach infeasible in practice.  The
-much larger data-set size produced by NGS technologies exacerbates
-this problem.  To deal with this, \peace\/ combines our own version of
-the $d^2$ alignment-free sequence distance function \cite{Hide94} and
-the concept of a {\it minimum spanning tree} \cite{Prim57} to quickly
-and accurately find clusters of ESTs expressed from the same gene
-without reference to a sequenced genome.  \mc{Compared against
-  clustering tool in the literature
-  \cite{Burke99,Slater00,Huang99,Parkinson02,Kalyanaraman03,Malde03,
-    Pertea2003,Ptitsyn05,Hazelhurst08a,Picardi09}, \peace\/ proves to be of
-  equivalent quality to the \wcd\/ tool \cite{Hazelhurst08a}, more
-  sensitive and robust than the other tools, and more user friendly
-  than any published clustering tool.  Nor are any of} \mc{these tools
-  designed for the ease of installation and use that \peace\/
-  provides.}
+Clustering is a computationally challenging problem; the runtime and
+memory requirements to cluster on the basis of pair-wise sequence
+alignments make such an approach infeasible in practice.  To deal with
+this, \peace\/ combines our own version of the $d^2$ alignment-free
+sequence distance function \cite{Hide94} and the concept of a {\it
+  minimum spanning tree} \cite{Prim57} to quickly and accurately find
+clusters of ESTs expressed from the same gene without reference to a
+sequenced genome.  Compared against clustering tool in the literature
+\cite{Burke99,Slater00,Huang99,Parkinson02,Kalyanaraman03,Malde03,
+  Pertea2003,Ptitsyn05,Hazelhurst08a,Picardi09}, \peace\/ proves to be
+of equivalent quality to the \wcd\/ and \tgicl tools
+\cite{Hazelhurst08a,Pertea2003}, and more sensitive and robust than
+other tools.  From the user perspective, o tool in the literature can
+match \peace for ease of instillation, use, or the post-clustering
+analysis tools \peace provides.
 
 In short, \peace\/ is a computational tool for the {\it ab initio}
 clustering of transcript fragments by gene association, applicable to
@@ -143,9 +139,9 @@ for result analysis.
 
 \section{\peace: Installation and Use}
 
-The \peace\/ GUI can be launched by downloading and executing the
+The \peace\/ GUI can be launched by through the
 Jar file available on the \peace\/ website
-(\href{http://www.peace-tools.org}{www.peace-tools.org}) to any
+(\href{http://www.peace-tools.org}{www.peace-tools.org}) on any
 machine running the standard Java Virtual Machine (JVM).  Once
 running, the user can employ the GUI to install the clustering engine
 and perform a clustering of a data file in {\sc fasta} format, view an
@@ -241,8 +237,9 @@ computed, the user has several options for analysis:
   method of setting up these classifiers, and the resulting histogram,
   is illustrated in Figure~\ref{screen}(e).
 \end{itemize}
-Extensive documentation for the tool has been posted on the \peace\/ website, as well as links to several tutorial videos
-demonstrating \peace\/ use and capabilities.
+Extensive documentation for the tool has been posted on the \peace\/
+website, as well as links to several tutorial videos demonstrating
+\peace\/ use and capabilities.
 
 
 \section{Methods}
@@ -376,22 +373,30 @@ implicitly calculates a clustering in the process of assembly).
      cache and a 800 MHz front side bus, model number Xeon LV 3.0 (2005).}\label{seq_parallel}
 \end{figure}
 
-\mc{In applying the tools to real data Sanger data, we used the Human
-  Benchmark Data Set used to test \easycluster\/ \cite{Picardi09}, and
-  the A076941 {\it Arabidopsis thaliana} data set used to test wcd\/
-  \cite{Hazelhurst08a,Hazelhurst08b} (see Table~\ref{SangerReal}).
-  We notice essentially identical results for \peace\/ and wcd\/ in
-  quality, both significantly better than \capthree\/ in Sensitivity and Type
-  1 error rate, while slightly worse in the Jaccard Index and Type 2
-  error.  In runtime we see some inconsistency, with \peace\/ showing a
-  60\% runtime improvement over \wcd\/ in the first data set, but requiring 20\%
-  more time than \wcd\/ in the Arabidopsis data set.  (We cannot make
-  a reasonable runtime comparison to \capthree, as the runtime of that
-  tool reflects both clustering and assembly.)  In Table~S1 of the
-  Supplementary Materials we present runtimes of several more sets,
-  observing that while \peace\/ appears to be significantly 
-  faster on the smaller sets, \wcd\/ does overtake it for larger
-  sets.}
+While \peace\/ clearly matches \wcd\/ on long-read sequence, comparisons
+against \tgicl\/ \cite{Pertea2003}  are more complicated.  In short, we find that when
+parameters are picked appropriately, \tgicl\/ is more sensitive at lower
+error rate -- but \peace\/ is more robust to error, in all cases
+has an improved Type 2 error rates and is better able to
+distinguish duplicated genes.  (See the Supplementary Materials for a
+more detailed analysis.)
+
+
+In applying the tools to real data Sanger data, we used the Human
+Benchmark Data Set used to test \easycluster\/ \cite{Picardi09}, and
+the A076941 {\it Arabidopsis thaliana} data set used to test wcd\/
+\cite{Hazelhurst08a,Hazelhurst08b} (see Table~\ref{SangerReal}).  We
+notice essentially identical results for \peace\/ and wcd\/ in
+quality, both significantly better than \capthree\/ in Sensitivity and
+Type 1 error rate, while slightly worse in the Jaccard Index and Type
+2 error.  In runtime we see some inconsistency, with \peace\/ showing
+a 60\% runtime improvement over \wcd\/ in the first data set, but
+requiring 20\% more time than \wcd\/ in the Arabidopsis data set.  (We
+cannot make a reasonable runtime comparison to \capthree, as the
+runtime of that tool reflects both clustering and assembly.)  In
+Table~S1 of the Supplementary Materials we present runtimes of several
+more sets, observing that while \peace\/ appears to be significantly
+faster on the smaller sets, \wcd\/ does overtake it for larger sets.
 
 
 \begin{table*}[tbp]
@@ -481,16 +486,16 @@ failure to remove sequencing adapters or post-transcriptional
 poly(A)/(T) tails), and the presence of low-complexity repeats can
 cause similar effects in these clustering tools.  These problems can be
 handled through the application of the assembler, and the ability to
-apply any assembler to small cluster (as opposed to the data set as a
+apply any assembler to small clusters (as opposed to the data set as a
 whole) results in a significant reduction in overall assembly time.
 
-\mc{Peace can be downloaded from
+Peace can be downloaded from
 \href{http://www.peace-tools.org}{www.peace-tools.org}, where we are
 committed to keep maintaining and improving the tool in the future.
 Meanwhile, we are developing our own MST-based assembly tool that can
 seamlessly integrate with PEACE.  The underlying modular design of
 PEACE offers users many possibilities to expand and incorporate the
-MST algorithm for other bioinformatics application.}
+MST algorithm for other bioinformatics application.
 
 \section{Acknowledgements}
 
