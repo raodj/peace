@@ -441,24 +441,21 @@ faster on the smaller sets, \wcd\/ does overtake it for larger sets.
 % sensitivity and Type 1 error rates, with an 18\% speedup for \peace\/ 
 % (see Supplementary Materials, Section~D, for more details).
 
-\mc{We tested the three tools on short-read data using the \metasim\/
-  tool of {\it Richter et al.} \cite{Richter2008}.  Encoded into
-  \metasim\/ are sequence generation and error models corresponding to
-  several technologies, including the 454 short-read technology
-  (producing reads ranging in size from 200bp to 370bp with a mean of
-  250bp and a standard deviation of 17bp), and the Illumina short-read
-  technology (producing reads of exactly 62bp).  Experiments were run
-  using two sets of \wcd\/ parameters (the default parameters, and
-  setting window size to 75 and threshold to 75 -- thus matching the
-  equivalent \peace\/ parameters), and using default values
-  of \capthree.  Only with \peace\/ were we able to get reasonable
-  results, seeing a sensitivity of 0.871 for the 454 reads and
-  0.583 or the shorter Illumina reads, a Jaccard Index of 0.809 and
-  0.372 respectively, and other comparably figures.  (See Table~S3 in
-  the Supplementary Materials.)  In short, \peace performs quite well
-  for 454 reads and provides some useful information for Illumina
-  reads, while \wcd\/ and \capthree\/ are unable to produce working
-  results.}
+We tested the three tools on short-read data using the \metasim\/ tool
+of {\it Richter et al.} \cite{Richter2008}.  Encoded into \metasim\/
+are sequence generation and error models corresponding to several
+technologies, including the 454 short-read technology (producing reads
+ranging in size from 200bp to 370bp with a mean of 250bp and a
+standard deviation of 17bp), and the Illumina short-read technology
+(producing reads of exactly 62bp).  In the 454 experiments \peace\/
+achieved a sensitivity of 0.871, an 89.7\% improvement in sensitivity
+over \wcd\/ and a 193\% improvement in sensitivity over \tgicl, with
+comparable values for the Jaccard Index.  \wcd\/ was unable to handle
+the Illumina data, while \peace\/ sensitivity, at a value of 0.384,
+was nearly twice as good as Illumina.  (For more details, see Table~S3
+in the Supplementary Materials.)  In short, \peace\/ performs quite
+well for 454 reads and provides some useful information for Illumina
+reads, with considerably better results than \wcd\/ or \tgicl\/.
 
 \section{Conclusions}
 
