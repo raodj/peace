@@ -88,10 +88,32 @@ public:
         
         \param[in] bp The base pair character (both upper and lower
         cases are handled correctly) to be encoded.
+
+        \return The 2-bit ecnoding for the given nucleotide.
     */
     inline static char encode(const char bp)
     { return charToInt[(int) bp]; }
+    
+    /** Obtain base pair character for a given 2-bit encoded base
+        pair.
 
+        This method can be used to obtain the actual base pair
+        character for a given 2-bit encoding for a nucleotide obtained
+        via a call to the ESTCodec::encode() method.  This method
+        essentially translates 2-bits codes \c 00, \c 11, \c 10, and
+        \c 01 into the base pair characters \c A, \c T, \c C, and \c G
+        respectively.  For all other values this method returns '-'
+        (hyphen character) as the encoding.
+
+        \param[in] codedBP The 2-bit encoded nucleotide value to be
+        converted to corresponding base pair character.
+
+        \return This method returns the base character corresponding
+        to the given 2-bit encoding.
+    */
+    inline static char decode(const unsigned int codedBP)
+    { return (codedBP < 4 ? intToChar[codedBP] : '-'); }
+    
     /** Obtain 2-bit \b complement code for a given base pair.
 
         This method can be used to obtain the \b complementary 2-bit
@@ -108,11 +130,37 @@ public:
         \param[in] bp The base pair character (both upper and lower
         cases are handled correctly) whose complementary encoding is
         required.
+
+        \return The reverse-complementary ecnoding for the given
+        nucleotide.
     */
     inline static char encode2rc(const char bp)
     { return charToIntComp[(int) bp]; }
 
+    /** Obtain complementary nucleotide a given base pair.
 
+        This method can be used to obtain the \b complementary
+        nucleotide character for a given base pair (bp).  This method
+        essentially translate bases \c A, \c T, \c C, and \c G, (both
+        upper and lower case) into \c T, \c A, \c G, and \c C
+        respectively.
+
+        \note In favor of speed, this method does not perform any
+        special checks on the actual character in bp. It is the
+        responsiblity of the caller to ensure that this method is
+        invoked with appropriate parameter value.
+        
+        \param[in] bp The base pair character (both upper and lower
+        cases are handled correctly) whose complementary nucleotide is
+        required.
+
+        \return The complementary nucleotide corresponding to the
+        given base pair.
+    */
+	inline static char getComp(const char bp) {
+        return RCBases[(int) bp];
+    }
+    
     /** Obtain the reverse-complement for a given word.
 
         This method can be used to obtain the reverse-complement
@@ -359,6 +407,19 @@ private:
     */
     static char charToInt[];
 
+    /** A simple array to map numbers \c 0, \c 1, \c 2, and \c 3
+        to characters \c A, \c C, \c G, and \c T respectively.
+        
+        This is a simple array of 4 entries that are used to convert
+        the encoding for characters \c0, \c 3, \c 2, and \c 1 to
+        nucleotide characters \c A, \c T, \c C, and \c G respectively.
+        This encoding is typically used to display characters and
+        rebuild sequences.  This array is statically allocated. It is
+        initialized in the constructor and is never changed during the
+        life time of this class.
+    */
+    static char intToChar[];
+    
     /** A simple array to map characters \c A, \c T, \c C, and \c G to
         complementary encodings \c 3, \c 0, \c 1, and \c 2
         respectively.
@@ -380,6 +441,19 @@ private:
     */
     static char charToIntComp[];
 
+    /** A simple array to map characters \c A, \c T, \c C, and \c G to
+        complementary encodings \c T, \c A, \c G, and \c C
+        respectively.
+        
+        This is a simple array of 255 entries that are used to convert
+        the base pair encoding characters \c A, \c T, \c C, and \c G
+        to \b complementary codes \c T, \c A, \c G, and \c C
+        respectively.  This array is statically allocated. It is
+        initialized in the constructor and is never changed during the
+        life time of this class.
+    */
+    static char RCBases[];
+    
     /** A hash map that holds tables to aid in translating a given
         word to its reverse complement.
 

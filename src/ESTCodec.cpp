@@ -41,9 +41,17 @@
 // normal encoding.
 char ESTCodec::charToInt[255];
 
+// The statically allocated array to translate normal encodings to
+// their base pair characters
+char ESTCodec::intToChar[4];
+
 // The statically allocated array to translate characters to their
 // complementary encoding.
 char ESTCodec::charToIntComp[255];
+
+// The statically allocated array to translate characters to their
+// complementary nucleotides.
+char ESTCodec::RCBases[255];
 
 // The globally unique instance of ESTCodec.
 ESTCodec ESTCodec::estCodec;
@@ -63,6 +71,20 @@ ESTCodec::ESTCodec() {
     charToIntComp[(int) 'G'] = charToIntComp[(int) 'g'] = 1;
     charToIntComp[(int) 'C'] = charToIntComp[(int) 'c'] = 2;
     charToIntComp[(int) 'T'] = charToIntComp[(int) 't'] = 0;
+    // Initialize the complentary base pairs array
+    RCBases[(int) 'A'] = 'T';
+    RCBases[(int) 'a'] = 't';
+    RCBases[(int) 'G'] = 'C';
+    RCBases[(int) 'g'] = 'c';
+    RCBases[(int) 'C'] = 'G';
+    RCBases[(int) 'c'] = 'g';
+    RCBases[(int) 'T'] = 'A';
+    RCBases[(int) 't'] = 'a';
+    // Initialize the table to convert encoding to characters
+    intToChar[0]       = 'A';
+    intToChar[1]       = 'C';
+    intToChar[2]       = 'G';
+    intToChar[3]       = 'T';
     // Initialize pointers
     revCompTable = NULL;
 }
