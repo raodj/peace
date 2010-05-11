@@ -277,8 +277,8 @@ EST::normalizeBases(char* sequence, const bool maskBases,
         // Check and randomize 'N' bases as directed.
         if (randomizeNbases) {
             // Randomly select a base here.
-            register int index = (random() >> 5) & 3;
-            nt = UpCaseBases[index];
+            register int ntIndex = (random() >> 5) & 3;
+            nt = UpCaseBases[ntIndex];
         }
         // Store normalize character
         sequence[i] = nt;
