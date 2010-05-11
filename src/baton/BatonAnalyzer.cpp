@@ -236,7 +236,7 @@ BatonAnalyzer::getMetric(const BatonList* const list1,
     std::vector<WindowPair> pairList;
     list1->getWindowPairs(*list2, pairList, threshold);
     // Use the size of the pair list as the similarity
-    return pairList.size();
+    return (float) pairList.size();
 }
 
 int
