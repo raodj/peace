@@ -36,6 +36,7 @@ urlcolor=blue %color of the url links
 \newcommand{\capthree} {{\small Cap3}}
 \newcommand{\easycluster} {{\small EasyCluster}}
 \newcommand{\metasim} {{\small MetaSim}}
+\newcommand{\tgicl} {{\small TGICL}}
 
 \newcommand {\rel} {\mathbb{R}}
 \newcommand {\com} {\mathbb{C}}
@@ -238,10 +239,10 @@ In {\it Hazelhurst et al.} \cite{Hazelhurst08a} the authors conduct
 an investigation of \textsc{wcd} \mc{(version 0.5.1)} against a number of clustering
 tools.  As they make a convincing argument that \textsc{wcd} is returning
 better results then the tools against which they compare, we limit our
-analysis to a comparison of \textsc{peace} against \textsc{wcd} and the \textsc{cap3} assembly
-tool \cite{Huang99} -- a tool which implicitly clusters while
-performing assembly.  We do so by applying all three tools to a number
-of data sets, both simulated and real.
+analysis to a comparison of \textsc{peace} against \textsc{wcd},
+\tgicl \cite{Pertea2003}, and the \textsc{cap3} assembly
+tool \cite{Huang99} -- the last of which implicitly clusters while
+performing assembly. 
 
 \subsection{Simulation Tool and Parameters}
 
@@ -252,34 +253,33 @@ zebra fish genes that served as a basis for the \textsc{wcd} simulations
 types of error (general base read errors, errors due to
 polymerase decay, and primer interference), and allows those errors to
 take the form of substitutions, deletions, and insertions (of bases
-and Ns).  See the paper for a discussion of the probability
+and Ns).  See the ESTSim paper for a discussion of the probability
 distributions and default parameters.  For generating our simulated
 data, we use the default values for all parameters that are not
 explicitly being subjected to variation in our experiments --
-paralleling the testing of the \textsc{wcd} tool.
+parallelising the testing of the \textsc{wcd} tool.
 
 
 
 \subsection{Methodology} 
 
-Each estimate given in the main paper, or in the following, is
+Each estimate given in the main paper, as well as the following, is
 averaged over 30 trials.  Each trial consists of the application of
-all three tools to a simulated data set, the set having been derived
+all tools to a simulated data set, the set having been derived
 from the application of the ESTsim tool to a set of 100 zebra fish
 gene sequences \cite{Hazelhurst03}.  All confidence intervals are
 calculated at a 95\% level of significance.
 
 \subsection{Result Quality}
 
-\mc{Our primary measurement tools if measurement are sensitivity, the
-Jaccard Index, Type 1 error and Type 2 error
-(Figure~3).  Sensitivity is the ratio for true
-positives to actual positives ($tp / (tp + fn)$) -- the} \mc{fraction} \mc{of}
-\mc{sequences} \mc{from} \mc{the} \mc{same} \mc{transcript} \mc{that} \mc{are} \mc{identified} \mc{as} \mc{such.}  \mc{The}
-\mc{{\it Jaccard}} \mc{index} \mc{combines} \mc{both} \mc{sensitivity} \mc{and} \mc{specificity,}
-\mc{calculated} \mc{as} \mc{the} \mc{ratio} \mc{of} \mc{true} \mc{positives} \mc{to} \mc{the sum of true
-positives, true negatives, and false positives ($tp / (tp+fn+fp)$)
-\cite{Hazelhurst08a}.}
+\mc{Our primary measurement tools are sensitivity, the Jaccard Index,
+  Type 1 error and Type 2 error (see Figure~3 from the paper).
+  Sensitivity is the ratio for true positives to actual positives ($tp
+  / (tp + fn)$) -- the} fraction of sequences from the same transcript
+that are identified as such.  The {\it Jaccard} index combines both
+sensitivity and specificity, calculated as the ratio of true positives
+to the sum of true positives, true negatives, and false positives ($tp
+/ (tp+fn+fp)$) \cite{Hazelhurst08a}.
 
 \mc{Type 1 and Type 2 errors, as defined in {\it Wang et al.}
 \cite{Wang04}, measure quality at the level of the genes from which
@@ -350,11 +350,11 @@ measuring the maximum amount of memory required for the run.  We see that while
 all tools require memory linear in the input size, \wcd\/ requires
 slightly less than does \peace, while both require significantly less
 memory than \capthree.  In general we find the footprint of \peace\/
-to be relativily small, as compared to other clustering tools
+to be relatively small, as compared to other clustering tools
 (discussed in {\it Hazelhurst et al.} \cite{Hazelhurst08a}).}
 
 \mc{All runs were conducted on 3.0 GHz Intel Xeon EM64T CPUs with 2 MB
-caches and a 800 MHz front side bus, model number Xeon LV 3.0 (2005)}
+caches and a 800 MHz front side bus, model number E5520 (2005)}
 
 \begin{figure}[tbp]
 \centerline{
@@ -362,8 +362,8 @@ caches and a 800 MHz front side bus, model number Xeon LV 3.0 (2005)}
 }
 \caption{Plots of memory footprint against sequence set size for a
   single processor run on simulated data for each tool: \peace\/
-  (blue), \wcd\/ (green) and \capthree\/ (balck), along with the
-  lesat-squares fit for each.  For each fit we have an associated
+  (blue), \wcd\/ (green) and \capthree\/ (black), along with the
+  least-squares fit for each.  For each fit we have an associated
   regression coefficient of $r > 0.99$.}\label{memory}
 \end{figure}
 
@@ -375,7 +375,7 @@ caches and a 800 MHz front side bus, model number Xeon LV 3.0 (2005)}
   $T$ threshold for dismissing MST edges, we have set it to the same
   default value when used for Sanger} \mc{sequences.}  \mc{However,} \mc{we} \mc{did}
   \mc{experiment} \mc{with} \mc{higher} \mc{values,} \mc{with} \mc{interesting} \mc{results.  An
-  analysis of the preformance of $d^2$ indicated that a $T$ value as high as 130 should not have a
+  analysis of the performance of $d^2$ indicated that a $T$ value as high as 130 should not have a
   significant impact on its effectiveness as a discriminator.  And in
   fact this was born out in simulation, as shown in
   Figure~\ref{SeJiT1T2130}.  In contrast with the equivalent results
@@ -398,11 +398,11 @@ caches and a 800 MHz front side bus, model number Xeon LV 3.0 (2005)}
   more of a problem.  }
 
 
-\begin{figure}
-  \centerline{\includegraphics[width=3.35in]{pics.d/SeJiT1T2x130.pdf}}
+\begin{figure}[tbh]
+  \centerline{\includegraphics[width=3.25in]{pics.d/SeJiT1T2x130.pdf}}
   \caption{Comparisons of Sensitivity, Jaccard Index, Type 1 error and
-    Type 1 error using the elevated threhold ($T=130$), providing a
-    contrast against Figure 3 ($T=40$).  Based on the average over 30
+    Type 1 error using the elevated threshold ($T=130$), providing a
+    contrast against Figure~3 ($T=40$).  Based on the average over 30
     simulated Sanger Sequence ESTs sets derived from 100 zebra fish
     genes.  Blue/Solid = \peace, Green/Dash = \wcd, Black/Dot-Dash =
     \capthree; vertical tics = 95\% confidence intervals on estimates.
@@ -410,7 +410,7 @@ caches and a 800 MHz front side bus, model number Xeon LV 3.0 (2005)}
     lack of variance.}\label{SeJiT1T2130}
 \end{figure}
 
-\begin{figure}[tbp]
+\begin{figure}[tbh]
 \centerline{
 \includegraphics[scale=0.35]{pics.d/duplicates_130.pdf}
 }
@@ -423,7 +423,79 @@ caches and a 800 MHz front side bus, model number Xeon LV 3.0 (2005)}
   confidence intervals.}\label{dups130}
 \end{figure}
 
-\section{Real Data}
+\subsection{Comparison against \tgicl}
+
+In comparing against \wcd\/ we see equivalent results,
+while comparisons against \capthree\/ show improvement in most of the
+quality measures (at the cost of an ability to distinguish
+duplicates).  Comparisons against \tgicl\/ \cite{Pertea2003} are less
+straight forward.  In Figure~\ref{TGICL1} and Figure~\ref{TGICL2} we
+repeat out plots from Figure 3 of the manuscript at each threshold
+value.  We see that \peace\/ is more competitive with \tgicl\/ at higher
+error rates in terms of sensitivity.  More generally, we see \peace\/
+does a better job at specificity, as reflected both in the Jaccard index
+(where the shift in the \tgicl\/ curve indicates a problem with type 2 errors) and
+the higher Type 2 error rate.  We also see this reflected in the
+ability of \tgicl\/ to distinguish duplicated genes, appearing to be unable
+to consistently do so at a similarity of more than 72\% (as opposed to
+about 80\% for \peace), shown in Figure~\ref{tgicl_dups}.
+
+In a sequential execution, \tgicl\/ is clearly the faster tool --
+though this does not necessarily not compensate for the lower
+specificity and improved results of \peace\/ on short-read data.  While
+both tools enable parallal computations, they are implemented on
+different libraries: \peace\/ uses the standard OpenMPI library, while
+\tgicl\/ is built on the PVM.  While MPI has been adapted as the
+standard by IEEE and is generally availabel by default, PVM is not so
+wide spread -- making \tgicl\/ less portable to new
+systems in its parallel form.
+
+
+\begin{figure}[tbh]
+\centerline{
+  \centerline{\includegraphics[width=3.35in]{pics.d/TGICL_SeJiT1T2x40.png}}
+}
+\caption{Comparisons of Sensitivity, Jaccard Index, Type 1 error and
+  Type 1 error, based on the average over 30 simulated Sanger Sequence
+  ESTs sets derived from 100 zebra fish genes, using a \peace\/ threshold
+  of $T=40$.  Blue/Solid = \peace, Green/Dash = \wcd\/ \mc{(version
+    0.5.1)}, Black/Dot-Dash = \capthree; Purple/Long-Dash = TGICL;
+  vertical tics = 95\% confidence intervals on estimates.  Intervals
+  are not presented for Type 1 error due to the effective lack of
+  variance.}
+\label{TGICL1}
+\end{figure}
+
+\begin{figure}[tbh]
+\centerline{
+  \centerline{\includegraphics[width=3.35in]{pics.d/TGICL_SeJiT1T2x130.png}}
+}
+\caption{Comparisons of Sensitivity, Jaccard Index, Type 1 error and
+  Type 1 error, based on the average over 30 simulated Sanger Sequence
+  ESTs sets derived from 100 zebra fish genes, using a \peace\/ threshold
+  of $T=130$.  Blue/Solid = \peace, Green/Dash = \wcd\/ \mc{(version
+    0.5.1)}, Black/Dot-Dash = \capthree; Purple/Long-Dash = TGICL;
+  vertical tics = 95\% confidence intervals on estimates.  Intervals
+  are not presented for Type 1 error due to the effective lack of
+  variance.}
+\label{TGICL2}
+\end{figure}
+
+
+\begin{figure}[tbh]
+\centerline{
+  \centerline{\includegraphics[width=3.35in]{pics.d/tgicl_duplicates_40.png}}
+}
+\caption{Ability to distinguish duplicates as a function of divergence
+  (\peace\/ v. \mbox{\tgicl}).  Estimates averaged over 30 trials; one trial
+  consists of taking a random zebra fish gene, copying it and
+  stochastically changing bases at the specified rate, then using the
+  two genes as the bases for generating a simulated set. Blue/Solid =
+  \peace, Purple/LongDash = \tgicl; variance was too small for visible
+  plotting of confidence intervals.}\label{tgicl_dups}
+\end{figure}
+
+\section{Benchmark Data}
 
 \subsection{Runtimes}
 
@@ -431,7 +503,7 @@ In Table~\ref{RunTime} we show the runtime of \peace\/ and \wcd\/ on
 five different benchmark sets obtained from the WCD and EasyCluster
 studies \cite{Hazelhurst08a,Picardi09}. 
 
-\begin{table}[tbp]
+\begin{table}[tbh]
 \begin{center}
 \begin{tabular} {|c|| c | c || c | c |}
 \hline
@@ -474,7 +546,7 @@ studies \cite{Hazelhurst08a,Picardi09}.
   results indicated we should be leaving $T$ at a default rate of 40.
 }
 
-\begin{table}[tbp]
+\begin{table}[tbh]
 \begin{center}
 \begin{tiny}
 \begin{tabular} {| c || c || c | c | c | c | c | c | c |}
@@ -541,9 +613,9 @@ the results section of the paper.}
   \metasim \cite{Richter2008}; each figure is an average over 30 runs.
   For \wcd we use parameters suggested by the authors  (``-H 1 -T 160''). \wcd\/ was
   unable to return any reasonable results for Illumina data, while
-  \capthree\/ was unable to return results for either sumulation.  Each
+  \capthree\/ was unable to return results for either simulation.  Each
   454 simulation produced 25,000 reads from the 100 zebra-fish
-  transcripts, ranging  in size from 200bp to 270bp (aveage = 250bp, 
+  transcripts, ranging  in size from 200bp to 270bp (average = 250bp, 
   standard deviation = 17bp).  Each Illumina simulation produce 150K
   reads from the 100 zebra-fish transcript, each exactly 62bp.}\label{SRSim}
 \end{table}
@@ -564,4 +636,6 @@ the results section of the paper.}
 % LocalWords:  nalysis lustering ngine al substring Hazelhurst \textsc{wcd}  ESTsim ESTs
 % LocalWords:  polymearse Methodoloy Jaccard tp fn fp  wcd th Prim's Ns ssembly
 % LocalWords:  Chlamydomonas reinhartdii nvironment xpression runtime bp Runtme
-% LocalWords:  stochastically Runtimes EasyCluster Ricinus Dataset 
+% LocalWords:  stochastically Runtimes EasyCluster Ricinus Dataset  GHz Xeon LV
+% LocalWords:  CPUs TGICL Arabidopsis thaliana dataset Illumina ESTSim LongDash
+% LocalWords:  parallelising

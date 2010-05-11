@@ -122,10 +122,10 @@ clusters of ESTs expressed from the same gene without reference to a
 sequenced genome.  Compared against clustering tool in the literature
 \cite{Burke99,Slater00,Huang99,Parkinson02,Kalyanaraman03,Malde03,
   Pertea2003,Ptitsyn05,Hazelhurst08a,Picardi09}, \peace\/ proves to be
-of equivalent quality to the \wcd\/ and \tgicl tools
+produce results of quality competitive with the \wcd\/ and \tgicl\/ tools
 \cite{Hazelhurst08a,Pertea2003}, and more sensitive and robust than
-other tools.  From the user perspective, o tool in the literature can
-match \peace for ease of instillation, use, or the post-clustering
+other tools.  From the user perspective, mo tool in the literature can
+match \peace\/ for ease of instillation or use, or the post-clustering
 analysis tools \peace provides.
 
 In short, \peace\/ is a computational tool for the {\it ab initio}
@@ -139,16 +139,16 @@ for result analysis.
 
 \section{\peace: Installation and Use}
 
-The \peace\/ GUI can be launched by through the
-Jar file available on the \peace\/ website
-(\href{http://www.peace-tools.org}{www.peace-tools.org}) on any
-machine running the standard Java Virtual Machine (JVM).  Once
-running, the user can employ the GUI to install the clustering engine
-and perform a clustering of a data file in {\sc fasta} format, view an
-initial analysis of the clusters, and produce files containing subsets
-of the clusters as input to assembly tools such as \capthree\/ 
-\cite{Huang99}.  A typical (first) use of \peace\/ must be
-performed in the following manner (see Figure~\ref{fig:workflow}):
+The \peace\/ GUI, available as a {\small JAR} file from the \peace\/
+website (\href{http://www.peace-tools.org}{www.peace-tools.org}),
+can be run on any machine supporting the standard Java Virtual
+Machine (JVM).  The user can employ the GUI to install
+the clustering engine and perform a clustering of a data file in {\sc
+  fasta} format, view an analysis of the clusters, and produce
+files containing subsets of the clusters as input to assembly tools
+such as \capthree\/ \cite{Huang99}.  A typical (first) use of \peace\/
+must be performed in the following manner (see
+Figure~\ref{fig:workflow}):
 
 \begin{figure}
   \centerline{\includegraphics[width=3in]{pics.d/workflow.png}}
@@ -323,11 +323,11 @@ implicitly calculates a clustering in the process of assembly).
 
 \mc{In the course of our simulations we also investigated the memory
   footprint -- of particular concern in the large data sets commonly
-  encountered.  In short, we find that, as with \wcd, the required
-  memory for an execution is linear in the size of the data set --
-  requiring slightly more memory than \wcd\/ and considerably less
-  than \capthree.  We present relevant results in Section D.4 and
-  Figure~S3 of the Supplementary Materials.}
+  encountered.  We find that, as with \wcd, the memory used for
+  execution is linear in the size of the data set, requiring
+  slightly more memory than \wcd\/ and considerably less than
+  \capthree.  (See Section D.4 and Figure~S3 of the Supplementary
+  Materials.}
 
 % Appologizes to anyone working with this: the coloring would not
 % presist between columns, and the break point kept changing on me.
@@ -343,7 +343,7 @@ implicitly calculates a clustering in the process of assembly).
   the incorrect merging of clusters.  While this might be acceptable
   to a user planning to employ an assembly tool capable of breaking
   up the clusters (but unable to re-merge a split cluster), for the
-  purposes of clustering assessment it makes sense base our analysis (and
+  purposes of clustering assessment it makes sense to base our analysis (and
   set out default values) at the lower threshold.}
 
 \begin{figure}
@@ -353,9 +353,7 @@ implicitly calculates a clustering in the process of assembly).
     Sequence ESTs sets derived from 100 zebra fish genes (see
     Supplementary Materials, Section D, for more details).  Blue/Solid
     = \peace, Green/Dash = \wcd\/ \mc{(version 0.5.1)}, Black/Dot-Dash =
-    \capthree; vertical tics = 95\% confidence intervals on estimates.
-    Intervals are not presented for Type 1 error due to the effective
-    lack of variance.}\label{SeJiT1T2}
+    \capthree; vertical tics = 95\% confidence intervals on estimates.}\label{SeJiT1T2}
 \end{figure}
 
 \begin{figure}
@@ -370,33 +368,32 @@ implicitly calculates a clustering in the process of assembly).
      steady at the constant 8888.  All values represent the average
      of 30 runs; vertical tics = 95\% confidence intervals on
      estimates.  All runs were done on a 3.0 GHz Intel Xeon EM64T CPU with a 2 MB
-     cache and a 800 MHz front side bus, model number Xeon LV 3.0 (2005).}\label{seq_parallel}
+     cache and a 800 MHz front side bus, model number E5520 (2005).}\label{seq_parallel}
 \end{figure}
 
-While \peace\/ clearly matches \wcd\/ on long-read sequence, comparisons
-against \tgicl\/ \cite{Pertea2003}  are more complicated.  In short, we find that when
-parameters are picked appropriately, \tgicl\/ is more sensitive at lower
-error rate -- but \peace\/ is more robust to error, in all cases
-has an improved Type 2 error rates and is better able to
-distinguish duplicated genes.  (See the Supplementary Materials for a
-more detailed analysis.)
+Comparisons against \tgicl\/ \cite{Pertea2003} are more complicated.
+We find that when \tgicl\/ is more sensitive at lower error rates,
+\peace\/ is more robust to error, and in all cases \peace\/ has an
+improved Type 2 error rates and is better able to distinguish
+duplicated genes.  (See Supplementary Materials Section D.6.)
 
 
 In applying the tools to real data Sanger data, we used the Human
 Benchmark Data Set used to test \easycluster\/ \cite{Picardi09}, and
 the A076941 {\it Arabidopsis thaliana} data set used to test wcd\/
-\cite{Hazelhurst08a,Hazelhurst08b} (see Table~\ref{SangerReal}).  We
-notice essentially identical results for \peace\/ and wcd\/ in
-quality, both significantly better than \capthree\/ in Sensitivity and
-Type 1 error rate, while slightly worse in the Jaccard Index and Type
-2 error.  In runtime we see some inconsistency, with \peace\/ showing
-a 60\% runtime improvement over \wcd\/ in the first data set, but
-requiring 20\% more time than \wcd\/ in the Arabidopsis data set.  (We
-cannot make a reasonable runtime comparison to \capthree, as the
-runtime of that tool reflects both clustering and assembly.)  In
-Table~S1 of the Supplementary Materials we present runtimes of several
-more sets, observing that while \peace\/ appears to be significantly
-faster on the smaller sets, \wcd\/ does overtake it for larger sets.
+\cite{Hazelhurst08a} (see Table~\ref{SangerReal}).  We notice mixed
+results, with \peace, \wcd, and \tgicl\/ showing comparable similarity,
+\peace\/ and \wcd\/ showing some superiority to \tgicl\/ in Type 1 error
+rate but with a poorer showing in Type 2 error, and with all three
+tools coming considerably closer to the correct number of clusters
+than does \capthree.  In runtime we see some inconsistency, with
+\peace\/ showing a 60\% runtime improvement over \wcd\/ in the first
+data set and a time comparable to \tgicl, but requiring 20\% more time
+than \wcd\/ in the Arabidopsis data set and losing to \tgicl\/ by a
+large margin.  In Table~S1 of the Supplementary Materials we present
+runtimes of several more sets for the distance-based tool, observing
+that while \peace\/ appears to be significantly faster on the smaller
+sets, \wcd\/ does overtake it for larger sets.
 
 
 \begin{table*}[tbp]
@@ -412,18 +409,19 @@ faster on the smaller sets, \wcd\/ does overtake it for larger sets.
     Singletons \end{tabular}
     & \begin{tabular}{c} Single \\ processor \\ runtime (s) \end{tabular}\\
 \hline
-\hline EasyCluster Human & \peace & 0.998 & 0.672 & 0.153 & 0.042 & 118 & 21 & 293 \\
-\cline{2-9} Benchmark & \wcd & 0.998 & 0.672 & 0.144 & 0.044 & 113 & 16 & 804 \\
+\hline EasyCluster Human & \peace   & 0.998 & 0.672 & 0.153 & 0.042 & 118 & 21 & 293 \\
+\cline{2-9} Benchmark & \wcd        & 0.998 & 0.672 & 0.144 & 0.044 & 113 & 16 & 804 \\
 \cline{2-9} (111 Genes) & \capthree & 0.657 & 0.643 & 1.000 & 0.001 & 2269 & 1827 & \mbox{NA} \\
+\cline{2-9}             & \tgicl    & 0.998 & 0.949 & 0.568 & 0.018 & 221 & 86 & 278 \\
 \hline
-\hline WCD A076941 & \peace & 0.932 & 0.475 & 0.351 & 0.027 & 18825 & 8951 & 1166\\
-\cline{2-9} Benchmark & \wcd & 0.933 & 0.476 & 0.350 &  0.027 & 18787 & 8553 & 966 \\
-\cline{2-9} (13240 genes) & \capthree & 0.826 & 0.802 & 0.486 & 0.014 & 25042 & 14916 &
-\mbox{NA} \\
+\hline A076941 & \peace           & 0.932 & 0.475 & 0.351 & 0.027 & 18825 & 8951 & 1166\\
+\cline{2-9} Benchmark & \wcd          & 0.933 & 0.476 & 0.350 & 0.027 & 18787 & 8553 & 966 \\
+\cline{2-9} (13240 genes) & \capthree & 0.826 & 0.802 & 0.486 & 0.014 & 25042 & 14916 & \mbox{NA} \\
+\cline{2-9} & \tgicl                  & 0.939 & 0.209 & 0.401 & 0.020 & 20248 & 1065 & 425 \\
 \hline
 \end{tabular}
 \end{center}
-\caption{Comparisons of runs on the EasyCluster human Benchmark
+\caption{Comparisons of runs on the EasyCluster Human Benchmark
   Data Set and the WCD A076941 Arabidopsis thaliana data set using the
   standard quality measurements.}\label{SangerReal}
 \end{table*}
@@ -441,7 +439,7 @@ faster on the smaller sets, \wcd\/ does overtake it for larger sets.
 % sensitivity and Type 1 error rates, with an 18\% speedup for \peace\/ 
 % (see Supplementary Materials, Section~D, for more details).
 
-We tested the three tools on short-read data using the \metasim\/ tool
+We tested the tools on short-read data using the \metasim\/ tool
 of {\it Richter et al.} \cite{Richter2008}.  Encoded into \metasim\/
 are sequence generation and error models corresponding to several
 technologies, including the 454 short-read technology (producing reads
@@ -452,39 +450,38 @@ achieved a sensitivity of 0.871, an 89.7\% improvement in sensitivity
 over \wcd\/ and a 193\% improvement in sensitivity over \tgicl, with
 comparable values for the Jaccard Index.  \wcd\/ was unable to handle
 the Illumina data, while \peace\/ sensitivity, at a value of 0.384,
-was nearly twice as good as Illumina.  (For more details, see Table~S3
+was nearly twice as good as TGICL.  (For more details, see Table~S3
 in the Supplementary Materials.)  In short, \peace\/ performs quite
 well for 454 reads and provides some useful information for Illumina
 reads, with considerably better results than \wcd\/ or \tgicl\/.
 
 \section{Conclusions}
 
-\mc{Here we have presented \peace, a stand alone tool for the
-  high-throughput clustering of transcript fragments capable of
-  dealing with sequences as short as 50 bases.  \peace\/ is
-  open-source and managed through a user friendly GUI that enables
-  both local and remote installation and execution in sequential or
-  parallel mode.  Based on a novel minimum spanning tree based
-  algorithm for the clustering of the fragments by gene association,
-  \peace\/ shows significant improvement in sensitivity over the
-  competing \wcd\/} \mc{tool} \cite{Hazelhurst08a} \mc{when} \mc{applied} \mc{to} \mc{NGS}
-  \mc{reads,} \mc{matches} \mc{\wcd\/} \mc{when} \mc{applied} \mc{to} \mc{Sanger} \mc{sequencing}
-  \mc{output,} \mc{and} \mc{shows} \mc{an} \mc{order} \mc{of} \mc{magnitude} \mc{in improvement over the
-  clustering performed in the course of assembly by the \capthree\/
-  tool \cite{Huang99}.}
+Here we have presented \peace, a stand alone tool for the
+high-throughput clustering of transcript fragments capable of dealing
+with sequences as short as 50 bases.  \peace\/ is open-source and
+managed through a user friendly GUI that enables both local and remote
+installation and execution in parallel mode.  Using a novel minimum
+spanning tree based algorithm for the clustering of fragments by gene
+association, \peace\/ shows significant improvement in sensitivity
+over the competing \wcd\/ tool and \tgicl tool when applied to NGS
+reads \cite{Hazelhurst08a,Pertea2003}, matches \wcd\/ when applied to
+Sanger sequencing output, and shows an order of magnitude in
+improvement over the clustering performed in the course of assembly by
+the \capthree\/ tool \cite{Huang99}.
 
 As a clustering tool based on sequence distance, \peace\/ faces
-certain inherent limitations. For example, \peace\/ cannot handle
-duplicate genes; like \wcd\/, it is unable to separate clusters
-corresponding to genes with a greater than 88\% similarity.
-Similarly, other natural biological effects (e.g. the trans-splicing of
-transcripts), effects from poorly cleaned transcript data (e.g. the
-failure to remove sequencing adapters or post-transcriptional
-poly(A)/(T) tails), and the presence of low-complexity repeats can
-cause similar effects in these clustering tools.  These problems can be
-handled through the application of the assembler, and the ability to
-apply any assembler to small clusters (as opposed to the data set as a
-whole) results in a significant reduction in overall assembly time.
+certain inherent limitations. \peace\/ cannot handle duplicate genes;
+like \wcd\/, it is unable to separate clusters corresponding to genes
+with a greater than 88\% similarity.  Similarly, other natural
+biological effects (e.g. the trans-splicing of transcripts), effects
+from poorly cleaned transcript data (e.g. the failure to remove
+sequencing adapters or post-transcriptional poly(A)/(T) tails), and
+the presence of low-complexity repeats can cause similar effects in
+these clustering tools.  These problems can be handled through the
+application of the assembler, and the ability to apply any assembler
+to small clusters results in a significant reduction in overall
+assembly time.
 
 Peace can be downloaded from
 \href{http://www.peace-tools.org}{www.peace-tools.org}, where we are
@@ -520,4 +517,4 @@ Scoville at Miami University for their help with this project.
 % LocalWords:  Friedberg Scoville OpenMPI initio multi Screenshots nvironment
 % LocalWords:  ssembly xpression GenBank dbEST pyrosequencing ESTsim sim mRNAs
 % LocalWords:  NGS polyA set's GHz Xeon Bikun Arabidopsis JVM Jaccard LV GUI's
-% LocalWords:  Data Set thaliana data set EasyCluster MetaSim Illumina
+% LocalWords:  Data Set thaliana data set EasyCluster MetaSim Illumina tgicl
