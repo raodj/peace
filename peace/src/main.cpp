@@ -37,8 +37,10 @@
 #include "arg_parser.h"
 #include "ClusterMakerFactory.h"
 #include "ESTAnalyzerFactory.h"
+#include "AssemblerFactory.h"
 #include "ClusterMaker.h"
 #include "ESTAnalyzer.h"
+#include "Assembler.h"
 #include "HeuristicFactory.h"
 #include "HeuristicChain.h"
 #include "FilterFactory.h"
@@ -70,6 +72,10 @@
     and must now be deleted after showing usage.  If this pointer is
     NULL, then this parameter is ignored.
 
+    \param[in] assembler The assembler (if any) that was created and
+    must now be deleted after showing usage. If this pointer is NULL,
+    then this parameter is ignored.
+    
     \param[in] hChain The chain of heuristics that are currently
     defined for this run.
 
@@ -78,7 +84,7 @@
 */
 static void showUsage(arg_parser& ap,
                       ESTAnalyzer *analyzer, ClusterMaker *cMaker,
-                      HeuristicChain *hChain,
+                      Assembler* assembler, HeuristicChain *hChain,
                       FilterChain *fChain) {
     std::cout << "PEACE Version 0.95 (Released April 19 2010)\n"
               << "Usage: PEACE [options]\n"
@@ -88,6 +94,8 @@ static void showUsage(arg_parser& ap,
     ESTAnalyzerFactory::displayList(std::cerr);
     std::cout << "Names of cluster makers available are:\n";
     ClusterMakerFactory::displayList(std::cerr);
+    std::cout << "Names of gene assemblers available are:\n";
+    AssemblerFactory::displayList(std::cerr);    
     std::cout << "Names of heuristics available are:\n";
     HeuristicFactory::displayList(std::cerr);
     std::cout << "Names of filters available are:\n";
@@ -102,6 +110,12 @@ static void showUsage(arg_parser& ap,
         cMaker->showArguments(std::cout);
         delete cMaker;
     }
+    // Display any assembler specific options.
+    if (assembler != NULL) {
+        assembler->showArguments(std::cout);
+        delete assembler;
+    }
+    
     // Display any heuristic specific options.
     if (hChain != NULL) {
         hChain->showArguments(std::cout);
@@ -193,14 +207,15 @@ main(int argc, char* argv[]) {
     char defClusterMaker[]  = "mst";
     char defHeuristic[]     = "tv";
     char defFilters[]       = "lengthFilter-lcFilter";
-        
-    char *analyzerName = defAnalyzer;
-    char *clusterName  = defClusterMaker;
-    char *heuristicStr = defHeuristic;
-    char *outputFile   = emptyString;
-    bool showOptions   = false;
-    int  refESTidx     = 0;
-    bool interactive   = false;
+
+    char *assemblerName = NULL;
+    char *analyzerName  = NULL;
+    char *clusterName   = NULL;
+    char *heuristicStr  = defHeuristic;
+    char *outputFile    = emptyString;
+    bool showOptions    = false;
+    int  refESTidx      = 0;
+    bool interactive    = false;
     
     // Filtering parameters
     char *filterStr      = defFilters;
@@ -212,6 +227,8 @@ main(int argc, char* argv[]) {
     arg_parser::arg_record arg_list[] = {
         {"--clusterMaker", "Name of clustering algorithm to use (null for none)",
          &clusterName, arg_parser::STRING},
+        {"--assembler", "Name of the assembler to use",
+         &assemblerName, arg_parser::STRING},
         {"--analyzer", "Name of the EST analyzer to use",
          &analyzerName, arg_parser::STRING},
         {"--heuristics", "Name(s) of the heuristic(s) to use, in order (null for none)",
@@ -252,18 +269,37 @@ main(int argc, char* argv[]) {
         // creation of default configurations of tools below.
         refESTidx = 0;
     }
-    // Create an EST analyzer using the analyzer name.
-    ESTAnalyzer *analyzer =
+    // Check to see if an assembler or cluster-maker has been
+    // specified and based on that setup the cluster maker.
+    if ((clusterName == NULL) && (assemblerName == NULL)) {
+        // By default we run the default cluster maker.
+        clusterName = defClusterMaker;
+    }
+    // Check and setup the default analyzer as needed.
+    if ((clusterName != NULL) && (analyzerName == NULL)) {
+        // By default we run the default analyzer.
+        analyzerName = defAnalyzer;
+    }
+    
+    // Create an EST analyzer using the analyzer name, if one is set
+    ESTAnalyzer *analyzer = 
         ESTAnalyzerFactory::create(analyzerName, refESTidx,
                                    std::string(outputFile));
 
     // Check for null clustermaker input
-    if (!strcmp(clusterName, "null")) clusterName = NULL;
-    // Create an cluster generating using clusterName
+    if ((clusterName != NULL) && (!strcmp(clusterName, "null"))) {
+        clusterName = NULL;
+    }
+    // Create an cluster generator using clusterName
     ClusterMaker *clusterMaker =
         ClusterMakerFactory::create(clusterName, analyzer,
                                     refESTidx, std::string(outputFile));
-
+    
+    // Create an gene assembler using the assemblerName.  If assembler
+    // name is NULL, then Assembler object is also NULL.
+    Assembler *assembler = AssemblerFactory::create(assemblerName,
+                                                    outputFile, MPI_GET_RANK());
+    
     // Check for null heuristic chain input
     if (!strcmp(heuristicStr, "null")) {
         heuristicStr = NULL;
@@ -278,44 +314,58 @@ main(int argc, char* argv[]) {
     }
     // Create the filter chain using a helper method.
     FilterChain *filterChain = FilterChain::setupChain(filterStr, clusterMaker);
-    
-    // Check if EST analyzer creation was successful.  A valid EST
-    // analyzer is needed even to make clusters.
-    if ((analyzer == NULL) || (showOptions) ||
-        (!analyzer->parseArguments(argc, argv))) {
-        showUsage(ap, analyzer, clusterMaker, heuristicChain, filterChain);
-        return (showOptions ? 0 : 1);
+    // See if user just want's list of options
+    if (showOptions) {
+        showUsage(ap, analyzer, clusterMaker, assembler,
+                  heuristicChain, filterChain);
+        return 0;
     }
-
-    // Check if cluster maker was specified and successfully created.
-    if (clusterName != NULL)  {
-        if ((clusterMaker == NULL) || (showOptions) ||
-            (!clusterMaker->parseArguments(argc, argv))) {
-            showUsage(ap, analyzer, clusterMaker, heuristicChain, filterChain);
-            return (showOptions ? 0 : 2);
+    // Check if analyzer name was valid and the arguments to it are valid.
+    if (analyzerName != NULL) {
+        if ((analyzer == NULL) || (!analyzer->parseArguments(argc, argv))) {
+            showUsage(ap, analyzer, clusterMaker, assembler,
+                      heuristicChain, filterChain);
+            return 1;
         }
     }
-
+    // Check if cluster maker was specified and successfully created.
+    if (clusterName != NULL) {
+        if ((clusterMaker == NULL) ||
+            (!clusterMaker->parseArguments(argc, argv))) {
+            showUsage(ap, analyzer, clusterMaker, assembler,
+                      heuristicChain, filterChain);
+            return 2;
+        }
+    }
+    // Check if assembler name was valid and the arguments to it are valid.
+    if (assemblerName != NULL) {
+        if ((assembler == NULL) || (!assembler->parseArguments(argc, argv))) {
+            showUsage(ap, analyzer, clusterMaker, assembler,
+                      heuristicChain, filterChain);
+            return 4;
+        }
+    }    
     // Check if heuristic chain was specified and successfully created
     if (heuristicStr != NULL) {
-        if ((heuristicChain == NULL) || (showOptions) ||
+        if ((heuristicChain == NULL) ||
             (!heuristicChain->parseArguments(argc, argv))) {
-            showUsage(ap, analyzer, clusterMaker, heuristicChain, filterChain);
-            return (showOptions ? 0 : 3);
+            showUsage(ap, analyzer, clusterMaker, assembler,
+                      heuristicChain, filterChain);
+            return 3;
         }
     }
-
+    
     // Check if filter chain was specified and successfully created
     if (filterStr != NULL) {
         if ((filterChain == NULL) || (showOptions) ||
             (!filterChain->parseArguments(argc, argv))) {
-            showUsage(ap, analyzer, clusterMaker, heuristicChain, filterChain);
-            return (showOptions ? 0 : 3);
+            showUsage(ap, analyzer, clusterMaker, assembler,
+                      heuristicChain, filterChain);
+            return 4;
         }
     }
-    
     // Attach the heuristic chain (if it exists) to the EST analyzer
-    if (heuristicChain != NULL) {
+    if ((heuristicChain != NULL) && (analyzer != NULL)) {
         analyzer->setHeuristicChain(heuristicChain);
     }
     
@@ -336,6 +386,13 @@ main(int argc, char* argv[]) {
             }
         }
         delete clusterMaker;
+    } else if (assembler != NULL) {
+        // First initialize the assembler for use in filters
+        if ((result = assembler->initialize()) == 0) {
+            // Let the assembler do its assembly.
+            result = assembler->assemble();
+        }
+        delete assembler;
     } else {
         // Let the analyzer do the analysis.
         result = analyzer->analyze();

@@ -389,6 +389,7 @@ AC_CHECK_FUNCS([bzero floor gettimeofday memset mkdir modf pow rint sqrt strcase
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile
+				 src/baton/Makefile
 		 		 tools/Makefile
 		 		 examples/Makefile])
 

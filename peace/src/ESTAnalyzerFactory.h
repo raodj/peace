@@ -85,7 +85,7 @@ private:
         The default constructor has is private in order to ensure that
         this class is never instantiated.  Instead, the static methods
         in this class must be directly used to instantiate a EST
-        analyzerw.
+        analyzer.
     */
     ESTAnalyzerFactory() {}
 

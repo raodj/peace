@@ -39,7 +39,7 @@
 
 /** \file SFFReader.h
     
-    A class to read sequences from a Standard Flowgram Format (SFF) file.
+    \brief A class to read sequences from a Standard Flowgram Format (SFF) file.
 
     This file contains the class declaration for the SFFReader. The
     SFFReader is used to read sequence data from a SFF data file.

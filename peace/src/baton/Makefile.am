@@ -38,25 +38,24 @@ include $(top_builddir)/Makefile.common.am
 AM_CPPFLAGS=$(GLOBALCPPFLAGS)
 AM_CXXFLAGS=$(GLOBALCXXFLAGS)
 
-bin_PROGRAMS = UsingPeace generate_d2 standalone_d2
+noinst_LIBRARIES = libbaton.a
 
-UsingPeace_LDFLAGS = -L../src -L../src/baton
-UsingPeace_LDADD = $(STDCPP) -lpeace -lbaton
-
-UsingPeace_SOURCES = \
-UsingPeace.cpp
-
-generate_d2_LDFLAGS = -L../src -L../src/baton
-generate_d2_LDADD = $(STDCPP) -lpeace -lbaton
-
-generate_d2_SOURCES = \
-generate_d2.h \
-generate_d2.cpp
-
-standalone_d2_LDFLAGS = -L../src -L../src/baton
-standalone_d2_LDADD = $(STDCPP) -lpeace -lbaton
-
-standalone_d2_SOURCES = \
-standalone_d2.cpp
+libbaton_a_SOURCES = \
+Baton.h \
+Baton.cpp \
+BatonList.h \
+BatonList.cpp  \
+BatonAnalyzer.h \
+BatonAnalyzer.cpp \
+BatonAssembler.h \
+BatonAssembler.cpp \
+BatonAssemblerManager.h \
+BatonAssemblerManager.cpp \
+BatonAssemblerWorker.h \
+BatonAssemblerWorker.cpp \
+ContigMaker.h \
+ContigMaker.cpp \
+AlignmentInfo.h \
+AlignmentInfo.cpp
 
 # end of Makefile.am

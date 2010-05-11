@@ -1,5 +1,5 @@
-#ifndef FILTER_FACTORY_CPP
-#define FILTER_FACTORY_CPP
+#ifndef ASSEMBLER_FACTORY_CPP
+#define ASSEMBLER_FACTORY_CPP
 
 //--------------------------------------------------------------------
 //
@@ -34,19 +34,17 @@
 //
 //---------------------------------------------------------------------
 
-#include "FilterFactory.h"
-#include "LengthFilter.h"
-#include "LCFilter.h"
+#include "AssemblerFactory.h"
 #include "arg_parser.h"
+#include "BatonAssemblerManager.h"
+#include "BatonAssemblerWorker.h"
 
 void
-FilterFactory::displayList(std::ostream &os) {
+AssemblerFactory::displayList(std::ostream &os) {
     // Create dummy command-line args to make display prettier and
     // easier.
     arg_parser::arg_record dummy_args[] = {
-        {"lengthFilter", "Filter out short ESTs in the FASTA file",
-         NULL, arg_parser::STRING},
-        {"lcFilter", "Filter out entries with Low Complexity regions",
+        {"baton", "Baton-based, parallel and distributed gene assembler",
          NULL, arg_parser::STRING},
         {NULL, NULL, NULL, arg_parser::BOOLEAN}
     };
@@ -54,28 +52,25 @@ FilterFactory::displayList(std::ostream &os) {
     os << dummyParser;
 }
 
-Filter*
-FilterFactory::create(const char* name, ClusterMaker *clusterMaker) {
+Assembler*
+AssemblerFactory::create(const char* name, const std::string& outputFileName,
+                         const int mpiRank) {
     if (name == NULL) {
         return NULL;
     }
-    if (clusterMaker == NULL) {
-        std::cerr << "A valid cluster maker has  not been specified.\n"
-                  << "Use --clusterMaker command line option or disable\n"
-                  << "all filters via command line --filters null."
-                  << std::endl;
-        return NULL;
+    if (!strcmp("baton", name)) {
+        // Create a manager or a worker baton assembler depending on the
+        // rank of the process.
+        if (mpiRank == 0) {
+            return new BatonAssemblerManager(outputFileName);
+        } else {
+            return new BatonAssemblerWorker(outputFileName);
+        }
     }
-    
-    if (!strcmp("lengthFilter", name)) {
-        return new LengthFilter(clusterMaker);
-    } else if (!strcmp("lcFilter", name)) {
-        return new LCFilter(clusterMaker);
-    }
-        
-    // invalid filter name!
-    std::cerr << "Invalid filter name '" << name << "'." << std::endl;
+    // invalid analyzer name!
+    std::cerr << "Invalid analyzer name (" << name << ")." << std::endl;
     return NULL;
 }
 
 #endif
+

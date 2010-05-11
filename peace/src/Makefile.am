@@ -38,11 +38,15 @@ include $(top_builddir)/Makefile.common.am
 AM_CPPFLAGS=$(GLOBALCPPFLAGS)
 AM_CXXFLAGS=$(GLOBALCXXFLAGS)
 
+AM_CPPFLAGS += -Ibaton
+
+SUBDIRS = baton
+
 noinst_LIBRARIES = libpeace.a
 bin_PROGRAMS = peace
 
 peace_LDFLAGS = -L.
-peace_LDADD = $(STDCPP) libpeace.a
+peace_LDADD = $(STDCPP) libpeace.a baton/libbaton.a libpeace.a
 
 libpeace_a_SOURCES = \
 arg_parser.cpp\
@@ -138,7 +142,13 @@ OldUVHeuristic.cpp \
 OldTwoPassD2.cpp \
 OldTwoPassD2.h \
 OldMSTClusterMaker.h \
-OldMSTClusterMaker.cpp
+OldMSTClusterMaker.cpp \
+FileLoader.h \
+FileLoader.cpp \
+Assembler.h \
+Assembler.cpp \
+AssemblerFactory.h \
+AssemblerFactory.cpp
 
 peace_SOURCES = \
 main.cpp\
