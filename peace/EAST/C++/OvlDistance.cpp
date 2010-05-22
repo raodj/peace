@@ -27,9 +27,19 @@ using namespace std;
  * If s2 is included in s1, the distance is INT_MIN.
  * If s1 is included in s2, the distance is INT_MIN.
  */
-vector<int> OvlDistance::getOVLDistance(const string& tS1, const string& tS2) {
+vector<int> OvlDistance::getOVLDistance(const string& tS1, const string& tS2, bool useHeuristic) {
 	int s1Len = tS1.size();
 	int s2Len = tS2.size();
+	//We do not compute distances between sequences in non-adjacent groups
+	int s1Flag = s1Len<=SHORT_LEN? 0 : (s1Len<=MEDIUM_LEN? 1 : 2);
+	int s2Flag = s2Len<=SHORT_LEN? 0 : (s2Len<=MEDIUM_LEN? 1 : 2);
+	vector<int> returnValues(2);
+	if (abs(s1Flag-s2Flag)>1) {
+		returnValues[0] = 0;
+		returnValues[1] = INT_MAX;
+		return returnValues;
+	}
+
 	int shorterLen = s1Len>s2Len? s2Len : s1Len;
 	if (shorterLen <= SHORT_LEN) { //use parameters for short
 		InclusionThreshold = INCLUSION_THRESHOLD_S;
@@ -56,9 +66,7 @@ vector<int> OvlDistance::getOVLDistance(const string& tS1, const string& tS2) {
 		s2 = tS2;
 	}
 
-	vector<int> returnValues(2);
-
-	BestWindowMatches best = d2.matchEndWindows(s1, s2);
+	BestWindowMatches best = d2.matchEndWindows(s1, s2, true, useHeuristic);
 	if ((best.numBestLeftWindows==0) && (best.numBestRightWindows==0)) { //if not overlap, return
 		returnValues[0] = 0;
 		returnValues[1] = INT_MAX;
@@ -159,6 +167,13 @@ vector<int> OvlDistance::reducePos(const vector<int>& input, int len) {
 bool OvlDistance::checkInclusion(const string& s1, const string& s2, bool createNewHash) {
 	int s1Len = s1.size();
 	int s2Len = s2.size();
+	//We do not compute distances between sequences in non-adjacent groups
+	int s1Flag = s1Len<=SHORT_LEN? 0 : (s1Len<=MEDIUM_LEN? 1 : 2);
+	int s2Flag = s2Len<=SHORT_LEN? 0 : (s2Len<=MEDIUM_LEN? 1 : 2);
+	if (abs(s1Flag-s2Flag)>1) {
+		return false;
+	}
+
 	int shorterLen = s1Len>s2Len? s2Len : s1Len;
 	if (shorterLen <= SHORT_LEN) { //use parameters for short
 		InclusionThreshold = INCLUSION_THRESHOLD_S;

@@ -52,7 +52,7 @@ vector<int> D2::createWindowHash(string s, int leftCoord, int windowSize, int wo
 }
 
 
-BestWindowMatches D2::matchEndWindows(string s1, string s2, bool createNewHash) {
+BestWindowMatches D2::matchEndWindows(string s1, string s2, bool createNewHash, bool useHeuristic) {
 	int s1Len = s1.size();
 	int s2Len = s2.size();
 	int shorterLen = s1Len>s2Len? s2Len : s1Len;
@@ -85,8 +85,8 @@ BestWindowMatches D2::matchEndWindows(string s1, string s2, bool createNewHash) 
 		this->t = T_L;
 	}
 
-	if (!uv_tv_Heuristic(s1, s2, createNewHash))
-		return BestWindowMatches(vector<int>(0), 0, 0, vector<int>(0), 0, 0, 0);
+	if (useHeuristic && !uv_tv_Heuristic(s1, s2, createNewHash))
+	  return BestWindowMatches(vector<int>(0), 0, 0, vector<int>(0), 0, 0, 0);
 
 	vector<int> H1_left = createWindowHash(s1, 0, windowSize, d2WordSize, d2WordFilter, d2NumWords);
 	vector<int> H1_right = createWindowHash(s1, s1.length() - windowSize, windowSize, d2WordSize, d2WordFilter, d2NumWords);
