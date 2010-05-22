@@ -29,7 +29,7 @@ vector<SixTuple*> Graph::handleInclusion() {
 					//add to CalculatedOvlDistance
 					calDist.addDistance(i, index, INT_MAX, 0);
 				} else {
-					ovlDis = ovl.getOVLDistance(curSeq, comSeq);
+					ovlDis = ovl.getOVLDistance(curSeq, comSeq, false);
 					//add to CalculatedOvlDistance
 					calDist.addDistance(i, index, ovlDis[1], ovlDis[0]);
 				}
@@ -88,7 +88,7 @@ vector<SixTuple*> Graph::get2CloseNodesFromMST() {
 					calDist.addDistance(curIdx, index, INT_MAX, 0);
 				} else {
 					ovlDis = ovl.getOVLDistance(graphNodes[curIdx].getNodeStr(),
-							graphNodes[index].getNodeStr());
+							graphNodes[index].getNodeStr(), false);
 					//add to CalculatedOvlDistance
 					calDist.addDistance(curIdx, index, ovlDis[1], ovlDis[0]);
 				}
