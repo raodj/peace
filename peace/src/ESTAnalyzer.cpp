@@ -64,6 +64,8 @@ arg_parser::arg_record ESTAnalyzer::commonArgsList[] = {
      &ESTAnalyzer::htmlLog, arg_parser::BOOLEAN},
     {"--no-mask-bases", "Don't mask out all lower case neucleotides in reads",
      &ESTAnalyzer::noMaskBases, arg_parser::BOOLEAN},
+    {"--randomize-n-bases", "Change 'N' bases to a random ACGT base",
+     &ESTAnalyzer::randomizeNbases, arg_parser::BOOLEAN},
     {NULL, NULL, NULL, arg_parser::BOOLEAN}
 };
 
@@ -116,7 +118,7 @@ ESTAnalyzer::parseArguments(int& argc, char **argv) {
 
     // Check if necessary arguments have been specified for processing.
     if ((estFileName == NULL) && (sffFileName == NULL)) {
-        // Necessary argumetns have not been specified.
+        // Necessary arguments have not been specified.
         std::cerr << analyzerName
                   << ": Input data file not specified (use either --fastaFile "
                   << "or --sffFile option)\n";
