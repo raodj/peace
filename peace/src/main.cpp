@@ -206,7 +206,7 @@ main(int argc, char* argv[]) {
     char defAnalyzer[]      = "twopassD2adapt";
     char defClusterMaker[]  = "mst";
     char defHeuristic[]     = "tv";
-    char defFilters[]       = "lengthFilter";
+    char defFilters[]       = "lengthFilter-lcFilter";
 
     char *assemblerName = NULL;
     char *analyzerName  = NULL;

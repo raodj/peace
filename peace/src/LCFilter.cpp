@@ -125,7 +125,12 @@ LCFilter::addDummyEntry(const std::string& fastaID, const std::string& seq,
     // First replicate the sequence to obtain full sequence of given
     // length.
     std::string fullSeq = seq;
-    const int repeats   = length / seq.length();
+    // Ensure that the length of the dummy does not exceed the longest
+    // fragement we have (as the cluster maker has already been
+    // initialized and it has used the longest fragement to create its
+    // internal buffers)
+    const int repeats   = std::min(length / seq.length(),
+                                   EST::getMaxESTLen() / seq.length());
     for(int i = 0; (i < repeats); i++) {
         fullSeq += seq;
     }
