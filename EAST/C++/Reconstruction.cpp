@@ -528,7 +528,7 @@ vector<string> Reconstruction::reconstructSeq(vector<StartPos>& a) {
 		} else {
 			int len1 = tConsensus.size();
 			int len2 = curSeq.size();
-			int end = max(offset+len2, len1);
+			int end = offset+len2;
 			for (int j=offset; j<end; j++) {
 				if ((j < len1) && (j-offset < len2)) { //overlap part
 					char c1 = tConsensus[j];
