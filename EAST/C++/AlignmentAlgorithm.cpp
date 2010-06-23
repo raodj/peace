@@ -37,8 +37,8 @@ void AlignmentAlgorithm::setScoringMatrix(int match, int mismatch) {
 						 m, m, m, n, n, n, n, n, n, n, n, n, n, m, n, n, n,  //V: not T
 						 m, m, n, m, n, n, n, n, n, n, n, n, n, n, m, n, n,  //H: not G
 						 n, m, m, m, n, n, n, n, n, n, n, n, n, n, n, m, n,  //B: not A
-						 n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, m   //X: unknown
-				};
+						 n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, m};   //X: unknown
+				
 
 	for (int i=0; i<17; i++) {
 		for (int j=0; j<17; j++) {
@@ -106,7 +106,7 @@ int AlignmentAlgorithm::getNWScore(const string& s1, const string& s2) {
 		// initiate first column
 		array[0] = 0;
 		for (r = 1; r < rows; r++) {
-			array[r] = array[r-1] + gapPenalty * r;
+			array[r] = array[0] + gapPenalty * r;
 			encodedBases1[r-1] = encodeBase(s1[r-1]);
 		}
 		for (r=1; r < cols; r++)
@@ -146,7 +146,7 @@ int AlignmentAlgorithm::getNWScore(const string& s1, const string& s2) {
 		// initiate first row
 		array[0] = 0;
 		for (c = 1; c < cols; c++) {
-			array[c] = array[c-1] + gapPenalty * c;
+			array[c] = array[0] + gapPenalty * c;
 			encodedBases2[c-1] = encodeBase(s2[c-1]);
 		}
 		for (r=1; r < rows; r++)
@@ -209,7 +209,7 @@ int AlignmentAlgorithm::getBoundedNWScore(const string& s1, const string& s2) {
 	array[0] = 0;
 	for (c = 1; c < cols; c++) {
 		encodedBases2[c-1] = encodeBase(ss2[c-1]);
-		array[c] = array[c-1] + gapPenalty * c;
+		array[c] = array[0] + gapPenalty * c;
 	}
 	for (r=1; r < rows; r++)
 		encodedBases1[r-1] = encodeBase(ss1[r-1]);
@@ -217,7 +217,7 @@ int AlignmentAlgorithm::getBoundedNWScore(const string& s1, const string& s2) {
 	// calculate the similarity matrix (keep current row only)
 	for (r = 1; r < rows; r++)
 	{
-		tmp = array[0] + gapPenalty * r;;
+		tmp = array[0] + gapPenalty;
 		int base1 = encodedBases1[r-1];
 		int start = (r-band) > 1 ? (r-band) : 1;
 		int end = cols > (r+band) ? (r+band) : cols;
