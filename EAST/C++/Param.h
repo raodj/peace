@@ -67,6 +67,7 @@ const int BAND_WIDTH_SW=100;
 
 //If use bounded version of Smith-Waterman algorithm to get SW Alignment when doing reconstruction.
 //1-use, 0-not use. Use bounded version may reduce the precision.
+//Bounded SW is not supported in current version.
 const int USE_BOUNDED_SW=0;
 
 //If generate output files for SNP analysis. 0: not, 1: generate.
@@ -74,4 +75,15 @@ const int OUTPUT_SNP=0;
 //The prefix of the output files for SNP analysis. The number of SNP output files is equal to the number of consensus sequences.
 //They are named as snaAnalysis.0, snaAnalys.1, ...
 //std::string SNP_FILE="snpAnalysis";
+
+//If use quality files.
+//1-use, 0-not use.
+const int USE_QUALITY_FILE=1;
+
+//This group of parameters are used for hybrid data.
+//we will see the overlap distance of two ESTs to be infinite if
+//	1)length difference > LEN_DIFFERENCE
+//	2) and the shorter length < SHORTER_EST_LEN
+const int LEN_DIFFERENCE=300;
+const int SHORTER_EST_LEN=300;
 #endif
