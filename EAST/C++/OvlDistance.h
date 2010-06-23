@@ -23,8 +23,8 @@ public:
 	// the distance which is bigger than the value will be seen as infinity.
 	Alignment alignment;
 	D2 d2;
-	std::vector<int> getOVLDistance(const std::string& tS1, const std::string& tS2, bool useHeuristic=true);
-	bool checkInclusion(const std::string& s1, const std::string& s2, bool createNewHash=true);
+	std::vector<int> getOVLDistance(const std::string& tS1, const std::string& tS2, bool useHeuristic=true, std::vector<int> qualScore1=std::vector<int>(), std::vector<int> qualScore2=std::vector<int>());
+	bool checkInclusion(const std::string& s1, const std::string& s2, bool createNewHash=true, std::vector<int> qualScore1=std::vector<int>(), std::vector<int> qualScore2=std::vector<int>());
 
 private:
 	std::vector<int> reducePos(const std::vector<int>& input, int len);

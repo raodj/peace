@@ -86,6 +86,7 @@ private:
 	std::string replace(std::string str, const std::string& old, const std::string& newstr);
 	std::string printLeftEndInfo(int leftEnd);
 	std::vector<std::string> reconstructSeq(std::vector<StartPos>& a);
+	std::vector<std::string> reconstructSeqWithQual(std::vector<StartPos>& a);
 	void writeToSNPFile(std::vector<SingleBase*> bases, int totalLen);
 
 	DefGraph graphForPrim; //this is a graph which is used for generating MST. It is generated once in genDGraph(), then used multiple times.

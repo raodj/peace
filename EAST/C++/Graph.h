@@ -79,6 +79,13 @@ public:
 		return graphNodes.at(i).getComment();
 	}
 
+	/*
+	 * get quality scores of the node with index i
+	 */
+	inline std::vector<int> getQualScoresOfNode(int i) {
+		return graphNodes.at(i).getQualScores();
+	}
+
 
 };
 

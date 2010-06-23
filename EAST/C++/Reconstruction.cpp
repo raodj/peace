@@ -325,10 +325,21 @@ vector<string>Reconstruction::processLeftEnds(vector<int>& curLeftEnds, vector<v
 				incNodes->addNode2(allLeftEnds[i].index, s1Idx);
 			} else if ((ovlDis[1] == INT_MAX) && (ovlDis[0] == INT_MAX)) { //have not been calculated
 				bool b;
-				if (i == 1)
-					b = (g->ovl).checkInclusion(allLeftEnds[i].seq, s1, true); //not keep hash table of s1 in D2.cpp
-				else
-					b = (g->ovl).checkInclusion(allLeftEnds[i].seq, s1, false);//keep hash table of s1 in D2.cpp
+				vector<int> qual1 = g->graphNodes[allLeftEnds[i].index].getQualScores();
+				vector<int> qual2 = g->graphNodes[s1Idx].getQualScores();
+				if (i == 1) {
+					if (USE_QUALITY_FILE == 1) { //use quality file
+						b = (g->ovl).checkInclusion(allLeftEnds[i].seq, s1, true, qual1, qual2); //not keep hash table of s1 in D2.cpp
+					} else {
+						b = (g->ovl).checkInclusion(allLeftEnds[i].seq, s1, true); //not keep hash table of s1 in D2.cpp
+					}
+				} else {
+					if (USE_QUALITY_FILE == 1) { //use quality file
+						b = (g->ovl).checkInclusion(allLeftEnds[i].seq, s1, false, qual1, qual2); //not keep hash table of s1 in D2.cpp
+					} else {
+						b = (g->ovl).checkInclusion(allLeftEnds[i].seq, s1, false);//keep hash table of s1 in D2.cpp
+					}
+				}
 
 				if (b) {
 					includedEnds.push_back(allLeftEnds[i]);
@@ -362,6 +373,7 @@ vector<string>Reconstruction::processLeftEnds(vector<int>& curLeftEnds, vector<v
  * and reconstruct a consensus from them.
  */
 string Reconstruction::processLeftEndsWithInclusion(vector<LeftEnd>& includeStrs, vector<vector<int> >& dGraph) {
+	cout << includeStrs.size() << endl;
 	if (includeStrs.size() == 0) {
 		return "";
 	} else if (includeStrs.size() == 1) {
@@ -392,7 +404,14 @@ string Reconstruction::processLeftEndsWithInclusion(vector<LeftEnd>& includeStrs
 		for (int i=0; i<numOfEnds; i++) {
 			if (i == idxMaxLen) continue;
 			string s2 = includeStrs[i].seq;
-			AlignResult strs = alignment.getLocalAlignment(s1, s2);
+			AlignResult strs;
+			if (USE_QUALITY_FILE == 1) { //use quality file
+				vector<int> qual1 = g->getQualScoresOfNode(includeStrs[idxMaxLen].index);
+				vector<int> qual2 = g->getQualScoresOfNode(includeStrs[i].index);
+				strs = alignment.getLocalAlignment(s1, s2, qual1, qual2);
+			} else {
+				strs = alignment.getLocalAlignment(s1, s2);
+			}
 			int offset1 = s1.find(replace(strs.str1, "-", ""));
 			int offset2 = s2.find(replace(strs.str2, "-", ""));
 			int endPos = (offset1-offset2) > 0 ? (offset1-offset2) : 0;
@@ -446,7 +465,12 @@ string Reconstruction::reconstructFromEnds(vector<vector<int> > leftEnds, vector
 	}
 
 
-	vector<string> tStr = reconstructSeq(tmpArray);
+	vector<string> tStr;
+	if (USE_QUALITY_FILE == 1) { //use quality file
+		tStr = reconstructSeqWithQual(tmpArray);
+	} else {
+		tStr = reconstructSeq(tmpArray);
+	}
 	if (tStr.size() != 0) {
 		printStr = printStr + tStr[1] + " nodes are used to reconstruct the sequence.\n";
 		printStr = printStr + tStr[0] + "\n\n";
@@ -455,7 +479,6 @@ string Reconstruction::reconstructFromEnds(vector<vector<int> > leftEnds, vector
 
 	return ret;
 }
-
 
 /*
  * reconstruct a sequence which starts from a left end.
@@ -548,6 +571,194 @@ vector<string> Reconstruction::reconstructSeq(vector<StartPos>& a) {
 			for (int k=0; k<tmpOff; k++) {
 				if (offset-tmpOff+k >= 0)
 					bases[offset-tmpOff+k]->addOneBase(firstPartCur[k]);
+			}
+		}
+
+		tConsensus = getCurConsensus(bases);
+	}
+
+	int totalLen = bases.size();
+	for (int i=bases.size()-1; i>=0; i--) {
+		if (bases[i]->getTotalNumOfBase() > 2) {
+			break;
+		}
+		totalLen--;
+	}
+	tConsensus = tConsensus.substr(0, totalLen);
+
+	ret[0] = replace(tConsensus, "P", "");
+
+	if (OUTPUT_SNP == 1) { //write output files for SNP analysis
+		writeToSNPFile(bases, totalLen);
+	}
+
+	//release bases
+	for (int i=0; i<bases.size(); i++) {
+		delete bases[i];
+	}
+
+	return ret;
+}
+
+/*
+ * reconstruct a sequence which starts from a left end using quality scores.
+ * return: ret[0]-the consensus, ret[1]-the total number of nodes used for reconstruction.
+ */
+vector<string> Reconstruction::reconstructSeqWithQual(vector<StartPos>& a) {
+	std::stringstream out;
+	vector<string> ret(2);
+	if (a.size() == 0) {
+		ret[1] = "0";
+		return ret;
+	}
+
+	sort(a.begin(), a.end());
+	vector<UsedNode> addedNodes = addInclusionNodes(a);  //add all those related inclusion nodes into it for reconstruction and set usedNodes[related nodes]=1.
+	out << addedNodes.size();
+	ret[1] = out.str();
+	if (addedNodes.size() == 1){
+		//size=1, this node should be a singleton if it is not used in other place. it shouldn't appear as a consensus sequence.
+		//size=1, then usedNodes[this node] will not be set to 1 in addInclusionNodes method.
+		return ret;
+	}
+	vector<StartPos> resultArray(addedNodes.size());
+	for (int i=0; i<addedNodes.size(); i++) {
+		UsedNode tmpNode = addedNodes[i];
+		resultArray[i] = StartPos(tmpNode.pos, tmpNode.index);
+	}
+	sort(resultArray.begin(), resultArray.end());
+	//print resultArray for debug
+	/*
+	for (int i=0; i<resultArray.size(); i++) {
+		cout << resultArray[i].index << endl;
+	}*/
+
+	int comparisonLen = COMPARISON_LENGTH;
+	vector<SingleBase*> bases;
+	string tConsensus = g->getSeqOfNode(resultArray[0].index);
+	vector<int> firstSeqQualScores = g->getQualScoresOfNode(resultArray[0].index);
+	string curSeq = "";
+	int len = resultArray.size() - 1;
+	for (int i=1; i<=len; i++) {
+		curSeq = g->getSeqOfNode(resultArray[i].index);
+		vector<int> curSeqQualScores = g->getQualScoresOfNode(resultArray[i].index);
+		string tmpConsensus = tConsensus;
+
+		vector<int> qualOfTmpConsensus;
+		if (tmpConsensus.length() > comparisonLen) {
+			int tmpConStart = tConsensus.size()-comparisonLen+1;
+			tmpConsensus = tConsensus.substr(tmpConStart);
+			if (i == 1) {
+				for (int tmpCon=tmpConStart; tmpCon < tConsensus.size(); tmpCon++) {
+					qualOfTmpConsensus.push_back(firstSeqQualScores[tmpCon]);
+				}
+			} else {
+				for (int tmpCon=tmpConStart; tmpCon < tConsensus.size(); tmpCon++) {
+					qualOfTmpConsensus.push_back(bases[tmpCon]->curqualVal);
+				}
+			}
+		} else if (i == 1) {
+			qualOfTmpConsensus = firstSeqQualScores;
+		} else {
+			for (int tmpCon=0; tmpCon < tConsensus.size(); tmpCon++) {
+				qualOfTmpConsensus.push_back(bases[tmpCon]->curqualVal);
+			}
+		}
+
+		AlignResult strs;
+		if (USE_BOUNDED_SW == 0) { //use ordinary version
+			strs = alignment.getLocalAlignment(tmpConsensus, curSeq, qualOfTmpConsensus, curSeqQualScores);
+		} else  { //use bounded version
+			strs = alignment.getBoundedLocalAlignment(tmpConsensus, curSeq);
+		}
+		if ((strs.str1.size()==0) || (strs.str2.size()==0)) continue;
+		tConsensus = replace(tConsensus, replace(strs.str1, "-", ""), strs.str1);
+		int offset = (int)tConsensus.find(strs.str1);
+		if (offset < 0) continue; //not found
+
+		string tSeq = replace(curSeq, replace(strs.str2, "-", ""), strs.str2);
+		int tmpOff = (int)tSeq.find(strs.str2);
+		if (tmpOff < 0) continue; //not found
+		int posInEst = tmpOff;
+		string firstPartCur = tSeq.substr(0, tmpOff);
+		curSeq = tSeq.substr(tmpOff);
+		if (i == 1) {
+			int len1 = tConsensus.size();
+			int len2 = curSeq.size();
+			int end = max(offset+len2, len1);
+			int curScorePosinS1 = 0;
+			int curScorePosinS2 = 0;
+			for (int j=0; j<end; j++) {
+				int qualScore1 = 0;
+				int qualScore2 = 0;
+
+				if ((j < len1) && (j-offset >= 0) && (j-offset < len2)) { //overlap part
+					char c1 = tConsensus[j];
+					char c2 = curSeq[j-offset];
+					if (c1 != '-') {
+						qualScore1 = firstSeqQualScores[curScorePosinS1];
+						curScorePosinS1++;
+					} else {
+						qualScore1 = curSeqQualScores[posInEst+curScorePosinS2]; //equal to qualScore2
+					}
+					if (c2 != '-') {
+						qualScore2 = curSeqQualScores[posInEst+curScorePosinS2];
+						curScorePosinS2++;
+					} else {
+						qualScore2 = qualScore1; //equal to qualScore1
+					}
+					bases.push_back(new SingleBase(c1, c2, qualScore1, qualScore2));
+				} else if ((j-offset < 0) || (j-offset >= len2)) {
+					char c1 = tConsensus[j];
+					if (c1 != '-') {
+						qualScore1 = firstSeqQualScores[curScorePosinS1];
+						curScorePosinS1++;
+					}
+					bases.push_back(new SingleBase(c1, qualScore1));
+				} else if (j >= len1) {
+					char c2 = curSeq[j-offset];
+					if (c2 != '-') {
+						qualScore2 = curSeqQualScores[posInEst+curScorePosinS2];
+						curScorePosinS2++;
+					}
+					bases.push_back(new SingleBase(c2, qualScore2));
+				}
+			}
+		} else {
+			int len1 = tConsensus.size();
+			int len2 = curSeq.size();
+			int end = offset+len2;
+			int curScorePos = 0;
+			for (int j=offset; j<end; j++) {
+				char c2 = curSeq[j-offset];
+				int qualScore = 0;
+				if (c2 != '-') {
+					qualScore = curSeqQualScores[posInEst+curScorePos];
+					curScorePos++;
+				} else if (bases.size() > j){
+					int curBaseNum = bases[j]->curBaseNum;
+					if (curBaseNum > 0) {
+						qualScore = (bases[j]->curqualVal)/curBaseNum;
+					}
+				}
+
+				if ((j < len1) && (j-offset < len2)) { //overlap part
+					char c1 = tConsensus[j];
+
+					if (c1 != '-') {
+						bases[j]->addOneBase(c2, qualScore);
+					} else {
+						bases.insert(bases.begin()+j, new SingleBase(c1, c2, qualScore, qualScore));
+					}
+				} else if (j >= len1) {
+					bases.push_back(new SingleBase(c2, qualScore));
+				}
+			}
+
+			//put first part of curSeq into bases
+			for (int k=0; k<tmpOff; k++) {
+				if (offset-tmpOff+k >= 0)
+					bases[offset-tmpOff+k]->addOneBase(firstPartCur[k], curSeqQualScores[k]);
 			}
 		}
 

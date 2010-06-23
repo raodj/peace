@@ -18,13 +18,14 @@ public:
 	time_t usedTime;
 	int numCall2;
 	time_t usedTime2;
-	int getDistance(std::string s1, std::string s2);
-	AlignResult getLocalAlignment(std::string s1, std::string s2);
-	AlignResult getBoundedLocalAlignment(std::string s1, std::string s2);
+	int getDistance(const std::string& s1, const std::string& s2, std::vector<int> qualScore1=std::vector<int>(), std::vector<int> qualScore2=std::vector<int>());
+	AlignResult getLocalAlignment(const std::string& s1, const std::string& s2, std::vector<int> qualScore1=std::vector<int>(), std::vector<int> qualScore2=std::vector<int>());
+	AlignResult getBoundedLocalAlignment(const std::string& s1, const std::string& s2);
 	void setScoringSystem(int match, int mismatch, int gap);
 
 private:
-	int getSimlarityScore(std::string s1, std::string s2);
+	int getSimlarityScore(const std::string& s1, const std::string& s2);
+	int getSimlarityScoreWithQual(const std::string& s1, const std::string& s2, const std::vector<int>& qualScore1, const std::vector<int>& qualScore2);
 	AlignmentAlgorithm* alignAlgo;
 
 };
