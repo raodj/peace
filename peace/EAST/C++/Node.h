@@ -6,11 +6,19 @@ public:
 	std::string sequence; //the bases of the est
 	std::string name; //ID of the est,currently it's the starting position of the node.
 	std::string comment; //comment to the est in the input est file
+	std::vector<int> qualScores;
 
 	inline Node(std::string n, std::string c, std::string s) {
 		name = n;
 		comment = c;
 		sequence = s;
+	}
+
+	inline Node(std::string n, std::string c, std::string s, std::vector<int> q) {
+		name = n;
+		comment = c;
+		sequence = s;
+		qualScores = q;
 	}
 
 	inline std::string getNodeStr() {
@@ -44,6 +52,14 @@ public:
 	inline std::string getComment() {
 		return comment;
 	}
+
+	/*
+	 * get quality scores of the node
+	 */
+	inline std::vector<int> getQualScores() {
+		return qualScores;
+	}
+
 };
 
 #endif

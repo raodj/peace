@@ -15,17 +15,22 @@ public:
 	Reconstruction* rec;
 	InclusionNodes* incNodes;
 
+	ESTAssembly() {};
 	ESTAssembly(std::string& estF, std::string& mstF);
+	ESTAssembly(std::string& estF, std::string& mstF, std::string& qualF);
 	void assemble(std::string& con, std::string& sing, std::string& numF);
 	~ESTAssembly();
 
 private:
 	std::string estFileName;
 	std::string mstFileName;
-	int readEstFile(const std::string& inFileName);
-	void readMST(const std::string& inFileName);
+	std::string qualFileName;
+	int readEstFile();
+	int readEstQualFile();
+	void readMST();
 	std::vector<std::string> split(const std::string& str, char delimit);
 	std::string toUpperCase(const std::string& str);
+	std::vector<int> getIntScores(const std::string& str);
 };
 
 #endif

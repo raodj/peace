@@ -55,8 +55,12 @@ public:
 	int getNWScore(const std::string& s1, const std::string& s2);
 	int getBoundedNWScore(const std::string& s1, const std::string& s2);
 	AlignResult getNWAlignment(const std::string& s1, const std::string& s2);
+	int getNWScoreWithQual(const std::string& s1, const std::string& s2, const std::vector<int>& qualScore1, const std::vector<int>& qualScore2);
+	int getBoundedNWScoreWithQual(const std::string& s1, const std::string& s2, const std::vector<int>& qual1, const std::vector<int>& qual2);
+
 	int getSWScore(const std::string& s1, const std::string& s2);
 	AlignResult getSWAlignment(const std::string& s1, const std::string& s2);
+	AlignResult getSWAlignmentWithQual(const std::string& s1, const std::string& s2, const std::vector<int>& qualScore1, const std::vector<int>& qualScore2);
 	AlignResult getBoundedSWAlignment(const std::string& s1, const std::string& s2);
 	std::vector<int> encodeString(const std::string& s1);
 };

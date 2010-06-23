@@ -22,6 +22,8 @@ vector<SixTuple*> Graph::handleInclusion() {
 
 			string curSeq = graphNodes[i].getNodeStr();
 			string comSeq = graphNodes[index].getNodeStr();
+			vector<int> curSeqQual = graphNodes[i].getQualScores();
+			vector<int> comSeqQual = graphNodes[index].getQualScores();
 			vector<int> ovlDis = calDist.searchDistance(i, index);
 
 			if ((ovlDis[1] == INT_MAX) && (ovlDis[0] == INT_MAX)) {
@@ -29,7 +31,11 @@ vector<SixTuple*> Graph::handleInclusion() {
 					//add to CalculatedOvlDistance
 					calDist.addDistance(i, index, INT_MAX, 0);
 				} else {
-					ovlDis = ovl.getOVLDistance(curSeq, comSeq, false);
+					if (USE_QUALITY_FILE == 1) { //use quality file
+						ovlDis = ovl.getOVLDistance(curSeq, comSeq, false, curSeqQual, comSeqQual);
+					} else {
+						ovlDis = ovl.getOVLDistance(curSeq, comSeq, false);
+					}
 					//add to CalculatedOvlDistance
 					calDist.addDistance(i, index, ovlDis[1], ovlDis[0]);
 				}
@@ -87,8 +93,13 @@ vector<SixTuple*> Graph::get2CloseNodesFromMST() {
 					//add to CalculatedOvlDistance
 					calDist.addDistance(curIdx, index, INT_MAX, 0);
 				} else {
-					ovlDis = ovl.getOVLDistance(graphNodes[curIdx].getNodeStr(),
-							graphNodes[index].getNodeStr(), false);
+					if (USE_QUALITY_FILE == 1) { //use quality file
+						ovlDis = ovl.getOVLDistance(graphNodes[curIdx].getNodeStr(),
+								graphNodes[index].getNodeStr(), false, graphNodes[curIdx].getQualScores(), graphNodes[index].getQualScores());
+					} else {
+						ovlDis = ovl.getOVLDistance(graphNodes[curIdx].getNodeStr(),
+								graphNodes[index].getNodeStr(), false);
+					}
 					//add to CalculatedOvlDistance
 					calDist.addDistance(curIdx, index, ovlDis[1], ovlDis[0]);
 				}
@@ -184,8 +195,11 @@ SixTuple Graph::get2CloseNodesFromGrand(int index, const SixTuple sixTuple) {
 
 				vector<int> ovlDis = calDist.searchDistance(index, tmpIndex);
 				if ((ovlDis[1] == INT_MAX) && (ovlDis[0] == INT_MAX)) {
-					ovlDis = ovl.getOVLDistance(s1, s2);
-
+					if (USE_QUALITY_FILE == 1) { //use quality file
+						ovlDis = ovl.getOVLDistance(s1, s2, true, graphNodes[index].getQualScores(), graphNodes[tmpIndex].getQualScores());
+					} else {
+						ovlDis = ovl.getOVLDistance(s1, s2);
+					}
 					//add to CalculatedOvlDistance
 					calDist.addDistance(index, tmpIndex, ovlDis[1], ovlDis[0]);
 				}
@@ -353,7 +367,11 @@ SixTuple Graph::findAdjacentNode(stack<int> nodes, int index, const SixTuple six
 
 		vector<int> ovlDis = calDist.searchDistance(index, tmpIndex);
 		if ((ovlDis[1] == INT_MAX) && (ovlDis[0] == INT_MAX)) {
-			ovlDis = ovl.getOVLDistance(s1, s2);
+			if (USE_QUALITY_FILE == 1) { //use quality file
+				ovlDis = ovl.getOVLDistance(s1, s2, true, graphNodes[index].getQualScores(), graphNodes[tmpIndex].getQualScores());
+			} else {
+				ovlDis = ovl.getOVLDistance(s1, s2);
+			}
 
 			//add to CalculatedOvlDistance
 			calDist.addDistance(index, tmpIndex, ovlDis[1], ovlDis[0]);

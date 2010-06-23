@@ -12,9 +12,24 @@ ESTAssembly::ESTAssembly(std::string& estF, std::string& mstF) {
     mstFileName = mstF;
 }
 
+ESTAssembly::ESTAssembly(std::string& estF, std::string& mstF, std::string& qualF) {
+	incNodes = new InclusionNodes();
+	g = new Graph(incNodes);
+    gen = NULL;
+    rec = NULL;
+    estFileName = estF;
+    mstFileName = mstF;
+    qualFileName = qualF;
+}
+
 void ESTAssembly::assemble(std::string& con, std::string& sing, std::string& numF) {
-	int longestEstLen = readEstFile(estFileName);
-	readMST(mstFileName);
+	int longestEstLen = 0;
+	if (USE_QUALITY_FILE == 1) { //use quality file
+		longestEstLen = readEstQualFile();
+	} else {
+		longestEstLen = readEstFile();
+	}
+	readMST();
 	gen = new SixTuplesGeneration(g, incNodes);
 	rec = new Reconstruction(g, gen->getAlignArray(), gen->getLeftEnds(), incNodes, con, sing, numF, longestEstLen);
 	rec->getConsensus();
@@ -46,12 +61,12 @@ ESTAssembly::~ESTAssembly() {
  * >g001_001169_001679: first one is number of gene, second is index of tarting position, third is
  * 						index of ending position. Index starts from 0.
  */
-int ESTAssembly::readEstFile(const string& inFileName) {
+int ESTAssembly::readEstFile() {
 	vector<string> ests; //store all the ests.
 	int longestLen = 0;
 
 	ifstream in;
-	in.open(inFileName.c_str(), ios::in);
+	in.open(estFileName.c_str(), ios::in);
 
 	if (in.good()) {
 		string str;
@@ -106,10 +121,127 @@ int ESTAssembly::readEstFile(const string& inFileName) {
 	return longestLen;
 }
 
+int ESTAssembly::readEstQualFile() {
+	vector<string> ests; //store all the ests.
+	vector<string> scores; //store all the scores corresponding the the ests.
+	int longestLen = 0;
+
+	ifstream in;
+
+	//read est file
+	in.open(estFileName.c_str(), ios::in);
+
+	if (in.good()) {
+		string str;
+		getline(in, str);
+		while (!in.eof()) {
+			str.erase(str.find_last_not_of(" \n\r\t")+1); //trim str
+			if (str.size()==0) getline(in, str);
+			// first line is comment line which begins from '>'
+			if (str[0] == '>') {	//comment line begins from '>'
+				//vector<string> paras = split(str, '_');
+				//ests.push_back(paras[1]);
+				ests.push_back("0");
+				ests.push_back(str.substr(1)); //comment
+
+				//get est in the next lines
+				getline(in, str);
+				string estStr;
+				while (str.size() != 0) {
+					str.erase(str.find_last_not_of(" \n\r\t")+1); //trim str
+					if (str.size() != 0)	{
+						if (str[0] != '>') {
+							estStr.append(str);
+						} else  {
+							ests.push_back(estStr);
+							int theSize = estStr.size();
+							if (theSize > longestLen)
+								longestLen = theSize;
+							break;
+						}
+					}
+					getline(in, str);
+				}
+				if (str.size() == 0) {
+					int theSize = estStr.size();
+					if (theSize > longestLen)
+						longestLen = theSize;
+					ests.push_back(estStr);
+				}
+			}
+		}
+	}
+	in.close();
+
+	ifstream in2;
+	//read quality file
+	in2.open(qualFileName.c_str(), ios::in);
+
+	if (in2.good()) {
+		string str;
+		getline(in2, str);
+
+		while (!in2.eof()) {
+			str.erase(str.find_last_not_of(" \n\r\t")+1); //trim str
+			if (str.size()==0) getline(in2, str);
+			// first line is comment line which begins from '>'
+			if (str[0] == '>') {	//comment line begins from '>'
+				//get est in the next lines
+				getline(in2, str);
+				string estStr;
+				while (str.size() != 0) {
+					str.erase(str.find_last_not_of(" \n\r\t")+1); //trim str
+					if (str.size() != 0)	{
+						if (str[0] != '>') {
+							estStr.append(str+" ");
+						} else  {
+							scores.push_back(estStr);
+							break;
+						}
+					}
+					getline(in2, str);
+				}
+				if (str.size() == 0) {
+					scores.push_back(estStr);
+				}
+			}
+		}
+	}
+	in2.close();
+
+	//generate a graph from the input files
+	int i=0;
+	while (i<ests.size()) {
+		//the sequence is upper-case
+		g->addNode(Node(ests[i], ests[i+1], toUpperCase(ests[i+2]), getIntScores(scores[i/3])));
+		i = i+3;
+	}
+	return longestLen;
+}
+
+//given a record from a quality file, transform it to int scores. The scores in the input string are separated by one space.
+std::vector<int> ESTAssembly::getIntScores(const std::string& str) {
+	vector<int> ret;
+	string tmp = "";
+	for (int i=0; i<str.size(); i++) {
+		if (str[i] != ' ') {
+			tmp.push_back(str[i]);
+		} else {
+			ret.push_back(atoi(tmp.c_str()));
+			tmp = "";
+		}
+	}
+	if (tmp.size() > 0) {
+		ret.push_back(atoi(tmp.c_str()));
+	}
+
+	return ret;
+}
+
 /*
  * read a minimum spanning tree from the input MST file
  */
-void ESTAssembly::readMST(const string& inFileName) {
+void ESTAssembly::readMST() {
 	int nOfNodes = g->graphNodes.size();
 	if (nOfNodes == 0) {
 		cout << "zero nodes in the peace-generated input MST file!" << endl;
@@ -121,7 +253,7 @@ void ESTAssembly::readMST(const string& inFileName) {
 
 	//read mst from the input file
 	ifstream in;
-	in.open(inFileName.c_str(), ios::in);
+	in.open(mstFileName.c_str(), ios::in);
 
 	if (in.good()) {
 		string str;

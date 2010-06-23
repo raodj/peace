@@ -23,18 +23,35 @@ Alignment::~Alignment() {
  * @param s1, s2
  * @return int distance.
  */
-int Alignment::getDistance(string s1, string s2) {
+int Alignment::getDistance(const string& s1, const string& s2, vector<int> qualScore1, vector<int> qualScore2) {
 	this->numCall2++;
 	time_t start,end;
 	start = time(NULL);
-	int score = getSimlarityScore(s1, s2);
+	int score;
+	if (USE_QUALITY_FILE == 1) { //use quality file
+		score = getSimlarityScoreWithQual(s1, s2, qualScore1, qualScore2);
+	} else {
+		score = getSimlarityScore(s1, s2);
+	}
+
 	end = time(NULL);
 	usedTime2 += end - start;
 
 	int retVal = INT_MAX;
 	if (score != 0) {
 		int length = s1.length();
-		retVal = (int) ((1 - (double) score / length) * 100);
+		if (USE_QUALITY_FILE == 1) { //use quality file
+			double totalQual = 0;
+			for (int i=0; i<length; i++) {
+				totalQual += qualScore1[i] + qualScore2[i];
+			}
+			retVal = (int) ((1 - (double) score / (totalQual/2)) * 100);
+			if (retVal < 0) {
+				retVal = 0;
+			}
+		} else {
+			retVal = (int) ((1 - (double) score / length) * 100);
+		}
 	}
 
 	if (retVal > alignmentThreshold) {
@@ -48,11 +65,19 @@ int Alignment::getDistance(string s1, string s2) {
  * @param s1, s2
  * @return int similarity score(>=0), if the value is less than 0, it's set to be zero.
  */
-int Alignment::getSimlarityScore(string s1, string s2) {
+int Alignment::getSimlarityScore(const string& s1, const string& s2) {
 	if (USE_BOUNDED_NW == 0) { //use ordinary version
 		return alignAlgo->getNWScore(s1, s2);
 	} else { //use bounded version
 		return alignAlgo->getBoundedNWScore(s1, s2);
+	}
+}
+
+int Alignment::getSimlarityScoreWithQual(const string& s1, const string& s2, const vector<int>& qualScore1, const vector<int>& qualScore2) {
+	if (USE_BOUNDED_NW == 0) { //use ordinary version
+		return alignAlgo->getNWScoreWithQual(s1, s2, qualScore1, qualScore2);
+	} else { //use bounded version
+		return alignAlgo->getBoundedNWScoreWithQual(s1, s2, qualScore1, qualScore2);
 	}
 }
 
@@ -61,12 +86,17 @@ int Alignment::getSimlarityScore(string s1, string s2) {
  * @param s1, s2
  * @return string[], [0] and [1] are the two aligned sequences, [2] is the pairwise alignment.
  */
-AlignResult Alignment::getLocalAlignment(string s1, string s2) {
+AlignResult Alignment::getLocalAlignment(const string& s1, const string& s2, vector<int> qualScore1, vector<int> qualScore2) {
 	//return alignAlgo->getSWAlignment(s1, s2);
 	this->numCall++;
 	time_t start,end;
 	start = time(NULL);
-	AlignResult ret = alignAlgo->getSWAlignment(s1, s2);
+	AlignResult ret;
+	if (USE_QUALITY_FILE == 1) { //use quality file
+		ret = alignAlgo->getSWAlignmentWithQual(s1, s2, qualScore1, qualScore2);
+	} else {
+		ret = alignAlgo->getSWAlignment(s1, s2);
+	}
 	end = time(NULL);
 	usedTime += end - start;
 	return ret;
@@ -77,7 +107,7 @@ AlignResult Alignment::getLocalAlignment(string s1, string s2) {
  * @param s1, s2
  * @return string[], [0] and [1] are the two aligned sequences, [2] is the pairwise alignment.
  */
-AlignResult Alignment::getBoundedLocalAlignment(string s1, string s2) {
+AlignResult Alignment::getBoundedLocalAlignment(const string& s1, const string& s2) {
 	//return alignAlgo->getBoundedSWAlignment(s1, s2);
 	this->numCall++;
 	time_t start,end;
