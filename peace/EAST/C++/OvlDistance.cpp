@@ -27,20 +27,24 @@ using namespace std;
  * If s2 is included in s1, the distance is INT_MIN.
  * If s1 is included in s2, the distance is INT_MIN.
  */
-vector<int> OvlDistance::getOVLDistance(const string& tS1, const string& tS2, bool useHeuristic) {
+vector<int> OvlDistance::getOVLDistance(const string& tS1, const string& tS2, bool useHeuristic, vector<int> qualScore1, vector<int> qualScore2) {
 	int s1Len = tS1.size();
 	int s2Len = tS2.size();
 	//We do not compute distances between sequences in non-adjacent groups
-	int s1Flag = s1Len<=SHORT_LEN? 0 : (s1Len<=MEDIUM_LEN? 1 : 2);
-	int s2Flag = s2Len<=SHORT_LEN? 0 : (s2Len<=MEDIUM_LEN? 1 : 2);
+	//int s1Flag = s1Len<=SHORT_LEN? 0 : (s1Len<=MEDIUM_LEN? 1 : 2);
+	//int s2Flag = s2Len<=SHORT_LEN? 0 : (s2Len<=MEDIUM_LEN? 1 : 2);
+	//if (abs(s1Flag-s2Flag)>1) {
+
 	vector<int> returnValues(2);
-	if (abs(s1Flag-s2Flag)>1) {
+	int shorterLen = s1Len>s2Len? s2Len : s1Len;
+	//We do not compute distances between sequences that has length difference of more than LEN_DIFFERENCE
+	// and the shorter length is less than SHORTER_EST_LEN.
+	if ((abs(s1Len-s2Len)>LEN_DIFFERENCE) && (shorterLen < SHORTER_EST_LEN)) {
 		returnValues[0] = 0;
 		returnValues[1] = INT_MAX;
 		return returnValues;
 	}
 
-	int shorterLen = s1Len>s2Len? s2Len : s1Len;
 	if (shorterLen <= SHORT_LEN) { //use parameters for short
 		InclusionThreshold = INCLUSION_THRESHOLD_S;
 	} else if (shorterLen <= MEDIUM_LEN) { //use parameters for medium
@@ -51,6 +55,8 @@ vector<int> OvlDistance::getOVLDistance(const string& tS1, const string& tS2, bo
 
 	string s1 = "";
 	string s2 = "";
+	vector<int> qual1;
+	vector<int> qual2;
 	int flag = 1; //1 - no switch for tS1 and tS2; -1 - switch.
 	/*
 	 * put the shorter string to s1 and the longer one to s2 in
@@ -60,10 +66,14 @@ vector<int> OvlDistance::getOVLDistance(const string& tS1, const string& tS2, bo
 	if (tS1.length() > tS2.length()) {
 		s1 = tS2;
 		s2 = tS1;
+		qual1 = qualScore2;
+		qual2 = qualScore1;
 		flag = -1; //tS1 and tS2 are switched
 	} else {
 		s1 = tS1;
 		s2 = tS2;
+		qual1 = qualScore1;
+		qual2 = qualScore2;
 	}
 
 	BestWindowMatches best = d2.matchEndWindows(s1, s2, true, useHeuristic);
@@ -90,12 +100,34 @@ vector<int> OvlDistance::getOVLDistance(const string& tS1, const string& tS2, bo
 		int tLenOverlap = s2.length() - lPos;
 		int tmpDis = INT_MAX;
 		if (tLenOverlap > s1.length()) { //if s1 is included in s2
-			tmpDis = alignment.getDistance(s1.substr(0, s1.length()),
-					s2.substr(lPos, s1.length()));
+			if (USE_QUALITY_FILE == 1) { //use quality file
+				vector<int> s2Qual;
+				for (int j=lPos; j<lPos+s1.length(); j++) {
+					s2Qual.push_back(qual2[j]);
+				}
+				tmpDis = alignment.getDistance(s1,
+						s2.substr(lPos, s1.length()), qual1, s2Qual);
+			} else {
+				tmpDis = alignment.getDistance(s1,
+						s2.substr(lPos, s1.length()));
+			}
 			tLenOverlap = s1.length();
 		} else {
-			tmpDis = alignment.getDistance(s1.substr(0, tLenOverlap),
-					s2.substr(lPos));
+			if (USE_QUALITY_FILE == 1) { //use quality file
+				vector<int> s1Qual;
+				vector<int> s2Qual;
+				for (int j=0; j<tLenOverlap; j++) {
+					s1Qual.push_back(qual1[j]);
+				}
+				for (int j=lPos; j<s2.length(); j++) {
+					s2Qual.push_back(qual2[j]);
+				}
+				tmpDis = alignment.getDistance(s1.substr(0, tLenOverlap),
+						s2.substr(lPos), s1Qual, s2Qual);
+			} else {
+				tmpDis = alignment.getDistance(s1.substr(0, tLenOverlap),
+						s2.substr(lPos));
+			}
 		}
 		if (tmpDis < disLeft) { // && (tLenOverlap > lLenOverlap), do we need to use two conditions or just one?
 			disLeft = tmpDis;
@@ -110,12 +142,34 @@ vector<int> OvlDistance::getOVLDistance(const string& tS1, const string& tS2, bo
 
 		int tmpDis = INT_MAX;
 		if (lenInS1 < 0) { //if s1 is included in s2
-			tmpDis = alignment.getDistance(s1.substr(0), s2.substr(
-					tLenOverlap - s1.length(), s1.length()));
+			if (USE_QUALITY_FILE == 1) { //use quality file
+				vector<int> s2Qual;
+				for (int j=tLenOverlap - s1.length(); j<tLenOverlap; j++) {
+					s2Qual.push_back(qual2[j]);
+				}
+				tmpDis = alignment.getDistance(s1, s2.substr(
+						tLenOverlap - s1.length(), s1.length()), qual1, s2Qual);
+			} else {
+				tmpDis = alignment.getDistance(s1, s2.substr(
+						tLenOverlap - s1.length(), s1.length()));
+			}
 			tLenOverlap = s1.length();
 		} else {
-			tmpDis = alignment.getDistance(s1.substr(lenInS1), s2.substr(
-					0, tLenOverlap));
+			if (USE_QUALITY_FILE == 1) { //use quality file
+				vector<int> s1Qual;
+				vector<int> s2Qual;
+				for (int j=lenInS1; j<s1.length(); j++) {
+					s1Qual.push_back(qual1[j]);
+				}
+				for (int j=0; j<tLenOverlap; j++) {
+					s2Qual.push_back(qual2[j]);
+				}
+				tmpDis = alignment.getDistance(s1.substr(lenInS1), s2.substr(
+						0, tLenOverlap), s1Qual, s2Qual);
+			} else {
+				tmpDis = alignment.getDistance(s1.substr(lenInS1), s2.substr(
+						0, tLenOverlap));
+			}
 		}
 		if (tmpDis < disRight) {// && (tLenOverlap > rLenOverlap). do we need to use two conditions or just one?
 			disRight = tmpDis;
@@ -164,17 +218,18 @@ vector<int> OvlDistance::reducePos(const vector<int>& input, int len) {
  * judge if s1 is included in s2
  * @return true or false
  */
-bool OvlDistance::checkInclusion(const string& s1, const string& s2, bool createNewHash) {
+bool OvlDistance::checkInclusion(const string& s1, const string& s2, bool createNewHash, std::vector<int> qualScore1, std::vector<int> qualScore2) {
 	int s1Len = s1.size();
 	int s2Len = s2.size();
 	//We do not compute distances between sequences in non-adjacent groups
-	int s1Flag = s1Len<=SHORT_LEN? 0 : (s1Len<=MEDIUM_LEN? 1 : 2);
-	int s2Flag = s2Len<=SHORT_LEN? 0 : (s2Len<=MEDIUM_LEN? 1 : 2);
-	if (abs(s1Flag-s2Flag)>1) {
+	//int s1Flag = s1Len<=SHORT_LEN? 0 : (s1Len<=MEDIUM_LEN? 1 : 2);
+	//int s2Flag = s2Len<=SHORT_LEN? 0 : (s2Len<=MEDIUM_LEN? 1 : 2);
+	//if (abs(s1Flag-s2Flag)>1) {
+	int shorterLen = s1Len>s2Len? s2Len : s1Len;
+	if ((abs(s1Len-s2Len)>LEN_DIFFERENCE) && (shorterLen < SHORTER_EST_LEN)) {
 		return false;
 	}
 
-	int shorterLen = s1Len>s2Len? s2Len : s1Len;
 	if (shorterLen <= SHORT_LEN) { //use parameters for short
 		InclusionThreshold = INCLUSION_THRESHOLD_S;
 	} else if (shorterLen <= MEDIUM_LEN) { //use parameters for medium
@@ -205,12 +260,34 @@ bool OvlDistance::checkInclusion(const string& s1, const string& s2, bool create
 		int tLenOverlap = s2.length() - lPos;
 		int tmpDis = INT_MAX;
 		if (tLenOverlap > s1.length()) { //if s1 is included in s2
-			tmpDis = alignment.getDistance(s1.substr(0, s1.length()),
-					s2.substr(lPos, s1.length()));
+			if (USE_QUALITY_FILE == 1) { //use quality file
+				vector<int> s2Qual;
+				for (int j=lPos; j<lPos+s1.length(); j++) {
+					s2Qual.push_back(qualScore2[j]);
+				}
+				tmpDis = alignment.getDistance(s1.substr(0, s1.length()),
+						s2.substr(lPos, s1.length()), qualScore1, s2Qual);
+			} else {
+				tmpDis = alignment.getDistance(s1.substr(0, s1.length()),
+						s2.substr(lPos, s1.length()));
+			}
 			tLenOverlap = s1.length();
 		} else {
-			tmpDis = alignment.getDistance(s1.substr(0, tLenOverlap),
-					s2.substr(lPos));
+			if (USE_QUALITY_FILE == 1) { //use quality file
+				vector<int> s1Qual;
+				vector<int> s2Qual;
+				for (int j=0; j<tLenOverlap; j++) {
+					s1Qual.push_back(qualScore1[j]);
+				}
+				for (int j=lPos; j<s2.length(); j++) {
+					s2Qual.push_back(qualScore2[j]);
+				}
+				tmpDis = alignment.getDistance(s1.substr(0, tLenOverlap),
+						s2.substr(lPos), s1Qual, s2Qual);
+			} else {
+				tmpDis = alignment.getDistance(s1.substr(0, tLenOverlap),
+						s2.substr(lPos));
+			}
 		}
 		if (tmpDis < disLeft) { // && (tLenOverlap > lLenOverlap), do we need to use two conditions or just one?
 			disLeft = tmpDis;
@@ -226,10 +303,34 @@ bool OvlDistance::checkInclusion(const string& s1, const string& s2, bool create
 
 		int tmpDis = INT_MAX;
 		if (lenInS1 < 0) { //if s1 is included in s2
-			tmpDis = alignment.getDistance(s1.substr(0), s2.substr(tLenOverlap - s1.length(), s1.length()));
+			if (USE_QUALITY_FILE == 1) { //use quality file
+				vector<int> s2Qual;
+				for (int j=tLenOverlap - s1.length(); j<tLenOverlap; j++) {
+					s2Qual.push_back(qualScore2[j]);
+				}
+				tmpDis = alignment.getDistance(s1, s2.substr(
+						tLenOverlap - s1.length(), s1.length()), qualScore1, s2Qual);
+			} else {
+				tmpDis = alignment.getDistance(s1, s2.substr(
+						tLenOverlap - s1.length(), s1.length()));
+			}
 			tLenOverlap = s1.length();
 		} else {
-			tmpDis = alignment.getDistance(s1.substr(lenInS1), s2.substr(0, tLenOverlap));
+			if (USE_QUALITY_FILE == 1) { //use quality file
+				vector<int> s1Qual;
+				vector<int> s2Qual;
+				for (int j=lenInS1; j<s1.length(); j++) {
+					s1Qual.push_back(qualScore1[j]);
+				}
+				for (int j=0; j<tLenOverlap; j++) {
+					s2Qual.push_back(qualScore2[j]);
+				}
+				tmpDis = alignment.getDistance(s1.substr(lenInS1), s2.substr(
+						0, tLenOverlap), s1Qual, s2Qual);
+			} else {
+				tmpDis = alignment.getDistance(s1.substr(lenInS1), s2.substr(
+						0, tLenOverlap));
+			}
 		}
 		if (tmpDis < disRight) {// && (tLenOverlap > rLenOverlap). do we need to use two conditions or just one?
 			disRight = tmpDis;
