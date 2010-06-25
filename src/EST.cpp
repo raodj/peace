@@ -275,7 +275,7 @@ EST::normalizeBases(char* sequence, const bool maskBases,
             nt = 'N';
         }
         // Check and randomize 'N' bases as directed.
-        if (randomizeNbases) {
+        if (randomizeNbases && nt == 'N') {
             // Randomly select a base here.
             register int ntIndex = (random() >> 5) & 3;
             nt = UpCaseBases[ntIndex];
