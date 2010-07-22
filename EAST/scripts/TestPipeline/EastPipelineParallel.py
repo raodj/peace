@@ -30,7 +30,7 @@ handle.close()
 
 #collect results
 outHandle = open(outputFile, 'w') 
-outHandle.write("No.\tTestNo.\tgeneName\tgeneLen\tErrorRate\tCoverage\tCap3LenOfContig\tEastLenOfContig\tCap3AScore\tEastAScore\tTgiclAScore\tVelvetAScore\tMiraAScore\n")
+outHandle.write("No.\tTestNo.\tgeneName\tgeneLen\tErrorRate\tCoverage\tCap3LenOfContig\tEastLenOfContig\tNonCovEAST\tNonCovCAP\tNonCovTGICL\tNonCovVELVET\tNonCovMIRA\tCap3AScore\tEastAScore\tTgiclAScore\tVelvetAScore\tMiraAScore\n")
 outputFile2 = outputFile + '.runtime'
 outHandle2 = open(outputFile2, 'w')   
 outHandle2.write("TestNo.\tNumOfGenes\tErrorRate\tCoverage\tCap3Time\tPeaceTime\tEastTime\tTgiclTime\tVelvetTime\tMiraTime\tCap3NumContigs\tEastNumContigs\tCap3NumOfSingletons\tEastNumOfSingletons\tNumOfESTs\tTgiclNumContigs\tTgiclNumOfSingletons\tVelvetNumContigs\tMiraNumContigs\n")
@@ -58,7 +58,7 @@ for x in resultsFiles:
        
         for x in range(len(lineList)):
             lineInfo = lineList[x].split('\t')
-            outHandle.write('%d\t%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s' %(num, testNo, lineInfo[0].split('_')[0], lineInfo[1], errorRate, coverage, lineInfo[8], lineInfo[9], lineInfo[10], lineInfo[11], lineInfo[20], lineInfo[21], lineInfo[23]))
+            outHandle.write('%d\t%d\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s' %(num, testNo, lineInfo[0].split('_')[0], lineInfo[1], errorRate, coverage, lineInfo[8], lineInfo[9], lineInfo[23], lineInfo[24], lineInfo[25], lineInfo[26], lineInfo[27], lineInfo[10], lineInfo[11], lineInfo[20], lineInfo[21], lineInfo[28]))
             num += 1
         testNo += 1
         
