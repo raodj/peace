@@ -43,7 +43,7 @@ for i in x:
 
 #collect results
 outHandle = open(outputFile, 'w') 
-outHandle.write("No.\tTestNo.\tgeneName\tgeneLen\tErrorRate\tCoverage\tCap3LenOfContig\tEastLenOfContig\tNonCovEAST\tNonCovCAP\tNonCovTGICL\tNonCovVELVET\tNonCovMIRA\tCap3AScore\tEastAScore\tTgiclAScore\tVelvetAScore\tMiraAScore\n")
+outHandle.write("No.\tTestNo.\tgeneName\tgeneLen\tErrorRate\tCoverage\tCap3LenOfContig\tEastLenOfContig\tEastNonCov\tCap3NonCov\tTgiclNonCov\tVelvetNonCov\tMiraNonCov\tCap3AScore\tEastAScore\tTgiclAScore\tVelvetAScore\tMiraAScore\n")
 outputFile2 = outputFile + '.runtime'
 outHandle2 = open(outputFile2, 'w')   
 outHandle2.write("TestNo.\tNumOfGenes\tErrorRate\tCoverage\tCap3Time\tPeaceTime\tEastTime\tTgiclTime\tVelvetTime\tMiraTime\tCap3NumContigs\tEastNumContigs\tCap3NumOfSingletons\tEastNumOfSingletons\tNumOfESTs\tTgiclNumContigs\tTgiclNumOfSingletons\tVelvetNumContigs\tMiraNumContigs\n")
