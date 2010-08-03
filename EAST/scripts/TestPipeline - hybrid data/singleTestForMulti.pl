@@ -144,8 +144,8 @@ my $miraConsensusFile = "$estFile.mira.contigs";
     system("mv $base_dir/peace/$estFileIllumina msd_in.solexa.fasta");
 
 	$time1 = time();
-    system("mira -fasta -project=msd -job=denovo,est,sanger,454,solexa SANGER_SETTINGS -LR:wqf=no:mxti=no -AS:epoq=no 454_SETTINGS -LR:wqf=no:mxti=no -AS:epoq=no SOLEXA_SETTINGS -LR:wqf=no:ft=fasta -AS:epoq=no > /dev/null 2>/dev/null"); #must ouput to a file, or else it will be printed to the screen and be written into the final output file.
-    #system("mira -fasta -project=msd -job=denovo,est,454,solexa 454_SETTINGS -LR:wqf=no:mxti=no -AS:epoq=no SOLEXA_SETTINGS -LR:wqf=no:ft=fasta -AS:epoq=no > /dev/null 2>/dev/null"); #must ouput to a file, or else it will be printed to the screen and be written into the final output file.
+    system("mira -fasta -project=msd -DI:lrt=/tmp -job=denovo,est,sanger,454,solexa SANGER_SETTINGS -LR:wqf=no:mxti=no -AS:epoq=no 454_SETTINGS -LR:wqf=no:mxti=no -AS:epoq=no SOLEXA_SETTINGS -LR:wqf=no:ft=fasta -AS:epoq=no > /dev/null 2>/dev/null"); #must ouput to a file, or else it will be printed to the screen and be written into the final output file.
+    #system("mira -fasta -project=msd -DI:lrt=/tmp -job=denovo,est,454,solexa 454_SETTINGS -LR:wqf=no:mxti=no -AS:epoq=no SOLEXA_SETTINGS -LR:wqf=no:ft=fasta -AS:epoq=no > /dev/null 2>/dev/null"); #must ouput to a file, or else it will be printed to the screen and be written into the final output file.
 	$time2 = time();
 	$time[4] = $time2 - $time1; #velvet time 
     system("mv msd_assembly/msd_d_results/msd_out.unpadded.fasta $base_dir/mira/$miraConsensusFile");
