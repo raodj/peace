@@ -114,13 +114,13 @@ my $miraConsensusFile = "$estFile.mira.contigs";
 	$time1 = time();
     if ($data_type eq "sanger") {
         system("mv $estFile msd_in.sanger.fasta");
-        system("mira -fasta -project=msd -job=denovo,est,sanger SANGER_SETTINGS -LR:wqf=no:mxti=no -AS:epoq=no > /dev/null 2>/dev/null"); #must ouput to a file, or else it will be printed to the screen and be written into the final output file.
+        system("mira -fasta -project=msd -DI:lrt=/tmp -job=denovo,est,sanger SANGER_SETTINGS -LR:wqf=no:mxti=no -AS:epoq=no > /dev/null 2>/dev/null"); #must ouput to a file, or else it will be printed to the screen and be written into the final output file.
     } elsif ($data_type eq "454") {
         system("mv $estFile msd_in.454.fasta");
-        system("mira -fasta -project=msd -job=denovo,est,454 454_SETTINGS -LR:wqf=no:mxti=no -AS:epoq=no > /dev/null 2>/dev/null");
+        system("mira -fasta -project=msd -DI:lrt=/tmp -job=denovo,est,454 454_SETTINGS -LR:wqf=no:mxti=no -AS:epoq=no > /dev/null 2>/dev/null");
     } elsif ($data_type eq "illumina") {
         system("mv $estFile msd_in.solexa.fasta");
-        system("mira -fasta -project=msd -job=denovo,est,solexa SOLEXA_SETTINGS -LR:wqf=no:ft=fasta -AS:epoq=no > /dev/null 2>/dev/null"); #must ouput to a file, or else it will be printed to the screen and be written into the final output file.
+        system("mira -fasta -project=msd -DI:lrt=/tmp -job=denovo,est,solexa SOLEXA_SETTINGS -LR:wqf=no:ft=fasta -AS:epoq=no > /dev/null 2>/dev/null"); #must ouput to a file, or else it will be printed to the screen and be written into the final output file.
     }
 	$time2 = time();
 	$time[4] = $time2 - $time1; #velvet time 
