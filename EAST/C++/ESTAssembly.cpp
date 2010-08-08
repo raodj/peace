@@ -30,6 +30,9 @@ void ESTAssembly::assemble(std::string& con, std::string& sing, std::string& num
 		longestEstLen = readEstFile();
 	}
 	readMST();
+	if (OUTPUT_ACE == 1) {
+		setDirection();
+	}
 	gen = new SixTuplesGeneration(g, incNodes);
 	rec = new Reconstruction(g, gen->getAlignArray(), gen->getLeftEnds(), incNodes, con, sing, numF, longestEstLen);
 	rec->getConsensus();
@@ -76,9 +79,14 @@ int ESTAssembly::readEstFile() {
 			if (str.size()==0) getline(in, str);
 			// first line is comment line which begins from '>'
 			if (str[0] == '>') {	//comment line begins from '>'
-				//vector<string> paras = split(str, '_');
-				//ests.push_back(paras[1]);
-				ests.push_back("0");
+				size_t found = str.find(' ');
+				if (found != string::npos) {
+					vector<string> paras = split(str, ' ');
+					ests.push_back(paras[0].substr(1));
+				} else {
+					ests.push_back(str.substr(1));
+				}
+				//ests.push_back("0");
 				ests.push_back(str.substr(1)); //comment
 
 				//get est in the next lines
@@ -141,7 +149,14 @@ int ESTAssembly::readEstQualFile() {
 			if (str[0] == '>') {	//comment line begins from '>'
 				//vector<string> paras = split(str, '_');
 				//ests.push_back(paras[1]);
-				ests.push_back("0");
+				size_t found = str.find(' ');
+				if (found != string::npos) {
+					vector<string> paras = split(str, ' ');
+					ests.push_back(paras[0].substr(1));
+				} else {
+					ests.push_back(str.substr(1));
+				}
+				//ests.push_back("0");
 				ests.push_back(str.substr(1)); //comment
 
 				//get est in the next lines
@@ -285,6 +300,27 @@ void ESTAssembly::readMST() {
 	g->setMst(mst);
 }
 
+/*
+ * set direction for each read, only used for ACE output.
+ * 1-Complemented; 0-Uncomplemented.
+ */
+void ESTAssembly::setDirection() {
+	string aceInfoFileName = estFileName + ".aceinfo";
+
+	//read mst from the input file
+	ifstream in;
+	in.open(aceInfoFileName.c_str(), ios::in);
+
+	while (in.good()) {
+		string str;
+		getline(in, str);
+
+		vector<string> paras = split(str, ' ');
+		if (paras.size() == 2)
+			g->setDirectionOfNode(atoi(paras[0].c_str()), atoi(paras[1].c_str()));
+	}
+	in.close();
+}
 
 vector<string> ESTAssembly::split(const string& str, char delimit) {
 	vector<string> retStr;

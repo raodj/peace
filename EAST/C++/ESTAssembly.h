@@ -28,6 +28,7 @@ private:
 	int readEstFile();
 	int readEstQualFile();
 	void readMST();
+	void setDirection(); //set direction for each read, only used for ACE output.
 	std::vector<std::string> split(const std::string& str, char delimit);
 	std::string toUpperCase(const std::string& str);
 	std::vector<int> getIntScores(const std::string& str);

@@ -86,7 +86,18 @@ public:
 		return graphNodes.at(i).getQualScores();
 	}
 
+	/*
+	 * set direction of the node.
+	 * -1-complemented, 1-uncomplemented.
+	 * only used for ACE format.
+	 */
+	inline void setDirectionOfNode(int nodeIdx, int direction) {
+		graphNodes.at(nodeIdx).setDirection(direction);
+	}
 
+	inline std::string getDirectionOfNode(int nodeIdx) {
+		return graphNodes.at(nodeIdx).direction;
+	}
 };
 
 #endif
