@@ -33,6 +33,8 @@ public:
 
 	int getTotalNumOfBase(); //return the total number of ACGTN at the current base position
 
+	int getQualScore(); //return Phred score of current base
+
 private:
 	void changeBaseNum(char base, int qualVal=0);
 	void changeCurBase();

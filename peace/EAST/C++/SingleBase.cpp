@@ -1,6 +1,7 @@
 #include "SingleBase.h"
 #include "Param.h"
 #include <iostream>
+#include <math.h>
 using namespace std;
 
 SingleBase::SingleBase(char c, int qualVal) {
@@ -178,4 +179,17 @@ void SingleBase::changeCurBase() {
 	}
 }
 
+int SingleBase::getQualScore() {
+	if (curBase == '-') return -1;
+	if (USE_QUALITY_FILE == 1) { //use quality file
+		return curqualVal;
+	}
+
+	double prob = (double)curBaseNum/(numA+numC+numG+numT+numN+numDash);
+	if (prob == 1) {
+		return 60;
+	} else {
+		return (int)(-10 * log10(1-prob));
+	}
+}
 

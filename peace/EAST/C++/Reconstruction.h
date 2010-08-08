@@ -71,6 +71,8 @@ public:
 private:
 	int COMPARISON_LENGTH;
 	int idxOfSNPFile; //used to record the index of the current output file for SNP analysis
+	int idxOfContig; //used to record the index of the contig for ACE output
+	int totalNumOfRD; //used to record the total number of reads in the ACE file
 	void printConsensus();
 	std::vector<std::string> reconstruct();
 	std::vector<std::string> reconstuctForEachCluster();

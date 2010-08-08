@@ -7,6 +7,7 @@ public:
 	std::string name; //ID of the est,currently it's the starting position of the node.
 	std::string comment; //comment to the est in the input est file
 	std::vector<int> qualScores;
+	std::string direction; // C-complemented(-1), U-uncomplemented(1). only used for ACE format.
 
 	inline Node(std::string n, std::string c, std::string s) {
 		name = n;
@@ -60,6 +61,9 @@ public:
 		return qualScores;
 	}
 
+	inline void setDirection(int i) {
+		direction = (i==1? "U" : "C");
+	}
 };
 
 #endif

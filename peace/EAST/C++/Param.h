@@ -80,6 +80,10 @@ const int OUTPUT_SNP=0;
 //1-use, 0-not use.
 const int USE_QUALITY_FILE=1;
 
+//If output ACE file.
+//1-yes, 0-no.
+const int OUTPUT_ACE=1;
+
 //This group of parameters are used for hybrid data.
 //we will see the overlap distance of two ESTs to be infinite if
 //	1)length difference > LEN_DIFFERENCE

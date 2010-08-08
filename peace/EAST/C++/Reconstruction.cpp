@@ -53,6 +53,8 @@ Reconstruction::Reconstruction(Graph* graph, vector<SixTuple*> align, vector<Six
 	numOfUsedESTsFileName = numF;
 	COMPARISON_LENGTH = longestEstLen;
 	idxOfSNPFile = 0;
+	idxOfContig = 1; //starting from 1.
+	totalNumOfRD = 0;
 
 	usedNodes = vector<int> (g->graphNodes.size(), 0);
 
@@ -101,6 +103,24 @@ void Reconstruction::printConsensus() {
 		}
 	}
 	outFile1.close();
+
+	if (OUTPUT_ACE == 1) { //output an ACE file with the name "$consensusFileName.ace"
+		string tmpFileName = "tmp_" + consensusFileName;
+		ifstream ifile(tmpFileName.c_str());
+		if (ifile) {
+			string aceFileName = consensusFileName + ".ace";
+			outFile1.open(aceFileName.c_str(),ios::trunc);
+			outFile1 << "AS " << index-1 << " " << totalNumOfRD << endl << endl;
+			while (ifile.good()) {
+				string str;
+				getline(ifile, str);
+				outFile1 << str << endl;
+			}
+			outFile1.close();
+		}
+		ifile.close();
+		remove(tmpFileName.c_str());
+	}
 
 
 	/*
@@ -508,13 +528,26 @@ vector<string> Reconstruction::reconstructSeq(vector<StartPos>& a) {
 	}
 	sort(resultArray.begin(), resultArray.end());
 
+	//Begin: For ACE output format
+	string COStr = "";
+	string BQStr = "BQ\n";
+	string AFStr = "";
+	string BSStr = "";
+	string RDStr = "";
+	int curBS = 0;
+	int numOfBS = 0;
+	std::stringstream ss;
+	//End: For ACE output format
+
 	int comparisonLen = COMPARISON_LENGTH;
 	vector<SingleBase*> bases;
 	string tConsensus = g->getSeqOfNode(resultArray[0].index);
+	string Name0 = g->getNameOfNode(resultArray[0].index);
 	string curSeq = "";
 	int len = resultArray.size() - 1;
 	for (int i=1; i<=len; i++) {
 		curSeq = g->getSeqOfNode(resultArray[i].index);
+		string curName = g->getNameOfNode(resultArray[i].index);
 		string tmpConsensus = tConsensus;
 		if (tmpConsensus.length() > comparisonLen) {
 			tmpConsensus = tConsensus.substr(tConsensus.size()-comparisonLen+1);
@@ -536,6 +569,59 @@ vector<string> Reconstruction::reconstructSeq(vector<StartPos>& a) {
 		string firstPartCur = tSeq.substr(0, tmpOff);
 		curSeq = tSeq.substr(tmpOff);
 		if (i == 1) {
+			//Begin: For ACE output format
+			if (OUTPUT_ACE == 1) {
+				if (offset > tmpOff) { //use the first read as the first part in the consensus
+					AFStr += "AF " + Name0 + " " + g->getDirectionOfNode(resultArray[0].index) + " 1" + "\n";
+					ss << "AF " << curName << " " << g->getDirectionOfNode(resultArray[i].index) <<" "<< offset-tmpOff+1 << "\n";
+					AFStr += ss.str();
+					ss.str("");
+					ss.clear();
+
+					ss << "BS 1 " << offset-tmpOff <<  " " << Name0 << "\n";
+					BSStr += ss.str();
+					ss.str("");
+					ss.clear();
+					curBS = offset+strs.str1.size();
+					ss << "BS " << offset-tmpOff+1 << " " << curBS << " " << curName << "\n";
+					BSStr += ss.str();
+					ss.str("");
+					ss.clear();
+
+					numOfBS = 2;
+				} else {
+					AFStr += "AF " + curName + " " + g->getDirectionOfNode(resultArray[0].index) + " 1" + "\n";
+					ss << "AF " << Name0 << " " << g->getDirectionOfNode(resultArray[i].index) <<" "<< tmpOff-offset+1 << "\n";
+					AFStr += ss.str();
+					ss.str("");
+					ss.clear();
+
+					curBS = tmpOff+strs.str2.size();
+					ss << "BS 1 " << curBS <<  " " << curName << "\n";
+					BSStr += ss.str();
+					ss.str("");
+					ss.clear();
+
+					numOfBS = 1;
+				}
+				ss << tConsensus.size();
+				RDStr += "RD " + Name0 + " " + ss.str() + " 0 0\n";
+				RDStr += replace(tConsensus, "-", "*") + "\n\n";
+				RDStr += "QA 1 " + ss.str() + " 1 " + ss.str() + "\n\n";
+				totalNumOfRD++;
+				ss.str("");
+				ss.clear();
+
+				ss << tSeq.size();
+				RDStr += "RD " + curName + " " + ss.str() + " 0 0\n";
+				RDStr += replace(tSeq, "-", "*") + "\n\n";
+				RDStr += "QA 1 " + ss.str() + " 1 " + ss.str() + "\n\n";
+				totalNumOfRD++;
+				ss.str("");
+				ss.clear();
+			}
+			//End: For ACE output format
+
 			int len1 = tConsensus.size();
 			int len2 = curSeq.size();
 			int end = max(offset+len2, len1);
@@ -552,6 +638,35 @@ vector<string> Reconstruction::reconstructSeq(vector<StartPos>& a) {
 			int len1 = tConsensus.size();
 			int len2 = curSeq.size();
 			int end = offset+len2;
+
+			//Begin: For ACE output format
+			if (OUTPUT_ACE == 1) {
+				ss << offset-tmpOff+1;
+				AFStr += "AF " + curName + " " + g->getDirectionOfNode(resultArray[i].index) + " " + ss.str() + "\n";
+				ss.str("");
+				ss.clear();
+
+				int tmpBS = offset + strs.str2.size();
+				if (tmpBS > curBS) { //write a new BS item only if tmpBS is bigger than curBS.
+					ss << "BS " << curBS+1 << " " << tmpBS << " " << curName << "\n";
+					BSStr += ss.str();
+					ss.str("");
+					ss.clear();
+					curBS = tmpBS;
+
+					numOfBS++;
+				}
+
+				ss << tSeq.size();
+				RDStr += "RD " + curName + " " + ss.str() + " 0 0\n";
+				RDStr += replace(tSeq, "-", "*") + "\n\n";
+				RDStr += "QA 1 " + ss.str() + " 1 " + ss.str() + "\n\n";
+				totalNumOfRD++;
+				ss.str("");
+				ss.clear();
+			}
+			//End: For ACE output format
+
 			for (int j=offset; j<end; j++) {
 				if ((j < len1) && (j-offset < len2)) { //overlap part
 					char c1 = tConsensus[j];
@@ -578,6 +693,7 @@ vector<string> Reconstruction::reconstructSeq(vector<StartPos>& a) {
 	}
 
 	int totalLen = bases.size();
+/*
 	for (int i=bases.size()-1; i>=0; i--) {
 		if (bases[i]->getTotalNumOfBase() > 2) {
 			break;
@@ -585,12 +701,46 @@ vector<string> Reconstruction::reconstructSeq(vector<StartPos>& a) {
 		totalLen--;
 	}
 	tConsensus = tConsensus.substr(0, totalLen);
+*/
 
 	ret[0] = replace(tConsensus, "P", "");
 
 	if (OUTPUT_SNP == 1) { //write output files for SNP analysis
 		writeToSNPFile(bases, totalLen);
 	}
+
+	//Begin: For ACE output format
+	if (OUTPUT_ACE == 1) {
+		ss << "CO Contig" << idxOfContig << " " << tConsensus.size() << " " << ret[1] << " " << numOfBS << " U\n";
+		COStr += ss.str();
+		ss.str("");
+		ss.clear();
+		COStr += replace(tConsensus, "P", "*") + "\n";
+		idxOfContig++;
+
+		for (int i=0; i<bases.size(); i++) {
+			int phredScore = bases[i]->getQualScore();
+			if (phredScore != -1) {
+				ss << phredScore;
+				BQStr += " " + ss.str();
+				ss.str("");
+				ss.clear();
+			}
+		}
+		BQStr += "\n";
+
+		//write to the temporary ACE file
+		string tmpFileName = "tmp_" + consensusFileName;
+		ofstream outFile;
+		outFile.open(tmpFileName.c_str(),ios::app);
+		outFile << COStr << endl;
+		outFile << BQStr << endl;
+		outFile << AFStr << endl;
+		outFile << BSStr << endl;
+		outFile << RDStr << endl;
+		outFile.close();
+	}
+	//End: For ACE output format
 
 	//release bases
 	for (int i=0; i<bases.size(); i++) {
@@ -633,14 +783,27 @@ vector<string> Reconstruction::reconstructSeqWithQual(vector<StartPos>& a) {
 		cout << resultArray[i].index << endl;
 	}*/
 
+	//Begin: For ACE output format
+	string COStr = "";
+	string BQStr = "BQ\n";
+	string AFStr = "";
+	string BSStr = "";
+	string RDStr = "";
+	int curBS = 0;
+	int numOfBS = 0;
+	std::stringstream ss;
+	//End: For ACE output format
+
 	int comparisonLen = COMPARISON_LENGTH;
 	vector<SingleBase*> bases;
 	string tConsensus = g->getSeqOfNode(resultArray[0].index);
 	vector<int> firstSeqQualScores = g->getQualScoresOfNode(resultArray[0].index);
+	string Name0 = g->getNameOfNode(resultArray[0].index);
 	string curSeq = "";
 	int len = resultArray.size() - 1;
 	for (int i=1; i<=len; i++) {
 		curSeq = g->getSeqOfNode(resultArray[i].index);
+		string curName = g->getNameOfNode(resultArray[i].index);
 		vector<int> curSeqQualScores = g->getQualScoresOfNode(resultArray[i].index);
 		string tmpConsensus = tConsensus;
 
@@ -683,6 +846,59 @@ vector<string> Reconstruction::reconstructSeqWithQual(vector<StartPos>& a) {
 		string firstPartCur = tSeq.substr(0, tmpOff);
 		curSeq = tSeq.substr(tmpOff);
 		if (i == 1) {
+			//Begin: For ACE output format
+			if (OUTPUT_ACE == 1) {
+				if (offset > tmpOff) { //use the first read as the first part in the consensus
+					AFStr += "AF " + Name0 + " " + g->getDirectionOfNode(resultArray[0].index) + " 1" + "\n";
+					ss << "AF " << curName << " " << g->getDirectionOfNode(resultArray[i].index) <<" "<< offset-tmpOff+1 << "\n";
+					AFStr += ss.str();
+					ss.str("");
+					ss.clear();
+
+					ss << "BS 1 " << offset-tmpOff <<  " " << Name0 << "\n";
+					BSStr += ss.str();
+					ss.str("");
+					ss.clear();
+					curBS = offset+strs.str1.size();
+					ss << "BS " << offset-tmpOff+1 << " " << curBS << " " << curName << "\n";
+					BSStr += ss.str();
+					ss.str("");
+					ss.clear();
+
+					numOfBS = 2;
+				} else {
+					AFStr += "AF " + curName + " " + g->getDirectionOfNode(resultArray[0].index) + " 1" + "\n";
+					ss << "AF " << Name0 << " " << g->getDirectionOfNode(resultArray[i].index) <<" "<< tmpOff-offset+1 << "\n";
+					AFStr += ss.str();
+					ss.str("");
+					ss.clear();
+
+					curBS = tmpOff+strs.str2.size();
+					ss << "BS 1 " << curBS <<  " " << curName << "\n";
+					BSStr += ss.str();
+					ss.str("");
+					ss.clear();
+
+					numOfBS = 1;
+				}
+				ss << tConsensus.size();
+				RDStr += "RD " + Name0 + " " + ss.str() + " 0 0\n";
+				RDStr += replace(tConsensus, "-", "*") + "\n\n";
+				RDStr += "QA 1 " + ss.str() + " 1 " + ss.str() + "\n\n";
+				totalNumOfRD++;
+				ss.str("");
+				ss.clear();
+
+				ss << tSeq.size();
+				RDStr += "RD " + curName + " " + ss.str() + " 0 0\n";
+				RDStr += replace(tSeq, "-", "*") + "\n\n";
+				RDStr += "QA 1 " + ss.str() + " 1 " + ss.str() + "\n\n";
+				totalNumOfRD++;
+				ss.str("");
+				ss.clear();
+			}
+			//End: For ACE output format
+
 			int len1 = tConsensus.size();
 			int len2 = curSeq.size();
 			int end = max(offset+len2, len1);
@@ -729,6 +945,35 @@ vector<string> Reconstruction::reconstructSeqWithQual(vector<StartPos>& a) {
 			int len2 = curSeq.size();
 			int end = offset+len2;
 			int curScorePos = 0;
+
+			//Begin: For ACE output format
+			if (OUTPUT_ACE == 1) {
+				ss << offset-tmpOff+1;
+				AFStr += "AF " + curName + " " + g->getDirectionOfNode(resultArray[i].index) + " " + ss.str() + "\n";
+				ss.str("");
+				ss.clear();
+
+				int tmpBS = offset + strs.str2.size();
+				if (tmpBS > curBS) { //write a new BS item only if tmpBS is bigger than curBS.
+					ss << "BS " << curBS+1 << " " << tmpBS << " " << curName << "\n";
+					BSStr += ss.str();
+					ss.str("");
+					ss.clear();
+					curBS = tmpBS;
+
+					numOfBS++;
+				}
+
+				ss << tSeq.size();
+				RDStr += "RD " + curName + " " + ss.str() + " 0 0\n";
+				RDStr += replace(tSeq, "-", "*") + "\n\n";
+				RDStr += "QA 1 " + ss.str() + " 1 " + ss.str() + "\n\n";
+				totalNumOfRD++;
+				ss.str("");
+				ss.clear();
+			}
+			//End: For ACE output format
+
 			for (int j=offset; j<end; j++) {
 				char c2 = curSeq[j-offset];
 				int qualScore = 0;
@@ -766,6 +1011,7 @@ vector<string> Reconstruction::reconstructSeqWithQual(vector<StartPos>& a) {
 	}
 
 	int totalLen = bases.size();
+	/*
 	for (int i=bases.size()-1; i>=0; i--) {
 		if (bases[i]->getTotalNumOfBase() > 2) {
 			break;
@@ -773,12 +1019,46 @@ vector<string> Reconstruction::reconstructSeqWithQual(vector<StartPos>& a) {
 		totalLen--;
 	}
 	tConsensus = tConsensus.substr(0, totalLen);
+*/
 
 	ret[0] = replace(tConsensus, "P", "");
 
 	if (OUTPUT_SNP == 1) { //write output files for SNP analysis
 		writeToSNPFile(bases, totalLen);
 	}
+
+	//Begin: For ACE output format
+	if (OUTPUT_ACE == 1) {
+		ss << "CO Contig" << idxOfContig << " " << tConsensus.size() << " " << ret[1] << " " << numOfBS << " U\n";
+		COStr += ss.str();
+		ss.str("");
+		ss.clear();
+		COStr += replace(tConsensus, "P", "*") + "\n";
+		idxOfContig++;
+
+		for (int i=0; i<bases.size(); i++) {
+			int phredScore = bases[i]->getQualScore();
+			if (phredScore != -1) {
+				ss << phredScore;
+				BQStr += " " + ss.str();
+				ss.str("");
+				ss.clear();
+			}
+		}
+		BQStr += "\n";
+
+		//write to the temporary ACE file
+		string tmpFileName = "tmp_" + consensusFileName;
+		ofstream outFile;
+		outFile.open(tmpFileName.c_str(),ios::app);
+		outFile << COStr << endl;
+		outFile << BQStr << endl;
+		outFile << AFStr << endl;
+		outFile << BSStr << endl;
+		outFile << RDStr << endl;
+		outFile.close();
+	}
+	//End: For ACE output format
 
 	//release bases
 	for (int i=0; i<bases.size(); i++) {
