@@ -1,4 +1,5 @@
 There are three test pipelines in the folder: TestPipeline, TestPipeline-hybrid data, Memory footprint. The first one is used to test single type data, the second one is used to test hybrid data, and the last one is used to test memory usage.
+PeaceEast folder stores all the files needed for running PEACE+EAST pipeline. There is a readme file under that folder.
 
 If there is newer PEACE version, please replace the file "peace/peace" with the newest one.
 
