@@ -15,8 +15,8 @@
 #include "Alignment.h"
 #include "InclusionNodes.h"
 #include "Graph.h"
-#include "Param.h"
 #include "SingleBase.h"
+#include "Param.h"
 
 class UsedNode {
 public:

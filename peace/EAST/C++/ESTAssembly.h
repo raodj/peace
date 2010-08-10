@@ -7,6 +7,7 @@
 #include "SixTuplesGeneration.h"
 #include "InclusionNodes.h"
 #include "Prim.h"
+#include "Param.h"
 
 class ESTAssembly {
 public:

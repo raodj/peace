@@ -6,13 +6,13 @@
 #include <limits.h>
 #include <stack>
 #include <map>
-#include "Param.h"
 #include "Node.h"
 #include "OvlDistance.h"
 #include "CalculatedOvlDistance.h"
 #include "InclusionNodes.h"
 #include "SixTuple.h"
 #include "Prim.h"
+#include "Param.h"
 
 class Graph {
 public:

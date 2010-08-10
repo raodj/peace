@@ -7,7 +7,6 @@
 #include "Param.h"
 
 
-
 class BestWindowMatches {
 public:
 	inline BestWindowMatches(const std::vector<int> &leftStart, int numBestLeft, int leftD2, const std::vector<int> &rightStart, int numBestRight, int rightD2, int windowsize) {

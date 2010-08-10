@@ -4,9 +4,9 @@
 #include <vector>
 #include <limits.h>   // Holds a variable INT_MAX
 #include <string>
-#include "Param.h"
 #include "D2.h"
 #include "Alignment.h"
+#include "Param.h"
 
 /**
  * This class includes all the methods related to overlap distance.
