@@ -4,8 +4,8 @@
 #include <limits.h>
 #include <string>
 #include <vector>
-#include "Param.h"
 #include "AlignmentAlgorithm.h"
+#include "Param.h"
 
 class Alignment {
 public:
