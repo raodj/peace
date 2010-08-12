@@ -33,6 +33,9 @@ num_genes, min_length, max_length, use_quality, coverage, num_trials are same as
 error_rate: integer number. The error rate is only applied to sanger data.
 data_type: only one value "hybrid".
 
+The default ratio of hybrid data is: sanger-40%, 454-40%, illumina-20%.
+They can be changed in line 141-143.
+
 3) Memory footprint
 This pipeline generates sanger data and test memory usage of each assembler. 
 
