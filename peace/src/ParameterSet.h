@@ -98,7 +98,7 @@ public:
     const int threshold;
 
     /** Threshold value in the analyzer that determines when it is
-        safe to report that two fragments are sufficiently \i
+        safe to report that two fragments are sufficiently \e
         dissimilar.
 
         The threshold value is used to decide if the score from the
@@ -173,7 +173,7 @@ protected:
 
         \param[in] maxThresh Threshold value in the analyzer that
         determines when it is safe to report that two fragments are
-        sufficiently \i dissimilar.
+        sufficiently \e dissimilar.
 
         \param[in] tIn The number of minumum number of common words, a
         TV Heuristic parameter (also uses frameSize).

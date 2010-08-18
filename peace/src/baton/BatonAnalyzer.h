@@ -602,7 +602,7 @@ protected:
         
         \param[in] refWindow The zero-based logical window index
         number in the reference baton list.  This value must be in the
-        range \f$0 \lte refWindow \lt refBatonList.getWindowCount()
+        range \f$0 \le refWindow \lt refBatonList.getWindowCount()
         \f$.
 
         \param[out] refAlignPos The index position in the reference
@@ -623,7 +623,7 @@ protected:
 
         \param[in] othWindow The zero-based logical window index
         number in the other baton list.  This value must be in the
-        range \f$0 \lte othWindow \lt othBatonList.getWindowCount()
+        range \f$0 \le othWindow \lt othBatonList.getWindowCount()
         \f$.
 
         \param[out] othAlignPos The index position in the reference

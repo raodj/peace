@@ -56,7 +56,7 @@
 
     This typedef provides a convenient short cut to refer to a
     vector-of-vectors that is used to hold a list of integers.
-    Currently this list is used to build the base distributions, \i
+    Currently this list is used to build the base distributions, \e
     i.e., the number of times a given nucleotide occurs at a given
     index position.  Using this construct facilitates the creation and
     management of 2-D arrays.
@@ -89,7 +89,7 @@ public:
 
         \param[in] rootESTidx The index of the root (aka first)
         fragment constituting the contig being assembled.  This value
-        must be int the range: 0 \f$ \lte \f$ rootESTidx &lt
+        must be int the range: 0 \f$ \le \f$ rootESTidx &lt
         EST::getSequenceCount().
     */
     ContigMaker(const int rootESTidx);
@@ -97,7 +97,7 @@ public:
     /** The destructor.
 
         The destructor does not have any specific tasks to perform (as
-        this class currently does not \i directly use any dynamic
+        this class currently does not \e directly use any dynamic
         memory) and is present merely to adhere to coding conventions.
     */
     ~ContigMaker();
@@ -118,7 +118,7 @@ public:
 
         \return The index of the next fragment in this contig to be
         used as the reference sequence to grow the contig (this value
-        is in the range 0 \f$ \lte \f$ retVal &lt
+        is in the range 0 \f$ \le \f$ retVal &lt
         EST::getSequenceCount()). If both the left-most and right-most
         fragments have already been used as a reference this method
         returns -1.
@@ -208,7 +208,7 @@ protected:
         fragments and the corresponding base distribution:
 
         <table cellpadding="3" cellspacing="0">
-        <th><td>Fragment</td><td>Nucleotides</td></th>
+        <tr><th>Fragment</th><th>Nucleotides</th></tr>
 
         <tr><td>EST 1: </td><td>\c AACTAGGTACG</td></tr>
         <tr><td>EST 2: </td><td>\c ---TAGGTA--</td></tr>

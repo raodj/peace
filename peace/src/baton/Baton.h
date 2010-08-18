@@ -54,14 +54,14 @@
 
     <ul>
 
-    <li><tt>AAAA<i><b>TCG</b>AGTACCTAGGCT<b>TCG</b></tt> (this is a
+    <li><tt>AAAA<b>TCG</b>AGTACCTAGGCT<b>TCG</b></tt> (this is a
     3-mer Baton of length 18 bp.</li>
 
-    <li><tt>TATA<i><b>CC</b>TTACATTCA<b>CC</b></tt> (this is a
+    <li><tt>TATA<b>CC</b>TTACATTCA<b>CC</b></tt> (this is a
     2-mer Baton of length 13 bp.</li>
 
 
-    <li><tt>AAAA<i><b>TCG</b>AGTACCTAGGCT<b>TCG</b>AGTACT<b>TCG</b></tt>
+    <li><tt>AAAA<b>TCG</b>AGTACCTAGGCT<b>TCG</b>AGTACT<b>TCG</b></tt>
     (this is an example of two, 3-mer Batons of length 18 bp and 12
     bp.</li>
     
@@ -73,7 +73,7 @@
 
     <ol>
 
-    <li>The starting or beginning \i index position of the Baton in
+    <li>The starting or beginning \e index position of the Baton in
     the cDNA fragment.</li>
 
     <li>The length of the the baton in number of base pairs (bp).
@@ -105,7 +105,7 @@
 	with which this baton is associated is stored in the BatonList
 	class.</li>
 	
-    <ul>
+    </ul>
 */
 class Baton {
     // Insertion operator to make dumping Batons easier.
@@ -134,12 +134,12 @@ public:
        This constructor is a convenience constructor that can be used
        to set the various instance variables to appropriate values.
 
-       \param[in] startIndex The starting or beginning \i index
+       \param[in] startIndex The starting or beginning \e index
        position of the Baton in the cDNA fragment.
 
        \param[in] length The length of the the baton in number of base
-       pairs (bp)</li>. This includes the <i>n</i>-mers that
-       constitute the Baton ends.
+       pairs (bp). This includes the <i>n</i>-mers that constitute the
+       Baton ends.
 
        \param[in] accounted If this value is \c false, that means
        this baton has not already been counted (or accounted-for) when
@@ -170,7 +170,7 @@ public:
         This method must be used to obtain the length of the baton.
         The length includes the <i>n</i>-mers that constitute the two
         ends of the baton.  For example, in the cDNA fragment
-        <li><tt>AAAA<i><b>TCG</b>AGTACCTAGGCT<b>TCG</b></tt>, the
+        <tt>AAAA<b>TCG</b>AGTACCTAGGCT<b>TCG</b></tt>, the
         <i>3</i>-mer baton (with ends <tt>TCG</tt>) has a length of 18
         nt.  Note that the actual cDNA fragment is maintained by the
         BatonList class (which logically contains a set of batons).
@@ -186,9 +186,9 @@ public:
          comparing batons from two different cDNA fragments.  The
          setAccounted() method must be used to set/reset the \c
          accounted instance variable.  This method is primarily used
-         by the BatonList class.
+         by the \c BatonList class.
 
-         \return A \true value indicates this baton has already been
+         \return A \c true value indicates this baton has already been
          accounted in a given search and should be ignored.  If it
          returns \c false, that indicates the baton has <b>not</b>
          been accounted in the current search phase.
@@ -204,7 +204,7 @@ public:
         determine if a baton has been accounted.  This method is
         primarily used by the BatonList class.
         
-        \param[in] accounted A \true value indicates this baton has
+        \param[in] accounted A \c true value indicates this baton has
         already been accounted in the current search and should be
         ignored for remainder of the current search. At the end of the
         search this value is typically reset back to \c false via this
@@ -235,7 +235,7 @@ public:
 	
 private:
     /**
-       The starting or beginning \i index position of the Baton in the
+       The starting or beginning \e index position of the Baton in the
        cDNA fragment.  This value is typically set when a Baton is
        created and is never changed during the life time of the Baton.
        The actual fragments into whose nucleotide sequence this
@@ -260,8 +260,8 @@ private:
        searching and comparing batons from two different cDNA
        fragments.  This instance variable is initialized and reset
        after a search to \c false indicating it is not accounted.  A
-       \true value indicates this baton has already been accounted in
-       a given search and should be ignored.  Its value is
+       \c true value indicates this baton has already been accounted
+       in a given search and should be ignored.  Its value is
        appropriately changed by the setAccounted() method in this
        class.
     */

@@ -143,7 +143,7 @@ public:
 		
 		This method overrides the default implementation in the base
 		class to initialize the baton analyzer.  This method is called
-		after an assembler object has been instantiated but \i before
+		after an assembler object has been instantiated but \e before
 		the cDNAs (to be assembled) have been loaded.  This method
 		performs the following tasks:
 

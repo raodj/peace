@@ -500,7 +500,7 @@ private:
 		with wcd (for performance profiling use \c --dontAdapt command
 		line argument)</li>
 
-		<li> When non-adaptive configuration is used (\i i.e., \c
+		<li> When non-adaptive configuration is used (\e i.e., \c
 		--dontAdapt command line argument is specified), TwoPassD2
 		analyzer runs in non-adaptive mode with fixed parameters.
 		This mode is best suited for data sets with longer (100+ nt)

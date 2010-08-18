@@ -143,9 +143,9 @@ public:
 		bases are converted to 'N' rather than uppercase characters,
 		causing them to be ignored by downstream processing.
 
-		\param[in] randomizeNbase If this value is \c false the \c 'N'
-        characters are \b preserved.  However, if the flag is set to
-        \c true then the 'N' characters are randomly converted to a
+		\param[in] randomizeNbases If this value is \c false the \c
+        'N' characters are \b preserved.  However, if the flag is set
+        to \c true then the 'N' characters are randomly converted to a
         regular base character from the list \c ATCG.
 
         \return A newly created (on the heap) EST object containing

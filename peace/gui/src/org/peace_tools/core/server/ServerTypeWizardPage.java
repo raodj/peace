@@ -270,7 +270,9 @@ implements ActionListener, Runnable {
 				throw new Exception("The remote machine does not seem " +
 					"to be a Linux machine.\nCurrently PEACE only supports " +
 					"Linux clusters. Sorry for the inconvenience.\nIf this " +
-					"is a feature you need then please file a feature request.");				
+					"is a feature you need then please file a feature request.\n" +
+					"[Standard output: " + streamsData[0] + "]\n" + 
+					"[Standard error : " + streamsData[1] + "]\n");				
 			}
 			// The connection was successful! Credentials 
 			// are valid and work just fine. Disconnect for now.

@@ -139,7 +139,7 @@ public:
 	/** A method to handle initialization tasks for the Assembler.
 		
 		This method is called after an assembler object has been
-		instantiated but \i before the cDNAs (to be assembled) have
+		instantiated but \e before the cDNAs (to be assembled) have
 		been loaded.  This method performs the following tasks:
 
         <ol>
@@ -184,7 +184,7 @@ protected:
         outputFileName member object and is later on used in the
         initialize method.
     */
-    Assembler(const std::string& name, const std::string& outputFile);
+    Assembler(const std::string& name, const std::string& outputFileName);
 
     /** The name of this assembler.
 

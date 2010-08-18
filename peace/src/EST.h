@@ -119,10 +119,10 @@ public:
 		bases are converted to 'N' rather than uppercase characters,
 		causing them to be ignored by downstream processing.
 
-        \param[in] randomizeNbase If this value is \c false the \c 'N'
-        characters are \b preserved.  However, if the flag is set to
-        \c true then the 'N' characters are randomly converted to
-        a regular base character from the list \c ATCG.
+        \param[in] randomizeNbases If this value is \c false the \c
+        'N' characters are \b preserved.  However, if the flag is set
+        to \c true then the 'N' characters are randomly converted to a
+        regular base character from the list \c ATCG.
         
         \return If the id is valid and a duplicate EST with the same
         ID is not present, then this method creates a new EST and
@@ -154,7 +154,7 @@ public:
 		bases are converted to 'N' rather than uppercase characters,
 		causing them to be ignored by downstream processing.
 
-        \param[in] randomizeNbase If this value is \c false the \c 'N'
+        \param[in] randomizeNbases If this value is \c false the \c 'N'
         characters are \b preserved.  However, if the flag is set to
         \c true then the 'N' characters are randomly converted to a
         regular base character from the list \c ATCG.
@@ -604,10 +604,10 @@ private:
 		bases are converted to 'N' rather than uppercase characters,
 		causing them to be ignored by downstream processing.
         
-        \param[in] randomizeNbase If this value is \c false the \c 'N'
-        characters are \b preserved.  However, if the flag is set to
-        \c true then the 'N' characters are randomly converted to
-        a regular base character from the list \c ATCG.
+        \param[in] randomizeNbases If this value is \c false the \c
+        'N' characters are \b preserved.  However, if the flag is set
+        to \c true then the 'N' characters are randomly converted to a
+        regular base character from the list \c ATCG.
 
         \param[in] sequence The actual sequence of base pairs
         associated with this EST.  The sequence information that must
@@ -663,10 +663,10 @@ private:
 		lowercase "atcg" bases are converted to 'N'. Otherwise they
 		are converted to uppercase letters.
 
-        \param[in] randomizeNbase If this value is \c false the \c 'N'
-        characters are \b preserved.  However, if the flag is set to
-        \c true then the 'N' characters are randomly converted to
-        a regular base character from the list \c ATCG.
+        \param[in] randomizeNbases If this value is \c false the \c
+        'N' characters are \b preserved.  However, if the flag is set
+        to \c true then the 'N' characters are randomly converted to a
+        regular base character from the list \c ATCG.
     */
     static void normalizeBases(char* sequence, const bool maskBases = true,
                                const bool randomizeNbases = false);
