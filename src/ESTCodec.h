@@ -411,7 +411,7 @@ private:
         to characters \c A, \c C, \c G, and \c T respectively.
         
         This is a simple array of 4 entries that are used to convert
-        the encoding for characters \c0, \c 3, \c 2, and \c 1 to
+        the encoding for characters \c 0, \c 3, \c 2, and \c 1 to
         nucleotide characters \c A, \c T, \c C, and \c G respectively.
         This encoding is typically used to display characters and
         rebuild sequences.  This array is statically allocated. It is

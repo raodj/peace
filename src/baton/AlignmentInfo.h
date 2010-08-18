@@ -82,29 +82,29 @@ public:
 
         \param[in] estIdx The index (zero based) of the EST for which
         an alignment information object is being created.  This value
-        must be in the range 0 \f$ \lte \f$ estIdx &lt
+        must be in the range 0 \f$ \le \f$ estIdx &lt
         EST::getSequenceCount().
 
         \param[in] refESTIdx The index (zero based) of the reference
         EST with which the fragment at estIdx index position has been
         aligned.  for which an alignment information object is being
-        created.  This value must be in the range 0 \f$ \lte \f$
+        created.  This value must be in the range 0 \f$ \le \f$
         estIdx &lt EST::getSequenceCount().
 
-        \param[out] refOffset The relative (zero-based) offset where
+        \param[out] relOffset The relative (zero-based) offset where
         the fragment associated with estIdx must be positioned with
         respect to the reference fragment at index refESTidx.  This
         value can be positive or negative.
 
-        \param[out] score The alignment score (for the best alignment)
-        associated with the alignment between \c estIdx and the
-        reference sequence at \c refESTidx respectively.
+        \param[out] alignScore The alignment score (for the best
+        alignment) associated with the alignment between \c estIdx and
+        the reference sequence at \c refESTidx respectively.
 
-        \param[out] rcAlignment This parameter is set to \c true if
+        \param[out] revCompFlag This parameter is set to \c true if
         the alignment was accomplished with the reverse complement
-        representation of the estIdx.  If the alignment is to be
-        done with the normal sequence, then this parameter is set to
-        \c false.
+        representation of the estIdx.  If the alignment is to be done
+        with the normal sequence, then this parameter is set to \c
+        false.
     */
     AlignmentInfo(const int estIdx, const int refESTIdx, const int relOffset,
                   const int alignScore, const bool revCompFlag);
@@ -145,7 +145,7 @@ public:
 
         \return This method returns the index into the list of
         fragments maintained by the EST class.  For valid alignment
-        objects, this value is in the range 0 \f$ \lte \f$ \i retVal
+        objects, this value is in the range 0 \f$ \le \f$ \e retVal
         &lt EST::getSequenceCount().
     */
     inline int getESTIndex() const { return estIndex; }
@@ -163,7 +163,7 @@ public:
 
         \return This method returns the index into the list of
         fragments maintained by the EST class.  For valid alignment
-        objects, this value is in the range 0 \f$ \lte \f$ \i retVal
+        objects, this value is in the range 0 \f$ \le \f$ \e retVal
         &lt EST::getSequenceCount().
     */
     inline int getRefESTIndex() const { return refESTindex; }

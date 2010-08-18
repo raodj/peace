@@ -94,6 +94,7 @@ operator<<(std::ostream& os, const std::string& str) {
 
 #if !defined(_WINDOWS) && !defined(ICC) && !defined(GCC)
 
+#ifndef UNREFERENCED_PARAMETER
 /** \def UNREFERENCED_PARAMETER(param) Workaround warning C4100 in VS 2005
     and remark #869 in icc.
 
@@ -103,7 +104,6 @@ operator<<(std::ostream& os, const std::string& str) {
     under gcc (4.2) and therefore on Linux/gcc this macro resolves to
     nothing.
 */
-#ifndef UNREFERENCED_PARAMETER
 #define UNREFERENCED_PARAMETER(param) param
 #endif
 

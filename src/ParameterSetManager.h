@@ -191,7 +191,7 @@ public:
         "classes" of sequences:
 
         <table>
-        <th><td>Type</td><td>Min Len</td><td>Max Len</td><td>Notes</td></th>
+        <tr><th>Type</th><th>Min Len</th><th>Max Len</th><th>Notes</th></tr>
 
         <tr><td>Short</td><td>0</td><td>150</td><td>In practice range
         is 50 to 150, as the LengthFilter will filter out sequences of
@@ -217,7 +217,7 @@ public:
                                 int t2 = 35, int u2 = 6, int ws2 = 8,
                                 int t3 = 50, int u3 = 8, int ws3 = 8);
 
-	/** Method to setup adaptive parameters to \i fast(er) settings.
+	/** Method to setup adaptive parameters to \e fast(er) settings.
 
 		<p>This version of the overloaded method must be used to setup
 		the parameters to a single entry.  The entry is chosen to be
@@ -323,8 +323,8 @@ private:
     /** A 2-D array to rapidly look-up the index of the
         parameter set to be used for given pair of fragments.
 
-        <p>Assume that the parameterSet vector contains \i N entries.
-        This array is initialized to a 2-D array of \i N+1 x \i N+1
+        <p>Assume that the parameterSet vector contains \e N entries.
+        This array is initialized to a 2-D array of \e N+1 x \e N+1
         entries in the initialize() method.  Each value in this matrix
         indicates the entry in the parameterSets vector to be used for
         a given pair of ESTs.  The last row and last column are

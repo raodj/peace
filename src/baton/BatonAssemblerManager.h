@@ -114,7 +114,7 @@ public:
 		This method overrides the default implementation in the base
 		class to initialize the progress file, if one has been
 		specified.  This method is called after an assembler object
-		has been instantiated but \i before the cDNAs (to be
+		has been instantiated but \e before the cDNAs (to be
 		assembled) have been loaded.  This method performs the
 		following tasks:
 
@@ -175,7 +175,7 @@ protected:
 		that must be added to the contig maker.
 	*/
 	void addToContig(ContigMaker& contig,
-					 const AlignmentInfo* alingList,
+					 const AlignmentInfo* alignList,
 					 const int listSize);
 
 	/** Helper method to get alignment information from workers (if any).

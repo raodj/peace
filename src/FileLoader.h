@@ -88,13 +88,13 @@ public:
         is literally the string \c "<none>" then, this method returns
         with \c true immeidately, without any further processing.
 
-        \param[in] noMaskBases A boolean flag to indicate if
-        lower-case characters must be masked out of reads.  Typically
-        lower-case characters ('a', 't', 'c', 'g') are used to
-        indicate bases that must be masked out of reads. If this flag
-        is \c true (default) then these lower-case characters are
-        converted to 'N' causing them to ignored by PEACE. If this
-        flag is \c false, then these bases are converted to upper-case
+        \param[in] maskBases A boolean flag to indicate if lower-case
+        characters must be masked out of reads.  Typically lower-case
+        characters ('a', 't', 'c', 'g') are used to indicate bases
+        that must be masked out of reads. If this flag is \c true
+        (default) then these lower-case characters are converted to
+        'N' causing them to ignored by PEACE. If this flag is \c
+        false, then these bases are converted to upper-case
         equivalents causing them to be processed normally. This flag
         is passed to EST::create which actually does the conversions.
 
@@ -135,13 +135,13 @@ public:
         method returns with \c true immeidately, without any further
         processing.
 
-        \param[in] noMaskBases A boolean flag to indicate if
-        lower-case characters must be masked out of reads.  Typically
-        lower-case characters ('a', 't', 'c', 'g') are used to
-        indicate bases that must be masked out of reads. If this flag
-        is \c true (default) then these lower-case characters are
-        converted to 'N' causing them to ignored by PEACE. If this
-        flag is \c false, then these bases are converted to upper-case
+        \param[in] maskBases A boolean flag to indicate if lower-case
+        characters must be masked out of reads.  Typically lower-case
+        characters ('a', 't', 'c', 'g') are used to indicate bases
+        that must be masked out of reads. If this flag is \c true
+        (default) then these lower-case characters are converted to
+        'N' causing them to ignored by PEACE. If this flag is \c
+        false, then these bases are converted to upper-case
         equivalents causing them to be processed normally. This flag
         is passed to EST::create which actually does the conversions.
 

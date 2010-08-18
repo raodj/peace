@@ -54,7 +54,7 @@
     <i>n</i>-mer sequence as their baton heads.
 
     This typedef provides a convenient short cut to refer to a vector
-    that is used to contain the set of batons with the same \i n -mer
+    that is used to contain the set of batons with the same \e n -mer
     sequences at both ends.  This type is used to declare another
     aggregate vector that contains a list of NmerBatonList objects.
 */
@@ -64,10 +64,10 @@ typedef std::vector<Baton> NmerBatonList;
 
 	\brief A vector that contains all the <i>n</i>-mer batons in a
 	given window.  The size of the window and the number of windows is
-	determined when the BatonList class is created.  Given \i n, this
-	list contains 4<sup>\i n</sup> entries (the base 4 arises from the
+	determined when the BatonList class is created.  Given \e n, this
+	list contains 4<sup>\e n</sup> entries (the base 4 arises from the
 	use of the four nucleotides \c ATCG).  Each entry (from the
-	4<sup>\i n</sup> entries) correspond to a unique encoding of \i n
+	4<sup>\e n</sup> entries) correspond to a unique encoding of \e n
 	consecutive nucleotides.  Each entry in this list is a vector of
 	Baton objects that have the same <i>n</i>-mer sequence as their
 	baton heads/ends.
@@ -105,7 +105,7 @@ typedef std::vector<int> IntVector;
     objects associated with a given cDNA fragment.  The list is
     implicitly organized based on the <i>n</i>-mers constituting the
     ends of the batons.  The <i>n</i>-mers constituting a Baton are
-    encoded into 2*\i n bit patterns using the ESTCodec class (base
+    encoded into 2*\e n bit patterns using the ESTCodec class (base
     pairs \c A, \c T, \c C, and \c G (both upper and lower case) is
     encoded into 2-bits codes \c 00, \c 11, \c 10, and \c 01
     respectively).  For example, \c AAA is encoded to
@@ -166,10 +166,10 @@ public:
         
         \param[in] sequence The nucleotide sequence for which batons
         are to be generated and maintained by this object.  This
-        parameter must point to a valid C string (terminated by '\0')
+        parameter must point to a valid C string (terminated by '\\0')
         that is at least one nucleotide long.
         
-        \param[in] sequence The length (in number of nucleotides) of
+        \param[in] nMerSize The length (in number of nucleotides) of
         the Baton ends.  This ultimately determines the number of
         unique baton ends to be considered and maintained by this
         object.
@@ -336,7 +336,7 @@ public:
         special checks or processing but simply returns the
         pre-computed vector of batons.
 
-        \param[in] nMerCode The encoded value of the \i n -mer baton
+        \param[in] nMerCode The encoded value of the \e n -mer baton
         ends corresponding to which the batons are to be returned.
         The encoding of values is assumed to follow the encodings
         provided by the ESTCodec class. No special checks are done on
@@ -376,7 +376,7 @@ public:
         exceeds the specified threshold. The pairs are integer values
         where the first value represents the logical window in \c this
         baton list and the second number indicates the logical window
-        in the \other baton list.
+        in the other baton list.
 
         \param[in] threshold The number of identical batons that must
         be present in a given window pair in order for the pair to be
@@ -396,7 +396,7 @@ public:
         the candidate windows for alignment.  The window-pairs are
         integer values where the first value represents the logical
         window in \c this baton list and the second number indicates
-        the logical window in the \other baton list.  This method
+        the logical window in the other baton list.  This method
         operates as follows:
 
         <ol>
@@ -428,7 +428,7 @@ public:
         exceeds the specified threshold. The pairs are integer values
         where the first value represents the logical window in \c this
         baton list and the second number indicates the logical window
-        in the \other baton list.
+        in the other baton list.
 
         \param[out] identicalBatonCount This vector-of-vectors is used
         to conveniently implement a 2-D array of integers.  The first
@@ -453,12 +453,12 @@ public:
 	/** Utility method that can be used to get codedNmers.
 
 		This is a convenience utility method that can be used to get
-		encoded \i n -mers used by this baton list.  This method
+		encoded \e n -mers used by this baton list.  This method
 		provides encoded sequence for either the normal or reverse
 		complement version of the cDNA fragment associated with this
 		baton list.
 
-		\param[out] codedNMers The list of coded \i n -mers are added
+		\param[out] codedNMers The list of coded \e n -mers are added
 		to this vector as they are computed.
 		
 		\note This method performs the encoding each time it is
@@ -597,10 +597,16 @@ protected:
         value also identifies the first dimension in the
         identicalBatonCount 2-D vector.
 
+		\param[in] numWin1 The total number of windows in the first
+		baton.
+		
         \param[in] baton2Win The logical window in the second cDNA
         fragment.  This value also identifies the second dimension in
         the identicalBatonCount 2-D vector.
 
+		\param[in] numWin2 The total number of windows in the second
+		baton.
+		
         \param[out] identicalBatonCount The 2-D vector-of-vectors to
         be updated with the number of matching baton counts.
 
