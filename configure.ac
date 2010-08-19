@@ -157,7 +157,7 @@ AC_DEFUN([AC_PROG_ICC],
 
      if test -z "$icc"; then
          AC_MSG_CHECKING([for icc])
-         icc=`mpicxx --version 2>&1 | grep "^icc"`
+         icc=`mpicxx --version 2>&1 | grep -i "icc"`
 		 if test -n "$icc"; then
 	     icc="yes"
 	 	 else
@@ -389,9 +389,9 @@ AC_CHECK_FUNCS([bzero floor gettimeofday memset mkdir modf pow rint sqrt strcase
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile
-				 src/baton/Makefile
-		 		 tools/Makefile
-		 		 examples/Makefile])
+		 src/baton/Makefile
+ 		 tools/Makefile
+ 		 examples/Makefile])
 
 AC_OUTPUT
 
