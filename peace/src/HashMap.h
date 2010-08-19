@@ -166,14 +166,16 @@ struct EqualInteger {
     }
 };
 
-#ifdef ICC
+#if defined(ICC) && defined(NEED_STRING_HASHER)
+
 namespace __gnu_cxx {
-    template<> struct hash<std::string> {
+    template<> struct Hash<std::string> {
         inline size_t operator()(const std::string& str) const {
-            return hash<const char*>()(str.c_str());
+            return Hash<const char*>()(str.c_str());
         }
     };
 }
+
 #endif
 
 #endif
