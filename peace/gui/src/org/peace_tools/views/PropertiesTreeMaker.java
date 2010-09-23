@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.Icon;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -98,7 +99,7 @@ public class PropertiesTreeMaker {
 	 * 
 	 * @return The scroll pane that contains the summary information.
 	 */
-	public static JSplitPane createPropertiesLayout(String title, JTree summaryInfo, 
+	public static JSplitPane createPropertiesLayout(String title, JComponent summaryInfo, 
 			Component mainView, JToolBar toolbar, int toolPosition) {
 		// Wrap the properties tree into a scroll pane to enable scrolling.
 		final JScrollPane summaryPane = new JScrollPane(summaryInfo);
@@ -110,8 +111,28 @@ public class PropertiesTreeMaker {
 		heading.setBorder(BorderFactory.createEmptyBorder(2, 5, 2, 5));
 		summaryPane.setColumnHeaderView(heading);
 		summaryPane.setViewportBorder(new CustomBorder("dsss"));
-		// Now wrap the main view and the summaryPane into a suitable split pane
-		final JSplitPane contentPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, summaryPane, mainView);
+		// Now wrap the main view and the summaryPane into a suitable split pane using
+		// an overloaded version of this method.
+		return createPropertiesLayout(title, summaryPane, mainView, toolbar, toolPosition,
+				"Summary...", "images/16x16/Information.png", 
+				"Show/Hide summary information about this file");
+	}
+	
+	/**
+	 * Method to compute and setup summary information.
+	 * 
+	 * This method is invoked from the constructor to create and populate the 
+	 * summary information tab. The summary information is computed once when
+	 * the view is created. After that the summary information is built using
+	 * the PropertiesTreeMaker class.
+	 * 
+	 * @return The scroll pane that contains the summary information.
+	 */
+	public static JSplitPane createPropertiesLayout(String title, final JComponent infoPanel, 
+			Component mainView, JToolBar toolbar, int toolPosition, String toolBtnLabel,
+			String toolBtnIcon, String toolBtnToolTip) {
+		// First wrap the main view and the summaryPane into a suitable split pane
+		final JSplitPane contentPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, infoPanel, mainView);
 		contentPane.setDividerSize(3);
 		contentPane.setOneTouchExpandable(false);
 		contentPane.setBorder(null);
@@ -120,10 +141,8 @@ public class PropertiesTreeMaker {
 		if (toolbar != null) {
 			// Add button to show or hide summary information
 			toolbar.add(Box.createHorizontalStrut(10), toolPosition);
-			JToggleButton summaryButton = 
-				new JToggleButton("Summary ...", 
-						Utilities.getIcon("images/16x16/Information.png"), true);
-			summaryButton.setToolTipText("Show/Hide summary information about this cluster file");
+			JToggleButton summaryButton = new JToggleButton(toolBtnLabel, Utilities.getIcon(toolBtnIcon), true);
+			summaryButton.setToolTipText(toolBtnToolTip);
 			toolbar.add(summaryButton, toolPosition + 1);
 			// Finally add a action listener to handle clicking this button.
 			summaryButton.addActionListener(new ActionListener() {
@@ -131,19 +150,19 @@ public class PropertiesTreeMaker {
 				public void actionPerformed(ActionEvent event) {
 					// Show or hide the summary pane depending on current settings.
 					// split/un-split the content pane depending on visibility
-					if (!summaryPane.isVisible()) {
-						summaryPane.setVisible(true);
-						contentPane.setLeftComponent(summaryPane);
-						int dividerPos = summaryPane.getPreferredSize().width;
+					if (!infoPanel.isVisible()) {
+						infoPanel.setVisible(true);
+						contentPane.setLeftComponent(infoPanel);
+						int dividerPos = infoPanel.getPreferredSize().width;
 						if (dividerPos >= contentPane.getWidth() - 50) {
 							dividerPos = contentPane.getWidth() - 50;
 						}
 						contentPane.setDividerLocation(dividerPos);
 					} else {
 						// Save the current size as preferred size for future 
-						summaryPane.setPreferredSize(summaryPane.getSize());
+						infoPanel.setPreferredSize(infoPanel.getSize());
 						contentPane.setLeftComponent(null);
-						summaryPane.setVisible(false);
+						infoPanel.setVisible(false);
 					}
 					contentPane.revalidate();
 					contentPane.repaint();

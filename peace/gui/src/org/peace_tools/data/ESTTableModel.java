@@ -33,10 +33,14 @@
 
 package org.peace_tools.data;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 
 import javax.swing.table.AbstractTableModel;
+
+import org.peace_tools.generic.FindEvent;
 
 /**
  * A bridge class between FASTA entries in a FASTA file and a JTable.
@@ -50,7 +54,24 @@ import javax.swing.table.AbstractTableModel;
  * 
  * <p><b>Note:</b>  The number of columns displayed by this table model can be
  * varied based on the column width set via a call to setColumnSize() method.
- * By default this model provides only 2 columns.
+ * By default this model provides only the following 3 columns:
+ * 
+ *  <ol>
+ *  
+ *  <li>The first column indicates if the entry has been modified. The column
+ *  appears as a custom icon/button when the user can revert the choice.</li>
+ *  
+ *  <li>The second column is a boolean value that indicates if the row has been
+ *  selected for export. This column appears as a check box.</li>
+ *  
+ *  <li>The third column contains the index of the EST being displayed.</li>
+ *  
+ *  <li>The fourth column contains a modifiable FASTA header for the sequence.</li>
+ *  
+ *  <li>The fifth (and remainder) column contains the modifiable nucleotide sequence.</li>
+ *  
+ *  </ol>
+ *   
  */
 public class ESTTableModel extends AbstractTableModel {
 	/**
@@ -62,18 +83,32 @@ public class ESTTableModel extends AbstractTableModel {
 	 * 
 	 * @param estList The list of fragments from a FASTA file to be used and
 	 * suitably exposed by this model class. This parameter cannot be null.
+	 * 
+	 * @param miniView In miniView Only three columns are reported by the model.
+	 * In addition, the model entries cannot be edited. This mode is used by the
+	 * OverlapView to permit users to conveniently select ESTs to be highlighted
+	 * in that view.
 	 */
-	public ESTTableModel(ESTList estList) {
+	public ESTTableModel(ESTList estList, boolean miniView) {
 		assert ( estList != null );
 		this.estList     = estList;
 		this.basesPerCol = -1;
+		this.miniView    = miniView;
 		// Compute the maximum length of ESTs to determine column count.
 		int maxLen = 0;
 		for(EST est: estList.getESTs()) {
 			maxLen = Math.max(maxLen, est.getSequence().length());
 		}
-		// Save max len as it it will never change.
+		// Save max len for future use. It will change when EST sequences
+		// are edited by the user.
 		this.maxESTLen = maxLen;
+		// Setup the initial selection list to default 'false' values
+		this.selectionList = new ArrayList<Boolean>(estList.getESTs().size());
+		for(int i = 0; (i < estList.getESTs().size()); i++) {
+			selectionList.add(Boolean.FALSE);
+		}
+		// Create an empty hash map without any modified entries in it
+		this.modifiedESTs = new HashMap<Integer, EST>();
 	}
 
 	/**
@@ -94,10 +129,15 @@ public class ESTTableModel extends AbstractTableModel {
 	 * determined using a combination of maxLen and basesPerCol values.
 	 * 
 	 * @return The number of columns to be displayed in this table. There
-	 * are always a minimum of 3 columns.
+	 * are always a minimum of 3 columns. In miniView the number of columns
+	 * is fixed to three and the basesPerCol value is ignored.
 	 */
 	public int getColumnCount() {
-		int colCount = 2;
+		if (this.miniView) {
+			// In miniView we always report only 3 columns
+			return 3;
+		}
+		int colCount = 4;
 		if (basesPerCol > 0) {
 			colCount += (int) Math.ceil(maxESTLen / (double) basesPerCol);
 		} else {
@@ -115,9 +155,16 @@ public class ESTTableModel extends AbstractTableModel {
 	 * that contains the fragment index and fasta header information is fixed.
 	 */	
 	public String getColumnName(int column) {
-		if (column == 0) {
+		if (miniView) {
+			// In miniView we skip over the first column with revert button
+			// as the model entries cannot be edited.
+			column++;
+		}
+		if ((column == 0) || (column == 1)) {
+			return "";
+		} else if (column == 2) {
 			return "Index";
-		} else if (column == 1) {
+		} else if (column == 3) {
 			return "FASTA Header";
 		} else if (basesPerCol == -1) {
 			return "Full Fragment";
@@ -137,10 +184,16 @@ public class ESTTableModel extends AbstractTableModel {
 	 * 
 	 * <ol>
 	 * 
-	 * <li>For column 0, this method returns the logical index of the 
+	 * <li>For column 0, this method returns a Boolean value indicating if
+	 * the entry has been modified.</li>
+	 * 
+	 * <li>For column 1, this method returns a Boolean value indicating if
+	 * the entry has been selected.</li>
+	 * 
+	 * <li>For column 2, this method returns the logical index of the 
 	 * entry in the FASTA file.</li>
 	 * 
-	 * <li>For column 1, this method always returns the FASTA identifier
+	 * <li>For column 3, this method always returns the FASTA identifier
 	 * associated with the entry in the given row.</li>
 	 * 
 	 * <li>For other columns, if basesPerEST == -1, then this method returns
@@ -163,6 +216,11 @@ public class ESTTableModel extends AbstractTableModel {
 	 */
 	@Override
 	public Object getValueAt(int row, int col) {
+		if (miniView) {
+			// In miniView we skip over the first column with revert button
+			// as the model entries cannot be edited.
+			col++;
+		}
 		if ((row < 0) || (row > estList.getESTs().size()) ||
 			(col < 0) || (col > this.getColumnCount())) {
 			return "";
@@ -171,10 +229,22 @@ public class ESTTableModel extends AbstractTableModel {
 		if (sortedIndexs != null) {
 			row = sortedIndexs[row];
 		}
+		// Get original entry.
 		EST est = estList.getESTs().get(row);
+		// Check and get modified entry for this EST (if any)
+		EST newEST = this.modifiedESTs.get(est.getID());
+		// Use the modified EST we have a modified entry for it.
+		est = (newEST != null) ? newEST : est;
+		// Return the appropriate object based on the column
 		if (col == 0) {
-			return est.getID();
+			// Return boolean flag indicating if this EST is modified
+			return new Boolean(newEST != null);			
 		} else if (col == 1) {
+			// Return boolean flag indicating if this EST is selected
+			return this.selectionList.get(row);
+		} else if (col == 2) {
+			return est.getID();
+		} else if (col == 3) {
 			return est.getInfo();
 		} else if (basesPerCol == -1) {
 			// The full fragment is displayed in one column.
@@ -208,7 +278,12 @@ public class ESTTableModel extends AbstractTableModel {
 		if (sortedIndexs != null) {
 			row = sortedIndexs[row];
 		}
-		return estList.getESTs().get(row);
+		// Get original entry value first to look up EST index.
+		EST est = estList.getESTs().get(row);
+		// Check and pick modified entry (if any)
+		EST newEST = this.modifiedESTs.get(est.getID());
+		// Return with preference to the newly modified entry
+		return (newEST != null) ? newEST : est;
 	}
 	
 	/**
@@ -279,25 +354,32 @@ public class ESTTableModel extends AbstractTableModel {
 	 * @param column The zero-based index of the column whose
 	 * Class type is to be returned.
 	 * 
-	 * @return This method always returns String.class as the class
-	 * of the data as this model exposes all the information as
-	 * a String.
+	 * @return This method always returns Boolean.class for the 
+	 * first two columns and for all other columns it returns 
+	 * String.class as the class of the data as this model 
+	 * exposes all the information as Strings.
 	 */
 	@Override
-	public Class<?> getColumnClass(int column) { 
-		return String.class;
+	public Class<?> getColumnClass(int column) {
+		if (miniView) {
+			// In miniView we skip over the first column with revert button
+			// as the model entries cannot be edited.
+			column++;
+		}
+		return (column < 2) ? Boolean.class : String.class;
 	}
 	
 	/**
 	 * Interface method to determine if an entry in the JTable is 
 	 * editable.
 	 * 
-	 * @return This method always returns false to indicate that
+	 * @return This method return true as long as the user is not
+	 * trying to edit the EST ID (or index) values to indicate that
 	 * the data in the FASTA file cannot be edited.
 	 */
 	@Override
 	public boolean isCellEditable(int row, int column) {
-		return false;
+		return (miniView ? (column == 0) : (column != 2));
 	}
 	
 	/**
@@ -306,6 +388,170 @@ public class ESTTableModel extends AbstractTableModel {
 	 * @return The EST list set for use by this model.
 	 */
 	public ESTList getESTList() { return estList; }
+	
+	/**
+	 * This method overrides the empty base class implementation to maintain
+	 * a set of modified ESTs. The modified ESTs are maintained in a separate
+	 * hash map to permit the user to revert the modifications on a per-EST
+	 * basis. This method appropriately interprets the changes depending
+	 * on the column to which the changes have been made.
+	 * 
+	 * @param value The new value to be assigned to the specified entry.
+	 * @param row The row in the table that has been modified.
+	 * @param column The column whose value has been modified.
+	 */
+	@Override
+	public void setValueAt(Object value, int row, int column) {
+		if (miniView) {
+			// In miniView mode entries can be merely selected.
+			if (column == 0) {
+				column++;
+			} else {
+				// In miniView mode other columns cannot be modified.
+				return;
+			}
+		}
+		// Obtain the entry for the given row while heeding sorting
+		if (sortedIndexs != null) {
+			row = sortedIndexs[row];
+		}
+		// Obtain the actual ID (.ie. index) of the EST being modified
+		final int estIndex = estList.getESTs().get(row).getID();
+		// The operations depend on the column which has been modified.
+		if (column == 0) {
+			// The user has managed to click the revert button. In this
+			// case we simply clear out the entry in the modified ESTs 
+			// hash map.
+			modifiedESTs.remove(estIndex);
+		} else if (column == 1) {
+			// The user has toggled selection. 
+			selectionList.set(row, !selectionList.get(row));
+		} else if (column != 2) {
+			// When control drops here that means the user has modified the
+			// FASTA header or the sequence. We need to create and/or manage a
+			// modified entry as needed.
+			EST currEST = modifiedESTs.get(estIndex);
+			if (currEST == null) {
+				// Use the original value as the entry
+				currEST = estList.getESTs().get(row);
+			}
+			// Appropriately obtain the necessary updates
+			String fastaHeader = (column == 3) ? value.toString() : currEST.getInfo();
+			String sequence    = currEST.getSequence();
+			if (column > 3) {
+				// Sequence handling is a bit more tricky as sequences can be displayed
+				// as multi-column value
+				if (this.basesPerCol == -1) {
+					// Sequence is being displayed as a single column
+					sequence = value.toString();
+				} else {
+					// Splice in the modified value at the appropriate point in the
+					// sequence. 
+					final int col = column - 2;
+					final String seq = currEST.getSequence();
+					final int start  = (col * basesPerCol);
+					final int stop   = Math.min(start + basesPerCol, seq.length());
+					if (start < seq.length()) {
+						sequence = seq.substring(0, start) + value.toString() + seq.substring(stop + 1);
+					}
+				}
+			}
+			// Now update the EST entry in the modifiedESTs hash map
+			EST newEST = new EST(estIndex, fastaHeader, sequence);
+			modifiedESTs.put(estIndex, newEST);
+			// Update the maximum EST length if it has changed.
+			if (maxESTLen < sequence.length()) {
+				// Yup. Max length has changed. The whole table may have to rerendered.
+				maxESTLen = sequence.length();
+				fireTableStructureChanged();
+			}
+		}
+		// In addition the 'revert' status for this entry has changed.
+		// Fire an event to the listeners to ensure the entry is properly
+		// refreshed in the GUI view.
+		fireTableRowsUpdated(row, row);
+	}
+	
+	/**
+	 * Method to determine the set of entries that have been selected by the user.
+	 * 
+	 * This method can be used to obtain the list of selected entries in the model.
+	 * This method is synonymous to JTable.getSelectedRows() except that it directly
+	 * deals with the selection information stored in the model rather than with 
+	 * the table selection model.
+	 * 
+	 * @return A native array containing the list of rows that have been selected.
+	 * This method always returns a non-null array. However, if no entries are 
+	 * selected then the return value is an array with zero entries.
+	 */
+	public int[] getSelectedRows() {
+		// First determine the selected rows in a array list
+		ArrayList<Integer> selectedRows = new ArrayList<Integer>(estList.getESTs().size());
+		for(int row = 0; (row < estList.getESTs().size()); row++) {
+			// Handle mapping when list is logically sorted.
+			final int actualRow = (sortedIndexs != null) ? sortedIndexs[row] : row;
+			if (selectionList.get(actualRow)) {
+				selectedRows.add(row);
+			}
+		}
+		// Now convert the array list to a native array for interface compliance
+		int[] selections = new int[selectedRows.size()];
+		for(int entry = 0; (entry < selections.length); entry++) {
+			selections[entry] = selectedRows.get(entry);
+		}
+		// Return the native array containing selected rows
+		return selections;
+	}
+	
+	/**
+	 * Helper method to search through the list of ESTs for a given substring
+	 * or a regular expression. This helper method is used by the view to
+	 * perform "Find" operations in this data set.
+	 * 
+	 * @param fe The find event from which the data for the search is extracted
+	 * and used.
+	 * 
+	 * @param startRow The starting row for the search. This is typically the
+	 * currently selected row in the table.
+	 * 
+	 * @return This method returns the index of the row where a match for the
+	 * given find request was encountered. If a valid match was not found, then
+	 * this method returns -1.
+	 */
+	public int find(final FindEvent fe, final int startRow) {
+		final int direction    = fe.isForwardSearch() ? 1 : -1; // row increment.
+		int  currRow           = startRow + direction;
+		final int MaxRow       = estList.getESTs().size();
+		
+		// Setup search string depending on type of search requested by user
+		String searchStr = null;
+		if (!fe.isRegExSearch()) {
+			searchStr = fe.getSearchString();
+			if (!fe.isCaseSensitive()) {
+				searchStr = searchStr.toLowerCase();
+			}
+		}
+		// Search row-by-row
+		while ((currRow != startRow) && (currRow >= 0) && (currRow < MaxRow)) {
+			final EST currEST = getESTAt(currRow);
+			boolean match = (searchStr != null) ? currEST.contains(searchStr, fe.isCaseSensitive()) : 
+				currEST.contains(fe.getRegExPattern());
+			if (match) {
+				return currRow;
+			}
+			// Now match found in this row. Onto the next row.
+			currRow += direction;
+			// Handle the wrap around cases.
+			if (fe.isWrapAround()) {
+				if (currRow < 0) {
+					currRow = MaxRow - 1; 
+				} else if (currRow >= MaxRow) {
+					currRow = 0;
+				}
+			}
+		}
+		return -1;
+	}
 	
 	/**
 	 * Reference to the list of fragments that is actually exposed by this
@@ -319,7 +565,7 @@ public class ESTTableModel extends AbstractTableModel {
 	 * This value along with the basesPerCol determines the total number of 
 	 * columns that are logically represented by this model. 
 	 */
-	private final int maxESTLen;
+	private int maxESTLen;
 	
 	/**
 	 * The number of base pairs per column. This value along with the
@@ -338,6 +584,33 @@ public class ESTTableModel extends AbstractTableModel {
 	 *  sorting requested by the user.
 	 */
 	private Integer[] sortedIndexs = null;
+	
+	/**
+	 * An array list that is used to maintain information on whether the given
+	 * row is currently selected by the user. Initially this array is set to
+	 * all false values. The values are displayed as a check box that the
+	 * user can check/clear to select an entry to be saved.
+	 */
+	private ArrayList<Boolean> selectionList;
+
+	/**
+	 * A hash map that is used to maintain information on ESTs that have 
+	 * been modified. These modified ESTs are maintained in this hash map.
+	 * Whenever sequence data is requested, this hash map is used to report
+	 * the updated information. The entries are also used to display a "revert"
+	 * button in the second column in the table.
+	 */
+	private HashMap<Integer, EST> modifiedESTs;
+
+	
+	/**
+	 * Flag to indicate if this model is acting in 'mini view' mode. In miniView 
+	 * (this value is true) only three columns are reported by the model. In 
+	 * addition, the model entries cannot be edited. This mode is used by the
+	 * OverlapView to permit users to conveniently select ESTs to be highlighted
+	 * in that view.
+	 */
+	private final boolean miniView;
 	
 	/**
 	 * A generated serialization UID included just to keep the compiler happy.

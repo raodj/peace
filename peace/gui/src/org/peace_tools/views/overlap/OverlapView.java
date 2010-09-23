@@ -47,10 +47,13 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSlider;
 import javax.swing.JSplitPane;
+import javax.swing.JTable;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 
 import org.peace_tools.core.MainFrame;
 import org.peace_tools.data.ClusterFile;
@@ -80,7 +83,8 @@ import org.peace_tools.views.PropertiesTreeMaker;
  * 
  * </ul>
  */
-public class OverlapView extends JPanel implements ChangeListener, ClusterColorMapper {
+public class OverlapView extends JPanel implements ChangeListener, 
+	ClusterColorMapper, ListSelectionListener {
 	/**
 	 * The default constructor. 
 	 * 
@@ -102,10 +106,11 @@ public class OverlapView extends JPanel implements ChangeListener, ClusterColorM
 		super(new BorderLayout(0, 0));
 		setOpaque(false);
 		// Save references to clusterFile for future use
-		this.pam       = pam;
-		this.mainFrame = frame;
+		this.pam        = pam;
+		this.mainFrame  = frame;
+		this.findHelper = new FindHelper(pam);
 		// Create the panel to display fragments
-		panel = new OverlapPanel(this.pam, this, 10, 1.0 / MIN_COL_SCALE_FACTOR);
+		panel = new OverlapPanel(this.pam, this, findHelper, 10, 1.0 / MIN_COL_SCALE_FACTOR);
 		// Create the cluster list using the memory model.
 		clusterList = new ClusterList(this.pam, this, this);
 		// Create and configure the tool bar
@@ -125,13 +130,25 @@ public class OverlapView extends JPanel implements ChangeListener, ClusterColorM
 				Ruler.Orientation.VERTICAL);
 		verticalRuler.setScale(panel.getRowScale(), panel.getColScale());
 		jsp.setRowHeaderView(verticalRuler);
+	
+		// Create and setup the highlight panel.
+		highlightPanel = new HighlightPanel(pam.getESTList());
+		highlightPanel.getTable().getSelectionModel().addListSelectionListener(this);
+		// Set up the table model for overlap panel's highlighting feature
+		panel.setESTTableModel(highlightPanel.getModel());
+		
+		JSplitPane mainPane =  
+			PropertiesTreeMaker.createPropertiesLayout("Highlighting Panel", highlightPanel, 
+					jsp, toolbar, toolbar.getComponentCount() - 2, "Highlight", 
+					"images/16x16/Highlight.png", 
+					"(Un)Highlight selected ESTs in the overlap view");
 		
 		// Next create the summary information tree...
 		JTree summaryInfo = PropertiesTreeMaker.makeProperties(pam.getWsEntry(), mainFrame);
 		// Create a split pane with the overlap view and summary 
 		JSplitPane contentPane =  
 			PropertiesTreeMaker.createPropertiesLayout("Clustering Information", summaryInfo, 
-					jsp, toolbar, toolbar.getComponentCount() - 2);
+					mainPane, toolbar, toolbar.getComponentCount() - 2);
 		// Add the scroll pane to the main panel.
 		add(contentPane, BorderLayout.CENTER);
 		// Initialize colors for all clusters to grey
@@ -228,6 +245,32 @@ public class OverlapView extends JPanel implements ChangeListener, ClusterColorM
 	}
 	
 	/**
+	 * This method is called whenever the user selects a different row in the
+	 * highlight table. This method uses the EST index from the currently selected
+	 * row in the {@link HighlightPanel} and sets the currently selected entry to
+	 * that value.
+	 * 
+	 * @param lse The list event associated with this call. Currently this method
+	 * is ignored and the currently selected row is directly obtained from the table.
+	 */
+	@Override
+	public void valueChanged(ListSelectionEvent lse) {
+		JTable estTable = highlightPanel.getTable();
+		if (estTable.getSelectedRow() == -1) {
+			return;
+		}
+		// First obtain EST at the specified index
+		int estIndex = (Integer) estTable.getValueAt(estTable.getSelectedRow(), 1);
+		// Have the corresponding fragment found.
+		if (findHelper.find(estIndex) != null) {
+			// Have the overlap panel scroll to this est
+			this.panel.scrollToCurrent();
+			// Ensure that the panel gets rfreshed
+			this.panel.repaint();
+		}
+	}
+	
+	/**
 	 * The row and column size scale controllers.
 	 * 
 	 * The following array holds two sliders that can be used to 
@@ -262,6 +305,14 @@ public class OverlapView extends JPanel implements ChangeListener, ClusterColorM
 	 */
 	private final OverlapModel pam;
 
+	/**
+	 * The helper class that tracks the currently active EST fragment
+	 * and assists in search operations. This class is used to determine
+	 * the currently active entry so that it can be suitably highlighted
+	 * in the overlap view.
+	 */
+	private final FindHelper findHelper;
+	
 	/**
 	 * The overlap panel that actual renders the fragments for us.
 	 * This instance variable holds an immutable reference to the
@@ -316,6 +367,13 @@ public class OverlapView extends JPanel implements ChangeListener, ClusterColorM
 	 */
 	private final HashMap<Integer, Color> clusterColorMap =
 		new HashMap<Integer, Color>();
+	
+	/**
+	 * The panel (that is displayed to the left of this overlap view) that
+	 * permits the user to conveniently select the set of ESTs to be 
+	 * highlighted in the overlap view.
+	 */
+	private final HighlightPanel highlightPanel;
 	
 	/**
 	 * Generated serialization UID (merely to keep the compiler happy)
