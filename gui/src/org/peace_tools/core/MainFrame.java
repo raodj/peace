@@ -55,6 +55,7 @@ import javax.swing.border.EmptyBorder;
 
 import org.peace_tools.core.AbstractMenuHelper.HelperType;
 import org.peace_tools.generic.CustomBorder;
+import org.peace_tools.generic.FindDialog;
 import org.peace_tools.generic.ProgrammerLog;
 import org.peace_tools.generic.UserLog;
 import org.peace_tools.generic.Utilities;
@@ -114,6 +115,8 @@ public class MainFrame extends JFrame implements ActionListener {
 		// Create the standard views via the view factory.
 		defaultViewFactory = new DefaultViewFactory(this);
 		defaultViewFactory.createStaticViews();
+		// Finally create the globally unique find dialog (as needed)
+		FindDialog.createFindDialog(this);
 	}
 
 	/**

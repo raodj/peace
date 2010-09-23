@@ -64,6 +64,19 @@ public class EST {
 		this.dbClassifier = -1;
 	}
 
+	/** EST copy Constructor.
+     * 
+     * This constructor is used to instantiate an EST object.
+     * 
+     * @param src The source EST from where the data is to be copied. The unqiue ID value to be set for this EST.
+     */
+	EST(final EST src) {
+		this.id           = src.id;
+		this.info         = src.info;
+		this.sequence     = src.sequence;
+		this.dbClassifier = src.dbClassifier;
+	}
+	
 	/** Obtain the ID of this EST.
 	 * 
 	 * @return The ID of the EST that was set when this EST was created.
@@ -203,6 +216,48 @@ public class EST {
 	@Override
 	public String toString() {
 		return "" + id + ": " + info;
+	}
+	
+	/**
+	 * Utility methods to facilitate searching for information in this EST.
+	 * This method searches for the given searchStr within all the information
+	 * including: EST Index (ID), the FASTA header, and nucleotide sequence.
+	 * 
+	 * @param searchStr The string to search for.
+	 * @return This method returns true if the EST matches or contains the
+	 * given searchStr.
+	 * 
+	 * @param caseSensitive If this flag is false, then this method converts string
+	 * to lower case to make a case insensitive search.
+	 */
+	public boolean contains(String searchStr, boolean caseSensitive) {
+		String searchInfo[] = {"" + id, info, sequence};
+		for(String str: searchInfo) {
+			if (!caseSensitive) {
+				str = str.toLowerCase();
+			}
+			if (str.indexOf(searchStr) != -1) {
+				return true;
+			}
+		}
+		// Search string not found.
+		return false;
+	}
+	
+	/**
+	 * Utility methods to facilitate searching for information in this EST.
+	 * This method searches for the given searchStr within all the information
+	 * including: EST Index (ID), the FASTA header, and nucleotide sequence.
+	 * 
+	 * @param regExp The regular expression that is being used for the search.
+	 * 
+	 * @return This method returns true if the EST's information matches the
+	 * given regular expression's grammar.
+	 */
+	public boolean contains(Pattern regExp) {
+		final String info = toString() + ": " + sequence;
+		Matcher m = regExp.matcher(info);
+		return m.matches();
 	}
 	
 	/**

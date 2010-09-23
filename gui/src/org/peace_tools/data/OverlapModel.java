@@ -302,6 +302,41 @@ public class OverlapModel implements ComboBoxModel {
 	}
 	
 	/**
+	 * Obtain the number of EST entries on a given row in the model.
+	 * 
+	 * This method may be used to obtain the number of EST fragment entries on
+	 * a specific row of the model.
+	 * 
+	 * @param row The row for which the number of fragments are to be returned.
+	 * 
+	 * @return An array list containing the list of fragments on a given row. If
+	 * the row was invalid, then this method return null.
+	 */
+	public int getRowSize(final int row) {
+		if ((row >= 0) && (row < estEntryTable.size())) {
+			return estEntryTable.get(row).size();
+		}
+		return 0;
+	}
+	
+	/**
+	 * Convenience method to obtain an entry at a given row and column.
+	 * 
+	 * @param row The zero-based row from where the entry is desired.
+	 * @param col The zero-based column within the given row from where the
+	 * entry is to be returned.
+	 * @return If the row and column are valid, then this method returns a
+	 * valid ESTEntry. Otherwise it returns null.
+	 */
+	public ESTEntry getEntry(final int row, final int col) {
+		if ((row >= 0) && (row < estEntryTable.size()) && (col >= 0)) {
+			 if (col < estEntryTable.get(row).size()) {
+				 return estEntryTable.get(row).get(col);
+			 }
+		}
+		return null;
+	}
+	/**
 	 * Obtain the actual workspace entry whose data is contained in this
 	 * model.
 	 * 

@@ -290,7 +290,7 @@ public abstract class ViewFactory implements DnDTabListener {
 			// OverlapModel pam = OverlapModel.create(ct, ests, mst);
 			// view = new OverlapView(mainFrame, pam, ct);
 		} else if (ViewType.EST_FILE.equals(viewType)) {
-			ESTTableModel model = new ESTTableModel(ests);
+			ESTTableModel model = new ESTTableModel(ests, false);
 			view = new ESTTableView(model, mainFrame);
 		} else if (ViewType.HTML_VIEW.equals(viewType)) {
 			// Create an HTML view of the specified data file.

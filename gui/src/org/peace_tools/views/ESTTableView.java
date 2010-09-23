@@ -37,12 +37,17 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 
 import javax.swing.Box;
+import javax.swing.DefaultCellEditor;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
@@ -53,10 +58,12 @@ import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JTable;
 import javax.swing.JToolBar;
+import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
@@ -64,6 +71,9 @@ import org.peace_tools.core.MainFrame;
 import org.peace_tools.core.ViewFactory;
 import org.peace_tools.data.EST;
 import org.peace_tools.data.ESTTableModel;
+import org.peace_tools.generic.FindDialog;
+import org.peace_tools.generic.FindEvent;
+import org.peace_tools.generic.FindListener;
 import org.peace_tools.generic.HelpHandler;
 import org.peace_tools.generic.UserLog;
 import org.peace_tools.generic.Utilities;
@@ -77,7 +87,7 @@ import org.peace_tools.generic.Utilities;
  * exposed via the ESTTableView class. The view is created on demand
  * via the ViewFactory.  
  */
-public class ESTTableView extends JPanel implements ActionListener, ChangeListener {
+public class ESTTableView extends JPanel implements ActionListener, ChangeListener, FindListener {
 	/**
 	 * The default constructor. 
 	 * 
@@ -88,40 +98,59 @@ public class ESTTableView extends JPanel implements ActionListener, ChangeListen
 	 * and associated information in the table.
 	 * 
 	 * @param frame The main frame that logically owns this view.
+	 * 
 	 */
 	public ESTTableView(ESTTableModel model, MainFrame frame) {
 		super(new BorderLayout(0, 0));
 		// Save reference to the memory model
 		this.model     = model;
 		this.mainFrame = frame;
+		// Create a custom cell editor (to make things look pretty) for
+		// the second column that shows a 'revert' button 
+		JCheckBox revertCB = new JCheckBox();
+		revertCB.setIcon(Utilities.getIcon("images/16x16/Blank.png"));
+		revertCB.setSelectedIcon(Utilities.getIcon("images/16x16/Revert.png"));
+		final DefaultCellEditor secondColEditor = new DefaultCellEditor(revertCB);
 		// Create the table with custom cell renderer
-		clusterTable = new JTable(model) {
+		estTable = new JTable(model) {
 			private static final long serialVersionUID = 6507239570257555103L;
 			@Override
 			public TableCellRenderer getCellRenderer(int row, int col) {
-				if (col > 1) {
+				if (col == 0) {
+					return RevertBtnRenderer;
+				} else if (col > 3) {
 					return ESTRenderer;
 				} else {
 					return super.getCellRenderer(row, col);
 				}
 			}
+			@Override
+			public TableCellEditor getCellEditor(int row, int col) {
+				if (col == 0) {
+					return secondColEditor;
+				}
+				return super.getCellEditor(row, col);
+			}
 		};
 		
 		// Set some table properties
-		clusterTable.setBorder(null);
+		estTable.setBorder(null);
 		// clusterTable.setShowHorizontalLines(true);
-		clusterTable.setFillsViewportHeight(true);
-		clusterTable.setDragEnabled(false);
-		clusterTable.setDropTarget(null);
-		clusterTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-		clusterTable.setGridColor(new Color(0xe0, 0xe0, 0xe0));
+		estTable.setFillsViewportHeight(true);
+		estTable.setDragEnabled(false);
+		estTable.setDropTarget(null);
+		estTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		estTable.setGridColor(new Color(0xe0, 0xe0, 0xe0));
+		estTable.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
 		// Setup column sizes
 		setColumnWidths();
+		// Prevent reordering of columns
+		estTable.getTableHeader().setReorderingAllowed(false);
 		
 		// Place the table in a scroll pane to it can scroll
-		JScrollPane scroller = new JScrollPane(clusterTable);
+		JScrollPane scroller = new JScrollPane(estTable);
 		scroller.setBorder(null);
-		scroller.getViewport().setBackground(clusterTable.getBackground());
+		scroller.getViewport().setBackground(estTable.getBackground());
 		// Create summary information.
 		Component summaryPanel = createSummaryInfo();
 		// Place the summary information and the tree-table into a panel.
@@ -135,6 +164,37 @@ public class ESTTableView extends JPanel implements ActionListener, ChangeListen
 		createToolbar();
 	}
 	
+
+	/**
+	 * This method implements the find interface to use the find dialog. This 
+	 * method intercepts the events fired by the find dialog whenever the
+	 * user clicks the 'find' button (in that dialog). This method 
+	 * performs a search (with the help of the model) and appropriately
+	 * updates the currently selected row.
+	 * 
+	 * @param event The find event that contains information about the search
+	 * requested by the user.
+	 */
+	@Override
+	public boolean find(FindEvent event) {
+		// If no row is selected then the selected row is -1 but our search will
+		// commence at row 0 by default.
+		final int currRow = Math.max(0, estTable.getSelectedRow());
+		// Get the model to do the actual search.
+		int matchingRow = model.find(event, currRow);
+		// Check and update the currently selected row.
+		if (matchingRow != -1) {
+			// Scroll to the matching row
+		    Rectangle rect = estTable.getCellRect(matchingRow, 0, true);
+		    estTable.scrollRectToVisible(rect);
+		    // Set the row to be selected.
+			estTable.getSelectionModel().setSelectionInterval(matchingRow, matchingRow);
+			return true;
+		}
+		// No match found.
+		return false;
+	}
+	
 	/**
 	 * Utility method to set the column widths.
 	 * 
@@ -143,12 +203,12 @@ public class ESTTableView extends JPanel implements ActionListener, ChangeListen
 	 */
 	private void setColumnWidths() {
 		// Setup some column properties.
-		final TableColumnModel tcm = clusterTable.getColumnModel();
+		final TableColumnModel tcm = estTable.getColumnModel();
 		final int ColCount   = tcm.getColumnCount();
-		final int ColSizes[] = {75, 150, (ColCount > 3) ? 250 : 800};
+		final int ColSizes[] = {20, 20, 75, 150, (ColCount > 3) ? 250 : 800};
 		// Setup column sizes for each column.
 		for(int colId = 0; (colId < tcm.getColumnCount()); colId++) {
-			tcm.getColumn(colId).setPreferredWidth((colId > 1) ? ColSizes[2] : ColSizes[colId]);
+			tcm.getColumn(colId).setPreferredWidth((colId > 3) ? ColSizes[4] : ColSizes[colId]);
 		}		
 	}
 	
@@ -181,6 +241,12 @@ public class ESTTableView extends JPanel implements ActionListener, ChangeListen
 		toolbar.add(sortOrder);
 		// Add button to save selected ESTs.
 		toolbar.add(Box.createHorizontalStrut(10));
+		JButton findButton = Utilities.createToolButton("images/16x16/Find.png",
+				"", "find", this, 
+				"Search for information in the FASTA file", true);
+		findButton.setMnemonic(KeyEvent.VK_F);
+		toolbar.add(findButton);
+		toolbar.add(Box.createHorizontalStrut(5));
 		toolbar.add(Utilities.createToolButton("images/16x16/SaveEST.png",
 				"", "save", this, 
 				"Saves selected entries to another FASTA file", true));
@@ -253,6 +319,10 @@ public class ESTTableView extends JPanel implements ActionListener, ChangeListen
 			stateChanged(null);
 		} else if ("help".equals(event.getActionCommand())) {
 			HelpHandler.showHelp(mainFrame, "http://www.peace-tools.org/downloads/manual.pdf#page=34");
+		} else if ("find".equals(event.getActionCommand())) {
+			FindDialog fd = FindDialog.getDialog();
+			fd.setFindListener(this);
+			fd.setVisible(true);
 		}
 	}
 	
@@ -292,7 +362,7 @@ public class ESTTableView extends JPanel implements ActionListener, ChangeListen
 	 * </ol>
 	 */
 	private void saveSelectedESTs() {
-		int[] selectedRows = clusterTable.getSelectedRows();
+		int[] selectedRows = model.getSelectedRows();
 		if ((selectedRows == null) || (selectedRows.length == 0)) {
 			JOptionPane.showMessageDialog(this, SELECT_EST_MSG,
 					"Selection is empty", JOptionPane.INFORMATION_MESSAGE);
@@ -329,8 +399,50 @@ public class ESTTableView extends JPanel implements ActionListener, ChangeListen
 			JOptionPane.showMessageDialog(this, msg, "Save error", JOptionPane.ERROR_MESSAGE);
 		}
 	}
+
+	/**
+	 * The icon that is visible and looks similar to the revert button image used
+	 * by the corresponding cell editor. This image is loaded once and reused
+	 */
+	private static final ImageIcon RevertIcon = Utilities.getIcon("images/16x16/Revert.png");
+
+	/**
+	 * The icon that is invisible and merely takes up the same space as the Revert
+	 * icon (used when no reverting is needed). This image is loaded once and reused
+	 */
+	private static final ImageIcon BlankIcon = Utilities.getIcon("images/16x16/Blank.png");
+
 	
+	private static class RevertCellRenderer extends JLabel
+    implements TableCellRenderer {
+		/**
+		 * The general serial version UID to enable serialization of this class as
+		 * per Java requirements.
+		 */
+		private static final long serialVersionUID = 5654108539980884223L;
 		
+		
+		/** Default constructor.
+		 * 
+		 * The default constructor merely sets the standard information in
+		 * the label.
+		 */
+		public RevertCellRenderer() {
+			super(BlankIcon);
+			setOpaque(true);
+		}
+		
+		@Override
+		public Component getTableCellRendererComponent(JTable table,
+				Object value, boolean isSelected, boolean hasFocus, int row,
+				int column) {
+			Boolean data = (Boolean) value;
+			setIcon(data ? RevertIcon : BlankIcon);
+			setBackground(isSelected ? table.getSelectionBackground() : table.getBackground());
+			return this;
+		}
+	}
+	
 	/**
 	 * The toolbar that contains some commonly used tools with 
 	 * the jobs.
@@ -339,9 +451,9 @@ public class ESTTableView extends JPanel implements ActionListener, ChangeListen
 
 	/**
 	 * The actual Tree-table that provides a graphical view of the
-	 * list of clusters in a given cluster file.
+	 * list of ESTs in a given data file.
 	 */
-	private JTable clusterTable;
+	private JTable estTable;
 
 	/**
 	 * The table model that is being used to display information
@@ -385,6 +497,13 @@ public class ESTTableView extends JPanel implements ActionListener, ChangeListen
 	*/
 	private static final CustomTableCellRenderer ESTRenderer = new CustomTableCellRenderer();
 	
+	/**
+	 * A simple/custom cell renderer that displays a blank or revert button
+	 * when a specific EST entry has been modified (or is unmodified). This renderer
+	 * is used to display the data in the second column of the table display.
+	 */
+	private static final RevertCellRenderer RevertBtnRenderer = new RevertCellRenderer();
+
 	/**
 	 * A simple message that is displayed to the user. 
 	 */

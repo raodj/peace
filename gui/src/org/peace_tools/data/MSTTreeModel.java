@@ -239,6 +239,60 @@ public class MSTTreeModel implements TreeModel {
 	public MSTData getWsEntry() { return wsEntry; }
 	
 	/**
+	 * Helper method to obtain the complete path from the root to a given 
+	 * child element in the tree model.
+	 * 
+	 * @param estIdx The index of the EST to which the path from the root 
+	 * is to be returned.
+	 * 
+	 * @return The path from the root to the child. If the specified EST index is not
+	 * found, then this method returns null.
+	 */
+	public TreePath getPath(int estIdx) {
+		ArrayList<MSTNode> path = new ArrayList<MSTNode>(128);
+		if (getPath(path, mst.getRoot(), estIdx)) {
+			// Found a valid path to the specified est index. Return a valid 
+			// TreePath for further use
+			return new TreePath(path.toArray());
+		}
+		return null;
+	}
+	
+	/**
+	 * Helper method to recursively search the MST and save the path from a given
+	 * parent node to the child node that contains the given EST index.
+	 * 
+	 * @param path The current path that is recursively built.
+	 * @param parent The current parent node from where the search must proceed.
+	 * @param estIdx The index of the EST for which we are searching.
+	 * @return This method returns true if the specified estIdx was found in the parent
+	 * or one of its descendants. Otherwise this method returns false.
+	 */
+	private boolean getPath(ArrayList<MSTNode> path, MSTNode parent, int estIdx) {
+		if (parent.getESTIndex() == estIdx) {
+			// Found the entry we are looking for. Recursive search ends.
+			path.add(0, parent);
+			return true;
+		}
+		if (parent.isLeaf()) {
+			// Leaf nodes need no further searching. Data not found.
+			return false;
+		}
+		// Search each child looking for the necessary information.
+		for(MSTNode child: parent.getChildren()) {
+			if (getPath(path, child, estIdx)) {
+				// Found the estIdx in one of our descendants. So add ourselves
+				// to the path.
+				path.add(0, parent);
+				return true;
+			}
+		}
+		// When control drops here that indicates that the estIdx that we are
+		// searching for was not found in this node or its descendants
+		return false;
+	}
+	
+	/**
 	 * A handy reference to the workspace entry from which the data for this
 	 * MST tree model was actually obtained. This information can be
 	 * used by "view" classes to create additional views as needed.
