@@ -100,14 +100,14 @@
 \author{Yuan Zhang$^1$
   \email{Yuan Zhang - zhangy9@muohio.edu}
   \and
-  James C Moler$^1$
-  \email{James Moler - molerjc@muohio.edu}
-  \and
   Dhananjai M Rao$^1$
   \email{Dhananjai Rao - raodm@muohio.edu}
   \and
   Mufit Ozden$^1$
   \email{Mufit Ozden - ozdenm@muohio.edu}
+  \and
+  James C Moler$^1$
+  \email{James Moler - molerjc@muohio.edu}
   \and
   Chun Liang\correspondingauthor$^{1,2}$
   \email{Chun Liang\correspondingauthor - liangc@muohio.edu}
@@ -191,50 +191,56 @@
 %%
 \section*{Introduction}
 The {\it de novo} assembly of RNA transcripts is an important and
-computationally challanging problem, made more difficult by the advent
+computationally challenging problem, made more difficult by the advent
 of Next Generation Sequencing technologies such as 454 or Illumina
-[CITE].  Given the completion of large-scale seqencing run of multiple
-mature transcripts of a given organism, the invetigator is left with a
-large set of sequence fragments, but no ordering or even transcript
-association information; these fragments must be clustered by
-transcript then assembled before the sequencing output can be truely
+\cite{Nagaraj07,Rao10}.  Given the completion of a large-scale sequencing run of
+multiple mature transcripts of a given organism, the investigator is
+left with a large set of sequence fragments, but no ordering or even
+transcript association information; these fragments must be clustered
+by transcript then assembled before the sequencing output can be truly
 useful.  If the genome has not been sequenced, this must be done {\it
   de novo} -- using only the sequence information extrapolated from
 the sequences themselves.  Even when the genomic sequence is known,
-there are a number of advanatages to ignoring the known sequence
-information and starting from scratch.  Using an existing squence as a
-template for sequencing in population studies has the potential to
+there are a number of advantages to ignoring the known sequence
+information and starting from scratch.  Using an existing sequence as
+a template for sequencing in population studies has the potential to
 introduce bias.  And when looking specifically for genes, a known
 sequence may be of limited use: the target transcripts may be
-undiscovered, and the splicing of introns before sequencing can complicate
-the approach of mapping fragemtns to the genomic sequence.  In short,
-there is significant value in tools that can reassemble fragement data
-into the orginial assembly without requiring access to genomic
-information.
+undiscovered, and the splicing of introns before sequencing can
+complicate the approach of mapping fragments to the genomic sequence.
+In short, there is significant value in tools that can reassemble
+fragment data into the original assembly without requiring access to
+genomic information.
 
-The problem of {\it de novo} transcript assembly has been addressed a number
-of times in the literature, with initial approaches consentrating on
-the longer reads produced by traditional Sanger Sequencing techniques,
-and newer approaches looking at produces of Next Generation Sequencing
-(NGS) technologies.  A list of the tools most successfully addressing
-these problems include \capthree, \tgicl, \velvet, and \mira [CITE],
-each excelling within their own context.  \capthree\/ and \tgicl\/ use
-alignment-based strategies that produce high quality results when
-applied to the output of Sanger sequencing technologies.  \velvet,
-based on the modeling of the problem with a {\it de bruijn} graphs,
-was designed to handle short read sequences.  [SOMETHING ABOUT MIRA --
-INCLUDING ABIITY TO HANDLE HYBRID DATA.]
+The problem of {\it de novo} transcript assembly has been addressed a
+number of times in the literature, with initial approaches
+concentrating on the longer reads produced by traditional Sanger
+Sequencing techniques, and newer approaches looking at produces of
+Next Generation Sequencing (NGS) technologies.  A list of the tools
+most successfully addressing these problems include \capthree, \tgicl,
+\velvet, and \mira, each excelling within their own context
+\cite{Huang99,Pertea03,Chevreux04,Zerbino08}.  \capthree\/ and
+\tgicl\/ use alignment-based strategies that produce high quality
+results when applied to the output of Sanger sequencing technologies.
+\velvet, based on the modeling of the problem with a {\it de bruijn}
+graphs, was designed to handle short read sequences.  \mira\/ is a
+multi-pass DNA assembler based on an overlap-layout-consensus
+strategy.  [STILL NEED TO SAY SOMETHING ABOUT MIRA AND HYBRID SETS.]
 
 
 In this paper we present \east, a tool for the assembly of both
-Sanger, NGS and hybrid data with the capacity to incorperate quality
+Sanger, NGS and hybrid data with the capacity to incorporate quality
 scores when available.  \east\/ is based on a novel minimum spanning
-tree (MST) apraoch to compute assembly.  The tool works in tandem with
-the \peace\/ clustering tool [CITE] -- allowing \peace\/ to cluster
-fragements by transcript and produce the initial MSTs that will serve
+tree (MST) approach to compute assembly.  The tool works in tandem with
+the \peace\/ clustering tool \cite{Rao10}: \peace\/ clusters
+fragments by transcript and produces the initial MSTs that will serve
 as the basis for the \east\/ algorithm.  In the following we present a
 comparison of \east\/ against those of \capthree, \tgicl, \velvet, and
-\mira on both Sanger and NGS sequences, showing that [???]
+\mira on both Sanger and NGS sequences, showing that \peast\/
+generates the best quality results in the fastest runtime for Sanger
+sequences, and that while certain tools out-preform \peast\/ under specific
+conditions, it is the only tool able to produce constant quality results
+for Sanger, 454, Illumina, {\it and} hybrid data sets.
 
 
 
@@ -247,126 +253,296 @@ comparison of \east\/ against those of \capthree, \tgicl, \velvet, and
 In assessing result quality, we must view the \peace\/ clustering tool
 \cite{Rao10} and \east\/ as a combined process.  While most assembly
 tools integrate these two jobs, \east\/ assumes clustering has been
-preformed and requires the \peace\/ MST output.  Hence for purposes of
-the following section, we consider a single tool \peast, and
-assess the quality of these results.
+preformed and requires the \peace\/ MST output.  While other cluster
+tools could be substituted in to preform the actual clustering
+(e.g. \wcd or \easycluster \cite{Hazelhurst08,Picardi09}), only
+\peace\/ provides the requires MST output.  Hence for purposes of the
+following section, we consider a single tool \peast, and assess the
+quality of these results.
 
-In order to assess the quality of the \east\/ (\peast\/) results, we compared
+In order to assess the quality of the (\peace\/ +) \east\/ results, we compared
 against four prominent assembly tools: \capthree, \tgicl,
-\mira, and \velvet [CITE].  Tools were tested on data from three
+\mira, and \velvet\/ \cite{Huang99,Pertea03,Chevreux04,Zerbino08}.  Tools were tested on data from three
 sequencing technologies (Sanger, 454 and Illumina), using both
 simulated output obtained from the \estsim\/ and \metasim\/ tools
-[CITE] and benchmark sets obtained from GenBank [CITE].  
+\cite{Hazelhurst03,Richter08} and benchmark sets obtained from GenBank \cite{Benson10}.  
 
 
 \subsection*{Measuring Quality}
-Our primary measure of quality was the {\bf normalized A-score}, based
-on the {\it assembly score} (A-score) used in {\it Liang et al.}
-\cite{Liang00}.  For an assembly of some originial sequence, the
-A-score is defined as:
-$$\mbox{($2\times$sequence length) - ($5\times$ number of
-mismatches) - ($15 \times$ number of indels)}$$
+Our primary measure of quality was the {\bf normalized a-score}, based
+on the {\it assembly score} (a-score) used in {\it Liang et al.}
+\cite{Liang00}.  For an assembly of some original sequence, the
+a-score is defined as:
+$$\mbox{($2\times$sequence length) - ($5\times$number of
+mismatches) - ($15 \times$number of indels)}$$
 with a ``perfect'' score equal to twice the sequence length.  Our
-normalized A-score modifies this definition as:
-$$\frac{\mbox{($2\times$assembly length) - ($5\times$ number of mismatches)
-  - ($15\times$ number of indels)}}{\mbox{($2\times$ sequence length)}}$$
-with a perfect score equal to 1.  This normalization allows for the
-comparison of assembly quality between sequences of differenct
-lengths. Further, using this score we can more accurately quantify the
-quality of a partial reconstrction: if we are able to reconstruct only
-a portion of a fragment, the normalized A-score will take full
-consideration of the quality of the reconstruction, but then bound the
-score by the relative size of the reconstruction.  (e.g. Perfectly
-reconstructiong one fourth of the original sequence will lead to an a
-score of $0.25$.)  
-
-In addition to A-score...
+normalized a-score modifies this definition as:
+$$\frac{\mbox{($2\times$assembly length) - ($5\times$number of mismatches)
+    - ($15\times$number of indels)}}{\mbox{($2\times$sequence
+    length)}}$$ with a perfect score equal to 1.  This normalization
+allows for the comparison of assembly quality between sequences of
+different lengths. Further, using this score we can more accurately
+quantify the quality of a partial reconstruction: if we are able to
+reconstruct only a portion of a fragment, the normalized a-score will
+take full consideration of the quality of the reconstruction, but then
+bound the score by the relative size of the reconstruction.
+(e.g. Perfectly reconstruction one fourth of the original sequence
+will lead to an a score of $0.25$.)  In addition to a-score we also
+look at: the number of contigs produced by a tool (which, in the
+perfect solution, will be exactly equal to the number of transcripts
+represented by the data set), normalized by the number of transcripts;
+the number of singleton ESTs in the solution (i.e. ESTs unassigned to
+any contig and thus, most cases, effectively thrown away), and the runtime of the tool.
 
 \subsection*{Simulation Results}
-Using simulated fragement sets allows us to both compare assemblies to
+Using simulated fragment sets allows us to both compare assemblies to
 a known correct solution and control parameters in their model
 (e.g. base-call error rate) to test the effect of variation.  All sets
 were generated from a set of 100 zebra fish transcripts obtained from
 {\it Hazelhurst et al.}  \cite{Hazelhurst08}.  For simulated Sanger
 sequences we used the \estsim\/ tool, using its default model of EST
-generation and error rate when not otherwise specified.  For simulated
-454 and Illumina sets we used the \metasim\/ tool, again using their
+generation when not otherwise specified.  For simulated
+454 and Illumina sets we used the \metasim\/ tool \cite{Richter08}, again using their
 default model to simulate the errors associated with those
 technologies.
 
-\noindent {\bf Sanger Sequencing:} We start by looking at the assembly
-quality of each tool, when applied to simulated Sanger Sequences, as a
-function of error rate for a range of coverage depths.  For each
-parameter combination we applied each tool to 30 independently
-randomly generated simulated sets, derived from 15 zebra fish genes,
-reporting the average normalized A-score.  In
-Figure~\ref{sangerAscore} we look at normaized A-score as a function
+\noindent {\bf Sanger Sequencing:} We first compare the assembly
+quality of the tools on Sanger Sequencing, using \east, \capthree, and
+\tgicl\/ (the tools designed to work with Sanger sequences), looking
+at the a-score as a function of error rate for a range of coverage
+depths.  For each parameter combination we applied each tool to 30
+independently randomly generated simulated sets, derived from 15 zebra
+fish genes, reporting the average normalized a-score.  In
+Figure~\ref{sangerAscore} we look at normalized a-score as a function
 of error rate, fixing coverage at 50, 30 and 10 and varying base-read
-error rate from 0\% to 6\% [WHAT IS INDEL RATE?] for each of the five
-tools being tested.  While the three illustrated tools preform well
-when applied error free (i.e. impossible) sequencing technoloy, we
-find \east\/ to be considerably more robust to base-call errors than the
-other tools.  Taking the mid-range coverage value of 30 as an example,
-at a 1\% error rate we see \east, \capthree, and \tgicl\/ all achieving an
-essentially perfect normalize A-score, while \mira\/ ranges around a 0.5
-and \velvet\/ does quite poorly.  At a 3\% error rate \east\/ maintains its
-almost perfect normalized A-score, showing a 2\% improvement of \tgicl,
-a 21\% improvlement over \capthree, and a 133\% improvement over \velvet.
-At a 4\% error rate \east\/ still maintains its near-perfect score
-(showing a 54\% and 85\% improvement over \capthree\/ and \tgicl\/
-respecitvally), and even at a 6\% error rate is still achieving an
-normalized A-score of 0.95 (a 110\% improvement over the next closest
-tool, \tgicl\/).
+error rate from 0\% to 6\% for each of the three tools designed for
+Sanger Sequencing.  While all three tools preform well when applied to
+error free (i.e. impossible) sequencing technology, we find \east\/ to
+be considerably more robust to base-call errors than the other tools.
+Taking the mid-range coverage value of 30 as an example, at a 1\%
+error rate we see \east, \capthree, and \tgicl\/ all achieving an
+essentially perfect normalize a-score .  At a 3\% error rate \east\/
+maintains its almost perfect normalized a-score, showing a 2\%
+improvement over \tgicl\/ and a 21\% improvement over \capthree.  At a
+4\% error rate \east\/ still maintains its near-perfect score (showing
+a 54\% and 85\% improvement over \capthree\/ and \tgicl\/
+respectively), and even at a 6\% error rate is still achieving an
+normalized a-score of 0.95 (a 110\% improvement over the next closest
+tool, \tgicl\/), meaning that at most 5\% of the bases were left out of
+their contigs or were incorrectly reconstructed.
 
 
 \begin{figure}[htb]
-\centerline{\includegraphics[width=6in]{pics.d/ascore_sanger.png}}
-\label{sangerAscore}
-\caption{Normalized a-score as a function of base error rate for
-  simmulated sanger sequencing.  \east=blue, \capthree=Black,
+\centerline{\includegraphics[width=6in]{pics.d/ascore_sanger.pdf}}
+\caption{Average normalized a-score as a function of base error rate for
+  simulated Sanger sequencing.  \east=blue, \capthree=Black,
   \tgicl=green, \velvet=red, \mira=purple.}
+\label{sangerAscore}
 \end{figure}
 
 Another useful metric is the number of contigs and number of singleton
-fragments in the final result.  In Figure~\ref{contigs.sanger} is a
-plot of the average number of contigs per gene seqence (left column), ad
+fragments in the final result.  In Figure~\ref{contigsSanger} is a
+plot of the average number of contigs per gene sequence (left column), and
 the number of singletons (right column).  For the first we observe that all tools have
-comperable results for lower error rates, but only \east\/ is able to
-maintain the low score with increasing error rates.  In minimizing the
+comparable results for lower error rates, but only \east\/ is able to
+maintain the low score with increasing error rates -- generating an
+perfect score in almost every case.  In minimizing the
 number of singletons, we find that \east\/ does a better job than
-\capthree\/ for error rates larger than $2\%$, while TGICL does a
+\capthree\/ for error rates larger than $2\%$, while \tgicl does a
 better job that \east\/ for error rates larger than $4\%$ to $5\%$.
 
 \begin{figure}[htb]
 \begin{minipage}{3in}
-\includegraphics[width=3in]{pics.d/numContigs_sanger.png}
+\includegraphics[width=3in]{pics.d/numContigs_sanger.pdf}
 \end{minipage}
 \begin{minipage}{3in}
-\includegraphics[width=3in]{pics.d/numSingle_sanger.png}
+\includegraphics[width=3in]{pics.d/numSingle_sanger.pdf}
 \end{minipage}
-\label{contigs.sanger}
-\caption{Number of contigs and singles as a function of base error
-  rate for simmulated sanger sequencing.  \east=blue, \capthree=Black,
+\caption{Number of contigs (normalized to the number of transcripts)
+  and number of singletons as a function of base call error
+  rate for simulated Sanger sequencing.  \east=blue, \capthree=Black,
   \tgicl=green, \velvet=red, \mira=purple.  (Number of singles for
   \velvet\/ and \mira\/ not shown.)}
+\label{contigsSanger}
 \end{figure}
 
-[ADD SOMETHING ABOUT COVERAGE?  The situation is strange.]
 
-\noindent {\bf Next Generation Sequences:} 
+\noindent {\bf Next Generation Sequences:} In
+Figure~\ref{nextgenAscore} we compare the normalized a-score for
+simulated 454 and Illumina outputs (with sequence lengths averaging
+250 and 62 bp respectively).  For these tests we varied coverage
+levels but otherwise took the default Metasim model.  On 454 data we
+see significant improvement in results quality in \east\/ for all
+levels of coverage.  On Illumina data we see that \east\/ is
+competitive with \velvet\/ at higher coverages, though is unable to
+match that tool when coverage is sparse.
 
+\begin{figure}[htb]
+\centerline{\includegraphics[width=6in]{pics.d/ascore_nxtgen.pdf}}
+\caption{Comparative normalized a-scores for 454 and Illumina sequence
+  output, using the \metasim default model at different levels
+  of coverage.  \east=blue, \capthree=Black, \tgicl=green,
+  \velvet=red, \mira=purple.  }
+\label{nextgenAscore}
+\end{figure}
 
+\noindent {\bf Hybrid:} In Figure~\ref{hybridAscore} we look at the
+quality of results derived from applying each tool to a hybrid data
+set of Sanger (40\%), 454 (40\%) and Illumina (20\%) sequences, again
+showing normalized a-score as a function of base call error rate in
+the Sanger portion.  Here we observe \east matching or outperforming
+\capthree\/ and \mira\/ at moderate to high coverages.  At a coverage
+level of 50, \east\/ maintains a normalized a-score hovering around
+0.85 at all error levels (showing a 54\% improvement over \mira\/ at a
+3\% base-call error rate).  \east\/ actually improves its performance
+at a coverage level of 30 (hovering around a normalized a-score of
+0.95, showing a 142\% improvement of Mira at the 3\% base-call error
+rate), an oddity we attribute to the decreased absolute number of NGS
+sequences with the smaller coverage.  At a coverage level of 10
+\east's normalized a-score is around 0.37 -- doing considerably worse
+that \mira\/ at low error rates (e.g. 0.94 v. 0.40 for error-free
+bases), but showing a 52\% improvement over \mira\/ at the 3\% error
+rate mark and in general showing much more robustness to error.
+Remarkably, it is only in this situation that \capthree\/ is
+competitive, with that tool achieving a normalized a-score of 0.62
+(v. \east's 0.37) for the 3\% base call error rate, but loosing out to
+\east at greater than a 4.5\% base call error rate -- a result that we
+attribute to \east's problems with the 62 bp Illumina sequences (see below).
 
+\begin{figure}[htb]
+\centerline{\includegraphics[width=6in]{pics.d/ascore_hybrid.pdf}}
+\caption{Comparative normalized a-scores a hybrid set of Sanger, 454
+  and Illumina sequence output, varying the base call error rate for
+  Sanger sequences and using the MetaSim default model for the 454 and
+  Illumina sequences.  Each data set tested was composed of 40\%
+  Sanger Sequences, 40\% 454 Sequences, and 20\% Illumina sequences.
+  \east=blue, \capthree=Black, \tgicl=green,
+  \velvet=red,\mira=purple.}
+\label{hybridAscore}
+\end{figure}
 
+\noindent {\bf Tool Runtime:} As \east\/ assembly requires the
+\peace\/ cluster (as opposed to the competing tools that do both
+jobs), for \east\/ runtime we actually include the \peace\/
+runtime. In Figures~\ref{runtime.fixed} we see the average runtime for
+each of the experiments reflected in Figures
+Figures~\ref{sangerAscore}-\ref{hybridAscore} for a coverage of 30,
+while in Figure~\ref{runtime.coverage} we look at the average runtime
+for each tool when applied to simulated data sets generated from a
+single zebra fish gene at varying levels of coverage -- effectively
+plotting the runtime as a function of fragment set size.  For Sanger
+sequences, we see marked improvement of (\peace+)\east\/ over all
+other tools for almost all coverage levels: for the smallest set
+(coverage = 10) \east\/ has 1.9 speedup over \capthree\/ and a 3.9
+speedup over \tgicl, while at a more moderate size (coverage=50) we
+see speedups of 4.7 and 8.4.  This returns back down to 3.0 and 5.2 at the
+largest set tested (coverage = 100), as can be seen in the bump around
+a coverage of 85 in Figure~\ref{runtime.coverage}.  We are unable to
+superficially explain this bump, but have noticed the same effect in
+data sets derived from other genes as well.
 
+\east\/ is less competitive on shorter sequence (an effect of the
+$d^2$ bias of our algorithm, as discussed below), reducing its runtime
+improvement for the 250 bp 454 sequences, severely reducing it for the
+62 bp Illumina sequences, and also affecting the hybrid data sets (also
+due to the presence of the Illumina sequence).  We argue that the high
+quality of our results still makes \east\/ an appealing option for 454
+and hybrid data (while acknowledging that cannot complete with
+\velvet\/ on pure Illumina data), and also observe that while it has
+not been implemented, the basic \east\. algorithm should easily admit
+paralilization -- thus increasing the practical limit on data set size.
+
+\begin{figure}[htb]
+\centerline{\includegraphics[width=6in]{pics.d/runtime_fixedsize_sanger.pdf}}
+\caption{Average runtime per trial for when generating data for
+  Figures~\ref{sangerAscore}-\ref{hybridAscore}  when coverage = 30).
+  Note that the exceptionally high speed of \velvet\/ on Illumina sequences make the
+  red (center) bars in that plot essentially indistinguishable.
+  (\peace+)\east=blue, \capthree=Black, \tgicl=green,
+  \velvet=red,\mira=purple.}
+\label{runtime.fixed}
+\end{figure}
+
+\begin{figure}[htb]
+\centerline{\includegraphics[width=6in]{pics.d/runtime_bycoverage_all.pdf}}
+\caption{The average runtime when applying each tool to a simulated
+  data set derived from a specific zebrafish transcript of length
+  14,625 bp.  As we decrease coverage the number of fragments drops,
+  hence illustrating the relationship between tool runtime and
+  fragment set size.  Each data point represents the average runtime
+  from the application of the tool to at least 30 randomly generated
+  simulated sets coming from the transcript at the given level of coverage.
+  (\peace + )\east=blue, \capthree=Black, \tgicl=green,
+  \velvet=red,\mira=purple.}
+\label{runtime.coverage}
+\end{figure}
 
 
 
 %%%%%%%%%%%%%%%%%%%%%%
 \section*{Conclusions}
 
+In this manuscript we have described the \east\/ algorithm and run a
+comparison of the \peast combination against the best preforming tools
+in the literature.  When compared against the fine benchmark tools on
+normalized a-score and runtime metrics, the \peast\/ combination of
+tools prove to be both the best tool for Sanger sequencing, the
+best tool overall, and by far the most robust against sequencing
+error.  While certain tools may do better than it in specific circumstances,
+there is no tool that does better than it on multiple sequencing
+technology platforms.  While its speed is slower when applied to short
+sequence fragments, the quality of its results more then compensate.
 
-  
+As observed in the results section, when applying \east, \capthree,
+and \tgicl\/ to Sanger sequenced transcripts with normal to high error
+rates, \east\/ consistently out preforms all other tools in terms of
+the normalized a-score metric when applied to transcript fragments
+resulting from Sanger sequencing (Figures~\ref{sangerAscore},
+\ref{runtime.fixed}, and \ref{runtime.coverage}).  We also find that
+the number of contigs produced is almost exactly equal to the number
+of transcripts represented in the set, regardless of error rate, while
+the number of singleton ESTs remains low up to about a 5\% error rate
+(Figures~\ref{contigsSanger}).  The high normalized a-score indicates
+that \east\/ is both reconstructing larger portions of each transcript
+and doing so more faithfully, while the low number of contigs means
+that we are getting complete transcripts.  Finally, runtimes for
+\east\/ are considerably faster than other tools for larger sets
+(Figures~\ref{runtime.fixed} and \ref{runtime.coverage}, with
+(\peace+)\east\/ running a minimum of two to three times as fast as
+the other tools, with speedups over \capthree\/ (the faster tool)
+ranging from 1.9 to 6.0, depending on the coverage level.  In short,
+when used for Sanger Sequences \east\/ is a faster tool that produces
+the high quality reconstructions versus comparing tools and is
+significantly more robust to error than other tools.
+
+When involving shorter sequences, the runtime of \east\/ takes a
+significant hit.  As explained in our methods section, \east\/ is
+dependent on the $d^2$ sequence distance function \cite{Hide94}, whose
+parameters must be adjusted when applied to smaller sequences to
+preserve quality, at the cost of runtime.  We describe below our {\it
+  adoptive $d^2$} algorithm that allows us to target more specific
+parameters on a case-by-case basis, but large numbers of short
+sequences will still lead to slower runtimes.  In our tests our
+simulated 454 sequences averaged 250 bp in length, while our Illumina
+sequences were uniformly 62 bp, accounting for the slightly reduced
+improvement of \east, as compared to other tool runtimes, in the 454 tests and
+the significant reduction for the Illumina and Hybrid test sets
+containing the short Illumina sequences.
+
+Despite the slower runtime, it can still be argued that the \east\/ is
+competitive, given the quality of its output, excepting when compared
+to \velvet\/ on Illumina data.  For 454 sequences, no tool comes even
+close to matching the \east\/ results.  \east is able to match
+\velvet for high-coverage Illumina data, though loses out at lower
+coverages (and is not even remotely competitive in terms of runtime).
+Looking at hybrid sets, which the \mira\/ tool is specifically geared
+to address, we again find \east\/ to produce significantly superior
+results at moderate to high levels of coverage.  At low coverage
+levels \east\/ does suffer (another effect of the short
+Illumina sequences), but its robustness then leads to
+better results when the Sanger sequence portion of the set is subject
+to elevated error rates.
+
 %%%%%%%%%%%%%%%%%%
 \section*{Methods}
 
@@ -431,7 +607,7 @@ incident sequences overlap; were there not sufficient sequence
 similarity to indicate an overlap, the edge would have been assigned a
 high $d^2$ value and would have been removed by \peace\/.  To
 determine how the nodes overlap, we calculate a modified $d^2$ score
-as follows.  The standard calculation of $d^2$, as define by {\it Hide
+as follows.  The standard calculation of $d^2$, as defined by {\it Hide
   et al.} \cite{Hide94}, requires looking at every pair of length $w$
 sub-strings (windows) from the two sequences, calculating a distance
 between these two windows based on the number of shared words
@@ -444,7 +620,7 @@ strand).  Hence we need only consider the left-most and right-most
 windows of $s_1$ against each window of $s_2$, reducing the number of
 window comparisons from quadratic to linear in the size of $s_2$.
 
-In Figure~\ref{fig:overlap} we see illustrate the use of modified $d^2$,
+In Figure~\ref{fig:overlap} we illustrate the use of modified $d^2$,
 using it to take two sequences (a), find the window on $s_2$ most
 resembling the right-most window of $s1$ (red section of (b)),
 extending to the end of $s_2$ (green section of (c)) and preforming a
@@ -477,7 +653,8 @@ solution is to partition fragments by sizes (e.g. into groups of
 small, medium and large fragments), and compute distances only
 between segments in the name or neighboring groups.  By skipping the
 comparisons between sequences of significantly different sizes we
-avoid the pitfalls of such comparisons.
+avoid the pitfalls of such comparisons, while still picking up the
+connections through transitivity.
 
 \subsection*{Ordering and Reconstruction}
 
@@ -538,7 +715,7 @@ sequence.
 
 {\ifthenelse{\boolean{publ}}{\footnotesize}{\small}
  \bibliographystyle{bmc_article}  % Style BST file
-  \bibliography{bmc_article} }     % Bibliography file (usually '*.bib' ) 
+  \bibliography{all} }     % Bibliography file (usually '*.bib' ) 
 
 %%%%%%%%%%%
 
@@ -558,13 +735,13 @@ sequence.
 %%
 %% Do not use \listoffigures as most will included as separate files
 
-\section*{Figures}
-  \subsection*{Figure 1 - Sample figure title}
-      A short description of the figure content
-      should go here.
+% \section*{Figures}
+%   \subsection*{Figure 1 - Sample figure title}
+%       A short description of the figure content
+%       should go here.
 
-  \subsection*{Figure 2 - Sample figure title}
-      Figure legend text.
+%   \subsection*{Figure 2 - Sample figure title}
+%       Figure legend text.
 
 
 
@@ -576,23 +753,23 @@ sequence.
 
 %% Use of \listoftables is discouraged.
 %%
-\section*{Tables}
-  \subsection*{Table 1 - Sample table title}
-    Here is an example of a \emph{small} table in \LaTeX\ using  
-    \verb|\tabular{...}|. This is where the description of the table 
-    should go. \par \mbox{}
-    \par
-    \mbox{
-      \begin{tabular}{|c|c|c|}
-        \hline \multicolumn{3}{|c|}{My Table}\\ \hline
-        A1 & B2  & C3 \\ \hline
-        A2 & ... & .. \\ \hline
-        A3 & ..  & .  \\ \hline
-      \end{tabular}
-      }
-  \subsection*{Table 2 - Sample table title}
-    Large tables are attached as separate files but should
-    still be described here.
+% \section*{Tables}
+%   \subsection*{Table 1 - Sample table title}
+%     Here is an example of a \emph{small} table in \LaTeX\ using  
+%     \verb|\tabular{...}|. This is where the description of the table 
+%     should go. \par \mbox{}
+%     \par
+%     \mbox{
+%       \begin{tabular}{|c|c|c|}
+%         \hline \multicolumn{3}{|c|}{My Table}\\ \hline
+%         A1 & B2  & C3 \\ \hline
+%         A2 & ... & .. \\ \hline
+%         A3 & ..  & .  \\ \hline
+%       \end{tabular}
+%       }
+%   \subsection*{Table 2 - Sample table title}
+%     Large tables are attached as separate files but should
+%     still be described here.
 
 
 
@@ -602,14 +779,14 @@ sequence.
 %%                               %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\section*{Additional Files}
-  \subsection*{Additional file 1 --- Sample additional file title}
-    Additional file descriptions text (including details of how to
-    view the file, if it is in a non-standard format or the file extension).  This might
-    refer to a multi-page table or a figure.
+% \section*{Additional Files}
+%   \subsection*{Additional file 1 --- Sample additional file title}
+%     Additional file descriptions text (including details of how to
+%     view the file, if it is in a non-standard format or the file extension).  This might
+%     refer to a multi-page table or a figure.
 
-  \subsection*{Additional file 2 --- Sample additional file title}
-    Additional file descriptions text.
+%   \subsection*{Additional file 2 --- Sample additional file title}
+%     Additional file descriptions text.
 
 
 \end{bmcformat}
@@ -623,4 +800,7 @@ sequence.
 
 
 % LocalWords:  Ozden Chun Liang Karro Botanty publ MSTs et al Hazelhurst Prim's
-% LocalWords:  mers Illumina contig bmc multi
+% LocalWords:  mers Illumina contig bmc multi LaTeX xpression ssembly rees Rao
+% LocalWords:  Zhang Moler Dhananjai Mufit de novo introns NGS bruijn ABIITY bp
+% LocalWords:  GenBank indels contigs TGICL Metasim MetaSim Runtime runtime pre
+% LocalWords:  zebrafish runtimes ESTs paralilization
