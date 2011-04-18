@@ -611,7 +611,7 @@ protected:
         returned in this parameter is \b not included in the range of
         values.
     */
-    void getOwnedESTidx(int& startIndex, int& endIndex);
+    void getLocallyOwnedESTidx(int& startIndex, int& endIndex);
 
     /** Helper method for a worker process.
 

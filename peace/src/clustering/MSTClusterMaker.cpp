@@ -462,7 +462,7 @@ MSTClusterMaker::populateCache(const int estIdx, SMList* metricList) {
     // First determine the list of ESTs that this process must deal
     // with using the helper method.
     int startESTidx, endESTidx;
-    getOwnedESTidx(startESTidx, endESTidx);
+    getLocallyOwnedESTidx(startESTidx, endESTidx);
     // Setup the reference estIdx in the analyzer which given the
     // analyzer a chance to optimize initialization.
     ASSERT( estList != NULL );
@@ -587,7 +587,7 @@ MSTClusterMaker::populateCache(const int estIdx, SMList* metricList) {
 }
 
 void
-MSTClusterMaker::getOwnedESTidx(int& startIndex, int& endIndex) {
+MSTClusterMaker::getLocallyOwnedESTidx(int& startIndex, int& endIndex) {
     const int ESTsPerProcess = estList->size() / MPI_GET_SIZE();
     const int ExtraESTs      = estList->size() % MPI_GET_SIZE();
     const int MyRank         = MPI_GET_RANK();
@@ -645,7 +645,7 @@ MSTClusterMaker::populateMST() {
     // this process.  So this information is computed first.
     int result = NO_ERROR;
     int startESTidx, endESTidx;
-    getOwnedESTidx(startESTidx, endESTidx);
+    getLocallyOwnedESTidx(startESTidx, endESTidx);
     // Create a suitable cache.
     if (cacheType == "mlist") {
         cache = new MSTMultiListCache(estList->size(), startESTidx,
