@@ -7,7 +7,6 @@ import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
-import java.util.ArrayList;
 
 import javax.swing.JCheckBox;
 import javax.swing.JDialog;
@@ -23,13 +22,31 @@ import org.peace_tools.core.session.ServerSession;
 import org.peace_tools.core.session.SessionFactory;
 import org.peace_tools.generic.Utilities;
 import org.peace_tools.workspace.DataSet;
+import org.peace_tools.workspace.FileEntry;
+import org.peace_tools.workspace.GeneratedFileList;
 import org.peace_tools.workspace.Job;
-import org.peace_tools.workspace.MSTClusterData;
-import org.peace_tools.workspace.MSTData;
 import org.peace_tools.workspace.Server;
 import org.peace_tools.workspace.ServerList;
 import org.peace_tools.workspace.Workspace;
 
+/** Dialog box to delete a workspace entry and associated file(s).
+ * 
+ * This class provides a self-contained dialog box that is used
+ * to provide a graphical interface for deleting a workspace
+ * entry. The workspace entry may be a:
+ *
+ * <ul>
+ *  <li>Job</li>
+ *  <li>Server</li>
+ *  <li>GeneratedFileList</li>
+ *  <li>FileEntry</li>
+ *  <li>DataSet</li>
+ *  </ul>
+ *  
+ *  This dialog box prompts the user to confirm deletion of 
+ *  physical files. The dialog then deletes the entry and
+ *  the associated physical file(s) appropriately.
+ */
 public class DeleteDialog extends JDialog 
 implements ActionListener, Runnable {
 	/**
@@ -139,9 +156,9 @@ implements ActionListener, Runnable {
 			return 0;
 		} else if (wsObject instanceof Server) {
 			return 1;
-		} else if (wsObject instanceof MSTClusterData) {
+		} else if (wsObject instanceof FileEntry) {
 			return 2;
-		} else if (wsObject instanceof MSTData) {
+		} else if (wsObject instanceof GeneratedFileList) {
 			return 3;
 		} else if (wsObject instanceof DataSet) {
 			return 4;
@@ -204,13 +221,12 @@ implements ActionListener, Runnable {
 					Server server = (Server) wsEntry;
 					deleteRemoteDir(server, server.getInstallPath());
 					break;
-				case 2: // MSTClusterData
-					MSTClusterData cluster = (MSTClusterData) wsEntry;
-					deleteLocalFile(cluster.getPath());
+				case 2: // File Entry
+					FileEntry entry = (FileEntry) wsEntry;
+					deleteLocalFile(entry.getPath());
 					break;
-				case 3: // MSTData
-					MSTData mst = (MSTData) wsEntry;
-					deleteLocalFile(mst.getPath());
+				case 3: // Generated File List
+					// No local files to delete.
 					break;
 				}
 			} catch (Exception e) {
@@ -233,13 +249,13 @@ implements ActionListener, Runnable {
 		case 1: // server entry
 			Workspace.get().getServerList().remove((Server) wsEntry);
 			break;
-		case 2: // MSTClusterData
-			MSTClusterData cluster = (MSTClusterData) wsEntry;
-			cluster.getDataSet().remove(cluster);
+		case 2: // File Entry
+			FileEntry fe = (FileEntry) wsEntry;
+			fe.getGFL().remove(fe);
 			break;
-		case 3: // MSTData
-			MSTData mst = (MSTData) wsEntry;
-			mst.getDataSet().remove(mst);
+		case 3: // Generated File List
+			GeneratedFileList gfl = (GeneratedFileList) wsEntry;
+			gfl.getDataSet().remove(gfl);
 			break;
 		case 4: // Data set
 			removeDataSet((DataSet) wsEntry);
@@ -280,49 +296,31 @@ implements ActionListener, Runnable {
 	 * @param dataSet The data set to be removed from the work space.
 	 */
 	private void removeDataSet(DataSet dataSet) {
-		// First try and remove all cluster entries.
-		ArrayList<MSTClusterData> clusters = new ArrayList<MSTClusterData>(dataSet.getClusterList());
-		for (MSTClusterData clsEntry: clusters) {
-			try {
-				// Delete physical file for the cluster if requested.
-				if (deleteFiles.isSelected()) {
-					deleteLocalFile(clsEntry.getPath());
-				}
-				// Remove the cluster entry from the data set.
-				dataSet.remove(clsEntry);
-			} catch (Exception e) {
-				// Error occurred. See if user want's to continue.
-				String msg = String.format(DATASET_ERROR, clsEntry.toString());
-				JPanel info = Utilities.collapsedMessage(msg, Utilities.toString(e));
-				int choice = JOptionPane.showConfirmDialog(this,
-						info, "Proceed further?", JOptionPane.QUESTION_MESSAGE, 
-						JOptionPane.YES_NO_OPTION);
-				if (choice == JOptionPane.NO_OPTION) {
-					return;
-				}
-			}
-		}
-		// Next remove all MST entries from the data set.
-		ArrayList<MSTData> mstList = new ArrayList<MSTData>(dataSet.getMSTList());
-		for (MSTData mstEntry: mstList) {
-			try {
-				// Delete physical file for the MST if requested.
-				if (deleteFiles.isSelected()) {
-					deleteLocalFile(mstEntry.getPath());
-				}
-				// Remove the cluster entry from the data set.
-				dataSet.remove(mstEntry);
-			} catch (Exception e) {
-				// Error occurred. See if user want's to continue.
-				String msg = String.format(DATASET_ERROR, mstEntry.toString());
-				JPanel info = Utilities.collapsedMessage(msg, Utilities.toString(e));
-				int choice = JOptionPane.showConfirmDialog(this,
-						info, "Proceed further?", JOptionPane.QUESTION_MESSAGE, 
-						JOptionPane.YES_NO_OPTION);
-				if (choice == JOptionPane.NO_OPTION) {
-					return;
+		// First try and remove all generated file entries.
+		for (GeneratedFileList gfl: dataSet.getGflList()) {
+			for(FileEntry fe: gfl.getEntries()) {
+				try {
+					// Delete physical file for the cluster if requested.
+					if (deleteFiles.isSelected()) {
+						deleteLocalFile(fe.getPath());
+					}
+					// Remove the file entry from the gfl
+					gfl.remove(fe);
+
+				} catch (Exception e) {
+					// Error occurred. See if user want's to continue.
+					String msg = String.format(DATASET_ERROR, fe.toString());
+					JPanel info = Utilities.collapsedMessage(msg, Utilities.toString(e));
+					int choice = JOptionPane.showConfirmDialog(this,
+							info, "Proceed further?", JOptionPane.QUESTION_MESSAGE, 
+							JOptionPane.YES_NO_OPTION);
+					if (choice == JOptionPane.NO_OPTION) {
+						return;
+					}
 				}
 			}
+			// Now that we have removed all the entries remote the GFL node
+			dataSet.remove(gfl);
 		}
 		// Now finally remove the data set entry itself.
 		Workspace.get().removeDataSet(dataSet);
@@ -413,8 +411,8 @@ implements ActionListener, Runnable {
 		// the OS of the server. For this we first determine OS type. 
 		// Needless to say It is either windows or Linux
 		String rmDirCmd = "rm -rf " + directory;
-		ServerSession.OSType osType = session.getOSType();
-		if (ServerSession.OSType.WINDOWS.equals(osType)) {
+		Server.OSType osType = session.getOSType();
+		if (Server.OSType.WINDOWS.equals(osType)) {
 			rmDirCmd = "cmd /Q /C rmdir /s /q " + directory;
 		}
 		// Execute the command to recursively delete directories

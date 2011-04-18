@@ -23,8 +23,12 @@
 //---------------------------------------------------------------------------
 
 #include "DrawMatrix.h"
+#include "ArgParser.h"
+#include "Tool.h"
+
 #include <fstream>
 #include <sstream>
+#include <cstring>
 
 // Some color codes to make code a bit more readable
 #define BLACK  0
@@ -36,54 +40,56 @@
 #define CHECK_ARGS(condition, errorMsg)         \
     if (condition) {                            \
         std::cout << errorMsg;                  \
-        DrawMatrix::showUsage(ap);              \
+        std::cout << ap << std::endl;           \
         return 1;                               \
     }
 
 int
 DrawMatrix::main(int argc, char *argv[]) {
-    char *srcFileName = NULL; // File name with WCD matrix output
-    char *outFileName = NULL; // Output file with XFig data.
-    int  estCount     = -1;   // Number of ests in the file.
+    std::string srcFileName; // File name with WCD matrix output
+    std::string outFileName; // Output file with XFig data.
+    int  estCount     = -1;  // Number of ests in the file.
     bool showOptions  = false;
     int  sqSize       = 4;
     
     // Create the list of valid arguments to be used by the arg_parser.
-    arg_parser::arg_record arg_list[] = {
+    ArgParser::ArgRecord arg_list[] = {
         {"--matFile", "WCD matrix output file",
-         &srcFileName, arg_parser::STRING},
+         &srcFileName, ArgParser::STRING},
         {"--estCount", "Number of ESTs",
-         &estCount, arg_parser::INTEGER},
+         &estCount, ArgParser::INTEGER},
         {"--output", "File to which the XFIG output must be written",
-         &outFileName, arg_parser::STRING},
+         &outFileName, ArgParser::STRING},
         {"--sqSize", "Specify size of square drawn for each entry in matrix",
-         &sqSize, arg_parser::INTEGER},
+         &sqSize, ArgParser::INTEGER},
         {"--options", "Lists options for this tool",
-         &showOptions, arg_parser::BOOLEAN},
-        {NULL, NULL, NULL, arg_parser::BOOLEAN}
+         &showOptions, ArgParser::BOOLEAN},
+        {"", "", NULL, ArgParser::INVALID}
     };
     
     // Get the argument parser to parse and consume the global
     // options.  Based on the options supplied, various variables will
     // be set to appropriate values.
-    arg_parser ap(arg_list);
-    ap.check_args(argc, argv, false);
+    ArgParser ap;
+    Tool::addCmdLineArgs("ShowAlignment", ap);
+    ap.addValidArguments(arg_list);
+    ap.parseArguments(argc, argv, false);
     if (showOptions) {
-        showUsage(ap);
+        std::cout << ap << std::endl;
         // Nothing further to be done.
         return 0;
     }
     // Ensure we have all the necessary parameters.
-    CHECK_ARGS(srcFileName == NULL, "WCD matrix output file is needed.\n" \
+    CHECK_ARGS(srcFileName.empty(), "WCD matrix output file is needed.\n" \
                "Use --matFile option\n");
     CHECK_ARGS(estCount == -1, "Number ESTs was not "  \
                "specified.\nUse --estCount option\n");
-    CHECK_ARGS(outFileName == NULL, "Output XFIG file was not specified.\n" \
+    CHECK_ARGS(outFileName.empty(), "Output XFIG file was not specified.\n" \
                "Use --output option\n");
     CHECK_ARGS(sqSize < 2, "Square size must be atleast 2.\n" \
                "Use --sqSize option\n");
     // Open input file.
-    std::ifstream inFile(srcFileName);
+    std::ifstream inFile(srcFileName.c_str());
     if (!inFile.good()) {
         std::cout << "Unable to open input file " << srcFileName
                   << " for reading.\n";
@@ -171,13 +177,6 @@ DrawMatrix::getRow(const int estCount, std::istream& inFile, char *codes) {
     }
     // line of data read successfully.
     return true;
-}
-
-void
-DrawMatrix::showUsage(const arg_parser& ap) {
-    std::cout << "Usage: pTool --tool=ShowAlignment [options]\n"
-              << "where options are:\n";
-    std::cout << ap;
 }
 
 DrawMatrix::DrawMatrix() {

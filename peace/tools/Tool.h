@@ -35,7 +35,7 @@
 //---------------------------------------------------------------------
 
 #include "HashMap.h"
-#include "arg_parser.h"
+#include "PEACE.h"
 #include "XFigHelper.h"
 #include "MSTguiNode.h"
 
@@ -66,6 +66,7 @@ typedef HashMap<int, bool> ClusterUseList;
 
 // Forward declaration to keep compiler happy
 class EST;
+class ESTList;
 
 /** A common base class that houses methods that are used by two or
     more tools.
@@ -90,8 +91,9 @@ public:
     /** Helper method to load sequences from a FASTA file.
         
         This method is a helper method that is used to load data from
-        a given FASTA file.
-        
+        a given FASTA file.  This method loads the entries into the
+        #estList instance variable.
+		
         \param[in] fileName The FASTA file name from which the FASTA
         sequences are to be loaded.
        
@@ -99,7 +101,7 @@ public:
         fasta file was successfully read.  On errors this method
         generates suitable error messages and returns \c false.
     */
-    bool loadFastaFile(const char *fileName);
+    bool loadFastaFile(const std::string& fileName);
 
     /** Method to process clustering information to provide cluster
         color codes.
@@ -139,20 +141,21 @@ public:
         file was successfully read.  On errors this method generates
         suitable error messages and returns \c false.
     */
-    bool loadClusterInfo(const char* fileName);
+    bool loadClusterInfo(const std::string& fileName);
     
-    /** Helper method to show usage information.
+    /** Helper method to add generic command-line options (for
+        convenient display).
         
         This is a helper method that was introduced to reudce
         redundant code to display usage information.
-
+		
         \param[in] tool The name of the tool for which the options are
         to be displayed.
         
-        \param[in] ap The argument parser that is used to show some of
-        the usage information.
+        \param[out] ap The argument parser to which generic
+        command-line options are to be added.
     */
-    static void showUsage(const std::string& tool, const arg_parser& ap);
+    static void addCmdLineArgs(const std::string& tool, ArgParser& ap);
 
     /** Obtain color code for EST at the given index.
 
@@ -265,7 +268,27 @@ public:
         \param[out] clusterMap A hash map containing the set of
         clusters specified in this list.
     */
-    void setClustersToColor(std::string clusterList);
+    void setClustersToColor(const std::string& clusterList);
+
+    /** Obtain a mutable list of cDNA fragments being processed.
+
+        This method must be used to obtain the list of cDNA fragments
+        being processed.
+
+        \return A reference to the list of cDNA fragments being
+        processed by this class.
+    */
+    ESTList& getESTList();
+
+    /** Obtain an immutable list of cDNA fragments being processed.
+
+        This method must be used to obtain the list of cDNA fragments
+        being processed.
+
+        \return A reference to the list of cDNA fragments being
+        processed by this class.
+    */
+    const ESTList& getESTList() const;
 	
 protected:
     /** The constructor.
@@ -327,7 +350,16 @@ protected:
 		method.
 	*/
 	ClusterUseList clustersToColor;
-	  
+
+    /** The shared instance of peace to be used by the tools.
+
+        This instance variable contains the instance of peace to be
+        used by the tools hierarchy.  This class is used to
+        initialize/load files and obtain the list of ESTs to work with
+        etc.
+    */
+    PEACE peace;
+    
 private:
     /** Helper method to process a line in a MST file.
 

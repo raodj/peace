@@ -35,7 +35,6 @@
 //---------------------------------------------------------------------
 
 #include <stdio.h>
-#include <arg_parser.h>
 #include "XFigHelper.h"
 
 // Forward declaration to keep compiler happy
@@ -119,16 +118,6 @@ protected:
         data members in this class.
     */
     ~DrawMatrix();
-    
-    /** Helper method to show usage information.
-
-        This is a helper method that was introduced to reudce
-        redundant code to display usage information.
-
-        \param[in] ap The argument parser that is used to show some of
-        the usage information.
-    */
-    static void showUsage(const arg_parser& ap);
 };
 
 #endif

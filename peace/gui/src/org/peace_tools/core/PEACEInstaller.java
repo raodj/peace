@@ -227,6 +227,10 @@ public class PEACEInstaller extends SwingWorker<Void, Void> implements DocumentL
 					server.getInstallPath() + "'\n");
 			// Copy the installation files over.
 			String instCmd  = copyInstallFiles(rss);
+			// Add optional command line option to try and install EAST
+			if (server.hasEASTInstalled()) {
+				instCmd += " --buildEAST";
+			}
 			int    exitCode = 0;
 			if (instCmd != null) {
 				// Run the install command and display outputs.
@@ -284,7 +288,7 @@ public class PEACEInstaller extends SwingWorker<Void, Void> implements DocumentL
 	 * @return The install file to be run on the remote machine.
 	 */
 	private String copyInstallFiles(ServerSession ss) throws Exception {
-		final boolean isWindows = ss.getOSType().equals(ServerSession.OSType.WINDOWS);
+		final boolean isWindows = ss.getOSType().equals(Server.OSType.WINDOWS);
 		final String installFiles[] = (isWindows ? WindowsInstallFiles : LinuxInstallFiles);
 		// Copy the install file to the remote machine.
 		final String SrcPath = (isWindows ? "installFiles/windows/" : "installFiles/linux/");

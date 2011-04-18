@@ -183,10 +183,10 @@ implements ActionListener {
 		JPanel bag = adjustCheckBox(enableLCFilter, "lcFilter");
 		// Create the filter list parameter.
 		filterList = new JTextField(10);
-		filterList.setText("A,C");
+		filterList.setText("A C");
 		JComponent listBox  =
             Utilities.createLabeledComponents("Enter filter strings:",
-                            "(comma separated list of neucleotide values)",
+                            "(space separated list of neucleotide values)",
                             0, false, filterList);
 
 		// Now put all the information into a nice titled panel.
@@ -277,38 +277,21 @@ implements ActionListener {
 		if ((nextPage < currPage) || (!enableLCFilter.isSelected())) {
 			return true;
 		}
-		// Check if the filter list is valid. The following logic ensures
-		// that a comma occurs only when expected.
-		boolean commaOK  = false;
-		boolean filterOK = true;
-		String filterStr = filterList.getText();
-		for(int i = 0; (i < filterStr.length()); i++) {
-			if (filterStr.charAt(i) == ',')  {
-				if (commaOK) {
-					commaOK = !commaOK;
-				} else {
-					filterOK = false;
-					break;
-				}
-			} else {
-				if ("ATCG".indexOf(filterStr.charAt(i)) == -1) {
-					// Invalid character.
-					filterOK = false;
-					break;
-				} else {
-					// After a character we can have a comma
-					commaOK = true;
-				}
-			}
-		}
-		// At end of list, commaOK should be true. Otherwise we have trouble.
-		if ((!filterOK) || (!commaOK)) {
-			JOptionPane.showConfirmDialog(wizard, FILTER_LIST_MSG, 
+		// Check if the filter list is valid, that is it contains only
+		// ATCG character(s) separated by spaces.
+		final String CHECK_PATTERN = "[ATCG]+((\\s)+[ATCG]+)*";
+		// Get the current filter string.
+		String filterStr = filterList.getText().trim().toUpperCase();
+		if (!filterStr.matches(CHECK_PATTERN)) {
+			JOptionPane.showMessageDialog(wizard, FILTER_LIST_MSG, 
 					"Invalid Filter String", JOptionPane.ERROR_MESSAGE);
-			filterOK = false;
+			return false;
 		}
-		// Return filter status
-		return filterOK;
+		// Filter is good. Update display with the upper-cased' and 
+		// white spaced trimm'd version.
+		filterList.setText(filterStr);
+		// Indicate it is ok to move on to next step in wizard.
+		return true;
 	}
 	
 	/**
@@ -358,9 +341,9 @@ implements ActionListener {
 	 */
 	private static final String FILTER_LIST_MSG = 
 		"<html>The filter list you provided is not valid.<br><br>" +
-		"This filter requires a comma separated list of substrings<br>" +
+		"This filter requires a space separated list of substrings<br>" +
 		"that are repeated (to required length) to detect low complexity<br>" +
-		"regions in fragments. Example: <i>A,C</i> or <i>AG,A,C,TC</i>.</html>";
+		"regions in fragments. Example: <i>A C</i> or <i>AG A C TC</i>.</html>";
 
 	/**
 	 * A serialization UID to keep the compiler happy.

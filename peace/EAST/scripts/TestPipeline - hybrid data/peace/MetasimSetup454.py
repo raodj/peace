@@ -1,5 +1,9 @@
 # Setup for 454
 
+# The program is called with the following opetions
+# argv[1] = SourceGeneFile (input)
+# argv[2] = numOf454ESTs to generate (input)
+
 import os, sys
 
 os.system('MetaSim cmd -r %s -c -4 %s' %(sys.argv[2], sys.argv[1]))

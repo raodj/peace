@@ -47,6 +47,7 @@ import javax.swing.text.JTextComponent;
 import org.peace_tools.generic.GenericWizardPage;
 import org.peace_tools.generic.Utilities;
 import org.peace_tools.generic.WizardDialog;
+import org.peace_tools.workspace.DataFileStats;
 import org.peace_tools.workspace.DataSet;
 
 /**
@@ -108,13 +109,15 @@ public class SummaryWizardPage extends GenericWizardPage {
 		// First update the necessary information.
 		infoFields[0].setText(dataSet.getPath());
 		// Populate the text area with data on the EST file.
-		double stats[] = wizard.getESTList().computeStatistics();
+		DataFileStats stats = wizard.getESTList().computeStatistics();
 		// Convert the stats to a string.
-		String statistics = String.format(STATS_STR, (int) stats[0], 
-				(int) stats[3], (float) stats[4], 
-				(int) stats[1], (int) stats[2]);
+		String statistics = String.format(STATS_STR, stats.getCount(), 
+				stats.getAvgLength(), stats.getLengthSD(), 
+				stats.getMinLength(), stats.getMaxLength());
 		// Set it up for display.
 		infoFields[1].setText(statistics);
+		// Setup stats in the data set
+		dataSet.setStats(stats);
 	}
 
 	/**
@@ -136,7 +139,7 @@ public class SummaryWizardPage extends GenericWizardPage {
 	 */
 	private final String STATS_STR =  
 		" Number of ESTs     :   %1$d\n"    +
-		" Average  EST length:   %2$d bp (SD: %3$f)\n" +
+		" Average  EST length:   %2$f bp (SD: %3$f)\n" +
 		" Shortest EST length:   %4$d bp\n" +
 		" Longest  EST length:   %5$d bp";
 

@@ -34,7 +34,7 @@
 //
 //---------------------------------------------------------------------
 
-#include "EST.h"
+#include "ESTList.h"
 
 /** \file AlignmentInfo.h
 
@@ -60,6 +60,10 @@
     This class is used by several other classes constituting the baton
     assembler.  Therefore, it has been refactored into its own
     independent class.
+
+    \note This object is sent/received over the wire via
+    MPI_SEND/MPI_RECV calls. Consequently, this class cannot have
+    pointers!
     
     \see BatonAnalyzer
     \see ConsensusMaker
@@ -222,12 +226,16 @@ public:
         the sequence and its alignment position to determine the
         relative index position.
 
+        \param[in] estList A reference to the ESTList from where
+        additional information about the EST can be obtained to
+        compute the right most nucleotide position.
+        
         \return This method returns the relative index position of the
         right-most nucleotide in the final consensus sequence.  This
         value can be negative.
     */
-    inline int getRightMostNtPos() const {
-        return alignPos + EST::getEST(estIndex)->getSequenceLength();
+    inline int getRightMostNtPos(const ESTList* estList) const {
+        return alignPos + estList->get(estIndex)->getSequenceLength();
     }
     
 protected:

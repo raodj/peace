@@ -346,9 +346,15 @@ public class WizardDialog extends JDialog implements ActionListener {
 	 * 
 	 * @param index The zero-based index of the page being requested.
 	 * 
-	 * @return The page associated with this index. 
+	 * @return The page associated with this index. If the index is
+	 * invalid this method returns null.
 	 */
-	public WizardPage getPage(int index) { return pages.get(index); }
+	public WizardPage getPage(int index) {
+		if ((index < 0) || (index >= pages.size())) {
+			return null;
+		}
+		return pages.get(index); 
+	}
 
 	/**
 	 * This method is called from the showWizard method just before the
@@ -733,7 +739,7 @@ public class WizardDialog extends JDialog implements ActionListener {
 	 * as they are created and destroyed.
 	 */
 	private ArrayList<Thread> workerThreads = new ArrayList<Thread>();
-	
+
 	/**
 	 * Generated serial version ID for serializing this class. 
 	 */

@@ -36,6 +36,7 @@
 
 #include "ESTAnalyzer.h"
 #include "BatonList.h"
+#include "BatonListCache.h"
 
 // Forward declarations to keep compiler fast and happy
 class AlignmentInfo;
@@ -61,132 +62,48 @@ class AlignmentInfo;
 */
 class BatonAnalyzer : public ESTAnalyzer {
     friend class ESTAnalyzerFactory;
+	friend class BatonAssembler;
 public:
     /** The destructor.
         
-        The destructor frees up any dynamic memory allocated to
-        BatonList objects in the local cache (\c blCache).
+        Currently the destructor does not have any specific task to
+        perform.  It is merely present to adhere to coding conventions
+        and to facilitate continued polymorphism.
     */
     virtual ~BatonAnalyzer();
-    
-    /** Display valid command line arguments for this analyzer.
-	
-        This is used to display all valid command line options that
-        are supported by this analyzer.  Currently, this analyzer does
-        not require any special command line parameters.
 
-        \note The ESTAnalyzer base class requires that derived EST
-        analyzer classes <b>must</b> override this method to display
-        help for their custom command line arguments.  When this
-        method is overridden don't forget to call the corresponding
-        base class implementation to display common options.
+    /** Add valid command line arguments for this analyzer.
+
+        This method must be used to add all valid command line options
+        that are supported by this analyzer.  Note that derived
+        classes may override this method to add additional command
+        line options that are applicable to it.  This method is
+        invoked when the clustering sub-system is initialized.
         
-        \param[out] os The output stream to which the valid command
-        line arguments must be written.
-    */
-    virtual void showArguments(std::ostream& os);
-
-    /** Process command line arguments.
-
-        <p> This method is used to process command line arguments
-        specific to this EST analyzer.  This method is typically used
-        from the \c main method just after the EST analyzer has been
-        instantiated.  This method consumes all valid command line
-        arguments.  If the command line arguments were valid and
-        successfully processed, then this method returns \c true. </p>
-
-        <p>Currently, this EST analyzer accepts an optional \c
-        threshold value to set the number of identical batons that are
-        necessary to declare a pair of ESTs to be sufficiently
-        similar.</p>
-
-        \note The \c ESTAnalyzer base class requires that derived EST
-        analyzer classes <b>must</b> override this method to process
-        any command line arguments that are custom to their operation.
-        However, this method delegates the processing to the
-        overloaded method with suitable command line parameters (that
-        as per ESTAnalyzer API requirement, calls the corresponding
-        base class implementation) to process additional options.
+        \note Derived EST analyzer classes may override this method to
+        display help for their custom command line arguments.  When
+        this method is overridden don't forget to call the
+        corresponding base class implementation to add common options.
         
-        \param[in,out] argc The number of command line arguments to be
-        processed.
-
-        \param[in,out] argv The array of command line arguments.
-
-        \return This method returns \c true if the command line
-        arguments were successfully processed.  Otherwise this method
-        returns \c false.
+        \param[out] argParser The argument parser to which the command
+        line arguments for this component are to be added.
     */
-    virtual bool parseArguments(int& argc, char **argv);
+    virtual void addCommandLineArguments(ArgParser& argParser);
 
-    /** Process command line arguments.
-
-        <p> This method is used to process command line arguments
-        specific to this analyzer.  This method is typically used from
-        the assembler when its parseArguments() method is invoked.
-        This method consumes all valid command line arguments.  If the
-        command line arguments were valid and successfully processed,
-        then this method returns \c true. </p>
-
-        \param[in,out] argc The number of command line arguments to be
-        processed.
-
-        \param[in,out] argv The array of command line arguments.
-
-        \param[in] assemblerFlag The \c ESTAnalyzer base class
-        requires that derived EST analyzer classes the corresponding
-        base class implementation.  If this flag is \c true
-        (indicating this class is used for assembly) then the base
-        class method is not called.  Otherwise the base class method
-        is called to process options common for all analyzers.
-        
-        \return This method returns \c true if the command line
-        arguments were successfully processed.  Otherwise this method
-        returns \c false.
-    */
-    virtual bool parseArguments(int& argc, char **argv,
-                                const bool assemblerFlag);
-    
     /** Method to begin EST analysis.
-
+        
         This method is invoked just before commencement of EST
-        analysis.  This method loads the list of ESTs from a given
-        input multi-FASTA or SFF file and populates the list of ESTs.
+        analysis.  This method first invokes the base class's \c
+        initialize method (if the analyzer was created for clustering
+        and not for assembly) that initializes the heuristic chain, if
+        a chain has been set for this analyzer.
 
-		\return If the ESTs were successfully loaded from the FATA
-        file then this method returns 0.  Otherwise this method
-        returns with a non-zero error code.
+		\return If initialization was successful then this method
+        returns \c true. Otherwise this method returns with \c false
+        signalling an error.
     */
-    int initialize();
+    virtual bool initialize();
 
-    /** Method to initialize analyzer for assembly.
-
-        This method is invoked by the assembler just before
-        commencement of assembly operations.  If directed, this method
-        loads the list of ESTs from a given input multi-FASTA or SFF
-        file and populates the list of ESTs.
-
-		\param[in] loadData If this flag is \c true then this method
-		also loads the cDNA fragments to be assembled.
-		
-		\return If the initialization was successfully completed then
-        this method returns 0.  Otherwise this method returns with a
-        non-zero error code.
-    */
-	int initialize(const bool loadData);
-	
-    /** Method to obtain human-readable name for this EST analyzer
-
-        This method provides a human-readable string identifying the
-        EST analyzer.  This string is typically used for
-        display/debugging purposes (particularly via the PEACE
-        Interactive Console).
-
-        \return This method returns the string "baton" identifiying this
-        analyzer.
-    */    
-    virtual std::string getName() const { return "baton"; }
-    
     /** Set the reference EST id for analysis.
 
         This method is invoked just before a batch of ESTs are
@@ -200,11 +117,15 @@ public:
         \note This method must be called only after the \c
         initialize() method is called.
 
-        \return This method returns \c true if the estIdx was within
-        the given range of values.  Otherwise this method returns a
+		\param[in] est A pointer to an immutable EST object to be used
+		as the reference.  The reference EST will be subsequently
+		analyzed with a number of other ESTs via the analyze() method.
+
+        \return This method returns zero if the estIdx was within the
+        given range of values.  Otherwise this method returns a
         non-zero value as the error code.
     */
-    virtual int setReferenceEST(const int estIdx);
+    virtual int setReferenceEST(const EST* est);
 
     /** Set the reference cDNA sequence for analysis and assembly.
 
@@ -279,9 +200,9 @@ public:
         
         </ol>
 
-        \param[in] otherEST \param[in] otherEST The index (zero based)
-        of the EST with which the reference EST (or sequence) is to be
-        analyzed and if valid/possible aligned.
+        \param[in] otherEST A pointer to an immutable EST object with
+		which the reference EST (or sequence) is to be analyzed and if
+		valid/possible aligned.
 
         \param[out] info The information regarding the alignment (if
         one is computed) is populated into this object.  The alignment
@@ -315,7 +236,7 @@ public:
         determined to be unrelated), then this method returns \c
         false.
     */
-    virtual bool align(const int otherEST, AlignmentInfo& info);
+    virtual bool align(const EST* otherEST, AlignmentInfo& info);
     
 protected:
     /** Helper method to align a given EST with the reference sequence.
@@ -351,9 +272,9 @@ protected:
         
         </ol>
 
-        \param[in] otherEST \param[in] otherEST The index (zero based)
-        of the EST with which the reference EST (or sequence) is to be
-        analyzed and if valid/possible aligned.
+        \param[in] otherEST A pointer to an immutable EST object with
+        which the reference EST (or sequence) is to be analyzed and if
+        valid/possible aligned.
 
         \param[out] refAlignPos The index position within the
         reference sequence where the best possible alignment with the
@@ -380,7 +301,7 @@ protected:
         determined to be unrelated), then this method returns \c
         false.
     */
-    virtual bool align(const int otherEST, int& refAlignPos, int& othAlignPos,
+    virtual bool align(const EST* otherEST, int& refAlignPos, int& othAlignPos,
                        int& score, const bool doRC);
     
     /** Analyze and obtain a similarity metric.
@@ -407,13 +328,13 @@ protected:
 
         </ol>
 
-        \param[in] otherEST The index (zero based) of the EST with
+        \param[in] otherEST A pointer to an immutable EST object with
         which the reference EST is to be compared.
 
         \return This method returns the similarity value between the
         referenceEST and otherEST.
     */
-    virtual float getMetric(const int otherEST);
+    virtual float getMetric(const EST* otherEST);
 
     /** Helper method to compute a metric by comparing two given baton
         lists.
@@ -522,31 +443,6 @@ protected:
         analyzer operates using similarity metrics.
     */
     bool isDistanceMetric() const { return false; }
-
-    /** Helper method to create and obtain normal and reverse
-        complement baton lists for future reference.
-
-        This method is an internal helper method that is used to
-        create the necessary baton list(s) in a lazy-manner.  This
-        method is invoked from the analyze() and the getMetric()
-        methods to obtain the list of batons for comparison.  This
-        method first checks to see if the requested baton list is
-        already available in the blCache (read as: baton list cache).
-        If not, this method builds the required baton list, updates
-        the blCache, and returns the requested baton list.
-        
-        \param[in] estIdx The index of the EST whose baton list is to
-        be returned by this method.
-        
-        \param[in] getRC If this flag is \c true, then this method
-        returns the baton list corresponding to the reverce
-        complementary sequence of the specified est.
-
-        \return This method returns the requested baton list for
-        further use. Note that the returned object must not be mutated
-        in any manner as the data is cached.
-    */
-    BatonList* getBatonList(const int estIdx, const bool getRC);
 
     /** Helper method that determines best alignment using batons in a
         given window-pair.
@@ -836,48 +732,28 @@ private:
 	/** The local cache of Baton Lists.
 
 		This instance variable blCache (read as: baton list cache) is
-		used to maintain a cache of baton list objects that have been
-		pre-computed via an on-demand approach.  The entries in this
-		list consist of baton lists for both normal and reverse
-		complement (RC) representation of a given cDNA fragment.  The
-		normal and RC baton lists for an cDNA fragment with index \i k
-		are stored in \c blCache at position <i>k*2</i> and
-		<i>k*2+1</i> respectively.
+		used used to maintain a cache of baton list objects that have
+		been pre-computed via an on-demand approach.  The entries in
+		this list consist of baton lists for both normal and reverse
+		complement (RC) representation of a given cDNA fragment.
 	*/
-	std::vector<BatonList*> blCache;
+	BatonListCache blCache;
 	
-    /** The set of arguments specific to this analyzer.
-
-        This instance variable contains a static list of command line
-        arguments that are specific only to the baton analyzer class.
-        This argument list is statically defined and shared by all
-        instances of this class.
-
-        \note Use of static arguments and parameters makes this class
-        hierarchy not MT-safe.
-    */
-    static arg_parser::arg_record argsList[];
-	
-    /* The default constructor for this class.
+    /* The constructor for this class.
        
-       The default constructor for this class.  The constructor is
-       made private so that this class cannot be directly
-       instantiated.  However, since the ESTAnalyzerFactory is a
-       friend of this class; therefore it can instantiate the
+       The constructor is made private so that this class cannot be
+       directly instantiated.  However, since the ESTAnalyzerFactory
+       is a friend of this class; therefore it can instantiate the
        BatonAnalyzer.  Accordingly, the ESTAnalyzerFactory::create()
        method must be used to instantiate this class.
-
-       \param[in] refESTidx The reference EST index value to be used
-       when performing EST analysis.  This parameter should be >= 0.
-       This value is simply passed onto the base class.
-        
-       \param[in] outputFile The name of the output file to which the
-       EST analysis data is to be written.  This parameter is ignored
-       if this analyzer is used for clustering.  If this parameter is
-       the empty string then output is written to standard output.
-       This value is simply passed onto the base class.
+       
+       \param[in] usedForAssembly This parameter is used by the
+       BatonAssembler to indicate that this analyzer is being
+       exclusively used for assembly.  This class performs slightly
+       different initialization tasks depending on the value of this
+       parameter.
     */
-    BatonAnalyzer(const int refESTidx, const std::string& outputFileName);
+    BatonAnalyzer(const bool usedForAssembly = false);
 
     /** The baton list for the reference cDNA sequence.
 
@@ -913,36 +789,9 @@ private:
 
         This member is used to hold the threshold value.  The
         threshold value is a command line argument that can be set by
-        the user via the \c --threshold command line argument.
+        the user via the \c --batonThresh command line argument.
     */
-    static int threshold;
-
-    /** Instance variable to track the number of nucleotides to be
-		used for baton ends/heads.
-		
-        This member is used to hold the size (in nt) of the baton
-        heads.  If this value is 3, then the baton head consists of
-        3-mers of the form \c ATC, \c AAA, \c CGT etc.  The default
-        value is 3.  This value can be changed via the \c --nMers
-        command line parameter.
-    */
-    static int nMerSize;
-
-	/** The size (in nucleotides) of the overlapping windows used for
-		searching identical batons.
-		
-        This member is used to hold the window size (in number of
-        nucleotides) into which a cDNA fragment must be subdivided to
-        search for identical batons.  Note that this value is a
-        suggested average value.  Each baton list uses a slightly
-        different value (around this average) as its window size. The
-        window size plays an important role in effective
-        identification of related cDNA fragments for clustering and
-        assmebly.  The default value is 100.  The threshold value is a
-        command line argument that can be set by the user via the \c
-        --window command line argument.
-    */
-    static int windowSize;
+    int threshold;
 
     /** The number of permitted or acceptable errors/differences that
         are to be tolerated when computing the alignments.
@@ -959,7 +808,7 @@ private:
         line argument that can be set by the user via the \c
         --permErrs command line argument.
     */
-    static int numPermittedErrs;
+    int numPermittedErrs;
 
     /** An alignment score to be considered as a good enough alignment
         score to short circuit exhaustive search of candidate
@@ -978,7 +827,17 @@ private:
         that can be set by the user via the \c --goodScore command
         line argument.
     */
-    static int goodAlignmentScore;
+    int goodAlignmentScore;
+
+    /** Flag to indicate if this analyzer is being exclusively used by
+        the baton assembler.
+
+        This flag is set in the constructor to indicate if this
+        analyzer is being exclusively used by the BatonAssembler to
+        aid in assembly process.  When this class is created purely
+        for clustering, then this flag is set to \c false.
+    */
+    const bool usedByAssembler;
 };
 
 #endif

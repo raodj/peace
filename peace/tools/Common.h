@@ -62,10 +62,10 @@
 #define USER_COLOR_START 32
 
 #define CHECK_ARGS(tool, condition, errorMsg)	\
-  if (condition) {				\
-    std::cout << errorMsg;			\
-    Tool::showUsage(tool, ap);			\
-    return 1;					\
-  }
+    if (condition) {                            \
+        std::cout << errorMsg;                  \
+        std::cout << ap << std::endl;           \
+        return 1;                               \
+    }
 
 #endif

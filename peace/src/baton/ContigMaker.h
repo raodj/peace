@@ -91,8 +91,13 @@ public:
         fragment constituting the contig being assembled.  This value
         must be int the range: 0 \f$ \le \f$ rootESTidx &lt
         EST::getSequenceCount().
+
+        \param[in] estList A pointer to the cDNA fragments that are
+        being currently being processed.  This list is not modified by
+        this class.  It is used purely to access the cDNA nucleotide
+        sequences. This pointer cannot be NULL.
     */
-    ContigMaker(const int rootESTidx);
+    ContigMaker(const int rootESTidx, const ESTList* estList);
 
     /** The destructor.
 
@@ -110,13 +115,11 @@ public:
         the reference to further grow the contig.  This method
         utilizes the information that is setup by the constructor
         and/or that tracks the left-most and right-most fragments in
-        this contig.  If (to the left or right).  This method
-        alternates between left and right extensions, assuming that
-        those fragments have not already been used as references.
-        This method uses the nextReference() helper method to
-        streamline its operations.
+        this contig.  This method alternates between left and right
+        extensions, assuming that those fragments have not already
+        been used as references.
 
-        \return The index of the next fragment in this contig to be
+        \return The index of the next fragment from this contig to be
         used as the reference sequence to grow the contig (this value
         is in the range 0 \f$ \le \f$ retVal &lt
         EST::getSequenceCount()). If both the left-most and right-most
@@ -367,6 +370,15 @@ private:
         to grow in a specific direction.
     */
 	bool leftOrRight;
+
+    /** A convenience pointer to the list of cDNA fragments being
+        processed.
+
+        This pointer is passed in via the constructor whenever a
+        contig maker object is instantiated.  This pointer is used to
+        refer to the cDNA fragments during contig formulation.
+    */
+    const ESTList* estList;
 };
 
 #endif

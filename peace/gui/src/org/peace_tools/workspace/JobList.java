@@ -43,7 +43,7 @@ import org.w3c.dom.NodeList;
  * A class to encapsulate information about a list of jobs that have already
  * been configured in this work space. This class is instantiated from the work
  * space class. This class is relatively straightforward in that it merely
- * contains a list of Job objects. In addition, it facilitates marshalling and
+ * contains a list of Job objects. In addition, it facilitates marshaling and
  * unmarshalling of job data.
  * 
  */
@@ -69,19 +69,24 @@ public class JobList {
 		// First extract the sequence counter information
 		String seqCounter = DOMHelper.getStringValue(jobListNode, "SeqCounter");
 		srvrList.seqCounter = Integer.parseInt(seqCounter);
-		// Now obtain all the job elements under the jobList
-		NodeList jobs = jobListNode.getElementsByTagName("Job");
+		// Now check and process all the job elements under the jobList
+		NodeList jobs = jobListNode.getChildNodes();
 		for(int idx = 0; (idx < jobs.getLength()); idx++) {
-			Node   tmpNode = jobs.item(idx);
+			Node tmpNode = jobs.item(idx);
 			// Ensure that this node is actually a job node
 			if ((tmpNode.getNodeType() == Node.ELEMENT_NODE) &&
-				("Job".equals(tmpNode.getNodeName())) && 
 				(tmpNode instanceof Element)) {
 				// OK, safe to type cast and try to parse..
 				Element jobNode = (Element) tmpNode;
-				Job j = Job.create(jobNode);
-				// Add the valid job node to the list.
-				srvrList.jobs.add(j);
+				final String nodeName = jobNode.getNodeName();
+				if ("ClusteringJob".equals(nodeName)) { 
+					Job j = ClusteringJob.create(jobNode);
+					// Add the valid job node to the list.
+					srvrList.jobs.add(j);
+				} else if ("EASTJob".equals(nodeName)) {
+					Job j = EASTJob.create(jobNode);
+					srvrList.jobs.add(j);
+				}
 			}
 		}
 		// Return the newly created list.
@@ -183,9 +188,16 @@ public class JobList {
 	 * in this work space.
 	 */
 	public ArrayList<Job> getJobs() { return jobs; }
+
+	/**
+	 * Obtain the sequence counter used to generate unique job IDs.
+	 * 
+	 * @return The sequence counter for this work space.
+	 */
+	public long getSeqCounter() { return seqCounter; }
 	
 	/**
-	 * Method to marshall the data stored in this object to become part of
+	 * Method to marshal the data stored in this object to become part of
 	 * a DOM tree element passed in. This method assumes that the element
 	 * passed in corresponds to the parent Workspace node in the DOM tree.
 	 * 
@@ -204,7 +216,7 @@ public class JobList {
 	}
 	
 	/**
-	 * Method to marshall the data stored in this object directly to a
+	 * Method to marshal the data stored in this object directly to a
 	 * XML fragment. The XML fragment is guaranteed to be compatible
 	 * with the PEACE work space configuration data. This method provides
 	 * better control on the XML formatting to generate a more readable

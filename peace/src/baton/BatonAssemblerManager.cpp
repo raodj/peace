@@ -43,8 +43,8 @@
 // Reference to the constant zero to make code more readable
 #define MANAGER_RANK 0
 
-BatonAssemblerManager::BatonAssemblerManager(const std::string& outputFileName)
-    : BatonAssembler(outputFileName) {
+BatonAssemblerManager::BatonAssemblerManager() 
+    : BatonAssembler() {
     // Nothing else to be done here for now.
 }
 
@@ -52,29 +52,15 @@ BatonAssemblerManager::~BatonAssemblerManager() {
     // Nothing else to be done here for now.
 }
 
-int
+bool
 BatonAssemblerManager::initialize() {
     // First let the base class do its tasks...
-    int retVal = BatonAssembler::initialize();
-    // Check if things went well. If not bail out.
-    if (retVal != 0) {
-        // Something went wrong.
-        return retVal;
-    }
-    // Try and create the progress file if specified.  The static
-    // instance variable progFileName is defined in the base class.
-    // Possibly that variable and corresponding parameter can be moved
-    // to this class.
-    if (progFileName != NULL) {
-        progressFile.open(progFileName);
-        if (!progressFile.good()) {
-            std::cerr << "Unable to open progress file "
-                      << progressFile << ". Aborting." << std::endl;
-            return 3;
-        }
+    if (!BatonAssembler::initialize()) {
+        // Base class initialization failed
+        return false;
     }
     // Everything went fine.
-    return 0;
+    return true;
 }
 
 int
@@ -82,7 +68,7 @@ BatonAssemblerManager::assemble() {
     // Populate the list of all fragments to be assembled
     setupESTsToBeProcessed();
     // Cut initial progress entry if requested
-    reportProgress();
+    reportProgress(0);
     // The reference EST index that is updated in the loops below.
     int refESTidx = -1;
     // Keep forming contigs until all fragments are processed.
@@ -90,17 +76,18 @@ BatonAssemblerManager::assemble() {
         // Create a contig using the first un-processed fragment as
         // the reference.  First create a contig maker using the first
         // available fragment.
-        ContigMaker contig(*estsToProcess.begin());
+        ContigMaker contig(*estsToProcess.begin(), estList);
         estsToProcess.erase(estsToProcess.begin());
         while ((refESTidx = contig.nextReference()) != -1) {
             // Distribute reference index to all workers (zero or more)
             MPI_BCAST(&refESTidx, 1, MPI_INT, MANAGER_RANK);
             // Mark reference EST as having been processed.
-            EST::getEST(refESTidx)->setProcessed(true);
+            EST* const refEST = estList->get(refESTidx, true);
+            refEST->setProcessed(true);
             // Do some of the alignment on the manager (all alignments
             // happen on the manager if there are zero workers).
             AlignmentInfoList alignmentList;
-            localAssembly(refESTidx, alignmentList);
+            localAssembly(refEST, alignmentList);
             // Populate the consensus sequence with the information
             // from local assembly.
             if (alignmentList.size() > 0) {
@@ -114,7 +101,7 @@ BatonAssemblerManager::assemble() {
         // to deal with.
         contig.formContig(true);
         // Update progress made thus far
-        reportProgress();
+        reportProgress(estList->size() - estsToProcess.size());
     }
     // Finally broadcast -1 as reference index to indicate that all
     // sequences have been assembled.    
@@ -178,23 +165,13 @@ BatonAssemblerManager::getWorkerAlignments(ContigMaker& contig) {
 void
 BatonAssemblerManager::setupESTsToBeProcessed() {
     // Create the set of ESTs to be processed across the board
-    const int ESTCount = EST::getESTCount();
+    const int ESTCount = estList->size();
     for(int estIdx = 0; (estIdx < ESTCount); estIdx++) {
-        if (!EST::getEST(estIdx)->hasBeenProcessed()) {
+        if (!estList->get(estIdx)->hasBeenProcessed()) {
             // Insert the index of EST in the list of ESTs to be
             // processed by this process.
             estsToProcess.insert(estIdx);
         }
-    }
-}
-
-void
-BatonAssemblerManager::reportProgress() {
-    if (progressFile.good()) {
-        progressFile << EST::getESTCount() - estsToProcess.size()
-                     << ","  << EST::getESTCount()
-                     << "\n" << std::flush;
-        progressFile.seekp(0);
     }
 }
 

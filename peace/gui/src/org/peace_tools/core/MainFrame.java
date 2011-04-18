@@ -66,6 +66,7 @@ import org.peace_tools.workspace.JobList;
 import org.peace_tools.workspace.Server;
 import org.peace_tools.workspace.ServerList;
 import org.peace_tools.workspace.Workspace;
+import org.peace_tools.workspace.JobBase.JobStatusType;
 
 public class MainFrame extends JFrame implements ActionListener {
 	/**
@@ -224,9 +225,54 @@ public class MainFrame extends JFrame implements ActionListener {
 						" has unexpectedly terminated. You may want to " +
 				"restart the job monitor for this job.");
 			}
+			// Update status of any other job that is dependent on this job
+			updateDependentJob(job);
 		}
 	}
 
+	/**
+	 * Helper method to update the status of other jobs that are dependent/waiting
+	 * on a given job.
+	 * 
+	 * This method is invoked from the {@link #actionPerformed(ActionEvent)}
+	 * method to update the status of any dependent jobs. This method first
+	 * checks to see if the given job has finished. If not it performs no other
+	 * action. If the given job has finished, it searches the list of jobs for
+	 * any dependent jobs. Upon finding a dependent job it either starts a 
+	 * new background monitoring thread (if the given job successfully completed)
+	 * or flags the dependent job as having failed.
+	 * 
+	 * @param parentJob The job whose dependent jobs are to be found and updated.
+	 */
+	private void updateDependentJob(Job parentJob) {
+		if (!parentJob.isDone()) {
+			// This job is not yet done. Nothing further to do
+			return;
+		}
+		// Get the ID of the job that has just updated its status
+		final String parentJobID = parentJob.getJobID();
+		// Search for all jobs that are dependent/waiting on this job
+		for(Job job: Workspace.get().getJobList().getJobs()) {
+			final String prevJobID = job.getPreviousJobID();
+			if ((prevJobID != null) && (prevJobID.equals(parentJobID) && job.isWaiting())) {
+				// OK, current job is dependent/waiting on parentJob. So
+				// update status of the current job suitably.
+				JobStatusType prevStatus = parentJob.getStatus();
+				boolean prevSuccess = prevStatus.equals(JobStatusType.SUCCESS) ||
+					prevStatus.equals(JobStatusType.FINISHING);
+				if (prevSuccess) {
+					// Previous job completed successfully. Kick off a new
+					// monitor thread for this job.
+					JobMonitor.create(job, this);
+				} else {
+					// The previous job failed. Update status of this current
+					// job to reflect that it has failed.
+					job.setStatus(JobStatusType.WAIT_FAILED);
+				}
+			}
+		}
+	}
+	
 	/**
 	 * Save the workspace data directly.
 	 * 
@@ -331,8 +377,7 @@ public class MainFrame extends JFrame implements ActionListener {
 	public void createJobThreads() {
 		JobList jobList = Workspace.get().getJobList();
 		for(Job job: jobList.getJobs()) {
-			if (!JobBase.JobStatusType.FAILED.equals(job.getStatus()) &&
-				!JobBase.JobStatusType.SUCCESS.equals(job.getStatus())) {
+			if (!job.isDone() && !job.isWaiting()) {
 				// This job requires some monitoring. Start thread for this job.
 				JobMonitor.create(job, this);
 			}

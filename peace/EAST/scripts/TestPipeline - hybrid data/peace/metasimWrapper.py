@@ -1,5 +1,12 @@
 import os, sys
 
+# Program is called with the following parameters
+# argv[1] = geneFile
+# argv[2] = numOf454TypeESTs
+# argv[3] = "454" (literal)
+# argv[5] = msOutputFile
+# argv[6] = estFile454
+
 # Program options
 geneFile = sys.argv[1]
 metasimType = sys.argv[3]
@@ -11,7 +18,7 @@ else:
 	mstFile = '.'
 	estFile = '.'
 
-# Run metasim
+# Run metasim with geneFile and numOf454TypeESTs to generate
 os.system('python MetasimSetup%s.py %s %s' %(metasimType, geneFile, sys.argv[2]))
 estFN = "%s-%s" %(geneFile.split('.')[0], metasimType)
 

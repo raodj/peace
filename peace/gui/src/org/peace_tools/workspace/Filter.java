@@ -36,6 +36,7 @@ package org.peace_tools.workspace;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
+import org.peace_tools.core.SummaryWriter;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -200,6 +201,26 @@ public class Filter {
 			cmdLine += " --" + p.getName() + " " + p.getValue();
 		}
 		return cmdLine;
+	}
+	
+	/**
+	 * Method to write summary information about this filter.
+	 * 
+	 * This method is a convenience method that is used by various 
+	 * wizards to display summary information about this filter.
+	 * The summary information about the filter include filter type
+	 * and parameters.
+	 * 
+	 * @param sw The summary writer to which the data is to be written.
+	 */
+	public void summarize(SummaryWriter sw) {
+		final String desc = (filterType.equals(FilterType.LengthFilter) ?
+				"Filters out cDNA fragments shorter than a given length" :
+				"Filters out cDNA fragments with low-complexity regions");
+		sw.addSubSection("Filter Type", filterType.toString(), desc);
+		for(Param param: parameters) {
+			sw.addSubSummary(param.getName(), param.getValue(), null);
+		}
 	}
 	
 	/**

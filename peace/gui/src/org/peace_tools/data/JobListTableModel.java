@@ -128,7 +128,7 @@ public class JobListTableModel extends AbstractTableModel implements WorkspaceLi
 		case 2: // return monitor status.
 			if (job.getMonitor() != null) {
 				return "Running";
-			} else if (!job.isDone()) {
+			} else if (!job.isDone() && !job.isWaiting()) {
 				return "Needed";
 			}
 			return "Not Needed";

@@ -40,7 +40,7 @@ import javax.swing.event.TreeModelListener;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
-import org.peace_tools.workspace.MSTData;
+import org.peace_tools.workspace.FileEntry;
 
 /**
  * A bridge class between a MST and a JTree.
@@ -65,10 +65,10 @@ public class MSTTreeModel implements TreeModel {
 	 * The EST information is used to display additional EST information
 	 * in the MST display.
 	 * 
-	 * @param wsEntry The workspace entry corresponding to the clusters being
+	 * @param wsEntry The workspace entry corresponding to the file being
 	 * adapted by this object.
 	 */
-	public MSTTreeModel(MST mst, ESTList estList, MSTData wsEntry) {
+	public MSTTreeModel(MST mst, ESTList estList, FileEntry wsEntry) {
 		this.mst     = mst;
 		this.estList = estList;
 		this.wsEntry = wsEntry;
@@ -236,7 +236,7 @@ public class MSTTreeModel implements TreeModel {
 	 * @return The reference to the MSTData workspace entry whose
 	 * data is "modeled" by this class.
 	 */
-	public MSTData getWsEntry() { return wsEntry; }
+	public FileEntry getWsEntry() { return wsEntry; }
 	
 	/**
 	 * Helper method to obtain the complete path from the root to a given 
@@ -297,7 +297,7 @@ public class MSTTreeModel implements TreeModel {
 	 * MST tree model was actually obtained. This information can be
 	 * used by "view" classes to create additional views as needed.
 	 */
-	private final MSTData wsEntry;
+	private final FileEntry wsEntry;
 	
 	/**
 	 * The MST data file that provides all the necessary information

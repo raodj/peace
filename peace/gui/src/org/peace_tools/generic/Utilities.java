@@ -214,6 +214,64 @@ public class Utilities {
 	}
 
 	/**
+	 * Helper method to break messages (using HTML &gt;br/&lt;) at word
+	 * boundaries so that they do not exceed a given length.
+	 * 
+	 * This method is a helper method that is used to break a given 
+	 * string into a multi-line HMTL text. If the source string is
+	 * already in HTML then your mileage with this method will vary.
+	 * Multiple lines of HTML are generated using &gt;br/&lt; HTML
+	 * directive at word boundaries. This method does not add any
+	 * other HTML decorations or tags to the text.
+	 * 
+	 * @param srcStr The source string to be converted to a multi-line
+	 * HTML text. The source string is directly returned by this method
+	 * if: (i) source string is null; (ii) it is an empty string; or
+	 * (iii) its length is already less than WrapLen.
+	 *  
+	 * @param wrapLen The maximum acceptable length (in number of
+	 * characters) for each line in the returned HTML text. This 
+	 * value must be at least 1.
+	 * 
+	 * @return The source string converted to a multi-line HTML text
+	 * by inserting &gt;br/&lt; at appropriate word boundaries such
+	 * that each line of HTML text does not exceed WrapLen characters.
+	 */
+	public static String wrapStringToHTML(String srcStr, int wrapLen) {
+		assert(wrapLen > 0);
+		// Check to ensure we have something to work with.
+		if ((srcStr == null) || (srcStr.length() < wrapLen)) {
+			// Nothing further to be done.
+			return srcStr;
+		}
+		// Fold the subTitle message so that it does not exceed given 
+		// number of characters and fold at word boundaries.
+		StringBuilder wrappedTitle = new StringBuilder(srcStr.length() + 128);
+		while (srcStr.length() > 0) {
+			if (wrappedTitle.length() > 0) {
+				wrappedTitle.append("<br/>");
+			}
+			// See if subTitle is longer than wrapLen chars.
+			String words = srcStr.substring(0, Math.min(wrapLen, srcStr.length()));
+			// Handle the line suitably
+			if (words.length() >= wrapLen) {
+				// Go back to previous word from the end but not to
+				// beginning of string (otherwise we will strip off nothing).
+				int lastSpc = Math.max(words.lastIndexOf(' '), 1);
+				words = words.substring(0, lastSpc);
+				// Save the rest of the line
+				srcStr = srcStr.substring(lastSpc + 1);
+			} else {
+				// Used up all the words
+				srcStr = "";
+			}
+			// Tag on the words we extracted out
+			wrappedTitle.append(words);
+		}
+		return wrappedTitle.toString();
+	}
+	
+	/**
 	 * This method is a convenience method that provides a simple mechanism for
 	 * creating a JMenuItem, given the parameters.
 	 * 
@@ -236,7 +294,7 @@ public class Utilities {
 	 * 
 	 * @param command
 	 *            The string representing the action command that will be
-	 *            generated when this menu option is slected!
+	 *            generated when this menu option is selected!
 	 * @param al
 	 *            The ActionListener to register with the Menu Item.
 	 * 
@@ -309,30 +367,9 @@ public class Utilities {
 			// will create an icon!
 			icon = getIcon(iconFileName);
 		}
-		// Fold the subTitle message so that it does not exceed 35 
+		// Fold the subTitle message so that it does not exceed 45 
 		// characters and fold at word boundaries.
-		String wrappedTitle = "";
-		while (subTitle.length() > 0) {
-			if (wrappedTitle.length() > 0) {
-				wrappedTitle += "<br>";
-			}
-			final int WrapLen = 45;
-			// See if subTitle is longer than 35 chars.
-			String words = subTitle.substring(0, Math.min(WrapLen, subTitle.length()));
-			// Handle the line suitably
-			if (words.length() >= WrapLen) {
-				// Go back to previous word from the end.
-				int lastSpc = words.lastIndexOf(' ');
-				words = words.substring(0, lastSpc);
-				// Save the rest of the line
-				subTitle = subTitle.substring(lastSpc + 1);
-			} else {
-				// Use up all the words
-				subTitle = "";
-			}
-			// Tag on the words we extracted out
-			wrappedTitle += words;
-		}
+		String wrappedTitle = wrapStringToHTML(subTitle, 45);
 		// Construct a full HTML item text.
 		String fullItem = "<html><b>" + itemTitle + "</b><br>" +
 		"<font size=\"-2\">" + wrappedTitle + "</font></html>";
@@ -994,7 +1031,8 @@ public class Utilities {
 	 * 
 	 * This is a helper method that can be used to recursively enable or disable
 	 * a component and its children. This is a feature that is not provided
-	 * by swing.
+	 * by swing. In addition, this method appropriately adds color decorations
+	 * to JLabel's that have HTML text in them.
 	 * 
 	 * @param parent The parent component whose status is to be changed.
 	 * @param status If true, the components are enabled otherwise the component is
@@ -1009,6 +1047,15 @@ public class Utilities {
 				setEnabled((Container) child, status);
 			} else {
 				child.setEnabled(status);
+			}
+			if (child instanceof JLabel) {
+				JLabel label     = (JLabel) child;
+				String labelText = label.getText();
+				if ((labelText != null) && (labelText.startsWith("<html>"))) {
+					// Update the HTML colors to indicate enabled/disabled status
+					// as this is not automatically done by Java
+					label.setText(enableHTMLText(labelText, status));
+				}
 			}
 		}
 	}
@@ -1141,5 +1188,25 @@ public class Utilities {
 			// Set the location back.
 			child.setLocation(tlc);
 		}
+	}
+	
+	/**
+	 * Helper method to trim a string to a given length.
+	 * 
+	 * @param src The source string (typically a description) to be
+	 * trimmed to a given length.
+	 * 
+	 * @param maxLen The maximum length of the return string. If the
+	 * src description is longer than this value, then trailing
+	 * characters after this length are dropped.
+	 * 
+	 * @return The first part of src string such that the length of
+	 * the returned string is less than maxLen. 
+	 */
+	public static String trim(String src, int maxLen) {
+		if (src.length() > maxLen) {
+			return src.substring(0, maxLen - 2) + "...";
+		} 
+		return src;
 	}
 }

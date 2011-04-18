@@ -38,9 +38,11 @@ include $(top_builddir)/Makefile.common.am
 AM_CPPFLAGS=$(GLOBALCPPFLAGS)
 AM_CXXFLAGS=$(GLOBALCXXFLAGS)
 
-noinst_LIBRARIES = libbaton.a
+AM_CPPFLAGS += -I../framework -I../shared
 
-libbaton_a_SOURCES = \
+noinst_LTLIBRARIES = libbaton.la
+
+libbaton_la_SOURCES = \
 Baton.h \
 Baton.cpp \
 BatonList.h \
@@ -56,6 +58,14 @@ BatonAssemblerWorker.cpp \
 ContigMaker.h \
 ContigMaker.cpp \
 AlignmentInfo.h \
-AlignmentInfo.cpp
+AlignmentInfo.cpp \
+WindowPair.h \
+WindowPair.cpp \
+BatonListCache.h \
+BatonListCache.cpp \
+SequenceAligner.h \
+SequenceAligner.cpp \
+DefaultSequenceAligner.h \
+DefaultSequenceAligner.cpp
 
 # end of Makefile.am

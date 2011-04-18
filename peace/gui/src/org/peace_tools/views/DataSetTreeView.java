@@ -54,8 +54,8 @@ import org.peace_tools.core.MainFrame;
 import org.peace_tools.data.DataSetTreeModel;
 import org.peace_tools.generic.Utilities;
 import org.peace_tools.workspace.DataSet;
-import org.peace_tools.workspace.MSTClusterData;
-import org.peace_tools.workspace.MSTData;
+import org.peace_tools.workspace.FileEntry;
+import org.peace_tools.workspace.GeneratedFileList;
 
 public class DataSetTreeView extends JPanel implements ActionListener {
 	/**
@@ -211,19 +211,20 @@ public class DataSetTreeView extends JPanel implements ActionListener {
             super.getTreeCellRendererComponent(tree, value, sel,
                             expanded, leaf, row, hasFocus);
             if (!leaf && (value instanceof DataSet)) {
-            	setIcon(LeafIcons[2]);
-            	setToolTipText(((DataSet) value).getDescription());
+            	setIcon(FileTypeIcons[0]);
+            	setToolTipText(((DataSet) value).getToolTipText());
+            } else if (!leaf && (value instanceof GeneratedFileList)) {
+            	final GeneratedFileList gfl = (GeneratedFileList) value;
+            	final int JobIconIndex = gfl.getJobSummary().getStatus().ordinal();
+            	setIcon(GFLJobStatusIcons[JobIconIndex]);
+            	setToolTipText(gfl.getToolTipText());
             }
             // Replace icons as needed.
-            if (leaf && (value instanceof MSTData)) {
-            	MSTData mst = (MSTData) value;
-                setIcon(LeafIcons[0]);
-                setToolTipText(mst.getDescription());
-            }
-            if (leaf && (value instanceof MSTClusterData)) {
-            	MSTClusterData cluster = (MSTClusterData) value;
-                setIcon(LeafIcons[1]);
-                setToolTipText(cluster.getDescription());
+            if (leaf && (value instanceof FileEntry)) {
+            	FileEntry fe = (FileEntry) value;
+            	int iconIdx  = fe.getType().ordinal() + 1;
+                setIcon(FileTypeIcons[iconIdx]);
+                setToolTipText(fe.getToolTipText());
             }
             return this;
         }
@@ -241,7 +242,6 @@ public class DataSetTreeView extends JPanel implements ActionListener {
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
 		// TODO Auto-generated method stub
-		
 	}
 	
 	/**
@@ -283,12 +283,32 @@ public class DataSetTreeView extends JPanel implements ActionListener {
 	 * The static set of icons that are repeatedly used by
 	 * the custom cell renderer used by this tree view class.
 	 */
-    private static final Icon LeafIcons[] = {
-    	Utilities.getIcon("images/16x16/MST.png"),
-    	Utilities.getIcon("images/16x16/Cluster.png"),
-    	Utilities.getIcon("images/16x16/DataSet.png")
+    private static final Icon FileTypeIcons[] = {
+    	Utilities.getIcon("images/16x16/DataSet.png"),
+    	Utilities.getIcon("images/16x16/MST.png"),      // MST
+    	Utilities.getIcon("images/16x16/Cluster.png"),  // CLS 
+    	Utilities.getIcon("images/16x16/EAST.png"),     // ASM
+    	Utilities.getIcon("images/16x16/LogScale.png"), // STATS
+    	Utilities.getIcon("images/16x16/TextView.png"), // OUTPUT
+    	Utilities.getIcon("images/16x16/TextView.png")  // SINGLETONS 
     };
 
+	/**
+	 * The static set of icons that are repeatedly used by
+	 * the custom cell renderer to indicate status of jobs
+	 * working to build generated files.
+	 */
+    private static final Icon GFLJobStatusIcons[] = {
+    	Utilities.getIcon("images/16x16/JobStarting.png"),
+    	Utilities.getIcon("images/16x16/JobWaiting.png"),
+    	Utilities.getIcon("images/16x16/JobQueued.png"),
+    	Utilities.getIcon("images/16x16/JobRunning.png"),
+    	Utilities.getIcon("images/16x16/JobFinishing.png"),
+    	Utilities.getIcon("images/16x16/JobSuccess.png"),
+    	Utilities.getIcon("images/16x16/JobError.png"),
+    	Utilities.getIcon("images/16x16/JobError.png")
+    };
+    
 	/**
 	 * This is a pop-up menu that is displayed whenever the user clicks
 	 * the left mouse button on a menu item.  This menu is created

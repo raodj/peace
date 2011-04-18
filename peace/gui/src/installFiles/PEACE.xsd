@@ -41,7 +41,7 @@
 	<!-- Datatype for the version ID used further below in this schema  -->
 	<xsd:simpleType name="VersionID">
 		<xsd:restriction base="xsd:string">
-			<xsd:enumeration value="0.1" />
+			<xsd:enumeration value="0.2" />
 		</xsd:restriction>
 	</xsd:simpleType>
 
@@ -87,8 +87,7 @@
 		<xsd:complexType>
 			<xsd:sequence>
 				<xsd:element ref="ESTData" minOccurs="1" />
-				<xsd:element ref="MSTData" minOccurs="0" maxOccurs="unbounded"/>
-				<xsd:element ref="MSTClusterData" minOccurs="0" maxOccurs="unbounded"/>
+				<xsd:element ref="GeneratedFileList" minOccurs="0" maxOccurs="unbounded"/>
 			</xsd:sequence>
 		</xsd:complexType>
 	</xsd:element>
@@ -99,8 +98,34 @@
 		<xsd:restriction base="xsd:string">
 			<xsd:enumeration value="fasta" />
 			<xsd:enumeration value="sff" />
+			<xsd:enumeration value="ace" />
+			<xsd:enumeration value="sam" />
+			<xsd:enumeration value="bam" />
+			<xsd:enumeration value="tsv" />
+			<xsd:enumeration value="txt" />
 		</xsd:restriction>
 	</xsd:simpleType>
+
+	<!-- The type definition for holding core statistics about a data file -->
+	<xsd:complexType name="StatsType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Type definition for an element to hold some core/useful
+				statistics about a data file. These values are used to
+				provide useful information to the user without having to
+				reprocess the whole file.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Count"      type="xsd:nonNegativeInteger"/>
+			<xsd:element name="AvgLength"  type="xsd:decimal"/>
+			<!-- Standard Deviation (SD) for average length -->
+			<xsd:element name="LengthSD"   type="xsd:decimal"/>
+			<xsd:element name="MinLength"  type="xsd:positiveInteger"/>
+			<xsd:element name="MaxLength"  type="xsd:positiveInteger"/>
+			<xsd:element name="LastUpdate" type="xsd:positiveInteger"/>
+		</xsd:sequence>
+	</xsd:complexType>
 		
 	<xsd:element name="ESTData">
 		<xsd:complexType>
@@ -108,6 +133,7 @@
 				<xsd:element name="ID" type="xsd:token"/>
 				<xsd:element name="Path" type="xsd:string" />
 				<xsd:element name="Description" type="xsd:string" />
+				<xsd:element name="Stats" type="StatsType"/>
 			</xsd:sequence>
 			<xsd:attribute name="fileType" type="DataFileType" default="fasta"/>
 		</xsd:complexType>
@@ -164,7 +190,7 @@
 		<xsd:complexType>
 			<xsd:sequence>
 				<xsd:element name="Name" type="xsd:string"/>
-				<xsd:element name="Value" type="xsd:string"/>
+				<xsd:element name="Value" type="xsd:string" minOccurs="0"/>
 			</xsd:sequence>
 		</xsd:complexType>
 	</xsd:element>
@@ -244,9 +270,18 @@
 	</xsd:element>
 
 	<!--  enumerations defining different status values for jobs -->
+		<xsd:simpleType name="JobType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="clustering" />
+			<xsd:enumeration value="east" />
+			<xsd:enumeration value="baton" />
+		</xsd:restriction>
+	</xsd:simpleType>
+	
 	<xsd:simpleType name="JobStatusType">
 		<xsd:restriction base="xsd:string">
 			<xsd:enumeration value="starting" />
+			<xsd:enumeration value="waiting" />
 			<xsd:enumeration value="queued" />
 			<xsd:enumeration value="running" />
 			<xsd:enumeration value="finishing" />
@@ -266,6 +301,7 @@
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:sequence>
+				<xsd:element name="Type" type="JobType"/>
 				<xsd:element name="Status" type="JobStatusType"/>
 				<xsd:element name="ServerName">
 					<xsd:complexType>
@@ -284,6 +320,8 @@
 				<!-- The actual parameter string that was passed to PEACE
 					 clustering engine as simple reference -->
 				<xsd:element name="FiltersSummary" type="xsd:string"/>
+				<xsd:element name="ParametersSummary" type="xsd:string"/>
+				<xsd:element name="PrevJobID" type="xsd:token" minOccurs="0"/>
 			</xsd:sequence>
 			<xsd:attribute name="jobID" type="xsd:token"/>
 		</xsd:complexType>
@@ -298,51 +336,54 @@
 			<xsd:enumeration value="tmst" />
 		</xsd:restriction>
 	</xsd:simpleType>
-	
-	<xsd:element name="MSTData">
+
+	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+	<!--  The elements that defines output files in a data set -->
+	<xsd:element name="GeneratedFileList">
 		<xsd:annotation>
 			<xsd:documentation>
-				This element defines the contents and metadata associated
-				with a Minimum Spanning Tree (MST) data structure generated
-				by PEACE by applying a suitable FWAnalyzer for generating
-				distance/similarity metrics. This element also contains data
-				regarding the job that was/is being run to get the data.
+				This element provides a logical collection of
+				files that have been generated from a single job.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:sequence>
-				<xsd:element name="ID" type="xsd:token"/>
-				<xsd:element name="Type" type="MSTBuilderType"/>
-				<xsd:element name="Path" type="xsd:string"/>
-				<xsd:element name="Description" type="xsd:string"/>
-				<xsd:element ref="FWAnalyzer"/>
 				<xsd:element ref="JobSummary"/>
+				<xsd:element ref="FileEntry" minOccurs="0" maxOccurs="unbounded"/>			
 			</xsd:sequence>
 		</xsd:complexType>
-	</xsd:element>
+	</xsd:element>	
 
-	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
-	<!--  The element that defines data for each Cluster file. -->
-	<xsd:element name="MSTClusterData">
+	<xsd:simpleType name="FileEntryType">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="mst" />
+			<xsd:enumeration value="cls" />
+			<xsd:enumeration value="asm" />
+			<xsd:enumeration value="stats" />
+			<xsd:enumeration value="output" />
+			<xsd:enumeration value="singletons" />
+		</xsd:restriction>
+	</xsd:simpleType>
+	
+	<xsd:element name="FileEntry">
 		<xsd:annotation>
 			<xsd:documentation>
-				This element provides metadata regarding clustering 
-				information stored in this file. Clustering information
-				is obtained from a MSTData in a given DataSet.
+				This element represents a single logical file
+				or artificact that was generated as the output of
+				a Job run via this GUI. 
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:complexType>
 			<xsd:sequence>
 				<xsd:element name="ID" type="xsd:token"/>			
-				<xsd:element name="MSTRef" type="xsd:token"/>
+				<xsd:element name="EntryType" type="FileEntryType"/>
+				<xsd:element name="MimeType" type="DataFileType"/>
 				<xsd:element name="Path" type="xsd:string"/>
 				<xsd:element name="Description" type="xsd:string"/>
-				<xsd:element name="Threshold" type="xsd:positiveInteger"/>
-				<xsd:element ref="JobSummary"/>
 			</xsd:sequence>
 		</xsd:complexType>
 	</xsd:element>	
-	
+		
 	<!-- - - - - - - - - - - - - - - - - - - - - - - - - - - -->
 	<!--
 		ServerList is just list of zero or more Server entries
@@ -366,6 +407,15 @@
 		</xsd:restriction>
 	</xsd:simpleType>
 
+	<xsd:simpleType name="ServerOS">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="unidentified" />
+			<xsd:enumeration value="linux" />
+			<xsd:enumeration value="unix" />
+			<xsd:enumeration value="windows" />
+		</xsd:restriction>
+	</xsd:simpleType>
+
 	<!-- This element represnets a server entry and defines all the
 		information that is needed to access a server and run jobs is
 		defined here.
@@ -385,8 +435,9 @@
 	<xsd:element name="Server">
 		<xsd:complexType>
 			<xsd:sequence>
-				<xsd:element name="ID" type="xsd:token" />
+				<xsd:element name="ID"   type="xsd:token" />
 				<xsd:element name="Name" type="xsd:token" />
+				<xsd:element name="Port" type="xsd:positiveInteger" minOccurs="0" maxOccurs="1"/>
 				<xsd:element name="Description" type="xsd:string" />
 				<xsd:element name="UserID" type="xsd:token"
 					minOccurs="0" />
@@ -394,8 +445,13 @@
 				<xsd:element name="PollTime" type="xsd:duration"
 					default="PT30S" />
 				<xsd:element name="Status" type="ServerStatusType"/>
+				<xsd:element name="hasEAST" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
+				<!-- Flag to indicate if PEACE's Distributed Empirical Comparison and
+				     Analysis Framework -->
+				<xsd:element name="hasDECAF" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
 			</xsd:sequence>
 			<xsd:attribute name="type" type="ServerType" use="required" />
+			<xsd:attribute name="os"   type="ServerOS"   use="optional" />
 		</xsd:complexType>
 	</xsd:element>
 
@@ -405,48 +461,99 @@
 		Each Job entry provides information about a job that is
 		being run or has been run. Each job entry includes
 		additional information about the job to verify its 
-		operational status.
-	-->
-	<xsd:element name="Job">
-		<xsd:complexType>
-			<xsd:annotation>
-				<xsd:documentation>
-					This element defines the various values that
-					are maintained for each job started by the GUI
-					system. The ID is a locally generated ID while
-					JobID is either a remote PBS job ID or a local
-					process ID. The "Server" element contains ID of
-					the server. Path contains the location where files
-					(input and output) for this job are stored.
-				</xsd:documentation>
-			</xsd:annotation>
-			<xsd:sequence>
-				<xsd:element name="JobID" type="xsd:token"/>
-				<xsd:element name="Description" type="xsd:string"/>
-				<xsd:element name="ServerID" type="xsd:token"/>
-				<xsd:element name="Path" type="xsd:string"/>
-				<xsd:element name="Nodes" type="xsd:positiveInteger"/>
-				<xsd:element name="CPUsPerNode" type="xsd:positiveInteger"/>
-				<xsd:element name="Memory" type="xsd:positiveInteger"/>
-				<xsd:element name="MaxRunTime" type="xsd:positiveInteger"/>
-				<xsd:element name="StartTimestamp" type="xsd:dateTime" minOccurs="0"/>
-				<xsd:element name="Status" type="JobStatusType"/>
-				<xsd:element name="LastUpdateTimestamp" type="xsd:dateTime"/>
-				<xsd:element name="RunTime" type="xsd:duration" minOccurs="0"/>
-				<!-- Now the heuristics and filter details live in the job
-					 which seems to where they belong logically. A summary
-					 string is present in the JobSummary element -->
-				<xsd:element ref="HeuristicChain"/>
-				<xsd:element ref="FilterChain"/>
-			</xsd:sequence>
-		</xsd:complexType>
-	</xsd:element>
+		operational status. This type is a common base class
+		that is used to define a ClusteringJob and an EASTJob 
+	-->	
+	<xsd:complexType name="Job">
+		<xsd:annotation>
+			<xsd:documentation>
+				This element defines the various values that
+				are maintained for each job started by the GUI
+				system. The ID is a locally generated ID while
+				JobID is either a remote PBS job ID or a local
+				process ID. The "Server" element contains ID of
+				the server. Path contains the location where files
+				(input and output) for this job are stored.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="Type" type="JobType"/>
+			<xsd:element name="JobID" type="xsd:token"/>
+			<xsd:element name="Description" type="xsd:string"/>
+			<xsd:element name="ServerID" type="xsd:token"/>
+			<xsd:element name="Path" type="xsd:string"/>
+			<xsd:element name="Nodes" type="xsd:positiveInteger"/>
+			<xsd:element name="CPUsPerNode" type="xsd:positiveInteger"/>
+			<xsd:element name="Memory" type="xsd:positiveInteger"/>
+			<xsd:element name="MaxRunTime" type="xsd:positiveInteger"/>
+			<xsd:element name="StartTimestamp" type="xsd:dateTime" minOccurs="0"/>
+			<xsd:element name="Status" type="JobStatusType"/>
+			<xsd:element name="LastUpdateTimestamp" type="xsd:dateTime"/>
+			<xsd:element name="RunTime" type="xsd:duration" minOccurs="0"/>
+			<xsd:element name="PrevJobID" type="xsd:token" minOccurs="0"/>	
+		</xsd:sequence>
+	</xsd:complexType>
 	
+	<xsd:complexType name="ClusteringJobType">
+		<xsd:annotation>
+			<xsd:documentation>
+				This element defines the components of a clustering
+				job. A clustering job includes all the core components
+				of any job, as defined by the "Job" type. Consequently,
+				the clustering job extends a base job. In addition, a 
+				clustering job includes heuristics, filters, and other
+				general parameters. 
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+    		<xsd:extension base="Job">
+      			<xsd:sequence>
+      				<!-- Now the heuristics and filter details live in the job
+				 		which seems to where they belong logically. A summary
+				 		string is present in the JobSummary element -->
+				 	<xsd:element ref="FWAnalyzer"/>
+				 	<xsd:element name="Threshold" type="xsd:integer"/>
+					<xsd:element ref="HeuristicChain" minOccurs="0"/>
+					<xsd:element ref="FilterChain" minOccurs="0"/>
+					<xsd:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>		
+      			</xsd:sequence>
+      		</xsd:extension>
+      	</xsd:complexContent>
+	</xsd:complexType>
+
+	<xsd:complexType name="EASTJobType">
+		<xsd:annotation>
+			<xsd:documentation>
+				This element defines the components of an EAST assembly
+				job. A clustering job includes all the core components
+				of any job, as defined by the "Job" type. Consequently,
+				the EAST job extends a base job. In addition, a 
+				EAST job includes a set of general parameters. 
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+    		<xsd:extension base="Job">
+      			<xsd:sequence>
+					<xsd:element ref="Param" minOccurs="0" maxOccurs="unbounded"/>		
+      			</xsd:sequence>
+      		</xsd:extension>
+      	</xsd:complexContent>
+	</xsd:complexType>
+		
 	<xsd:element name="JobList">
 		<xsd:complexType>
 			<xsd:sequence>
 				<xsd:element name="SeqCounter" type="xsd:positiveInteger"/>
-				<xsd:element ref="Job" minOccurs="0" maxOccurs="unbounded"/>
+				<!--  The job entries can either be a ClusteringJob or EASTJob
+					  repeated several time in some arbitrary order in which
+					  the user runs the jobs and deletes job entries. 
+				-->
+				<xsd:sequence minOccurs="0" maxOccurs="unbounded">
+    				<xsd:choice>
+      					<xsd:element name="ClusteringJob" type="ClusteringJobType"/>
+      					<xsd:element name="EASTJob" type="EASTJobType"/>
+      				</xsd:choice>
+				</xsd:sequence>
 			</xsd:sequence>
 		</xsd:complexType>
 	</xsd:element>

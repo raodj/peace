@@ -107,6 +107,16 @@ struct StringHasher  {
 */
 typedef HashMap< std::string, int, StringHasher > StringIntMap;
 
+/** \typedef hash_map<std::string, std::string, StringHasher> StringStringMap
+
+	\brief A typedef for a hash map whose key is std::string and
+    contains std::string objects.
+    
+    The following typedef provides a short cut for using a hash map
+    whose key is a std::string and contains std::string objects.
+*/
+typedef HashMap< std::string, std::string, StringHasher > StringStringMap;
+
 #else // Windows code path begins 
 
 #include <hash_map>
@@ -137,6 +147,16 @@ struct LessString {
     whose key is a std::string and contains integers.
 */
 typedef HashMap<std::string, int, stdext::hash_compare<std::string, LessString> > StringIntMap;
+
+/** \typedef A hash_map<std::string, std::string>
+
+    A typedef for a hash map whose key is std::string and contains
+    std::string objects.
+    
+    The following typedef provides a short cut for using a hash map
+    whose key is a std::string and contains std::string objects..
+*/
+typedef HashMap<std::string, std::string, stdext::hash_compare<std::string, LessString> > StringIntMap;
 
 #endif
 

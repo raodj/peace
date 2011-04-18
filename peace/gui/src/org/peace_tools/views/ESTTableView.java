@@ -77,6 +77,7 @@ import org.peace_tools.generic.FindListener;
 import org.peace_tools.generic.HelpHandler;
 import org.peace_tools.generic.UserLog;
 import org.peace_tools.generic.Utilities;
+import org.peace_tools.workspace.DataFileStats;
 
 /**
  * The table model that provides a graphical display of fragments in
@@ -289,11 +290,13 @@ public class ESTTableView extends JPanel implements ActionListener, ChangeListen
 	 */
 	private JLabel createSummaryInfo() {
 		// Obtain the two distinct summary information.
-		double[] fastaStats   = model.getESTList().computeStatistics();
+		DataFileStats fastaStats   = model.getESTList().computeStatistics();
 		// Build the summary information into a string 
-		String summary = String.format(" #Entries: %.0f, Shortest fragment: %.0f nt, " +
-				"Longest fragment: %.0f nt, Avg. fragment length: %.2f nt (SD: %.2f nt)", 
-				fastaStats[0], fastaStats[1], fastaStats[2], fastaStats[3], fastaStats[4]);
+		String summary = String.format(" #Entries: %d, Shortest fragment: %d nt, " +
+				"Longest fragment: %d nt, Avg. fragment length: %.2f nt (SD: %.2f nt)", 
+				fastaStats.getCount(), fastaStats.getMinLength(), 
+				fastaStats.getMaxLength(), fastaStats.getAvgLength(), 
+				fastaStats.getLengthSD());
 		// Now store all the summary information into a JLabel.
 		JLabel infoLabel = new JLabel(summary);
 		infoLabel.setIcon(Utilities.getIcon("images/16x16/Information.png"));

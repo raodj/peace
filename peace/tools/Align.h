@@ -74,7 +74,7 @@
     viewed using the \c ShowAlignment tool.
 */
 class Align : public Tool {
- public:
+public:
     /** The main method to perform tasks for this tool.
         
         <p>This method is invoked from the ::main() method associated
@@ -98,18 +98,18 @@ class Align : public Tool {
 
     /** Method to perform core alignment operations.
         
-	This method is invoked to perform the core alignment task once
-	the input ESTs and MST (with alignment information) has been
-	loaded.  This method uses the getFarthestPos() method to
-	determine the left-most EST position in the MST.  It then uses
-	the position of the farthest EST to annotate the loaded
-	ESTs. Finally, it serializes the ESTs to the specified output
-	file.
+        This method is invoked to perform the core alignment task once
+        the input ESTs and MST (with alignment information) has been
+        loaded.  This method uses the getFarthestPos() method to
+        determine the left-most EST position in the MST.  It then uses
+        the position of the farthest EST to annotate the loaded
+        ESTs. Finally, it serializes the ESTs to the specified output
+        file.
 
         \note This method assumes that the MST data and EST
         information have already been successfully loaded.
         
-	\param[out] out The output stream to which the annotated ESTs
+        \param[out] out The output stream to which the annotated ESTs
     */
     void doAlignment(std::ostream &os);
     
@@ -155,22 +155,22 @@ private:
 
     /** Recurvise method to generate core alignment process.
         
-	This method is invoked to perform the actual core alignment
-	task once the input ESTs and MST (with alignment information)
-	has been loaded.  This method uses the startPos value provided
-	by the parent to recursively generate alignment information
-	for its child nodes.
+        This method is invoked to perform the actual core alignment
+        task once the input ESTs and MST (with alignment information)
+        has been loaded.  This method uses the startPos value provided
+        by the parent to recursively generate alignment information
+        for its child nodes.
 	
-	\param[out] out The output stream to which the annotated ESTs
-	must be written.
+        \param[out] out The output stream to which the annotated ESTs
+        must be written.
 	
-	\param[in] estIdx The index of the EST and its children that
+        \param[in] estIdx The index of the EST and its children that
         must be aligned by this method.  The default initial value of
         -1 is used to indicate the root of the tree that contains all
         the nodes in the MST.
 	
-	\param[in] startPos The starting base pair position relatively
-	to which the child ESTs are to be aligned and serialized.
+        \param[in] startPos The starting base pair position relatively
+        to which the child ESTs are to be aligned and serialized.
     */    
     void doAlignment(std::ostream& os, const int estIdx, const int startPos);
 };

@@ -1,6 +1,8 @@
 #!/usr/bin/perl
 use strict;
 
+    print "-------------------Starting tests-----------------------\n";
+
 my $base_dir = $ARGV[5];
 my $data_type = $ARGV[6]; #sanger, 454, illumina,hybrid
 
@@ -34,6 +36,8 @@ my $velvetConsensusFile = "$estFile.velvet.contigs";
 my $miraConsensusFile = "$estFile.mira.contigs";
 
 	chdir "$base_dir/peace";
+print $base_dir."\n";
+print `pwd`;
 
 	my @contigs;
 	my $inContigFile;
@@ -45,8 +49,11 @@ my $miraConsensusFile = "$estFile.mira.contigs";
     my $estFileSanger = "$estFile.sanger";
     my $estFile454 = "$estFile.454";
     my $estFileIllumina = "$estFile.illumina";
-    
+
+print "-----Before wrapper.py command----\n";
     $peace_command = `python wrapper.py $geneFile $numOfEstSanger $errorRate $mstFile $estFileSanger`;
+print "-----After wrapper.py command----\n";
+    print $peace_command;
     $peace_command = `python metasimWrapper.py $geneFile $numOfEst454 454 $mstFile $estFile454`; 
     $peace_command = `python metasimWrapper.py $geneFile $numOfEstIllumina Illumina $mstFile $estFileIllumina`; 
     $peace_command = `python ModifyComment.py $estFile454`;

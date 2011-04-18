@@ -39,7 +39,9 @@
 
 #include <algorithm>
 
-ContigMaker::ContigMaker(const int rootESTidx) {
+ContigMaker::ContigMaker(const int rootESTidx,
+                         const ESTList* list) : estList(list) {
+    ASSERT( estList != NULL );
     // Save the root for future reference
     AlignmentInfo root(rootESTidx, rootESTidx, 0, 0, false);
     alignedESTs.push_back(root);
@@ -107,8 +109,8 @@ ContigMaker::add(const AlignmentInfo& info) {
     // Compute the logical offset occupied by the right-most base
     // to decide if the newly added entry has the right-most one.
     ASSERT ((rightMostEntry >= 0) && (rightMostEntry < AlignedESTCount));
-    if (alignedESTs[rightMostEntry].getRightMostNtPos() <
-        info.getRightMostNtPos()) {
+    if (alignedESTs[rightMostEntry].getRightMostNtPos(estList) <
+        info.getRightMostNtPos(estList)) {
         // The newly added entry has nucleotides to the right of
         // the earlier right-most entry. So set the new one as the
         // right-most entry.
@@ -130,7 +132,8 @@ ContigMaker::formContig(const bool verbose) {
     }
     // Obtain the complete range of offsets for the contig to be formed.
     const int LeftMostOffset  = alignedESTs[leftMostEntry].getAlignmentPos();
-    const int RightMostOffset = alignedESTs[rightMostEntry].getRightMostNtPos();
+    const int RightMostOffset =
+        alignedESTs[rightMostEntry].getRightMostNtPos(estList);
     // Print some information if in verbose mode.
     if (verbose) {
         std::cout << "Forming contig using: "  << alignedESTs.size()
@@ -159,16 +162,16 @@ ContigMaker::getBaseDistributions(TwoDArray& distributions,
     // Obtain the complete range of offsets for the contig to be
     // formed. Get the left-most (LM) and right-most (RM) offsets
     const int LMOffset = alignedESTs[leftMostEntry].getAlignmentPos();
-    const int RMOffset = alignedESTs[rightMostEntry].getRightMostNtPos();
+    const int RMOffset = alignedESTs[rightMostEntry].getRightMostNtPos(estList);
 
     // First populate the distributions array with all zeros.
     const std::vector<int> ZeroVector(5, 0);  // Five for ATCG and N
     // Create 2-d vector
-    distributions.resize(RMOffset - LMOffset + 1, ZeroVector);    
+    distributions.resize(RMOffset - LMOffset + 1, ZeroVector);
     // Compute the base distributions using the aligned fragments
     for(size_t index = 0; (index < alignedESTs.size()); index++) {
         // Get the sequence and sequence length for convenience.
-        const EST  *est = EST::getEST(alignedESTs[index].getESTIndex());
+        const EST  *est = estList->get(alignedESTs[index].getESTIndex());
         std::string seq = est->getSequence();
         if (alignedESTs[index].isRCAlignment()) {
             seq = makeRevComp(seq);

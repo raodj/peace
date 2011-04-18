@@ -40,6 +40,8 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
 
+import org.peace_tools.core.session.ServerSession;
+import org.peace_tools.workspace.JobBase.JobType;
 import org.w3c.dom.Element;
 
 /**
@@ -77,7 +79,7 @@ public class Server {
 		 */
 		GOOD,
 		/**
-		 * This status indciates that the GUI is in the process of 
+		 * This status indicates that the GUI is in the process of 
 		 * uninstalling the runtime subsystem of PEACE from the remote
 		 * machine. In this state, the server is not usable.
 		 */
@@ -94,6 +96,32 @@ public class Server {
 		 */
 		CONNECT_FAILED
 	};
+	
+	
+	/**
+	 * Enumerations to provide a more convenient mechanism for 
+	 * referring to the actual type of the server that this
+	 * server session has been connected to. 
+	 */
+	public enum OSType {
+		UNIDENTIFIED, LINUX, UNIX, WINDOWS
+	}
+
+	/**
+	 * Enumerations to provide a more convenient mechanism for 
+	 * referring to the type of executable program that this
+	 * installed on this server. These programs are installed
+	 * as a part of the standard installation-package included
+	 * as a part of the PEACE-GUI distribution. 
+	 */
+	public enum EXEKind {
+		PEACE_CLUSTER_MAKER,
+		EAST_EXE,
+		BATON_EXE,
+		WIN_LAUNCHER,
+		JOB_RUNNER
+	}
+	
 	/**
 	 * Helper method to utilize data from a DOM tree to create a suitable
 	 * Server entry. This method is typically  used to create a suitable
@@ -112,9 +140,20 @@ public class Server {
 		// First obtain the type of this server entry.
 		String type = serverNode.getAttribute("type");
 		final boolean remote = "remote".equals(type);
+		// Find and save the OS type if available.
+		OSType osType = OSType.UNIDENTIFIED;
+		if (serverNode.hasAttribute("os")) {
+			String osStr = serverNode.getAttribute("os");
+			osType = OSType.valueOf(osStr.toUpperCase());
+		}
 		// First extract the necessary information from the DOM tree.
 		String ID     = DOMHelper.getStringValue(serverNode, "ID");
 		String name   = DOMHelper.getStringValue(serverNode, "Name");
+		int    port   = -1;
+		if (remote) {
+			// Get the port number for the remote server.
+			port = DOMHelper.getIntValue(serverNode, "Port");
+		}
 		String desc   = DOMHelper.getStringValue(serverNode, "Description", true);
 		desc          = (desc != null) ? desc : "";
 		String status = DOMHelper.getStringValue(serverNode, "Status");
@@ -122,7 +161,6 @@ public class Server {
 		if (remote) {
 			// Only remote servers have userID
 			userId = DOMHelper.getStringValue(serverNode, "UserID");
-			
 		}
 		// Determine the install path.
 		String path   = DOMHelper.getStringValue(serverNode, "InstallPath");
@@ -136,8 +174,21 @@ public class Server {
 		}
 		// Finally create the server object to encapsulate the data.
 		Server srvr = new Server(ID, name, desc, userId, path, 
-				pollTime, remote);
+				pollTime, remote, port);
 		srvr.setStatus(ServerStatusType.valueOf(status.toUpperCase()));
+		srvr.setOSType(osType);
+		// Setup flag to indicate if server has EAST installed in it.
+		if (DOMHelper.hasElement(serverNode, "hasEAST")) {
+			String hasEASTStr = DOMHelper.getStringValue(serverNode, "hasEAST");
+			boolean hasEAST   = Boolean.parseBoolean(hasEASTStr);
+			srvr.setEASTInstalled(hasEAST);
+		}
+		// Setup flag to indicate if server has DECAF installed in it.
+		if (DOMHelper.hasElement(serverNode, "hasDECAF")) {
+			String hasDECAFStr = DOMHelper.getStringValue(serverNode, "hasDECAF");
+			boolean hasDECAF   = Boolean.parseBoolean(hasDECAFStr);
+			srvr.setDECAFInstalled(hasDECAF);
+		}
 		return srvr;
 	}
 	
@@ -167,10 +218,14 @@ public class Server {
 	 * 
 	 * @param remote This flag indicates if this server entry represents
 	 * a local server or a remote server.
+	 * 
+	 * @param port The port number (meaningful only for remote servers)
+	 * over which secure connections are to be established. The default
+	 * value is 22.
 	 */
 	public Server(String ID, String name, String description,
 			String userID, String installPath, Duration pollTime,
-			boolean remote) {
+			boolean remote, int port) {
 		this.ID          = ID;
 		this.name        = name.trim();
 		this.description = description.trim();
@@ -181,7 +236,11 @@ public class Server {
 		this.pollTime    = pollTime;
 		this.password    = null;
 		this.remote      = remote;
-		this.status      = ServerStatusType.CONNECT_FAILED; 
+		this.status      = ServerStatusType.CONNECT_FAILED;
+		this.hasEAST     = false;
+		this.hasDECAF    = false;
+		this.osType      = OSType.UNIDENTIFIED;
+		this.port        = port;
 	}
 	
 	/** 
@@ -216,6 +275,35 @@ public class Server {
 	 * this server entry.
 	 */
 	public void setName(String name) { this.name = name; }
+
+	/**
+	 * Returns the server's port number set for this server entry.
+	 * The value returned by this method is meaningful only for
+	 * remote server entries. Local servers have this value set
+	 * to -1.
+	 * 
+	 * @return The server's port number over which connections to this
+	 * remote server is to be established. Typically this value is 22
+	 * (for ssh)
+	 * 
+	 * @see #isRemote()
+	 */
+	public int getPort() { return port; }
+
+	/**
+	 * Change a remote server's port number. Changing the port number
+	 * meaningful only for remote entries. For local server (the same machine),
+	 * the port number is -1 and this value is ignored.
+	 * 
+	 * <p>
+	 * <b>Note:</b> Changing the port number does not impact any connections
+	 * that may be currently open for this server. Note that this method is
+	 * overridden in the LocalServer class to ignore port number changes.
+	 * </p>
+	 * 
+	 * @param port The new port number to be set for this server entry.
+	 */
+	public void setPort(int port) { this.port = port; }
 
 	/**
 	 * Obtain the user-specified description for this entry.
@@ -357,6 +445,87 @@ public class Server {
 	public void setRemote(boolean remote) {
 		this.remote = remote;
 	}
+
+	/**
+	 * <p>Method to determine if this server contains EAST (a MST-based
+	 * assembly software) installed on this server. This flag is used
+	 * to determine the list of servers on which EAST can be run.</p>
+	 * 
+	 * <b>Note:</b> that this flag is meaningful only if the status 
+	 * of the server is GOOD.
+	 * 
+	 * @return This method returns true if the Server object has
+	 * EAST installed on it. Otherwise (and by default) it returns false.
+	 */
+	public boolean hasEASTInstalled() { return hasEAST; }
+	
+	/**
+	 * Method to set if this server has a valid install of EAST. This
+	 * flag is set when a new server entry is added to a Workspace 
+	 * to indicate if it has EAST installed. 
+	 * 
+	 * @param hasEAST If this flag is set to true then it indicates that
+	 * this server entry has the EAST assembler installed on it.
+	 */
+	public void setEASTInstalled(boolean hasEAST) {
+		this.hasEAST = hasEAST;
+	}
+
+	/**
+	 * <p>Method to determine if this server contains DECAF (a Distributed
+	 * Empirical Comparison and Analysis Framework) installed on this server. 
+	 * This flag is used to determine the list of servers on which empirical
+	 * comparative analysis can be run.</p>
+	 * 
+	 * <b>Note:</b> that this flag is meaningful only if the status 
+	 * of the server is GOOD.
+	 * 
+	 * @return This method returns true if the Server object has
+	 * DECAF installed on it. Otherwise (and by default) it returns false.
+	 */
+	public boolean hasDECAFInstalled() { return hasDECAF; }
+	
+	/**
+	 * Method to set if this server has a valid install of DECAF. This
+	 * flag is set when a new server entry is added to a Workspace 
+	 * to indicate if it has DECAF installed. 
+	 * 
+	 * @param hasDECAF If this flag is set to true then it indicates that
+	 * this server entry has DECAF installed and ready to use.
+	 */
+	public void setDECAFInstalled(boolean hasDECAF) {
+		this.hasDECAF = hasDECAF;
+	}
+
+	/** Determine the type of OS on the server.
+	 * 
+	 * This method can be used to determine the type of operating system
+	 * (OS) installed on the server. This information is often used to
+	 * appropriately interact with the server to start jobs and perform
+	 * other operations. The OS type is typically set once, when a new
+	 * server entry is added to the workspace. It is persisted and loaded
+	 * from the workspace configuration file.
+	 * 
+	 * @return The type of the OS installed on the remote server. 
+	 */
+	public OSType getOSType() {
+		return osType;
+	}
+	
+	/** Set the type of OS running on the server.
+	 * 
+	 * This method is typically used just once to set the type of OS
+	 * installed/running on the server. This method is used when a
+	 * new Server entry is being added to the workspace.
+	 * 
+	 * @param osType The type of OS running on the server. This value
+	 * is typically determined from {@link ServerSession#getOSType()} 
+	 * method.
+	 *
+	 */
+	public void setOSType(OSType osType) {
+		this.osType = osType;
+	}
 	
 	/**
 	 * Change the status for this server.
@@ -406,9 +575,14 @@ public class Server {
 		Element server = DOMHelper.addElement(serverList, "Server", null);
 		// Add the type attributes for this server.
 		server.setAttribute("type", isRemote() ? "remote" : "local");
+		server.setAttribute("os", osType.toString().toLowerCase());
 		// Add new sub-elements for each value.
 		DOMHelper.addElement(server, "ID", ID);
 		DOMHelper.addElement(server, "Name", name);
+		if (isRemote()) {
+			// Add a port entry for remote servers
+			DOMHelper.addElement(server, "Port", port);
+		}
 		DOMHelper.addElement(server, "Description", description);
 		if (userID != null) {
 			DOMHelper.addElement(server, "UserID", userID);
@@ -417,7 +591,9 @@ public class Server {
 		if (pollTime != null) {
 			DOMHelper.addElement(server, "PollTime", pollTime.toString());
 		}
-		DOMHelper.addElement(server, "Status", status.toString().toLowerCase());
+		DOMHelper.addElement(server, "Status",  status.toString().toLowerCase());
+		DOMHelper.addElement(server, "hasEAST", Boolean.toString(hasEAST));
+		DOMHelper.addElement(server, "hasDECAF", Boolean.toString(hasDECAF));
 	}
 	
 	/**
@@ -430,12 +606,17 @@ public class Server {
 	public final void marshall(PrintWriter out) {
 		final String Indent = "\t\t";
 		final String STR_ELEMENT = Indent + "\t" + "<%1$s>%2$s</%1$s>\n";
+		final String INT_ELEMENT = Indent + "\t" + "<%1$s>%2$d</%1$s>\n";
 		// Create a top-level server entry for this server
-		out.printf("%s<Server type=\"%s\">\n", Indent, 
-				(isRemote() ? "remote" : "local"));
+		out.printf("%s<Server type=\"%s\" os=\"%s\">\n", Indent, 
+				(isRemote() ? "remote" : "local"), 
+				osType.toString().toLowerCase());
 		// Add new sub-elements for each value.
 		out.printf(STR_ELEMENT, "ID", ID);
 		out.printf(STR_ELEMENT, "Name", name);
+		if (isRemote()) {
+			out.printf(INT_ELEMENT, "Port", port);
+		}
 		out.printf(STR_ELEMENT, "Description", DOMHelper.xmlEncode(description));
 		// UserID is optional. So check and write only if not null
 		if (userID != null) {
@@ -447,13 +628,77 @@ public class Server {
 		}
 		// Include status information.
 		out.printf(STR_ELEMENT, "Status", status.toString().toLowerCase());
+		// Include flag to indicate if EAST assembler is installed on this server
+		out.printf(STR_ELEMENT, "hasEAST", Boolean.toString(hasEAST));
+		// Include flag to indicate if DECAF evaluation framework is installed on this server
+		out.printf(STR_ELEMENT, "hasDECAF", Boolean.toString(hasDECAF));
 		// Close the server tag
 		out.printf("%s</Server>\n", Indent);
 	}
 	
 	@Override
 	public String toString() {
-		return name;
+		// Display non-default port number for remote server entry.
+		final String portStr = (isRemote() && (port != 22) ? ":" + port : "");
+		return name + portStr;
+	}
+	
+	/**
+	 * Helper method to return a fully qualified path to a given executable
+	 * on this server.
+	 * 
+	 * This is a convenience helper method that can be used to obtain the
+	 * fully qualified path to a given executable on this server.
+	 * 
+	 * @return A fully qualified path to a requested executable.
+	 */
+	public String getExecutable(EXEKind kind) {
+		String peacePath     = (osType.equals(OSType.WINDOWS) ? "/" : "/peace/src/");
+		String eastPath      = (osType.equals(OSType.WINDOWS) ? "/" : "/peace/EAST/C++/");
+		String exeSuffix     = (osType.equals(OSType.WINDOWS) ? ".exe" : "");
+		String scriptSuffix  = (osType.equals(OSType.WINDOWS) ? ".bat" : ".sh");
+		String jobRunnerPath = "installFiles/";
+		jobRunnerPath       += (osType.equals(OSType.WINDOWS) ? "windows" : "linux");
+		
+		switch(kind) {
+		case PEACE_CLUSTER_MAKER:
+			return installPath + peacePath + "peace" + exeSuffix;
+		case EAST_EXE:
+			return installPath + eastPath + "Main" + exeSuffix;
+		case WIN_LAUNCHER:
+			return installPath + "launcher" + exeSuffix;
+		case JOB_RUNNER:
+			return installPath + jobRunnerPath + "jobRunner" + scriptSuffix;
+		default:
+			return null;	
+		}
+	}
+	
+	/**
+	 * Helper method to return a fully qualified path to a given executable
+	 * on this server for a given type of job.
+	 * 
+	 * This is a convenience helper method that can be used to obtain the
+	 * fully qualified path to a given executable on this server.
+	 * 
+	 * @param type The type of the job for which the executable is to be 
+	 * returned.
+	 * 
+	 * @return A fully qualified path to a requested executable.
+	 */
+	public String getExecutable(JobType type) {
+		String peacePath     = (osType.equals(OSType.WINDOWS) ? "/" : "/peace/src/");
+		String eastPath      = (osType.equals(OSType.WINDOWS) ? "/" : "/peace/EAST/C++/");
+		String exeSuffix     = (osType.equals(OSType.WINDOWS) ? ".exe" : "");
+		
+		switch(type) {
+		case CLUSTERING:
+			return installPath + peacePath + "peace" + exeSuffix;
+		case EAST:
+			return installPath + eastPath + "Main" + exeSuffix;
+		default:
+			return null;	
+		}
 	}
 	
 	/**
@@ -467,6 +712,21 @@ public class Server {
 	 * For local machine, this value is simply set to null.
 	 */
 	private String name;
+
+	/**
+	 * <p>The port number over which remote servers are to be contacted.
+	 * For most traditional SSH installations, the default port is 22.
+	 * However, for non-traditional hosts, the port number can vary.
+	 * Varying the port number permits creation of tunnels etc. which
+	 * makes it convenient to work around fire walls or with multiple
+	 * clients.</p>
+	 * 
+	 * <p>Note that the port number is meaningful only for remote servers
+	 * whose {@link #remote} flag is set to true.</p>
+	 * 
+	 * @see #isRemote()
+	 */
+	private int port;
 	
 	/**
 	 * A user-assigned description for this server entry.
@@ -505,6 +765,29 @@ public class Server {
 	 * uninstalled.
 	 */
 	private ServerStatusType status;
+	
+	/**
+	 * Flag to indicate if this server entry has EAST (the MST-based
+	 * assembler) installed. This value is set when a Server entry is
+	 * added to an workspace. This value is used to decide if EAST
+	 * can be run on a server to perform assembly (after clustering).
+	 */
+	private boolean hasEAST;
+	
+	/**
+	 * Flag to indicate if this server entry has DECAF (PEACE's
+	 * Distributed Empirical Comparison and Analysis Framework)
+	 * installed on this server.
+	 */
+	private boolean hasDECAF;
+	
+	/**
+	 * The operating system type for this server. This value
+	 * is determined when a new OS entry is added to a workspace.
+	 * This value is persisted in the workspace and restored when
+	 * a workspace is loaded.
+	 */
+	private OSType osType;
 	
 	/**
 	 * This is a transient field that is never persisted (for security

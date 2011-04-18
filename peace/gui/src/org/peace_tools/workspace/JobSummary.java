@@ -37,6 +37,8 @@ import java.io.PrintWriter;
 
 import javax.xml.datatype.DatatypeFactory;
 
+import org.peace_tools.core.SummaryWriter;
+import org.peace_tools.generic.Utilities;
 import org.w3c.dom.Element;
 
 
@@ -65,6 +67,8 @@ public class JobSummary extends JobBase {
 	public static JobSummary create(Element jobNode) throws Exception {
 		// First extract the necessary information from the DOM tree.
 		String jobID      = jobNode.getAttribute("jobID");
+		String jTypeStr   = DOMHelper.getStringValue(jobNode, "Type");
+		String statusStr  = DOMHelper.getStringValue(jobNode, "Status");
 		int    cpus       = DOMHelper.getIntValue(jobNode, "CPUs");
 		// Obtain the server name and serverID attribute
 		Element server    = DOMHelper.getElement(jobNode, "ServerName");
@@ -72,16 +76,26 @@ public class JobSummary extends JobBase {
 		srvrName          = srvrName.trim();
 		String srvrID     = server.getAttribute("serverID");
 		// Extract the heuristics and filter summary strings.
-		String heuristics = DOMHelper.getStringValue(jobNode, "HeuristicsSummary");
-		String filters    = DOMHelper.getStringValue(jobNode, "FiltersSummary");
+		String heuristics = DOMHelper.getStringValue(jobNode, "HeuristicsSummary", "");
+		String filters    = DOMHelper.getStringValue(jobNode, "FiltersSummary", "");
+		String parameters = DOMHelper.getStringValue(jobNode, "ParametersSummary", "");
+		String prevJobID  = null;
+		if (DOMHelper.hasElement(jobNode, "PrevJobID")) {
+			prevJobID  = DOMHelper.getStringValue(jobNode, "PrevJobID");
+		}
 		// Now that we have sufficient information create the job summary
-		JobSummary job = new JobSummary(jobID, srvrID, cpus, srvrName, heuristics, filters);
+		final JobBase.JobType type = JobBase.JobType.valueOf(jTypeStr.toUpperCase());
+		final JobBase.JobStatusType status = JobStatusType.valueOf(statusStr.toUpperCase());
+		JobSummary job = new JobSummary(type, jobID, srvrID, cpus, 
+				srvrName, heuristics, filters, parameters, prevJobID);
+		job.setStatus(status);
 		// Now update its various other if available.
 		if (DOMHelper.hasElement(jobNode, "RunTime")) { 
 			String runTime  = DOMHelper.getStringValue(jobNode, "RunTime");
 			DatatypeFactory codec = DatatypeFactory.newInstance();
 			job.runtime = codec.newDuration(runTime);
 		}
+
 		// Return the newly created object.
 		return job;
 	}
@@ -89,6 +103,9 @@ public class JobSummary extends JobBase {
 	/**
 	 * Constructor to create a common job object with the fixed value fields
 	 * initialized to specific values.
+	 * 
+	 * @param type The type of job entry for which this summary is being
+	 * created.
 	 * 
 	 * @param jobID The work space-wide unique, generated job ID for this job.
 	 * The jobID is generated via a call to JobList.reserveJobID() method.
@@ -106,15 +123,27 @@ public class JobSummary extends JobBase {
 	 * clustering engine (C++ side) to configure heuristics to accelerate clustering.
 	 * 
 	 * @param filtersSummary The command line parameter(s) passed to the PEACE
-	 * clustering engine (C++ side) to configure filters to improve clustering quality.  
+	 * clustering engine (C++ side) to configure filters to improve clustering quality.
+	 * 
+	 * @param parameters The command line parameter(s) passed to PEACE/EAST. This
+	 * value may be an empty string but not null.
+	 * 
+	 * @param prevJobID The unique generated jobID value for another/previous
+	 * job that this job is dependent on. This value is typically set when a 
+	 * clustering + assembly type jobs are scheduled. The assembly job
+	 * is flagged as being dependent on the clustering job. This value can be
+	 * null.
 	 */
-	public JobSummary(String jobID, String serverID, int cpus, String serverName,
-					  String heuristicsSummary, String filtersSummary) {
-		super(jobID, serverID);
+	public JobSummary(JobBase.JobType type, String jobID, String serverID, 
+			int cpus, String serverName, String heuristicsSummary, 
+			String filtersSummary, String parameters, String prevJobID) {
+		super(type, jobID, serverID);
 		this.cpus              = cpus;
 		this.serverName        = serverName;
 		this.heuristicsSummary = heuristicsSummary;
 		this.filtersSummary    = filtersSummary;
+		this.parameters        = parameters;
+		this.prevJobID         = prevJobID;
 	}
 	
 	/** A convenience constructor.
@@ -128,15 +157,16 @@ public class JobSummary extends JobBase {
 	public JobSummary(Job job) {
 		super(job);
 		// Set up the non-common data members next.
-		this.cpus       = job.getNodes() * job.getCPUsPerNode();
+		this.cpus           = job.getNodes() * job.getCPUsPerNode();
 		// Get the server name indirectly using the serverID
-		String srvrID   = job.getServerID();
+		String srvrID       = job.getServerID();
 		Workspace workspace = Workspace.get();
 		Server server       = workspace.getServerList().getServer(srvrID);
 		this.serverName     = server.getName();
 		// Save heuristics and filter summary information separately.
 		heuristicsSummary   = job.getHeuristicsCmdLine();
 		filtersSummary      = job.getFiltersCmdLine();
+		parameters          = job.getParametersCmdLine();
 	}
 	
 	/** A convenience constructor.
@@ -154,16 +184,16 @@ public class JobSummary extends JobBase {
 	public JobSummary(Job job, FWAnalyzer.FWAnalyzerType analyzerType) {
 		super(job);
 		// Set up the non-common data members next.
-		this.cpus       = job.getNodes() * job.getCPUsPerNode();
+		this.cpus           = job.getNodes() * job.getCPUsPerNode();
 		// Get the server name indirectly using the serverID
-		String srvrID   = job.getServerID();
+		String srvrID       = job.getServerID();
 		Workspace workspace = Workspace.get();
 		Server server       = workspace.getServerList().getServer(srvrID);
 		this.serverName     = server.getName();
 		// Save heuristics and filter summary information separately.
-		boolean isTwoPassD2 = analyzerType.equals(FWAnalyzer.FWAnalyzerType.TWOPASSD2); 
-		heuristicsSummary   = isTwoPassD2 ? "" : job.getHeuristicsCmdLine();  
+		heuristicsSummary   = job.getHeuristicsCmdLine();
 		filtersSummary      = job.getFiltersCmdLine();
+		parameters          = job.getParametersCmdLine();
 	}
 	
 	/**
@@ -191,7 +221,7 @@ public class JobSummary extends JobBase {
 	 * 
 	 * @return A summary information about the heuristics used. This 
 	 * information is stored as the command line parameters passed to the
-	 * PEACE clustering engine.
+	 * PEACE clustering engine. This value can be an empty string.
 	 */
 	public String getHeuristicsSummary() { return heuristicsSummary; }
 
@@ -203,12 +233,25 @@ public class JobSummary extends JobBase {
 	 * 
 	 * @return A summary information about the filters used. This 
 	 * information is stored as the command line parameters passed to the
-	 * PEACE clustering engine.
+	 * PEACE clustering engine. This value can be an empty string.
 	 */
 	public String getFiltersSummary() { return filtersSummary; }
+
+	/**
+	 * Obtain a summary of the parameters run as a part of the job.
+	 * 
+	 * This method can be used to obtain a summary representation of the
+	 * parameters used in the job to generate the associated data.
+	 * 
+	 * @return A summary information about the parameters used. This 
+	 * information is stored as the command line parameters passed to the
+	 * PEACE clustering engine. This value can be just an empty
+	 * string.
+	 */
+	public String getParameterSummary() { return parameters; }
 	
 	/**
-	 * Method to marshall the data stored in this object to become part of
+	 * Method to marshal the data stored in this object to become part of
 	 * a DOM tree element passed in. This method assumes that the element
 	 * passed in corresponds to the parent JobList node in the DOM tree.
 	 * 
@@ -220,6 +263,8 @@ public class JobSummary extends JobBase {
 		Element job = DOMHelper.addElement(jobList, "JobSummary", null);
 		// Add the type attributes for this server.
 		job.setAttribute("jobID", jobID);
+		// Add the type of job to the node
+		DOMHelper.addElement(job, "Type", type.toString().toLowerCase());
 		// Add new sub-elements for each sub-element
 		DOMHelper.addElement(job, "Status", status.toString().toLowerCase());
 		// Setup the serverName element with serverID as attribute
@@ -232,10 +277,14 @@ public class JobSummary extends JobBase {
 		// Marshal the heuristics and filter summary information as well.
 		DOMHelper.addElement(job, "HeuristicsSummary", heuristicsSummary);
 		DOMHelper.addElement(job, "FiltersSummary",    filtersSummary);
+		DOMHelper.addElement(job, "ParametersSummary", parameters);
+		if (prevJobID != null) {
+			DOMHelper.addElement(job, "PrevJobID", prevJobID);
+		}
 	}
 	
 	/**
-	 * Method to marshall the data stored in this object directly to a
+	 * Method to marshal the data stored in this object directly to a
 	 * XML fragment. The XML fragment is guaranteed to be compatible
 	 * with the PEACE work space configuration data. 
 	 * 
@@ -249,6 +298,7 @@ public class JobSummary extends JobBase {
 		// Create a top-level server entry for this server
 		out.printf("%s<JobSummary jobID=\"%s\">\n", Indent, jobID); 
 		// Add new sub-elements for each value.
+		out.printf(STR_ELEMENT, "Type", type.toString().toLowerCase());
 		out.printf(STR_ELEMENT, "Status", status.toString().toLowerCase());
 		out.printf("%s\t<%2$s serverID=\"%3$s\">%4$s</%2$s>\n", Indent, 
 				"ServerName", serverID, serverName);
@@ -259,8 +309,60 @@ public class JobSummary extends JobBase {
 		// Display heuristic summary and filter summary strings.
 		out.printf(STR_ELEMENT, "HeuristicsSummary", heuristicsSummary);
 		out.printf(STR_ELEMENT, "FiltersSummary",    filtersSummary);
+		out.printf(STR_ELEMENT, "ParametersSummary", parameters);
+		if (prevJobID != null) {
+			out.printf(STR_ELEMENT, "PrevJobID", prevJobID);
+		}
 		// Close the job tag
 		out.printf("%s</JobSummary>\n", Indent);
+	}
+	
+	/**
+	 * Method to write summary information about the Job Summary data.
+	 * 
+	 * This method is a convenience method that is used by various 
+	 * wizards to display summary information about the MST data.
+	 * The summary information about the data set include information
+	 * about the MST data file location and the analyzer used to 
+	 * generate the MST.
+	 * 
+	 * @param sw The summary writer to which the data is to be written.
+	 */
+	public void summarize(SummaryWriter sw) {
+		// See if we can get description from the full job entry.
+		Job job = Workspace.get().getJobList().getjob(jobID);
+		String description = (job != null ? job.getDescription() : "");
+		// Summarize information about this job
+		sw.addSubSection("Job Summary", null, description);
+		sw.addSubSummary("Server name", serverName, null);
+		sw.addSubSummary("#Processes", "" + cpus, 
+				"This value is CPUs * Nodes/CPU");
+	}
+	
+	/**
+	 * Helper method to get a tool-tip text for GUI components to use.
+	 * 
+	 * This is a helper method that provides an HTML formatted tool-tip
+	 * text that can be readily displayed by the GUI. The tool-tip
+	 * is a multi-line HTML fragment that includes some summary 
+	 * information about the job that generated the files.
+	 * 
+	 * @return A HTML document that contains a HTML-formatted tool-tip
+	 * text. This string is never null.
+	 */
+	public String getToolTipText() {
+		final String NA = "<i><font size=\"-2\">UNAVAILABLE</font></i>";
+		// Get main job entry and job description if available.
+		Job job = Workspace.get().getJobList().getjob(jobID);
+		String description = (job != null ? job.getDescription() : NA);
+		final String htmlDesc = Utilities.wrapStringToHTML(description, 45);
+		String lastUpdate  = (job != null ? job.getLastUpdateTimestamp().toString() : NA);
+		
+		// Create the formatted tool-tip
+		final String toolTip  =
+			String.format(TOOL_TIP_TEMPLATE, jobID, type.toString(), 
+					htmlDesc, status.toString(), serverID, serverName, lastUpdate);
+		return toolTip;
 	}
 	
 	/**
@@ -288,4 +390,26 @@ public class JobSummary extends JobBase {
 	 * the command line parameter passed to the PEACE clustering tool.
 	 */
 	private final String filtersSummary;
+	
+	/**
+	 * A string that contains summary of parameters set up as a part of the job
+	 * used to generate the associated data. This string is simply stored as
+	 * the command line parameter passed to the PEACE/EAST tools.
+	 */
+	private final String parameters;
+	
+	/**
+	 * A fixed string constant to ease generation of tool tip text
+	 * for use/display by GUI components. This text string is
+	 * suitably formatted (by the {@link #getToolTipText()} method)
+	 * via printf to fill-in values for various parameters.
+	 */
+	private static final String TOOL_TIP_TEMPLATE = "<html>" +
+		"<b>Job ID:</b> %s<br/>" +
+		"<b>Job Type:</b> %s<br/>" +
+		"<b>Description:</b> %s<br/>" +
+		"<b>Status:</b> %s<br/>" +
+		"<b>Run on server [ID: %s]:</b> %s<br/>" +
+		"<b>Status updated on:</b> %s" +
+		"</html>";
 }

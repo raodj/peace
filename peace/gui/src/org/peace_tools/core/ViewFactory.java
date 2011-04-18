@@ -82,11 +82,10 @@ import org.peace_tools.views.ServerListView;
 import org.peace_tools.views.UserLogPane;
 import org.peace_tools.views.overlap.OverlapView;
 import org.peace_tools.workspace.DataSet;
+import org.peace_tools.workspace.DataSet.DataFileType;
+import org.peace_tools.workspace.FileEntry;
 import org.peace_tools.workspace.Job;
-import org.peace_tools.workspace.MSTClusterData;
-import org.peace_tools.workspace.MSTData;
 import org.peace_tools.workspace.Server;
-import org.peace_tools.workspace.Workspace;
 
 /**
  * A factory to help with creation of views.
@@ -273,17 +272,17 @@ public abstract class ViewFactory implements DnDTabListener {
 		// Check and load the data file depending on the view type
 		if (ViewType.MST_FILE.equals(viewType)) {
 			MST mst = DataStore.get().getMSTData(dataFileName, mainFrame);
-			MSTTreeModel mstModel = new MSTTreeModel(mst, ests, (MSTData) wsEntry);
+			MSTTreeModel mstModel = new MSTTreeModel(mst, ests, (FileEntry) wsEntry);
 			view = new MSTFileView(mainFrame, mstModel);
 		} else if (ViewType.CLUSTER_FILE.equals(viewType)) {
 			ClusterFile ct = DataStore.get().getClusterData(dataFileName, mainFrame);
-			MSTClusterData clusterEntry = (MSTClusterData) wsEntry;
-			MSTData mstEntry = Workspace.get().getMSTData(clusterEntry.getJobSummary().getJobID());
-			if (!mstEntry.getID().equals(clusterEntry.getMSTID())) {
-				// The cluster file and MST file ID's don't match. Bummer. Bail out.
+			FileEntry clusterEntry = (FileEntry) wsEntry;
+			FileEntry mstEntry     = clusterEntry.getGFL().findEntry(FileEntry.FileEntryType.CLS);
+			if (mstEntry == null) {
+				// The cluster file and MST file don't match. Bummer. Bail out.
 				return null;
 			}
-			ClusterTreeTableModel model = new ClusterTreeTableModel(ct, ests, (MSTClusterData) wsEntry); 
+			ClusterTreeTableModel model = new ClusterTreeTableModel(ct, ests, clusterEntry); 
 			view = new ClusterTreeTableView(model, mainFrame);
 			// Load the MST data for use.
 			// MST mst = DataStore.get().getMSTData(mstEntry.getPath(), mainFrame);
@@ -295,6 +294,22 @@ public abstract class ViewFactory implements DnDTabListener {
 		} else if (ViewType.HTML_VIEW.equals(viewType)) {
 			// Create an HTML view of the specified data file.
 			view = new GenericHTMLView(dataFileName, mainFrame);
+		} else if (ViewType.TEXT_VEIW.equals(viewType)) {
+			// Create a simple text view of the file
+			view = createTextView(dataFileName); 
+		} else if (ViewType.DATASET_FILE.equals(viewType)) {
+			// In this case the data file directly provides cDNA fragments
+			if (wsEntry instanceof FileEntry) {
+				FileEntry fe = (FileEntry) wsEntry;
+				ESTList dataList = null;
+				if (DataFileType.FASTA.equals(fe.getMimeType())) {
+					dataList = DataStore.get().getFASTAx(dataFileName, mainFrame);
+				} else {
+					dataList = DataStore.get().getSFF(dataFileName, mainFrame);
+				}
+				ESTTableModel model = new ESTTableModel(dataList, false);
+				view = new ESTTableView(model, mainFrame);
+			}
 		}
 		// return the view created in one of the conditions above.
 		return view;
@@ -338,10 +353,10 @@ public abstract class ViewFactory implements DnDTabListener {
 	 * background thread so that the GUI does not become unresponsive
 	 * as the data is loaded.
 	 * 
-	 * @param cluster The MSTClusterDAta object for which a graphical
+	 * @param cluster The cluster data object for which a graphical
 	 * summary view is to be created and added to the viewing area.
 	 */
-	public void createSummaryView(final MSTClusterData cluster) {
+	public void createSummaryView(final FileEntry cluster) {
 		final String dataFileName = cluster.getPath();
 		ViewType viewType   = ViewType.CLUSTER_SUMMARY;
 		// Check and handle duplicate file name & view type.
@@ -359,10 +374,10 @@ public abstract class ViewFactory implements DnDTabListener {
 					mainFrame.getContentPane().setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
 					ClusterFile ct = DataStore.get().getClusterData(dataFileName, mainFrame);
 					// Load the EST file as well if needed.
-					String estFileName = cluster.getDataSet().getPath();
+					String estFileName = cluster.getGFL().getDataSet().getPath();
 					// Load FASTA or EST file based on the file type.
 					ESTList ests = null;
-					if (cluster.getDataSet().isFASTAFile()) {
+					if (cluster.getMimeType().equals(DataFileType.FASTA)) {
 						 ests = DataStore.get().getFASTAx(estFileName, mainFrame);
 					} else {
 						ests = DataStore.get().getSFF(estFileName, mainFrame);
@@ -406,13 +421,13 @@ public abstract class ViewFactory implements DnDTabListener {
 	 * background thread so that the GUI does not become unresponsive
 	 * as the data is loaded.
 	 * 
-	 * @param cluster The MSTClusterDAta object for which a graphical
+	 * @param cluster The cluster data file object for which a graphical
 	 * overlap view is to be created and added to the viewing area.
 	 */
-	public void createOverlapView(final MSTClusterData cluster) {
+	public void createOverlapView(final FileEntry cluster) {
 		final String dataFileName = cluster.getPath();
 		ViewType viewType   = ViewType.OVERLAP_VIEW;
-		// Check and handle duplicate file name & view type.
+		// Check ansd handle duplicate file name & view type.
 		String viewSignature = dataFileName + "_" + viewType;
 		if (views.get(viewSignature) != null) {
 			// The view already exists. Nothing further to be done.
@@ -428,18 +443,19 @@ public abstract class ViewFactory implements DnDTabListener {
 					// Load the cluster file.
 					ClusterFile ct = DataStore.get().getClusterData(dataFileName, mainFrame);
 					// Next load the MST file.
-					MSTData mstEntry = Workspace.get().getMSTData(cluster.getJobSummary().getJobID());
-					if ((mstEntry == null) || (!mstEntry.getID().equals(cluster.getMSTID()))) {
+					FileEntry mstEntry = cluster.getGFL().findEntry(FileEntry.FileEntryType.MST);
+					if (mstEntry == null) {
 						// The cluster file and MST file ID's don't match. Bummer. Bail out.
 						throw new Exception("Could not locate matching MST file in workspace."); 
 					}
 					// Load the MST data for use.
 					MST mst = DataStore.get().getMSTData(mstEntry.getPath(), mainFrame);
 					// Load the EST file as well if needed.
-					String estFileName = cluster.getDataSet().getPath();
+					DataSet ds = cluster.getGFL().getDataSet();
+					String estFileName = ds.getPath();
 					// Load FASTA or SFF file depending on file type.
 					ESTList ests = null;
-					if (cluster.getDataSet().isFASTAFile()) {
+					if (ds.isFASTAFile()) {
 						ests = DataStore.get().getFASTAx(estFileName, mainFrame);
 					} else {
 						ests = DataStore.get().getSFF(estFileName, mainFrame);
@@ -589,23 +605,46 @@ public abstract class ViewFactory implements DnDTabListener {
 			dataFileName = ds.getPath();
 			estFileName  = dataFileName;
 			fileType     = ds.getFileType();
-		} else if (wsEntry instanceof MSTData) {
-			MSTData mst  = (MSTData) wsEntry;
-			estFileName  = mst.getDataSet().getPath();
-			dataFileName = mst.getPath();
-			viewType     = ViewType.MST_FILE;
-			fileType     = mst.getDataSet().getFileType();
-		} else if (wsEntry instanceof MSTClusterData) {
-			MSTClusterData cluster = (MSTClusterData) wsEntry;
-			estFileName            = cluster.getDataSet().getPath();
-			dataFileName           = cluster.getPath();
-			viewType               = ViewType.CLUSTER_FILE;
-			fileType               = cluster.getDataSet().getFileType();
+		} else if (wsEntry instanceof FileEntry) {
+			FileEntry fe = (FileEntry) wsEntry;		
+			viewType     = getDefaultView(fe);
+			estFileName  = fe.getGFL().getDataSet().getPath();
+			dataFileName = fe.getPath();
+			fileType     = fe.getGFL().getDataSet().getFileType();
 		}
 		// Now get the other public method do the view creation.
 		createView(dataFileName, estFileName, fileType, viewType, duplicate, textView, wsEntry);
 	}
 
+	/**
+	 * Helper method to get the default view for a given file type.
+	 * 
+	 * This method was introduced to streamline the code in the 
+	 * {@link #createView(Object, boolean, boolean)} method. This method
+	 * uses the file type and mime type for a given file entry to determine
+	 * the default view for a given file entry.
+	 * 
+	 * @param fe The file entry for which the default view is to be determined.
+	 * 
+	 * @return The default view for the given file entry.
+	 */
+	private ViewType getDefaultView(FileEntry fe) {
+
+		switch (fe.getType()) {
+		case MST:
+			return ViewType.MST_FILE;
+		case CLS:
+			return ViewType.CLUSTER_FILE;
+		case ASM:
+		case SINGLETONS:
+			// View based on the mime type as we have special viewers for
+			// different physical file formats.
+			return (fe.getMimeType().equals(DataFileType.FASTA) ? ViewType.DATASET_FILE : ViewType.TEXT_VEIW);
+		default:
+			return ViewType.TEXT_VEIW;
+		}
+	}
+	
 	/**
 	 * Method to create a specific view. 
 	 * 
@@ -848,6 +887,12 @@ public abstract class ViewFactory implements DnDTabListener {
 		Utilities.getIcon("images/16x16/OverlapView.png"),
 		Utilities.getIcon("images/16x16/HTML.png"),
 		Utilities.getIcon("images/16x16/TextView.png"),
-		Utilities.getIcon("images/16x16/DefaultView.png")
+		Utilities.getIcon("images/16x16/DefaultView.png"),
+		Utilities.getIcon("images/16x16/DataSet.png"),
+		Utilities.getIcon("images/16x16/EST.png"),
+		Utilities.getIcon("images/16x16/Job.png"),
+		Utilities.getIcon("images/16x16/Server.png"),
+		Utilities.getIcon("images/16x16/User.png"),
+		Utilities.getIcon("images/16x16/ProgLog.png")
 	};
 }

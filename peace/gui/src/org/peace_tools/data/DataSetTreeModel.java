@@ -41,8 +41,8 @@ import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
 import org.peace_tools.workspace.DataSet;
-import org.peace_tools.workspace.MSTClusterData;
-import org.peace_tools.workspace.MSTData;
+import org.peace_tools.workspace.FileEntry;
+import org.peace_tools.workspace.GeneratedFileList;
 import org.peace_tools.workspace.Workspace;
 import org.peace_tools.workspace.WorkspaceEvent;
 import org.peace_tools.workspace.WorkspaceListener;
@@ -102,9 +102,11 @@ public class DataSetTreeModel implements TreeModel, WorkspaceListener {
 	 *  <li>if parent is the globally unique workspace instance, then
 	 *  this method returns the DataSet object at the given index.</li>
 	 *  
-	 *  <li>if parent is a DataSet, then this method returns either an
-	 *  MSTData object (if index < number of MST entries in DataSet) or
-	 *  a MSTClusterData object.</li>
+	 *  <li>if parent is a DataSet, then this method returns an 
+	 *  GeneratedFileList object.</li>
+	 *
+	 *  <li>if parent is a GeneratedFileList, then this method returns an 
+	 *  FileEntry object.</li>
 	 *  
 	 *  <li>In all other cases, this method returns null.</li>
 	 *  
@@ -124,11 +126,10 @@ public class DataSetTreeModel implements TreeModel, WorkspaceListener {
 			return root.getDataSets().get(index);
 		} else if (parent instanceof DataSet) {
 			DataSet ds = (DataSet) parent;
-			if (index < ds.getMSTList().size()) {
-				return ds.getMSTList().get(index);
-			}
-			index -= ds.getMSTList().size();
-			return ds.getClusterList().get(index);
+			return ds.getGflList().get(index);
+		} else if (parent instanceof GeneratedFileList) {
+			GeneratedFileList gfl = (GeneratedFileList) parent;
+			return gfl.getEntries().get(index);
 		}
 		// In all other cases we don't have any children
 		return null;
@@ -146,7 +147,10 @@ public class DataSetTreeModel implements TreeModel, WorkspaceListener {
 	 *  as the number of children.</li>
 	 *  
 	 *  <li>if parent is a DataSet, then this method returns the number
-	 *  of MST and Cluster data files contained in the data set.</li>
+	 *  of generated data file entries contained in the data set.</li>
+	 *  
+	 *  <li>if parent is a GeneratedDataFile, then this method returns
+	 *  the number of generated data file entries contained in it.</li>
 	 *  
 	 *  <li>In all other cases, this method returns zero.</li>
 	 *  
@@ -164,7 +168,10 @@ public class DataSetTreeModel implements TreeModel, WorkspaceListener {
 			return root.getDataSets().size();
 		} else if (parent instanceof DataSet) {
 			DataSet ds = (DataSet) parent;
-			return ds.getMSTList().size() + ds.getClusterList().size();
+			return ds.getGflList().size();
+		} else if (parent instanceof GeneratedFileList) {
+			GeneratedFileList gfl = (GeneratedFileList) parent;
+			return gfl.getEntries().size();
 		}
 		// In all other cases we don't have any children
 		return 0;
@@ -185,8 +192,11 @@ public class DataSetTreeModel implements TreeModel, WorkspaceListener {
 	 *  the child in the list of data sets in the workspace.</li>
 	 *  
 	 *  <li>if parent is a DataSet, then this method assumes that the child
-	 *  is either a MSTData or MSTClusterData object and returns index from
-	 *  either of the two lists.</li>returns the number
+	 *  is a GeneratedFileList object and returns index from its list.</li>
+	 *  
+	 *  <li>if parent is a GeneratedFileList, then this method assumes
+	 *  that the child is a FileEntry and returns index of file entry
+	 *  from its list.</li>
 	 *  
 	 *  <li>In all other cases, this method returns -1.</li>
 	 *  
@@ -205,15 +215,10 @@ public class DataSetTreeModel implements TreeModel, WorkspaceListener {
 			return root.getDataSets().indexOf(child);
 		} else if (parent instanceof DataSet) {
 			DataSet ds = (DataSet) parent;
-			assert((child instanceof MSTData) || (child instanceof MSTClusterData));
-			int index = ds.getMSTList().indexOf(child);
-			if (index == -1) {
-				index = ds.getClusterList().indexOf(child);
-				if (index > -1) {
-					index += ds.getMSTList().size();
-				}
-			}
-			return index;
+			return ds.getGflList().indexOf(child);
+		} else if (parent instanceof GeneratedFileList) {
+			GeneratedFileList gfl = (GeneratedFileList) parent;
+			return gfl.getEntries().indexOf(child);
 		}
 		// In all other cases we don't have any children
 		return -1;
@@ -232,16 +237,15 @@ public class DataSetTreeModel implements TreeModel, WorkspaceListener {
 	/**
 	 * Method to determine if a given entry is a leaf object. 
 	 * 
-	 * This method returns false, if the entry is a Workspace or
-	 * a DataSet. In all other cases, it returns true. 
+	 * This method returns true only if the entry is a FileEntry.
+	 * In all other cases, it returns false. 
 	 * 
 	 * @return This method returns true if the entry is to be
 	 * treated as a leaf node.
 	 */
 	@Override
 	public boolean isLeaf(Object entry) {
-		return !((entry instanceof Workspace) || 
-				(entry instanceof DataSet));
+		return (entry instanceof FileEntry); 
 	}
 
 	/**
@@ -271,21 +275,18 @@ public class DataSetTreeModel implements TreeModel, WorkspaceListener {
 		if (entry instanceof Workspace) {
 			// This is the root entry. Simple case.
 			return new TreePath(entry);
-		}
-		if ((entry instanceof DataSet) && 
+		} else if ((entry instanceof DataSet) && 
 			(getIndexOfChild(getRoot(), entry) != -1)) {
 			// This data set is a valid entry.
 			return new TreePath(new Object[]{getRoot(), entry});
-		}
-		if (entry instanceof MSTData) {
+		} else if (entry instanceof GeneratedFileList) {
 			// Return the path to the MST entry
-			MSTData mst = (MSTData) entry;
-			return new TreePath(new Object[]{getRoot(), mst.getDataSet(), mst});
-		}
-		if (entry instanceof MSTClusterData) {
-			// Return the path to the MST entry
-			MSTClusterData cls = (MSTClusterData) entry;
-			return new TreePath(new Object[]{getRoot(), cls.getDataSet(), cls});
+			GeneratedFileList gfl = (GeneratedFileList) entry;
+			return new TreePath(new Object[]{getRoot(), gfl.getDataSet(), gfl});
+		} else if (entry instanceof FileEntry) {
+			// Return the path to the file entry
+			FileEntry fe = (FileEntry) entry;
+			return new TreePath(new Object[]{getRoot(), fe.getGFL().getDataSet(), fe.getGFL(), fe});
 		}
 		// Can't figure out the path
 		return null;
@@ -323,17 +324,14 @@ public class DataSetTreeModel implements TreeModel, WorkspaceListener {
 		if (event.getEntryType().equals(WorkspaceEvent.EntryType.DATA_SET)) {
 			// This event is at the data set level.
 			fireTreeStructureChanged(Workspace.get());
-		} else {
+		} else if (event.getEntryType().equals(WorkspaceEvent.EntryType.GENERATED_FILE_LIST)){
 			// This event is within a data set. Fire change at that level
-			Object oldRoot = null;
-			if (event.getEntryType().equals(WorkspaceEvent.EntryType.MST_DATA)) {
-				oldRoot = ((MSTData) event.getSource()).getDataSet();
-			} else if (event.getEntryType().equals(WorkspaceEvent.EntryType.MST_CLUSTER_DATA)) {
-				oldRoot = ((MSTClusterData) event.getSource()).getDataSet();
-			}
-			if (oldRoot != null) {
-				fireTreeStructureChanged(oldRoot);
-			}
+			Object oldRoot = ((GeneratedFileList) event.getSource()).getDataSet();
+			fireTreeStructureChanged(oldRoot);
+		} else if (event.getEntryType().equals(WorkspaceEvent.EntryType.FILE_ENTRY)){
+			// This event is within a GFL. Fire change at that level
+			Object oldRoot = ((FileEntry) event.getSource()).getGFL();
+			fireTreeStructureChanged(oldRoot);
 		}
 	}
 	

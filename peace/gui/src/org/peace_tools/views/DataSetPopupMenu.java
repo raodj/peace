@@ -45,10 +45,10 @@ import org.peace_tools.core.MainFrame;
 import org.peace_tools.core.job.JobWizard;
 import org.peace_tools.generic.Utilities;
 import org.peace_tools.workspace.DataSet;
+import org.peace_tools.workspace.FileEntry;
+import org.peace_tools.workspace.FileEntry.FileEntryType;
 import org.peace_tools.workspace.Job;
 import org.peace_tools.workspace.JobBase;
-import org.peace_tools.workspace.MSTClusterData;
-import org.peace_tools.workspace.MSTData;
 import org.peace_tools.workspace.Workspace;
 
 /**
@@ -121,10 +121,21 @@ public class DataSetPopupMenu extends JPopupMenu implements ActionListener {
 	 * in expanded or collapsed state.
 	 */
 	public void updateItems(Object entry, boolean isExpanded) {
+		// Setup flags to indicate if we are dealing with a MST file
+		// entry or a CLS file entry to streamline this method.
+		// boolean isMST = false;
+		boolean isCLS = false;
+		String  jobID = null;
+		if (entry instanceof FileEntry) {
+			FileEntry fe = (FileEntry) entry;
+			// isMST = fe.getType().equals(FileEntryType.MST);
+			isCLS = fe.getType().equals(FileEntryType.CLS);
+			jobID = fe.getGFL().getJobSummary().getJobID();
+		}
 		getComponent(1).setEnabled(entry instanceof DataSet);
 		// getComponent(1).setEnabled(entry instanceof MSTData);
-		getComponent(4).setEnabled(entry instanceof MSTClusterData);
-		getComponent(5).setEnabled(entry instanceof MSTClusterData);
+		getComponent(4).setEnabled(isCLS);
+		getComponent(5).setEnabled(isCLS);
 		// Enable/disable expand or collapse options
 		if (isTreeView) {
 			getComponent(9).setEnabled(isExpanded);
@@ -132,13 +143,9 @@ public class DataSetPopupMenu extends JPopupMenu implements ActionListener {
 		}
 		// Disable the delete option if the job associated with this entry
 		// is not yet finished running.
-		Job job = null;
 		boolean jobDone = true;
-		if (entry instanceof MSTClusterData) {
-			String jobID = ((MSTClusterData) entry).getJobSummary().getJobID();
-			job = Workspace.get().getJobList().getjob(jobID);
-		} else if (entry instanceof MSTData) {
-			String jobID = ((MSTData) entry).getJobSummary().getJobID();
+		Job job = null;
+		if (jobID != null) {
 			job = Workspace.get().getJobList().getjob(jobID);
 		}
 		if (job != null) {
@@ -154,6 +161,14 @@ public class DataSetPopupMenu extends JPopupMenu implements ActionListener {
 
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
+		// Setup flags to indicate if we are dealing with a MST file
+		// entry or a CLS file entry to streamline this method.
+		boolean isCLS = false;
+		if (entry instanceof FileEntry) {
+			FileEntry fe = (FileEntry) entry;
+			isCLS = fe.getType().equals(FileEntryType.CLS);
+		}
+		// Perform various operations based on action command
 		String cmd = arg0.getActionCommand();
 		if (("view".equals(cmd)) && (entry != null)) {
 			 // Check and display the view (if one does not exist)
@@ -161,14 +176,12 @@ public class DataSetPopupMenu extends JPopupMenu implements ActionListener {
 		} else if (("text".equals(cmd)) && (entry != null)) {
 			 // Check and display a text view (if one does not exist)
 	        mainFrame.getViewFactory().createView(entry, false, true);
-		} else if ("summary".equals(cmd) && (entry != null) && 
-				(entry instanceof MSTClusterData)) {
+		} else if ("summary".equals(cmd) && (entry != null) && (isCLS)) {
 			// Check and display cluster summary 
-	        mainFrame.getViewFactory().createSummaryView((MSTClusterData) entry);
-		} else if ("overlap".equals(cmd) && (entry != null) &&
-				(entry instanceof MSTClusterData)) {
+	        mainFrame.getViewFactory().createSummaryView((FileEntry) entry);
+		} else if ("overlap".equals(cmd) && (entry != null) && (isCLS)) {
 			// Check and display overlap view
-	        mainFrame.getViewFactory().createOverlapView((MSTClusterData) entry);
+	        mainFrame.getViewFactory().createOverlapView((FileEntry) entry);
 		} else if ("delete".equals(cmd) && (entry != null)) {
 			// Delete the entry via the delete dialog.
 			DeleteDialog delDiag = new DeleteDialog(mainFrame, entry);

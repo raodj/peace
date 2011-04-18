@@ -158,7 +158,7 @@ public class ServerJobsView extends DetailView {
 	 * A simple message that is displayed to the user if there is
 	 * no job information available.
 	 */
-	private static final String NO_JOB_INFO = "\nIt appears that none" +
+	private static final String NO_JOB_INFO = "\nIt appears that none " +
 			"of your jobs/process are currently\n" +
 			"running on this server. Therefore there is no job/process\n" +
 			"information to display at this time.";

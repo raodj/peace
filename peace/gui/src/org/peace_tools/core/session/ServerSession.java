@@ -62,15 +62,6 @@ import org.peace_tools.workspace.Server;
  */
 public abstract class ServerSession {
 	/**
-	 * Enumerations to provide a more convenient mechanism for 
-	 * referring to the actual type of the server that this
-	 * server session has been connected to. 
-	 */
-	public enum OSType {
-		LINUX, UNIX, WINDOWS
-	};
-	
-	/**
 	 * The constructor merely initializes the instance variables to
 	 * the values supplied as parameters.
 	 * 
@@ -208,7 +199,7 @@ public abstract class ServerSession {
 	 * @throws Exception If the detection of OS fails or a connection
 	 * does not exist then this method throws an exception.
 	 */
-	public abstract OSType getOSType() throws Exception;
+	public abstract Server.OSType getOSType() throws Exception;
 	
 	/**
 	 * Copy given data from an input stream to a given file on the

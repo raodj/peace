@@ -51,7 +51,7 @@ fi
 cd peace
 if [ $? -ne 0 ]; then
    echo "---------------------[ Error ]-------------------------"
-   echo "Directory change failed!"
+   echo "Directory change (to peace directory) failed!"
    exit 2
 fi
 
@@ -131,7 +131,7 @@ if [ $? -ne 0 ]; then
    exit 6
 fi
 
-echo "PEACE built successfully."
+echo "* * *    PEACE built successfully.    * * *"
 
 echo "-----------------------------------------------------"
 echo "Creating data directories."
@@ -152,6 +152,31 @@ if [ $? -ne 0 ]; then
    echo "situation. This is not  PEACE issue."                         
    echo "Aborting install"
    exit 8
+fi
+
+if [ $1 == "--buildEAST" ]; then
+   # The installer also want's to build EAST. So let's do it.
+   # First change to EAST directory
+   cd EAST/C++
+   if [ $? -ne 0 ]; then
+	   echo "---------------------[ Error ]-------------------------"
+	   echo "Directory change (to peace/EAST/C++ directory) failed!"
+	   exit 9
+   fi
+   # Build using make file
+   make -f ../Makefile
+   if [ $? -ne 0 ]; then
+	   echo "-----------------------[ Error ]-----------------------------"
+	   echo "EAST Build Failed. This indicates that there is some " 
+	   echo "unforeseen incompatibility between EAST and the GCC version "
+	   echo "installed on this machine. If you would like to have this "
+	   echo "issue resolved, please email the complete output to developers. " 
+	   echo "-------------------------------------------------------"
+	   echo "Aborting EAST install"
+	   exit 10
+   fi
+
+   echo "* * *    EAST built successfully.    * * *"   
 fi
 
 echo "-----------------------------------------------------"

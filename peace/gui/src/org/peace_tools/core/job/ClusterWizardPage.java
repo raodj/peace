@@ -56,9 +56,9 @@ import javax.swing.border.EmptyBorder;
 import org.peace_tools.generic.GenericWizardPage;
 import org.peace_tools.generic.Utilities;
 import org.peace_tools.generic.WizardDialog;
+import org.peace_tools.workspace.DataSet.DataFileType;
 import org.peace_tools.workspace.FWAnalyzer;
-import org.peace_tools.workspace.JobSummary;
-import org.peace_tools.workspace.MSTClusterData;
+import org.peace_tools.workspace.FileEntry;
 
 /**
  * This class serves as an interactive page in a JobWizard.
@@ -294,27 +294,34 @@ implements ActionListener {
 	}
 	
 	/**
-	 * Helper method to create a MSTCluster data.
+	 * Helper method to create a file entry for generated cluster file.
 	 * 
 	 * This method is used by the JobWizard to create a complete
-	 * MSTCluster data entry.
+	 * file entry for the generated cluster file.
 	 * 
 	 * @param id The workspace-wide unique ID to be set for this cluster
 	 * file entry.
 	 * 
-	 * @param mstID The ID associated with the MST data file that was
-	 * used to generate this cluster.
-	 * 
-	 * @param summary The summary of the job that is going to be used
-	 * to create this cluster file.
-	 * 
-	 * @return The cluster file entry to be added to the workspace.
+	 * @return The file entry for the cluster file to be generated
+	 * by this file.
 	 */
-	protected MSTClusterData getClusterEntry(String id, String mstID, 
-			JobSummary summary) {
-		int thresh = ((Number) threshold.getValue()).intValue();
-		return new MSTClusterData(id, mstID, clusterFile.getText(),
-				this.description.getText(), thresh, summary);
+	protected FileEntry getClusterFileEntry(String id) {
+		FileEntry fe = new FileEntry(id, FileEntry.FileEntryType.CLS, 
+				DataFileType.TXT, clusterFile.getText(), 
+				description.getText());
+		return fe;
+	}
+
+	/**
+	 * Get the threshold value set by the user.
+	 * 
+	 * This is a helper method that is used by the job wizard to obtain
+	 * the threshold value set by the user.
+	 * 
+	 * @return The threshold value set by the user.
+	 */
+	protected int getThreshold() {
+		return ((Number) threshold.getValue()).intValue();
 	}
 	
 	/**

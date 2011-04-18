@@ -144,7 +144,7 @@ public class OverlapView extends JPanel implements ChangeListener,
 					"(Un)Highlight selected ESTs in the overlap view");
 		
 		// Next create the summary information tree...
-		JTree summaryInfo = PropertiesTreeMaker.makeProperties(pam.getWsEntry(), mainFrame);
+		JTree summaryInfo = PropertiesTreeMaker.makeClusterProperties(pam.getWsEntry(), mainFrame);
 		// Create a split pane with the overlap view and summary 
 		JSplitPane contentPane =  
 			PropertiesTreeMaker.createPropertiesLayout("Clustering Information", summaryInfo, 

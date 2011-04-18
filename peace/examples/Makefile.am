@@ -38,10 +38,12 @@ include $(top_builddir)/Makefile.common.am
 AM_CPPFLAGS=$(GLOBALCPPFLAGS)
 AM_CXXFLAGS=$(GLOBALCXXFLAGS)
 
+AM_CPPFLAGS += -I../src/framework -I../src/shared -I../src/clustering
+
 bin_PROGRAMS = UsingPeace generate_d2 standalone_d2
 
-UsingPeace_LDFLAGS = -L../src -L../src/baton
-UsingPeace_LDADD = $(STDCPP) -lpeace -lbaton
+UsingPeace_LDFLAGS = -L../src
+UsingPeace_LDADD = $(STDCPP) -lpeace
 
 UsingPeace_SOURCES = \
 UsingPeace.cpp

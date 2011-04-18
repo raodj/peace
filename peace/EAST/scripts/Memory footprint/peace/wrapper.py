@@ -1,5 +1,7 @@
 import os, sys
 
+print "--- Memory footprint/peace/wrapper.py ---\n"
+
 # Program options
 errorRate = float(sys.argv[3])   # 0.04 meaning a 4% single-base error rate
 insertions = True # change to True to allow insertions

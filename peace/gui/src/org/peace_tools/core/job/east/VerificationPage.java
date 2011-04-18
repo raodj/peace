@@ -1,0 +1,380 @@
+//--------------------------------------------------------------------
+//
+// This file is part of PEACE.
+// 
+// PEACE is free software: you can redistribute it and/or modify it
+// under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+// 
+// PEACE is distributed in the hope that it will be useful, but
+// WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+// General Public License for more details.
+// 
+// You should have received a copy of the GNU General Public License
+// along with PEACE.  If not, see <http://www.gnu.org/licenses/>.
+// 
+// Miami University makes no representations or warranties about the
+// suitability of the software, either express or implied, including
+// but not limited to the implied warranties of merchantability,
+// fitness for a particular purpose, or non-infringement.  Miami
+// University shall not be liable for any damages suffered by licensee
+// as a result of using, result of using, modifying or distributing
+// this software or its derivatives.
+//
+// By using or copying this Software, Licensee agrees to abide by the
+// intellectual property laws, and all other applicable laws of the
+// U.S., and the terms of GNU General Public License (version 3).
+//
+// Authors:   Dhananjai M. Rao              raodm@muohio.edu
+//
+//---------------------------------------------------------------------
+
+package org.peace_tools.core.job.east;
+
+import java.awt.BorderLayout;
+
+import javax.swing.JEditorPane;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.border.EmptyBorder;
+import javax.swing.text.DefaultStyledDocument;
+
+import org.peace_tools.core.SummaryWriter;
+import org.peace_tools.generic.GenericWizardPage;
+import org.peace_tools.generic.Utilities;
+import org.peace_tools.generic.WizardDialog;
+import org.peace_tools.views.GenericHTMLView;
+
+/**
+ * This class serves as the penultimate page in a EAST wizard. This page
+ * provides the user with a brief summary of the job that is going
+ * to be scheduled. This is the last page that the user can back
+ * track or cancel the job.
+ * 
+ */
+public class VerificationPage extends GenericWizardPage implements SummaryWriter {
+	/**
+	 * The constructor. The constructor sets up the various components
+	 * on this wizard page. The components include: a couple of labels
+	 * and a text area for job summary information.
+	 * 
+	 * @param wizard The wizard that logically owns this page.
+	 * 
+	 * @param alsoCluster Flag to indicate if this wizard must also display
+	 * clustering job summary information to the user. 
+	 */
+	public VerificationPage(EASTJobWizard wizard, boolean alsoCluster) {
+		this.wizard = wizard;
+		assert(this.wizard != null);
+		// Setup the title(s) for this page and border
+		setTitle("Job(s) Summary", 
+				"Verify information and submit job(s)");
+		setBorder(new EmptyBorder(5, 5, 5, 5));
+
+		// Create the informational labels.
+		JLabel info = new JLabel(INFO_MSG, 
+				Utilities.getIcon("images/32x32/Information.png"), 
+				JLabel.LEFT);
+		JLabel caution = new JLabel(CAUTION_MSG, 
+				Utilities.getIcon("images/24x24/Warning.png"), 
+				JLabel.LEFT);
+		
+		// Create the summary tabs with styled documents in which
+		// summary information is to be displayed (later on)
+		JTabbedPane summaryTab = new JTabbedPane();
+		if (alsoCluster) {
+			clusteringSummary = createHTMLDocument(summaryTab, 
+					"Clustering Job", "Cluster.png");
+		} else {
+			clusteringSummary = null;
+		}
+		// Assembly summary is always displayed by this tab
+		assemblySummary = createHTMLDocument(summaryTab, 
+				"Assembly Job", "EAST.png");
+
+		// Pack the display fields into a suitable panel
+		JPanel subPanel = new JPanel(new BorderLayout(5, 5));
+		subPanel.add(info, BorderLayout.NORTH);
+		subPanel.add(summaryTab, BorderLayout.CENTER);
+		subPanel.add(caution, BorderLayout.SOUTH);
+		// Finally add the sub panel to this panel.
+		add(subPanel, BorderLayout.CENTER);
+	}
+	
+	/**
+	 * Helper method to create a styled document to log summary
+	 * information. This helper method has been introduced to
+	 * streamline the constructor and keep the code clutter to
+	 * a minimum. This method performs the following tasks:
+	 * 
+	 * <ol>
+	 * <li> It creates a styled document and configures the 
+	 * document's custom styles.</li>
+	 * <li>It wrap the styled document into a suitably configured
+	 * scroll pane.</li>
+	 * <li>It adds the scroll pane to the provided tab panel
+	 * with supplied (via parameters) information. 
+	 * 
+	 * @param parentPanel The tab panel to which the scroll pane
+	 * containing the styled document created by this method should
+	 * be added. This parameter cannot be null.
+	 * 
+	 * @param tabIconName The name of the image file that contains
+	 * the icon to be used for the tab to be created and added to 
+	 * the parentPanel. The file name is prefixed with the path 
+	 * prefix "images/16x16/" by this method.
+	 * 
+	 * @return The styled document to which summary information
+	 * is to be added.
+	 */
+	private JEditorPane createHTMLDocument(JTabbedPane parentPanel,
+			String tabName, String tabIconName) {
+		// Create suitable HTML display panel
+		JEditorPane htmlDoc = GenericHTMLView.createHTMLPane();
+		// Add the text pane to a scroll pane to handle large outputs
+		JScrollPane jsp = new JScrollPane(htmlDoc);
+		// Add the scroll pane to the supplied tab pane as a tab
+		parentPanel.addTab(tabName, Utilities.getIcon("images/16x16/" + tabIconName), jsp);
+		return htmlDoc;
+	}
+
+	/**
+	 * Helper method to start a new section in summary.
+	 * 
+	 * This method is used to add a new summary section when creating summary
+	 * information for a given job.
+	 * 
+	 * @param currentSummary The string builder (that is typically passed in as a parameter
+	 * from this class to the EASTJobWizard) to which an HTML-row of section
+	 * title is to be written.
+	 * 
+	 * @param sectionTitle The title string for the section. A new line
+	 * character is automatically added to the section title string to ensure
+	 * consistent formatting. Leading and trailing white spaces are trimmed.
+	 */
+	public void addSection(String sectionTitle) {
+		currentSummary.append("<tr><td colspan=\"3\" bgColor=\"#000090\">");
+		currentSummary.append("<font color=\"white\"><b>");
+		currentSummary.append(sectionTitle);
+		currentSummary.append("</b></font></td></tr>");
+		// Reset flag to indicate first line of section
+		oddLine = true;
+	}
+	
+	/**
+	 * Helper method to add a new summary line.
+	 * 
+	 * This method is used to add a new line of summary information to a
+	 * given summary content. 
+	 * 
+	 * @param sb The string builder (that is typically passed in as a parameter
+	 * from this class to the EASTJobWizard) to which an HTML-row of summary
+	 * information is to be written.
+	 * 
+	 * @param name The name of the parameter or property for which a summary
+	 * line is being added to the given dsd. This parameter can be null.
+	 * 
+	 * @param value The value for the given parameter to be added to the dsd.
+	 * This parameter can be null.
+	 * 
+	 * @param desc An optional description to be associated with the summary
+	 * line. This parameter can be null. 
+	 */
+	@Override
+	public void addSummary(String name,	String value, String desc) {
+		addSummary(name, value, desc, "#d0d0d0", "", false);
+	}
+	
+	/**
+	 * Helper method to add a new sub-section summary line.
+	 * 
+	 * This method is used to add a new line of summary information to a
+	 * given summary content. Except that, this method permits the 
+	 * implementation to suitably highlight (if possible) the sub-section
+	 * entry. 
+	 * 
+	 * <p>Note that some or all of the parameters 
+	 * can be null. It is up to the implementation to suitably handle,
+	 * format, and display the summary information.</p> 
+	 * 
+	 * @param name The name of the parameter or property for which a summary
+	 * line is being added. This parameter can be null.
+	 * 
+	 * @param value The value for the given parameter to be added to the dsd.
+	 * This parameter can be null.
+	 * 
+	 * @param desc An optional description to be associated with the summary
+	 * line. This parameter can be null. 
+	 */
+	public void addSubSection(String name, String value, String desc) {
+		addSummary(name, value, desc, "#c8ddf2", "", true);
+	}
+	
+	/**
+	 * Helper method to add a new sub-summary line.
+	 * 
+	 * This method is used to add a new line of summary information to 
+	 * logically appear under a sub-section. The need for a sub-summary
+	 * line to appear under a summary is not enforced. It is up to the
+	 * caller to ensure a suitable sub-section summary is created 
+	 * first. 
+	 * 
+	 * <p>Note that some or all of the parameters  can be null. It is up
+	 * to the implementation to suitably handle, format, and display the
+	 * summary information.</p> 
+	 * 
+	 * @param name The name of the parameter or property for which a summary
+	 * line is being added. This parameter can be null.
+	 * 
+	 * @param value The value for the given parameter to be added to the dsd.
+	 * This parameter can be null.
+	 * 
+	 * @param desc An optional description to be associated with the summary
+	 * line. This parameter can be null. 
+	 */
+	public void addSubSummary(String name, String value, String desc) {
+		addSummary(name, value, desc, "#d0d0d0", "&nbsp; &nbsp; &nbsp;", false);
+	}
+	
+	/**
+	 * Internal helper method to add a new summary line.
+	 * 
+	 * This method is used by the various summary generation methods in
+	 * this class (with different parameters) generate suitable summary
+	 * lines in HTML format. 
+	 * 
+	 * @param sb The string builder (that is typically passed in as a parameter
+	 * from this class to the EASTJobWizard) to which an HTML-row of summary
+	 * information is to be written.
+	 * 
+	 * @param name The name of the parameter or property for which a summary
+	 * line is being added to the given dsd. This parameter can be null.
+	 * 
+	 * @param value The value for the given parameter to be added to the dsd.
+	 * This parameter can be null.
+	 * 
+	 * @param desc An optional description to be associated with the summary
+	 * line. This parameter can be null.
+	 * 
+	 *  @param bgColor An optional coloring scheme for the entire row of the
+	 *  summary. This parameter cannot be null.
+	 *  
+	 *  @param indent An optional indentation string to be used for indenting
+	 *  sub-summary lines. If indentation is not needed this parameter must be
+	 *  set to an empty string ("") and cannot be null.
+	 *  
+	 *  @param bold Flag to indicate if the characters in the line must be in
+	 *  bold (to highlight a sub-section)
+	 */
+	private void addSummary(String name, String value, String desc, String bgColor, 
+			String indent, boolean bold) {
+		// Create the name field with optional indentation
+		final String firstCol = indent + ((name  != null) ? name : "");
+		// Setup bold vs. not-bold setting for this file.
+		final String ColStart = "<td><font size=\"-1\">" + (bold ? "<b>" : "");
+		final String ColEnd   = (bold ? "</b></font>" : "") + "</td>";
+		// Create text for a suitably colored row.
+		currentSummary.append(oddLine ? "<tr>" : "<tr bgColor=\"" + bgColor + "\"");
+		currentSummary.append(ColStart + firstCol                      + ColEnd);
+		currentSummary.append(ColStart + ((value != null) ? value : "") + ColEnd);
+		currentSummary.append(ColStart + ((desc  != null) ? desc  : "") + ColEnd);
+		currentSummary.append("</tr>");
+		// Toggle odd line flag
+		oddLine = !oddLine;
+	}
+	
+	/**
+	 * Method to setup this page just before it is displayed.
+	 * 
+	 * This method is invoked by the core WizardDialog panel just
+	 * before this page is displayed. This method populates the
+	 * summary information using the data supplied by the user
+	 * in the various wizard pages (along with default values).
+	 */
+	@Override
+	public void pageChanged(WizardDialog dialog, int currPage, int prevPage) {
+		// Create the clustering summary first.
+		if (clusteringSummary != null) {
+			currentSummary = new StringBuilder(1024);
+			currentSummary.append("<html><table cellspacing=\"0\" cellpadding=\"0\" width=\"600\">");
+			wizard.setClusteringJobSummary(this);
+			currentSummary.append("</table></html>");
+			clusteringSummary.setText(currentSummary.toString());
+			clusteringSummary.setCaretPosition(0);
+		}
+		// Create the assembly summary
+		currentSummary = new StringBuilder(1024);
+		currentSummary.append("<html><table cellspacing=\"0\" cellpadding=\"0\" width=\"600\">");
+		wizard.setAssemblyJobSummary(this);
+		currentSummary.append("</table></html>");
+		assemblySummary.setText(currentSummary.toString());
+		assemblySummary.setCaretPosition(0);
+		
+		// Let the super class do any additional work.
+		super.pageChanged(dialog, currPage, prevPage);
+	}
+
+	/**
+	 * A reference to the wizard dialog that logically owns this
+	 * page. This reference is used to enable and disable 
+	 * buttons on this wizard appropriately.
+	 */
+	private final EASTJobWizard wizard;
+
+	/**
+	 * The HTML document that is used to display the clustering
+	 * summary information with a pretty style.
+	 */
+	private JEditorPane clusteringSummary;
+
+	/**
+	 * The HTML document that is used to display the assembly job
+	 * summary information with a pretty style.
+	 */
+	private JEditorPane assemblySummary;
+
+	/**
+	 * This is an intermediate/convenience object that is used to either
+	 * refer to the {@link #clusteringSummary} object or the 
+	 * {@link #assemblySummary} object.
+	 */
+	private transient StringBuilder currentSummary;
+	
+	/**
+	 * Flag to indicate if the line being added to a summary document
+	 * is an odd or an event line. This flag works based on the 
+	 * assumption that a single complete section of information is
+	 * added to a given document. This flag is reset to true by the
+	 * {@link #addSection(DefaultStyledDocument, String)} method and
+	 * toggled by the {@link #addSummaryLine(DefaultStyledDocument, String)}
+	 * method.
+	 */
+	private boolean oddLine;
+	
+	/**
+	 * A generic informational message that is displayed at the
+	 * top of this wizard page to provide some contextual information
+	 * to the user.
+	 */
+	private static final String INFO_MSG = 
+		"<html>You have provided the following information regarding<br/>" +
+		"the job(s) to be scheduled. Please verify the information. Next<br/>" +
+		"the wizard will perform the initial job setup.</html>";
+
+	/**
+	 * A simple caution message that is displayed at the bottom of the
+	 * wizard page.
+	 */
+	private static final String CAUTION_MSG = 
+		"<html><b>On clicking the 'Next' button the job(s) will be submitted!</b><br>" +
+		"You will not be able to backtrack from the next page.</html>";
+
+	/**
+	 * A serialization UID to keep the compiler happy.
+	 */
+	private static final long serialVersionUID = 8538523942750752144L;
+}

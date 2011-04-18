@@ -130,6 +130,40 @@ public class DOMHelper {
 	}
 	
 	/**
+	 * Utility method to obtain the value of a given element as a string or
+	 * use a default value.
+	 * 
+	 * This method can be used to search for a given child-element within another
+	 * element and if the element is found, it returns the value of the
+	 * child element as a string. Otherwise this method returns the supplied
+	 * default value. 
+	 * 
+	 * <p><b>Note:</b> This method does not recursively search its child elements.
+	 * Only the immediate underlying child elements are searched.</p>
+	 * 
+	 * @param parent The parent element whose immediate child elements are to 
+	 * be searched.
+	 * 
+	 * @param elementName The name of the element whose value is to be converted
+	 * to an integer and returned.
+	 * 
+	 * @param valueIfNull This value is returned in case the element does not
+	 * have a value specified.
+	 * 
+	 * @return The value of the element if it is not null. If the element has
+	 * a null value then the supplied valueIfNull object is returned. If the 
+	 * element was not found, then this method will raise an exception. So prior
+	 * to calling this method  check to ensure the element exists via a call to 
+	 * {@link #hasElement(Element, String)}. 
+	 */
+	public static String getStringValue(Element parent, String elementName, 
+			String valueIfNull) {
+		NodeList nodes = parent.getElementsByTagName(elementName);
+		String retVal = getStringValue(nodes, elementName, true);
+		return (retVal != null ? retVal : valueIfNull);
+	}
+	
+	/**
 	 * Utility method to obtain the value of a given element as a String.
 	 * 
 	 * This method can be used to search for a given child-element within a
@@ -197,6 +231,56 @@ public class DOMHelper {
 	}
 
 
+	/**
+	 * Utility method to obtain the value of a given element as a long value.
+	 * 
+	 * This method can be used to search for a given child-element within another
+	 * element and if the element is found, it returns the value of the
+	 * child element as an integer. This method assumes that the value of the
+	 * element is expected to be an integer and it has passed validation.
+	 * 
+	 * <p><b>Note:</b>  This method does not recursively search its child elements. Only the
+	 * immediate underlying child elements are searched.</p>
+	 * 
+	 * @param parent The parent element whose immediate child elements are to 
+	 * be searched.
+	 * @param elementName The name of the element whose value is to be converted
+	 * to an integer and returned.
+	 * @return The value of the element. If the element was not found, then this
+	 * method will raise an exception. So prior to calling this method
+	 * check to ensure the element exists via a call to DOMHelper.hasElement() 
+	 */
+	public static long getLongValue(Element parent, String elementName) {
+		NodeList nodes = parent.getElementsByTagName(elementName);
+		String str = getStringValue(nodes, elementName, false);
+		return Long.parseLong(str);
+	}
+
+	/**
+	 * Utility method to obtain the value of a given element as a double.
+	 * 
+	 * This method can be used to search for a given child-element within another
+	 * element and if the element is found, it returns the value of the
+	 * child element as an integer. This method assumes that the value of the
+	 * element is expected to be an integer and it has passed validation.
+	 * 
+	 * <p><b>Note:</b>  This method does not recursively search its child elements. Only the
+	 * immediate underlying child elements are searched.</p>
+	 * 
+	 * @param parent The parent element whose immediate child elements are to 
+	 * be searched.
+	 * @param elementName The name of the element whose value is to be converted
+	 * to an integer and returned.
+	 * @return The value of the element. If the element was not found, then this
+	 * method will raise an exception. So prior to calling this method
+	 * check to ensure the element exists via a call to DOMHelper.hasElement() 
+	 */
+	public static double getDoubleValue(Element parent, String elementName) {
+		NodeList nodes = parent.getElementsByTagName(elementName);
+		String str = getStringValue(nodes, elementName, false);
+		return Double.parseDouble(str);
+	}
+	
 	/**
 	 * Utility method to determine if a given DOM element has an optional sub-element.
 	 * 
@@ -329,6 +413,40 @@ public class DOMHelper {
 		parent.appendChild(child);
 		// Return the newly created child node.
 		return child;
+	}
+	
+	/**
+	 * Helper method to add a new element to a given DOM node.
+	 * This method is a helper method that is used to add a simple
+	 * element (under the PEACE name space) with a simple integer value
+	 * to a given DOM element.
+	 * 
+	 * @param parent The DOM element to which a new element is to be added.
+	 * @param name The name of the new element to be added to the DOM tree.
+	 * @param value The value to be associated with the new element.
+	 * @return If the element is added successfully, then this method returns
+	 * the newly created element. On errors it returns null. 
+	 */
+	public static Element addElement(Element parent, String name,
+			long value) {
+		return addElement(parent, name, "" + value);
+	}
+	
+	/**
+	 * Helper method to add a new element to a given DOM node.
+	 * This method is a helper method that is used to add a simple
+	 * element (under the PEACE name space) with a simple float value
+	 * to a given DOM element.
+	 * 
+	 * @param parent The DOM element to which a new element is to be added.
+	 * @param name The name of the new element to be added to the DOM tree.
+	 * @param value The value to be associated with the new element.
+	 * @return If the element is added successfully, then this method returns
+	 * the newly created element. On errors it returns null. 
+	 */
+	public static Element addElement(Element parent, String name,
+			float value) {
+		return addElement(parent, name, "" + value);
 	}
 	
     /** 
