@@ -52,7 +52,7 @@ TransMSTClusterMaker::TransMSTClusterMaker(ESTAnalyzer *analyzer) :
 
 TransMSTClusterMaker::~TransMSTClusterMaker() {
     int startESTidx, endESTidx;
-    getOwnedESTidx(startESTidx, endESTidx);
+    getLocallyOwnedESTidx(startESTidx, endESTidx);
     for (int i = startESTidx; (i < endESTidx); i++) {
         if (metricCache[i] != NULL) {
             delete metricCache[i];
@@ -205,7 +205,7 @@ TransMSTClusterMaker::processMetricList(SMList& metricList) {
     // caches for rapidly computing transitivity information. First
     // determine the set of ESTs this process owns
     int startESTidx, endESTidx;
-    getOwnedESTidx(startESTidx, endESTidx);
+    getLocallyOwnedESTidx(startESTidx, endESTidx);
     // Now process the list of metrics we just received and build
     // caches for rapidly computing transitivity information.
     for(size_t i = 0; (i < metricList.size()); i++) {

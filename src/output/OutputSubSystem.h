@@ -80,6 +80,7 @@
 	</p>
 */
 class OutputSubSystem : public SubSystem {
+    using SubSystem::initializeComponents;
 public:
     /** The constructor.
 
