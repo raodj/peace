@@ -43,7 +43,7 @@ import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
 
 import org.netbeans.swing.outline.RowModel;
-import org.peace_tools.workspace.MSTClusterData;
+import org.peace_tools.workspace.FileEntry;
 
 /**
  * The tree table model that provides a facade to display 
@@ -77,7 +77,7 @@ public class ClusterTreeTableModel implements TreeModel, RowModel {
 	 * @param wsEntry The workspace entry corresponding to the clusters being
 	 * adapted by this object.
 	 */
-	public ClusterTreeTableModel(ClusterFile clusters, ESTList ests, MSTClusterData wsEntry) {
+	public ClusterTreeTableModel(ClusterFile clusters, ESTList ests, FileEntry wsEntry) {
 		// Save references for future use.
 		this.clusterFile = clusters;
 		this.estList     = ests;
@@ -423,7 +423,7 @@ public class ClusterTreeTableModel implements TreeModel, RowModel {
 	 * @return The reference to the MSTClusterData workspace entry whose
 	 * data is "modeled" by this class.
 	 */
-	public MSTClusterData getWsEntry() { return wsEntry; }
+	public FileEntry getWsEntry() { return wsEntry; }
 	
 	//-------------------------------------------------------
 	
@@ -440,7 +440,7 @@ public class ClusterTreeTableModel implements TreeModel, RowModel {
 	 * cluster table model was actually obtained. This information can be
 	 * used by "view" classes to create additional views as needed.
 	 */
-	private final MSTClusterData wsEntry;
+	private final FileEntry wsEntry;
 	
 	/**
 	 * Reference to the EST file that contains the cluster data to

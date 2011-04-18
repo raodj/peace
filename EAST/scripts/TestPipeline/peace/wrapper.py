@@ -1,5 +1,7 @@
 import os, sys
 
+print "-----In the other wrapper-------\n"
+
 # Program options
 errorRate = float(sys.argv[3])   # 0.04 meaning a 4% single-base error rate
 insertions = True # change to True to allow insertions

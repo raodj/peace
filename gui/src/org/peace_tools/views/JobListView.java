@@ -348,6 +348,7 @@ public class JobListView extends JPanel {
 	 */
 	private static final Icon JobStatusIcons[] = {
 		Utilities.getIcon("images/16x16/JobStarting.png"),
+		Utilities.getIcon("images/16x16/JobWaiting.png"),
 		Utilities.getIcon("images/16x16/JobQueued.png"),
 		Utilities.getIcon("images/16x16/JobRunning.png"),
 		Utilities.getIcon("images/16x16/JobFinishing.png"),

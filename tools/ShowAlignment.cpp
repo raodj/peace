@@ -23,80 +23,79 @@
 //---------------------------------------------------------------------------
 
 #include "ShowAlignment.h"
-#include "EST.h"
 #include "Common.h"
+#include "ArgParser.h"
+#include "ESTList.h"
 
 int
 ShowAlignment::main(int argc, char *argv[]) {
-    char *srcFileName   = NULL; // File name with reference gene/transcript
-    char *estFileName   = NULL; // File with generated ESTs
-    char *outFileName   = NULL; // Output file with XFig data.
-    char *clstrFileName = NULL; // Flat cluster file
-    char *hilitCls      = NULL; // List of clusters to highlight
+    std::string srcFileName; // File name with reference gene/transcript
+    std::string estFileName; // File with generated ESTs
+    std::string outFileName; // Output file with XFig data.
+    std::string clstrFileName; // Flat cluster file
+    std::string hilitCls; // List of clusters to highlight
     int  srcIndex       = -1;   // index of reference gene in srcFile 
     bool showOptions    = false;
     int  rectHeight     = 100;
     
-    // Create the list of valid arguments to be used by the arg_parser.
-    arg_parser::arg_record arg_list[] = {
+    // Create the list of valid arguments to be used by the ArgParser.
+    ArgParser::ArgRecord arg_list[] = {
         {"--srcFile", "Optional FASTA file with source gene sequences",
-         &srcFileName, arg_parser::STRING},
+         &srcFileName, ArgParser::STRING},
         {"--estFile", "FASTA file with ESTs generated from given srcFile",
-         &estFileName, arg_parser::STRING},
+         &estFileName, ArgParser::STRING},
         {"--srcIndex", "Zero-based index of source sequence in srcFile to show",
-         &srcIndex, arg_parser::INTEGER},
+         &srcIndex, ArgParser::INTEGER},
         {"--clstrFile", "Optional clusters output from PEACE for color coding",
-         &clstrFileName, arg_parser::STRING},
+         &clstrFileName, ArgParser::STRING},
         {"--output", "File to which the XFIG output must be written",
-         &outFileName, arg_parser::STRING},
+         &outFileName, ArgParser::STRING},
         {"--rectSize", "Specify height of rectangles (default=100)",
-         &rectHeight, arg_parser::INTEGER},
+         &rectHeight, ArgParser::INTEGER},
         {"--options", "Lists options for this tool",
-         &showOptions, arg_parser::BOOLEAN},
+         &showOptions, ArgParser::BOOLEAN},
         {"--hilitCls", "Subset of ',' seperated clusters to hilit",
-         &hilitCls, arg_parser::STRING},
-        {NULL, NULL, NULL, arg_parser::BOOLEAN}
+         &hilitCls, ArgParser::STRING},
+        {"", "", NULL, ArgParser::INVALID}
     };
-    
+
     // Get the argument parser to parse and consume the global
     // options.  Based on the options supplied, various variables will
     // be set to appropriate values.
-    arg_parser ap(arg_list);
-    ap.check_args(argc, argv, false);
+    ArgParser ap;    
+    Tool::addCmdLineArgs("ShowAlignment", ap);
+    ap.addValidArguments(arg_list);
+    ap.parseArguments(argc, argv, false);
     if (showOptions) {
-        showUsage("ShowAlignment", ap);
+        std::cout << ap << std::endl;
         // Nothing further to be done.
         return 0;
     }
     // Ensure we have all the necessary parameters.
     std::string tool = "ShowAlignment";
-    CHECK_ARGS(tool, estFileName == NULL, "FASTA file to load ESTs was not " \
+    CHECK_ARGS(tool, estFileName.empty(), "FASTA file to load ESTs was not " \
                "specified.\nUse --estFile option\n");
-    CHECK_ARGS(tool, outFileName == NULL, "Output XFIG file was not "
+    CHECK_ARGS(tool, outFileName.empty(), "Output XFIG file was not "
                "specified.\nUse --output option\n");
-    if (srcFileName != NULL) {
+    if (!srcFileName.empty()) {
         CHECK_ARGS(tool, srcIndex < 0, "Valid index of source sequence was not "
                    "specified.\nUse --srcIndex option\n");
     }
-    // Ok. Create an object.    
-    ShowAlignment sa;
+    // Ok (basic checks pass). Create an object.    
+    ShowAlignment sa;    
     // Try and load the necessary data.
     if (!sa.loadData(srcIndex, srcFileName, estFileName)) {
-        // Free up any ESTs that may have been loaded.
-        EST::deleteAllESTs();
         // Error loading data.
         return 3;
     }
     // Try and load the cluster data (if supplied)
-    if ((clstrFileName != NULL) &&
+    if (!clstrFileName.empty() &&
         (!sa.loadClusterInfo(clstrFileName))) {
-        // Free up any ESTs that may have been loaded.
-        EST::deleteAllESTs();
         // Error loading cluster information.
         return 4;
     }
     // Process and setup cluster coloring list.
-    if (hilitCls != NULL) {
+    if (!hilitCls.empty()) {
         sa.setClustersToColor(hilitCls);
     }
     
@@ -108,33 +107,32 @@ ShowAlignment::main(int argc, char *argv[]) {
     }
     // Generate the alignment information.
     sa.drawAlignment(1200 * rectHeight / 72);
-    // Free up all ESTs that have been loaded.
-    EST::deleteAllESTs();
     // Everything went well.
     return 0;
 }
 
 bool
-ShowAlignment::loadData(const int srcDataIndex, const char* srcFileName,
-                        const char *estFileName) {
+ShowAlignment::loadData(const int srcDataIndex, const std::string& srcFileName,
+                        const std::string& estFileName) {
     // Try and load the source file if one is specified.
-    if (srcFileName != NULL) {
+    if (!srcFileName.empty()) {
         if (!loadFastaFile(srcFileName)) {
             // All the sequences could not be loaded.
             return false;
         }
         // Check to ensure the data was loaded.
-        if (srcDataIndex >= EST::getESTCount()) {
+        ESTList& estList = getESTList();
+        if (srcDataIndex >= estList.size()) {
             std::cout << "The source index (for the reference gene/transcript) "
                       << "value " << srcDataIndex << " is invalid.\n";
             // Unable to load data from the FASTA file.
             return false;
         }
         // Save off the reference EST for future reference.
-        EST *est = EST::getEST(srcDataIndex);
+        const EST *est = estList.get(srcDataIndex);
         refEST   = new EST(srcDataIndex, est->getInfo(), est->getSequence());
         // Delete rest of the reference ESTs
-        EST::deleteAllESTs();
+        getESTList().reset();
     }
     // Try and load the list of ESTs from the FASTA file
     if (!loadFastaFile(estFileName)) {
@@ -166,7 +164,7 @@ ShowAlignment::isOfInterest(const int estIndex) const {
     }
 
     // Get this EST
-    const EST *est = EST::getEST(estIndex);
+    const EST *est = getESTList()[estIndex];
     // Use data in FASTA header to figure out if this EST is of
     // interest.
     int geneIndex;
@@ -182,10 +180,11 @@ ShowAlignment::drawAlignment(const int rectHeight) {
         drawEST(-1, refEST, rectHeight); // draw reference EST
     }
     // Draw rest of the ESTs
-    for(int index = 0; (index < EST::getESTCount()); index++) {
+    const ESTList& estList = getESTList();
+    for(int index = 0; (index < estList.size()); index++) {
         if (isOfInterest(index)) {
             // This EST is of interest. So draw the EST.
-            drawEST(index, EST::getEST(index), rectHeight);
+            drawEST(index, estList.get(index), rectHeight);
         }
     }
     // Everything went well.

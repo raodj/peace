@@ -69,7 +69,7 @@ import org.peace_tools.data.ESTList;
 import org.peace_tools.generic.HelpHandler;
 import org.peace_tools.generic.Utilities;
 import org.peace_tools.workspace.DBClassifier;
-import org.peace_tools.workspace.MSTClusterData;
+import org.peace_tools.workspace.FileEntry;
 import org.peace_tools.workspace.Workspace;
 import org.peace_tools.workspace.WorkspaceEvent;
 import org.peace_tools.workspace.WorkspaceListener;
@@ -100,7 +100,7 @@ public class ClusterSummaryView extends JPanel
 	 * file that is being displayed by this view.
 	 */
 	public ClusterSummaryView(MainFrame frame, ClusterFile clusterFile, ESTList estList, 
-							  MSTClusterData wsEntry) {
+							  FileEntry wsEntry) {
 		super(new BorderLayout(0, 0));
 		setOpaque(false);
 		// Save references to clusterFile for future use
@@ -115,13 +115,15 @@ public class ClusterSummaryView extends JPanel
 		// Create and configure the graph pane.
 		createGraph();
 		// Add graph to the main component
-		add(new JScrollPane(graph), BorderLayout.CENTER);
+		JScrollPane scroller = new JScrollPane(graph);
+		add(scroller, BorderLayout.CENTER);
 		
+
 		// Finally create the properties panel to the right along with button 
 		// (add it before help button spacer) in the tool bar using utility method.
-		JTree summaryInfo = PropertiesTreeMaker.makeProperties(wsEntry, mainFrame);
+		JTree summaryInfo = PropertiesTreeMaker.makeClusterProperties(wsEntry, mainFrame);
 		JSplitPane centerPane = PropertiesTreeMaker.createPropertiesLayout("Clustering Information",
-				summaryInfo, graph, toolbar, toolbar.getComponentCount() - 2);
+				summaryInfo, scroller, toolbar, toolbar.getComponentCount() - 2);
 		add(centerPane, BorderLayout.CENTER);
 		// setupInfoPanel();
 		// Register as work space listener as well.
@@ -416,7 +418,7 @@ public class ClusterSummaryView extends JPanel
 		clIdx = Math.min(clusterFile.getRoot().getChildren().size(), clIdx);
 		return clIdx;
 	}
-	
+
 	/**
 	 * Helper method to configure and setup the graph panel to draw
 	 * the actual cluster graph. The graph is displayed in the middle
@@ -471,7 +473,7 @@ public class ClusterSummaryView extends JPanel
 		size.width += dummyLabel.getPreferredSize().width / 2;
 		// Setup the size for the graph
 		graph.setPreferredSize(size);
-		graph.setMinimumSize(size);
+		graph.revalidate();
 	}
 
 	/**

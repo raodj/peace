@@ -36,6 +36,7 @@ package org.peace_tools.workspace;
 import java.io.File;
 import java.io.PrintWriter;
 
+import org.peace_tools.core.SummaryWriter;
 import org.w3c.dom.Element;
 
 /**
@@ -307,6 +308,29 @@ public class MSTData {
 		return "MST Data [File: " + tmpData.getName() + "]";
 	}
 	
+	/**
+	 * Method to write summary information about the MST data.
+	 * 
+	 * This method is a convenience method that is used by various 
+	 * wizards to display summary information about the MST data.
+	 * The summary information about the data set include information
+	 * about the MST data file location and the analyzer used to 
+	 * generate the MST.
+	 * 
+	 * @param sw The summary writer to which the data is to be written.
+	 */
+	public void summarize(SummaryWriter sw) {
+		sw.addSection("Minimum Spanning Tree (MST) [id" + id + "] Summary");
+		File tempFile = new File(path);
+		sw.addSummary("File Name", tempFile.getName(), description);
+		sw.addSummary("Local path", tempFile.getPath(), null);
+		sw.addSummary("MST type", type.toString(), null);
+		// Add summary information about the analyzer being used.
+		if (analyzer != null) {
+			analyzer.summarize(sw);
+		}
+	}
+	
     /**
      * Set the data set that this object logically belongs to. 
      * 
@@ -338,9 +362,9 @@ public class MSTData {
     public void updateJobSummary(Job job) {
     	jobSummary = new JobSummary(job);
    		// Notify all listeners about the change.
-    	Workspace ws = Workspace.get();
-		ws.fireWorkspaceChanged(new WorkspaceEvent(this, 
-				WorkspaceEvent.Operation.INSERT));
+    	// Workspace ws = Workspace.get();
+		// ws.fireWorkspaceChanged(new WorkspaceEvent(this, 
+		//		WorkspaceEvent.Operation.INSERT));
     }
     
     /**

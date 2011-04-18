@@ -254,7 +254,7 @@ public class MSTClusterData {
 	public String toCmdLine() {
 		String cmdLine = " --clsThreshold " + threshold;
 		File file = new File(path);
-		cmdLine += " --gui-print --output " + file.getName(); 
+		cmdLine += " --gui-print --cls-output " + file.getName(); 
 		return cmdLine;
 	}
 	
@@ -268,9 +268,9 @@ public class MSTClusterData {
     public void updateJobSummary(Job job) {
     	jobSummary = new JobSummary(job);
    		// Notify all listeners about the change.
-    	Workspace ws = Workspace.get();
-		ws.fireWorkspaceChanged(new WorkspaceEvent(this, 
-				WorkspaceEvent.Operation.INSERT));
+    	// Workspace ws = Workspace.get();
+		// ws.fireWorkspaceChanged(new WorkspaceEvent(this, 
+		//		WorkspaceEvent.Operation.INSERT));
     }
     
     /**

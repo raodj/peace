@@ -68,12 +68,8 @@ public class GenericHTMLView extends JPanel implements HyperlinkListener {
 			ProgrammerLog.log("HTML editor is loading: " + url);
 		}
 		// Force loading HTML page synchronously to work around Java bug
-		JEditorPane htmlPane = new JEditorPane();
-		htmlPane.setEditorKit(getEditorKit());
+		JEditorPane htmlPane = createHTMLPane();
 		htmlPane.setPage(url);
-		htmlPane.setDragEnabled(false);
-		htmlPane.setDropTarget(null);
-		htmlPane.setEditable(false);
 		htmlPane.addHyperlinkListener(this);
 		// Wrap the editor pane in a scroll pane.
 		JScrollPane jsp = new JScrollPane(htmlPane);
@@ -81,6 +77,31 @@ public class GenericHTMLView extends JPanel implements HyperlinkListener {
 		add(jsp, BorderLayout.CENTER);
 	}
 
+	/**
+	 * Helper method to create a read-only panel to display HTML data.
+	 * 
+	 * This method is a helper method that has been exposed for use by
+	 * other classes to create a suitable GUI component to display HTML
+	 * data. This method creates a read-only panel in which HTML data
+	 * can be displayed by calling setText() method
+	 * or by specifying a URL via the setPage() method. In addition
+	 * the component may also be configured to react to clicking of
+	 * links via the addHyperlinkListener() method.
+	 *  
+	 * @return A suitably configured JEditorPane object in which HTML
+	 * content can be displayed.
+	 */
+	public static JEditorPane createHTMLPane() {
+		JEditorPane htmlPane = new JEditorPane();
+		htmlPane.setEditorKit(getEditorKit());
+		// htmlPane.setPage(url);
+		htmlPane.setDragEnabled(false);
+		htmlPane.setDropTarget(null);
+		htmlPane.setEditable(false);
+		// htmlPane.addHyperlinkListener(this);
+		return htmlPane;
+	}
+	
 	/**
 	 * Create custom editor kit to work around Java bug.
 	 * 
@@ -93,7 +114,7 @@ public class GenericHTMLView extends JPanel implements HyperlinkListener {
 	 * @return An HTML editor kit that forces loading to proceed
 	 * synchronously.
 	 */
-	private EditorKit getEditorKit() {
+	private static EditorKit getEditorKit() {
 		HTMLEditorKit kit = new HTMLEditorKit() {
 			private static final long serialVersionUID = 1L;
 			@Override

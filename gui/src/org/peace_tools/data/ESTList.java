@@ -1,35 +1,4 @@
-//--------------------------------------------------------------------
-//
 // This file is part of PEACE.
-// 
-// PEACE is free software: you can redistribute it and/or modify it
-// under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-// 
-// PEACE is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-// General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with PEACE.  If not, see <http://www.gnu.org/licenses/>.
-// 
-// Miami University makes no representations or warranties about the
-// suitability of the software, either express or implied, including
-// but not limited to the implied warranties of merchantability,
-// fitness for a particular purpose, or non-infringement.  Miami
-// University shall not be liable for any damages suffered by licensee
-// as a result of using, result of using, modifying or distributing
-// this software or its derivatives.
-//
-// By using or copying this Software, Licensee agrees to abide by the
-// intellectual property laws, and all other applicable laws of the
-// U.S., and the terms of GNU General Public License (version 3).
-//
-// Authors:   Dhananjai M. Rao          raodm@muohio.edu
-//
-//---------------------------------------------------------------------
 
 package org.peace_tools.data;
 
@@ -46,6 +15,7 @@ import javax.swing.ProgressMonitor;
 
 import org.peace_tools.workspace.ClassifierList;
 import org.peace_tools.workspace.DBClassifier;
+import org.peace_tools.workspace.DataFileStats;
 import org.peace_tools.workspace.Workspace;
 
 /**
@@ -247,7 +217,7 @@ public class ESTList {
 	 * @return This method returns an array of doubles containing 
 	 * the following information: estCount, minLen, maxLen, avgLen, lenSD.
 	 */
-	public double[] computeStatistics() {
+	public DataFileStats computeStatistics() {
 		// Compute the basic sequence length statistics.
 		int  minLen = Integer.MAX_VALUE, maxLen  = 0;
 		long lenSum = 0, lenSqSum= 0;
@@ -261,16 +231,13 @@ public class ESTList {
 			lenSqSum += (seqLen * seqLen);
 		}
 		// Compute the statistics and store them in an array to return back
-		double stats[] = new double[5];
-		stats[0] = ests.size();
-		stats[1] = minLen;
-		stats[2] = maxLen;
-		if (ests.size() > 0) {
-			stats[3] = (lenSum / (double) ests.size());
-			stats[4] = Math.sqrt((lenSqSum - (lenSum * stats[3])) / 
-					(ests.size() -1 ));
+		int count = ests.size();
+		float avgLen = 0, lenSD = 0;
+		if (count > 0) {
+			avgLen = (float) (lenSum / (float) ests.size());
+			lenSD  = (float) (Math.sqrt((lenSqSum - (lenSum * avgLen)) / count));
 		}
-		return stats;
+		return new DataFileStats(name, -1, count, avgLen, lenSD, minLen, maxLen);
 	}
 	
 	/**

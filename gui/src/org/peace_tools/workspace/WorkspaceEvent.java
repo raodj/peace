@@ -67,9 +67,19 @@ public class WorkspaceEvent extends EventObject {
 		/**
 		 * Enumeration used to report that the list of DB classifiers in this
 		 * work space have all changed. Currently, the classifiers are all
-		 * changed in one flail swoop. 
+		 * changed in one fail swoop. 
 		 */
-		CLASSIFIER_LIST
+		CLASSIFIER_LIST,
+		/**
+		 * Enumeration used to broadcast/report the list of file entries
+		 * in this work space have all changed.
+		 */
+		GENERATED_FILE_LIST,
+		/**
+		 * Enumeration used to report that a single file entry with a 
+		 * generated file list (within a data set) has changed.
+		 */
+		FILE_ENTRY
 	};
 	
 	/**
@@ -105,37 +115,6 @@ public class WorkspaceEvent extends EventObject {
 	public WorkspaceEvent(DataSet ds, WorkspaceEvent.Operation operation) {
 		super(ds);
 		this.entryType = EntryType.DATA_SET;
-		this.operation = operation;
-	}
-
-	/**
-	 * Constructor to create an event that can be used to report change in the
-	 * status of a MST data file.
-	 * 
-	 * @param mst The MST data file that has been inserted, deleted, or updated.
-	 *  
-	 * @param operation The type of operation (insert, delete, or update) that
-	 * has already occurred to the MST data.
-	 */
-	public WorkspaceEvent(MSTData mst, WorkspaceEvent.Operation operation) {
-		super(mst);
-		this.entryType = EntryType.MST_DATA;
-		this.operation = operation;
-	}
-
-	/**
-	 * Constructor to create an event that can be used to report change in the
-	 * status of a MST cluster data file.
-	 * 
-	 * @param clusters The MST cluster data file that has been inserted, 
-	 * deleted, or updated.
-	 *  
-	 * @param operation The type of operation (insert, delete, or update) that
-	 * has already occurred to the MST cluster data.
-	 */
-	public WorkspaceEvent(MSTClusterData clusters, WorkspaceEvent.Operation operation) {
-		super(clusters);
-		this.entryType = EntryType.MST_CLUSTER_DATA;
 		this.operation = operation;
 	}
 
@@ -185,6 +164,38 @@ public class WorkspaceEvent extends EventObject {
 		this.operation = Operation.UPDATE;
 	}
 
+	/**
+	 * Constructor to create an event that can be used to report change in the
+	 * status of a generated file list.
+	 * 
+	 * @param gfl The generated file list entry that has been inserted, deleted, or 
+	 * updated.
+	 *  
+	 * @param operation The type of operation (insert, delete, or update) that
+	 * has already occurred to the entry.
+	 */
+	public WorkspaceEvent(GeneratedFileList gfl, WorkspaceEvent.Operation operation) {
+		super(gfl);
+		this.entryType = EntryType.GENERATED_FILE_LIST;
+		this.operation = operation;
+	}
+	
+	/**
+	 * Constructor to create an event that can be used to report change in the
+	 * status of a generated file entry.
+	 * 
+	 * @param gfl The generated file entry that has been inserted, deleted, or 
+	 * updated.
+	 *  
+	 * @param operation The type of operation (insert, delete, or update) that
+	 * has already occurred to the entry.
+	 */
+	public WorkspaceEvent(FileEntry fe, WorkspaceEvent.Operation operation) {
+		super(fe);
+		this.entryType = EntryType.FILE_ENTRY;
+		this.operation = operation;
+	}
+	
 	/**
 	 * Determine the type of entry regarding which a status change is being
 	 * reported.

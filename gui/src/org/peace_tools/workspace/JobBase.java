@@ -45,6 +45,34 @@ import javax.xml.datatype.Duration;
  */
 public abstract class JobBase {
 	/**
+	 * Different enumerations defining the the type of job
+	 * identified by a given job entry.
+	 */
+	public enum JobType {
+		/**
+		 * This entry indicates that the job entry corresponds to a
+		 * clustering type job. This type of job has a lot of 
+		 * configuration information including: filters, heuristics,
+		 * and other parameters. This job is created for generating
+		 * MST entries and clustering files.
+		 */
+		CLUSTERING,
+		/**
+		 * This type of job entry corresponds to a assembly job.
+		 * This entry is created when assembly is performed via PEACE.
+		 * This type of job entry does not include filters or
+		 * heuristics. However, it does have parameters used to
+		 * customize the operation of EAST.
+		 */
+		EAST,
+		/**
+		 * This type of job entry corresponds to a baton job that is
+		 * used for clustering and assembly. 
+		 */
+		BATON
+	};
+	
+	/**
 	 * Different enumerations defining the last known runtime status of
 	 * a given Job. These enumerations were introduced to reflect those
 	 * used in the XML and to ensure that the code is overall more
@@ -57,6 +85,12 @@ public abstract class JobBase {
 		 * configuration information to that folder.
 		 */
 		STARTING,
+		/**
+		 * This status indicates that the job is waiting on a previous
+		 * job to finish. This can happen when a assembly  job is waiting
+		 * on a clustering job to finish.
+		 */
+		WAITING,
 		/**
 		 * The job has been queued for running, but it has not yet started
 		 * running. This can happen if a cluster is overloaded with jobs.
@@ -79,7 +113,12 @@ public abstract class JobBase {
 		/**
 		 * The job has completed running but error(s) c
 		 */
-		FAILED
+		FAILED,
+		/**
+		 * The job that this job was waiting on failed and therefore this
+		 * job has been flagged as having failed as well.
+		 */
+		WAIT_FAILED
 	};
 	
 	/**
@@ -94,12 +133,14 @@ public abstract class JobBase {
 	 * This is a cross reference ID of a Server configured in this work space.
 	 * 
 	 */
-	public JobBase(String jobID, String serverID) {
-		this.jobID               = jobID;
-		this.serverID            = serverID;
+	public JobBase(JobType type, String jobID, String serverID) {
+		this.type      = type;
+		this.jobID     = jobID;
+		this.serverID  = serverID;
 		// Set non-final fields to null for now.
- 		this.status              = JobStatusType.STARTING;
-		this.runtime             = null;
+ 		this.status    = JobStatusType.STARTING;
+		this.runtime   = null;
+		this.prevJobID = null;
 	}
 
 	/**
@@ -110,10 +151,12 @@ public abstract class JobBase {
 	 * object is to be copied.
 	 */
 	public JobBase(JobBase jobData) {
+		this.type     = jobData.type;
 		this.jobID    = jobData.jobID;
 		this.serverID = jobData.serverID;
 		this.status   = jobData.status;
 		this.runtime  = jobData.runtime;
+		this.prevJobID= jobData.prevJobID;
 	}
 	
 	/**
@@ -192,17 +235,67 @@ public abstract class JobBase {
 	 * Convenience method to determine if job has completed.
 	 * 
 	 * This method returns true only if the status of the job is
-	 * either SUCCESS or FAILED. In all other states this method
-	 * returns true.
+	 * either SUCCESS, FAILED, or WAIT_FAILED (a job this job 
+	 * was depending on failed). In all other states this method
+	 * returns false.
 	 * 
 	 * @return Returns true to indicate if the job has completed
 	 * (successfully or otherwise).
 	 */
 	public boolean isDone() {
 		return (JobStatusType.SUCCESS.equals(status) ||
-				JobStatusType.FAILED.equals(status));
+				JobStatusType.FAILED.equals(status)  ||
+				JobStatusType.WAIT_FAILED.equals(status));
 	}
 
+	/**
+	 * Convenience method to determine if job is waiting on another
+	 * job to complete..
+	 * 
+	 * This method returns true only if the status of the job is
+	 * WAITING. In all other states this method returns false.
+	 * 
+	 * @return Returns true to indicate if the job is waiting on
+	 * another job to complete.
+	 */
+	public boolean isWaiting() {
+		return (JobStatusType.WAITING.equals(status));
+	}
+	
+	/** Obtain the job type associated with this job.
+	 * 
+	 * @return The job type set for this job when it was created.
+	 */
+	public JobType getType() {
+		return type;
+	}
+	
+	/**
+	 * Set the ID of the previous job that this job is dependent on.
+	 * 
+	 * This method must be used set the ID of the job that this job
+	 * is dependent on.
+	 * 
+	 * @param prevJobID The ID of the job that this job is dependent
+	 * on.
+	 */
+	public void setPreviousJobID(String prevJobID) {
+		this.prevJobID = prevJobID;
+	}
+	
+	/**
+	 * The ID (if any) of a previous job that this job is dependent on.
+	 * 
+	 * This method can be used to determine the ID of an earlier/previous
+	 * job that this job is/was dependent on.
+	 * 
+	 * @return The ID of a previous/dependent job if applicable. 
+	 * Otherwise this method returns null.
+	 */
+	public String getPreviousJobID() {
+		return prevJobID;
+	}
+	
 	/**
 	 * The unique generated jobID value for this job. This value is typically
 	 * created when a new job is scheduled. This value is persisted in the
@@ -216,6 +309,21 @@ public abstract class JobBase {
 	 * resulting data files for this job.
 	 */
 	protected final String serverID;
+
+	/**
+	 * The job type value associated with this job entry. This value
+	 * is set when this class is created and is never changed after
+	 * that.
+	 */
+	protected final JobType type;
+
+	/**
+	 * The unique generated jobID value for another/previous job that 
+	 * this job is dependent on. This value is typically set when a 
+	 * clustering + assembly type jobs are scheduled. The assembly job
+	 * is flagged as being dependent on the clustering job.
+	 */
+	protected String prevJobID;
 	
 	/**
 	 * The current runtime status of this job. This value is periodically

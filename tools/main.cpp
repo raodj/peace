@@ -22,10 +22,11 @@
 //
 //---------------------------------------------------------------------------
 
-#include "arg_parser.h"
+#include "ArgParser.h"
 #include "ShowAlignment.h"
 #include "DrawMatrix.h"
 #include "ShowMST.h"
+#include "Matcher.h"
 #include "Align.h"
 
 // The list of valid tools and associated usage.
@@ -34,6 +35,7 @@ const char* ToolInfo[] = {
     "DrawMatrix",   "Draw graphical view of D2  matrix of scores",
     "ShowMST",      "Translate MST to a bracketed form for rendering",
     "Align",        "Simple alignment generation tool using MST alignment data",
+    "Matcher",      "Score contigs against source DNA/Transcripts",
     // Add new tool names and description before this line.
     NULL, NULL
 };
@@ -45,11 +47,8 @@ const char* ToolInfo[] = {
 
     \note This method is meant to be in local scope rather than global
     scope.
-
-    \param[inout] ap The argument parser to be used for displaying
-    common global options.    
 */
-static void showUsage(const arg_parser& ap) {
+static void showUsage() {
     std::cout << "PEACE Tools Software Suite.\n"
               << "Usage: pTool --tool <toolName>\n"
               << "where valid tool names are:\n";
@@ -74,24 +73,23 @@ static void showUsage(const arg_parser& ap) {
 */
 int
 main(int argc, char* argv[]) {
-    char emptyString[1] = "";
-    char *tool = emptyString; // The name of the tool to run.
+    std::string tool;
     // Create the list of valid arguments to be used by the arg_parser.
-    arg_parser::arg_record arg_list[] = {
+    ArgParser::ArgRecord arg_list[] = {
         {"--tool", "Name of the tool to be run",
-         &tool, arg_parser::STRING},
-        {NULL, NULL, NULL, arg_parser::BOOLEAN}
+         &tool, ArgParser::STRING},
+        {"", "", NULL, ArgParser::INVALID}
     };
 
     // Get the argument parser to parse and consume the global
     // options.  Based on the options supplied, various variables will
     // be set to appropriate values.
-    arg_parser ap(arg_list);
-    ap.check_args(argc, argv, false);
+    ArgParser ap(arg_list);
+    ap.parseArguments(argc, argv, false);
     // Ensure a valid tool name has been specified.
     int toolCode = 0;
     for(toolCode = 0; (ToolInfo[toolCode] != NULL); toolCode += 2) {
-        if (!strcmp(ToolInfo[toolCode], tool)) {
+        if (ToolInfo[toolCode] == tool) {
             // Found a match!
             break;
         }
@@ -99,7 +97,7 @@ main(int argc, char* argv[]) {
     
     if (ToolInfo[toolCode] == NULL) {
         // A valid tool was not specified.
-        showUsage(ap);
+        showUsage();
         // Return nothing.
         return 1;
     }
@@ -114,6 +112,8 @@ main(int argc, char* argv[]) {
     case 4: retVal = ShowMST::main(argc, argv);
         break;
     case 6: retVal = Align::main(argc, argv);
+        break;
+    case 8: retVal = Matcher::main(argc, argv);
         break;
     default:
         std::cout << "Invalid or unhandled tool name specified.\n";

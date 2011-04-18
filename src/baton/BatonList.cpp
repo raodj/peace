@@ -49,9 +49,9 @@ int BatonList::bitShift = 4;
 // This value is set based on the n-mers used for baton heads.
 int BatonList::bitMask = 0;
 
-BatonList::BatonList(const int estIdx, const int nMers, const bool makeRC,
+BatonList::BatonList(const EST* srcEst, const int nMers, const bool makeRC,
                      const int windowSize) :
-    estIndex(estIdx),  nMerSize(nMers), isRC(makeRC), sequence("") {
+    est(srcEst),  nMerSize(nMers), isRC(makeRC), sequence("") {
     // Now that the constant instance variables have been initialized,
     // let's get the helper method to actually build the batons for us.
     buildBatons(windowSize);
@@ -59,7 +59,7 @@ BatonList::BatonList(const int estIdx, const int nMers, const bool makeRC,
 
 BatonList::BatonList(const char *seq, const int nMers, const bool makeRC,
                      const int windowSize)
-    : estIndex(-1), nMerSize(nMers), isRC(makeRC), sequence(seq) {
+    : est(NULL), nMerSize(nMers), isRC(makeRC), sequence(seq) {
     // Now that the constant instance variables have been initialized,
     // let's get the helper method to actually build the batons for us.
     buildBatons(windowSize);    
@@ -150,15 +150,50 @@ BatonList::getWindowPairs(const BatonList& other,
                           const int threshold) const {
     // Create the temporary vector to hold baton frequency counts
     std::vector< IntVector > identicalBatonCount;
-    // Let the other method do the actual computations.
-    return getWindowPairs(other, pairList, identicalBatonCount, threshold);
+    // Let the other method do the actual computations and populate
+    // identicalBatonCount 2-D array.
+    getWindowPairs(other, identicalBatonCount, threshold);
+    // Now process the entries in the 2-D array and create WindowPair
+    // objects of entries that exceed the given threshold.
+    for(size_t win1 = 0; (win1 < identicalBatonCount.size()); win1++) {
+        const IntVector& win1Entries = identicalBatonCount[win1];
+        for(size_t win2 = 0; (win2 < win1Entries.size()); win2++) {
+            if (win1Entries[win2] >= threshold) {
+                // Found a pair of windows that have a sufficient
+                // number of identical batons between them.
+                pairList.push_back(WindowPair(win1, win2, win1Entries[win2]));
+            }
+        }
+    }
+}
+
+void
+BatonList::getWindowPairs(const BatonList& other,
+                          std::priority_queue<WindowPair>& pairList,
+                          const int threshold) const {
+    // Create the temporary vector to hold baton frequency counts
+    std::vector< IntVector > identicalBatonCount;
+    // Let the other method do the actual computations and populate
+    // identicalBatonCount 2-D array.
+    getWindowPairs(other, identicalBatonCount, threshold);
+    // Now process the entries in the 2-D array and create WindowPair
+    // objects of entries that exceed the given threshold.
+    for(size_t win1 = 0; (win1 < identicalBatonCount.size()); win1++) {
+        const IntVector& win1Entries = identicalBatonCount[win1];
+        for(size_t win2 = 0; (win2 < win1Entries.size()); win2++) {
+            if (win1Entries[win2] >= threshold) {
+                // Found a pair of windows that have a sufficient
+                // number of identical batons between them.
+                pairList.push(WindowPair(win1, win2, win1Entries[win2]));
+            }
+        }
+    }
 }
 
 // Method to identify window-pairs whose identical baton count exceeds
 // the given threshold value.
 void
 BatonList::getWindowPairs(const BatonList& other,
-                          std::vector<WindowPair>& pairList,
                           std::vector< IntVector >& identicalBatonCount,
                           const int threshold) const {
     const int winSize1 = windowSize / 2;  // This is half width
@@ -175,7 +210,7 @@ BatonList::getWindowPairs(const BatonList& other,
     const IntVector ZeroVector(other.windowCount + 1, 0);
     identicalBatonCount.clear();   // Clear out old entries
     identicalBatonCount.resize(windowCount + 1, ZeroVector); // Create 2-d vector
-    // For each n-mer code compare baton lengths to find matching batons
+    // For each n-mer code, compare baton lengths to find matching batons
     for(size_t nMerCode = 0; (nMerCode < batons.size()); nMerCode++) {
         // Note that here the batons are sorted based on their
         // lengths. So the search for matching batons with the same
@@ -191,8 +226,7 @@ BatonList::getWindowPairs(const BatonList& other,
                 // exceeds the specified threshold value.
                 tallyBatons(baton1->getStartIndex() / winSize1, windowCount,
                             baton2->getStartIndex() / winSize2,
-                            other.windowCount, identicalBatonCount,
-                            pairList, threshold);
+                            other.windowCount, identicalBatonCount);
                 // Onto the next pair of batons to check
                 baton1++;
                 baton2++;
@@ -209,21 +243,10 @@ BatonList::getWindowPairs(const BatonList& other,
     }
 }
 
-// A macro to streamline the code in the following method and make it
-// more readable.  This macro increments the count in the
-// identicalBatonCount 2-d array, and if the count exceeds the
-// threshold, then it adds the pair to the pairList.
-#define UPDATE_ADD_PAIR(win1, win2)                           \
-    if (++identicalBatonCount[win1][win2] == threshold) {     \
-        pairList.push_back(WindowPair(win1, win2));           \
-    }
-
 void
 BatonList::tallyBatons(const int baton1Win, const int numWin1,
                        const int baton2Win, const int numWin2,
-                       std::vector< IntVector > &identicalBatonCount,
-                       std::vector<WindowPair>& pairList,
-                       const int threshold) const {
+                       std::vector< IntVector > &identicalBatonCount) const {
     // The following checks are broken down into the following three
     // main categories: (i) one of the batons are in the first (or
     // left-most) window; (ii) one of the batons are in the last (or
@@ -232,29 +255,29 @@ BatonList::tallyBatons(const int baton1Win, const int numWin1,
     if ((baton1Win == 0) || (baton2Win == 0)) {
         // Case (i): One or both batons are in the first window
         if (baton1Win == baton2Win) { // Both are zero!
-            UPDATE_ADD_PAIR(0, 0);
+            identicalBatonCount[0][0]++;
         } else if (baton1Win == 0) {
-            UPDATE_ADD_PAIR(0, baton2Win);
-            UPDATE_ADD_PAIR(0, baton2Win - 1);
+            identicalBatonCount[0][baton2Win]++;
+            identicalBatonCount[0][baton2Win - 1]++;            
         } else {
             ASSERT( baton2Win == 0 );
-            UPDATE_ADD_PAIR(baton1Win, 0);
-            UPDATE_ADD_PAIR(baton1Win - 1, 0);
+            identicalBatonCount[baton1Win][0]++;
+            identicalBatonCount[baton1Win - 1][0]++;
         }
     } else if ((baton1Win >= numWin1) || (baton2Win >= numWin2)) {
         // Case (ii): One or both batons are in the last window
         if ((baton1Win >= numWin1) && (baton2Win >= numWin2)) {
-            UPDATE_ADD_PAIR(baton1Win - 1, baton2Win - 1);
+            identicalBatonCount[baton1Win - 1][baton2Win - 1]++;
         } else if (baton1Win >= numWin1) {
-            UPDATE_ADD_PAIR(baton1Win - 1, baton2Win);
-            UPDATE_ADD_PAIR(baton1Win - 1, baton2Win - 1);
+            identicalBatonCount[baton1Win - 1][baton2Win]++;
+            identicalBatonCount[baton1Win - 1][baton2Win - 1]++;
         } else {
-            UPDATE_ADD_PAIR(baton1Win, baton2Win - 1);
-            UPDATE_ADD_PAIR(baton1Win - 1, baton2Win - 1);
+            identicalBatonCount[baton1Win][baton2Win - 1]++;
+            identicalBatonCount[baton1Win - 1][baton2Win - 1]++;
         }
     } else {
         // Case (iii): both batons are somewhere in the middle
-        UPDATE_ADD_PAIR(baton1Win - 1, baton2Win - 1);
+        identicalBatonCount[baton1Win - 1][baton2Win - 1]++;
     }
 }
 

@@ -34,36 +34,27 @@
 package org.peace_tools.core.job;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 
-import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JSpinner;
 import javax.swing.JTextField;
-import javax.swing.SpinnerNumberModel;
 import javax.swing.border.EmptyBorder;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 
 import org.peace_tools.generic.GenericWizardPage;
 import org.peace_tools.generic.Utilities;
 import org.peace_tools.generic.WizardDialog;
 import org.peace_tools.workspace.DataSet;
+import org.peace_tools.workspace.DataSet.DataFileType;
+import org.peace_tools.workspace.FileEntry;
 import org.peace_tools.workspace.Server;
-import org.peace_tools.workspace.ServerList;
 import org.peace_tools.workspace.Workspace;
 
 /**
@@ -78,7 +69,7 @@ import org.peace_tools.workspace.Workspace;
  * does not exist, yet.
  */
 public class MSTWizardPage extends GenericWizardPage 
-implements ActionListener, ChangeListener {
+implements ActionListener {
 	/**
 	 * The constructor. The constructor sets up the various components
 	 * on this wizard page. The components include: a text box and
@@ -97,10 +88,14 @@ implements ActionListener, ChangeListener {
 		setTitle("Server Setup", 
 				"Configure MST & Server configuration");
 		setBorder(new EmptyBorder(5, 5, 5, 5));
+		// Create the server info panel that helps getting
+		// server and job configuration from the user.
+		serverInfo = new ServerPanel();
 		// Pack the input fields into a box
 		JPanel subPanel = Utilities.createLabeledComponents(null, null, 0, true,
 			createMSTFileBox(),	Box.createVerticalStrut(5),
-			createServerPanel(), Box.createVerticalStrut(5));
+			serverInfo.createServerPanel(true, true, null), 
+			Box.createVerticalStrut(5));
 		// Set up the border to make things look good.
 		subPanel.setBorder(new EmptyBorder(5, 15, 10, 10));
 		// Add the contents to this page
@@ -137,83 +132,9 @@ implements ActionListener, ChangeListener {
 	}
 	
 	/**
-	 * Helper method to create the server information entry components
-	 * in this wizard page. This includes a combo-box to select a
-	 * server and spinners for nodes and cpus/node.
-	 * 
-	 * This method is invoked only once from the constructor. This 
-	 * method was introduced just to streamline the code in the constructor
-	 * 
-	 * @return A component containing the input fields related to
-	 * server information.
-	 */
-	private JPanel createServerPanel() {
-		// Create and add u/v heuristic parameters.
-		Box horizBox = Box.createHorizontalBox();
-		horizBox.setAlignmentX(0);
-		// Create the spinners for nodes and cpus/node
-		nodeInfo[0] = new JSpinner(new SpinnerNumberModel(1, 1, 1024, 2));
-		nodeInfo[1] = new JSpinner(new SpinnerNumberModel(1, 1, 32, 1));
-		// Add listeners for the first two to update memory
-		nodeInfo[0].addChangeListener(this);
-		nodeInfo[1].addChangeListener(this);
-		// Memory and wall clock time.
-		nodeInfo[2] = new JSpinner(new SpinnerNumberModel(2048, 64, 102400, 16));
-		nodeInfo[3] = new JSpinner(new SpinnerNumberModel(6, 1, 168, 1));
-		
-		// Place them in a 2x2 grid pattern.
-		final String Labels[] = {"Compute Nodes:", "CPUs per Nodes:", 
-								 "Memory per Node (in MB):", "Esti. Run time (hours):"};
-		JPanel grid = new JPanel(new GridLayout(2, 2, 10, 3));
-		grid.setAlignmentX(0);
-		for(int i = 0; (i < nodeInfo.length); i++) {
-			Utilities.adjustDimension(nodeInfo[i], 10, 4); // Adjust size to look right
-			grid.add(Utilities.createLabeledComponents(Labels[i], null, 0, false, nodeInfo[i]));
-		}
-		// Now put all the information into a nice titled panel.
-		JPanel bigBox = Utilities.createLabeledComponents(null, null, 0, true,
-			// First add server selection combo-box.
-			createServerList(),
-			// Second add the cpu, nodes/cpu spinners
-			Box.createVerticalStrut(5),
-			grid,
-			Box.createVerticalStrut(5),
-			// Add information at bottom.
-			new JLabel(CPU_INFO_MSG, 
-						Utilities.getIcon("images/32x32/Information.png"), JLabel.LEFT)
-		);
-		// Set border to to make things look good.
- 		bigBox.setBorder(BorderFactory.createCompoundBorder(
-				BorderFactory.createTitledBorder("Server Info:"),
-				BorderFactory.createEmptyBorder(1, 5, 5, 5)));
- 		// Return the panel to the caller
-		return bigBox;
-	}
-	
-	/**
-	 * Helper method to create the combo-box to select a
-	 * server.
-	 * 
-	 * This method is invoked only once from the createServerPanel
-	 * method. This method was introduced just to streamline the code 
-	 * better.
-	 * 
-	 * @return A panel containing the server list and labels.
-	 */
-	private JPanel createServerList() {
-		// Create and setup visual properties of the combo-box
-		serverList = new JComboBox();
-		serverList.setBackground(Color.white);
-		// Pack the server list with a suitable label
-		return 
-			Utilities.createLabeledComponents("Select Server to Use for Job:",
-					"(A serial or parallel job will be run on the server)", 0, 
-					false, serverList);
-	}
-
-	/**
 	 * Method to handle clicking of "Browse" button. This method essentially
 	 * enables and disables the various inputs depending on the check box.
+	 * 
 	 */
 	@Override
 	public void actionPerformed(ActionEvent event) {
@@ -238,22 +159,8 @@ implements ActionListener, ChangeListener {
 	 */
 	@Override
 	public void pageChanged(WizardDialog dialog, int currPage, int prevPage) {
-		// Clear any previous entries
-		serverList.removeAllItems();
-		// Populate the combo-box with server entries from work space.
-		ServerList list = Workspace.get().getServerList();
-		ArrayList<Server> servers = list.getServers();
-		// On add servers that are a successful PEACE install.
-		for(Server srvr: servers) {
-			if (!Server.ServerStatusType.GOOD.equals(srvr.getStatus()) && 
-				!Server.ServerStatusType.CONNECT_FAILED.equals(srvr.getStatus())) {
-				// Server does not have a useable PEACE install
-				continue;
-			}
-			// Create string with necessary information.
-			String srvrInfo = srvr.getName() + " (ID: " + srvr.getID() + ")";
-			serverList.addItem(srvrInfo);
-		}
+		// Let the server info update server list and associated information
+		serverInfo.updateServerList(true, false, wizard.getDataSet());
 		// Suggest a default MST file to the user based on EST file name
 		DataSet ds = wizard.getDataSet();
 		File  estFile = new File(ds.getPath());
@@ -264,18 +171,13 @@ implements ActionListener, ChangeListener {
 		if (dotPos > 0) {
 			mstFileName = mstFileName.substring(0, dotPos);
 		}
-		if (ds.getMSTList().size() > 0) {
-			mstFileName += "_" + ds.getMSTList().size();
-		}
+		final long uid = Workspace.get().getJobList().getSeqCounter();
+		mstFileName += "_" + uid;
 		mstFileName += ".mst";
 		// Make the path absolute with respect to workspace
 		mstFileName = Workspace.get().getDirectory() + 
 			File.separator + mstFileName;
 		mstFile.setText(mstFileName);
-		
-		// Initialize the default memory requirement for running
-		// this job via the listener method with a null event.
-		stateChanged(null); // event can be null as it is not used.
 	}
 	
 	/**
@@ -292,6 +194,10 @@ implements ActionListener, ChangeListener {
 		if (nextPage < currPage) {
 			// The user want's to go back. That's OK.
 			return true;
+		}
+		// Check to ensure we have a valid server selection.
+		if (serverInfo.getSelectedServer() == null) {
+			return false;
 		}
 		// Verify mst file is valid.
 		File mst = new File(mstFile.getText());
@@ -327,28 +233,37 @@ implements ActionListener, ChangeListener {
 		File file = new File(mstFile.getText());
 		return file.getAbsolutePath();
 	}
+	
+	/**
+	 * Obtain the panel that contains the GUI components and data 
+	 * regarding the server and its configuration.
+	 * 
+	 * @return The server panel associated with this wizard page.
+	 */
+	protected ServerPanel getServerInfoPanel() {
+		return this.serverInfo;
+	}
 
 	/**
-	 * Helper method to obtain selected server ID.
+	 * Helper method to create a file entry for generated MST file.
 	 * 
-	 * This is a helper method that is used to look up the server
-	 * based on its server ID string (rather than index position).
-	 * The serverID string is obtained from the string representation
-	 * of the server entry (assuming that the entry is in the form:
-	 * serverName (ID: xxxx). 
+	 * This method is used by the JobWizard to create a complete
+	 * file entry for the generated MST file.
 	 * 
-	 * @return The entry corresponding to the given selected server.
+	 * @param id The workspace-wide unique ID to be set for this MST
+	 * file entry.
+	 * 
+	 * @param description THe description to be set for the
+	 * file entry added by this method.
+	 * 
+	 * @return The file entry for the cluster file to be generated
+	 * by this file.
 	 */
-	protected Server getSelectedServer() {
-		// Obtain entry in the form serverName (ID: xxxx)
-		String entry = (String) serverList.getSelectedItem();
-		// Extract the actual server ID from the entry
-		String srvrID = entry.substring(entry.indexOf("ID: ") + 4);
-		// Drop trailing ")"
-		srvrID = srvrID.substring(0, srvrID.length() - 1);
-		// Now use use the serverID to look up the entry in workspace
-		ServerList list = Workspace.get().getServerList();
-		return list.getServer(srvrID);
+	protected FileEntry getMSTFileEntry(String id, String description) {
+		FileEntry fe = new FileEntry(id, FileEntry.FileEntryType.MST, 
+				DataFileType.TXT, mstFile.getText(), 
+				description);
+		return fe;
 	}
 	
 	/**
@@ -364,75 +279,18 @@ implements ActionListener, ChangeListener {
 	 */
 	protected String getSummary(String indent) {
 		// Obtain the ID of the server from the selected list.
-		Server server   = getSelectedServer();
+		Server server   = serverInfo.getSelectedServer();
 		// Compute total memory for the job and display it for convenience
-		final int[] config = getPlatformConfiguration();
+		final int[] config = serverInfo.getPlatformConfiguration();
 		// Compute total memory as: #Nodes * #CPUsPerNode * MemPerNode
 		final int   totalMemory = config[0] * config[1] * config[2];
 		return "Server Information:\n" +
 			indent + "Server: " + server.getName() + "\n" +
-			indent + "Nodes: " + nodeInfo[0].getValue() + "\n" +
-			indent + "CPUs per Node: " + nodeInfo[1].getValue() + "\n" +
-			indent + "Memory per Node (MB): " + nodeInfo[2].getValue() +  "\n" +
+			indent + "Nodes: " + config[0] + "\n" +
+			indent + "CPUs per Node: " + config[1] + "\n" +
+			indent + "Memory per Node (MB): " + config[2] +  "\n" +
 			indent + "Total memory (MB)   : " + totalMemory +  "\n" + 
-			indent + "Esti. run time (hours): " + nodeInfo[3].getValue();
-	}
-	
-	/**
-	 * Obtain platform-specific job configuration information.
-	 * 
-	 * This method must be used to obtain the platform specific job configuration
-	 * information.  This method converts the job information into an array and
-	 * returns it. The returned array has the elements in the order: no. of. nodes,
-	 * CPUs/node, total memory (in MB), and runTime (in hours).
-	 * 
-	 * @return An array of 4 integers that contains the job information entered
-	 * by the user. The order of the elements in the array is fixed.
-	 */
-	protected int[] getPlatformConfiguration() {
-		int[] configInfo = new int[nodeInfo.length];
-		for(int i = 0; (i < nodeInfo.length); i++) {
-			configInfo[i] = ((Number) nodeInfo[i].getValue()).intValue();
-		}
-		return configInfo;
-	}
-	
-	/**
-	 * Listener for CPUs and Nodes/CPU spinner input boxes to update memory.
-	 * 
-	 * <p>This method is invoked whenever the user modifies the number of CPUs
-	 * or nodes-per-CPU to be used for the job. This method updates the
-	 * recommended amount of memory to be reserved for this job. The memory
-	 * is computed using the formula:</p>
-	 * 
-	 * <p>Memory = (2 * FASTAFileSize) + 256MB</p>
-	 * 
-	 * <p>Note: Earlier the memory field represented the total aggregate memory
-	 * to be allocated for the job. This value was directly passed on as part of
-	 * PBS job script. However, this was confusing to users. So this field
-	 * has now been revised to max memory per node.  The net memory is computed
-	 * by multiplying this value with number of CPUs and number of nodes just before
-	 * the job is submitted.</p> 
-	 * 
-	 * @param e The change event associated with this call back. Currently,
-	 * this parameters is not used by this method.
-	 */
-	@Override
-	public void stateChanged(ChangeEvent e) {
-		// Couple constants to make code more meaningful
-		final int megaBytes   = 1024 * 1024;
-		final int minMemory   = 256;  // Megabytes
-
-		// Determine FASTA file size in megabytes
-		final String fileName = wizard.getDataSet().getPath();
-		final File   tempFile = new File(fileName);
-		// Ensure file resolves to at least 1 MB to ease computations
-		final long size       = (tempFile.length() / megaBytes) + 1;
-		
-		// Compute minimum memory in MB.
-		final long memorySize = size + size + minMemory;
-		// Setup the suggested memory footprint
-		nodeInfo[2].setValue(new Long(memorySize));
+			indent + "Esti. run time (hours): " + config[3];
 	}
 	
 	/**
@@ -455,28 +313,6 @@ implements ActionListener, ChangeListener {
 	private JButton browse;
 
 	/**
-	 * The combo box that permits the user to select the server
-	 * to be used for running the job.
-	 */
-	private JComboBox serverList;
-	
-	/**
-	 * The array of two configuration parameter values for the CPUs
-	 * and nodes per CPU on the server. The last two spinners are
-	 * used for memory and run time values. 
-	 */
-	private JSpinner nodeInfo[] = new JSpinner[4];
-		
-	/**
-	 * A generic informational message that is displayed to the user
-	 * to provide information about the u/v heuristic.
-	 */
-	private static final String CPU_INFO_MSG = 
-		"<html>The CPUs selected and nodes per CPU must match the<br>" +
-		"server configuration. Refer to user manual or help for setting<br>" +
-		"up hostfile for non-PBS jobs using openmpi or mpich.</html>";
-
-	/**
 	 * A generic informational message that is displayed to the user
 	 * if the selected MST file is invalid.
 	 */
@@ -488,6 +324,13 @@ implements ActionListener, ChangeListener {
 		"<li>The file must be creatable</li>" +
 		"</ul>" +
 		"</html>";
+	
+	/**
+	 * A helper panel class that provides the necessary GUI features
+	 * to interactively obtain server choice and job configuration
+	 * information from the user.
+	 */
+	private final ServerPanel serverInfo;
 	
 	/**
 	 * A serialization UID to keep the compiler happy.

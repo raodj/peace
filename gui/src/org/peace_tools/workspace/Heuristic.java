@@ -36,6 +36,7 @@ package org.peace_tools.workspace;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
+import org.peace_tools.core.SummaryWriter;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -172,6 +173,25 @@ public class Heuristic {
 			cmdLine += " --" + p.getName() + " " + p.getValue();
 		}
 		return cmdLine;
+	}
+	
+	/**
+	 * Method to write summary information about this heuristic.
+	 * 
+	 * This method is a convenience method that is used by various 
+	 * wizards to display summary information about this heuristic.
+	 * The summary information about the heuristic type
+	 * and parameters.
+	 * 
+	 * @param sw The summary writer to which the data is to be written.
+	 */
+	public void summarize(SummaryWriter sw) {
+		final String desc = "Parameters for this fileter have " +
+			"been listed below.";
+		sw.addSubSection(name, "Heuristic", desc);
+		for(Param param: parameters) {
+			sw.addSubSummary(param.getName(), param.getValue(), null);
+		}
 	}
 	
 	/**

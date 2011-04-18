@@ -38,15 +38,12 @@ include $(top_builddir)/Makefile.common.am
 AM_CPPFLAGS=$(GLOBALCPPFLAGS)
 AM_CXXFLAGS=$(GLOBALCXXFLAGS)
 
+AM_CPPFLAGS += -I../src/shared -I../src/framework -I../src/input -I../src/clustering
+
 bin_PROGRAMS = pTools
-pTools_LDADD = $(STDCPP)
+pTools_LDADD = $(STDCPP) ../src/libpeace.la
 
 pTools_SOURCES = \
-../src/arg_parser.cpp\
-../src/arg_parser.h\
-../src/EST.cpp\
-../src/EST.h\
-../src/HashMap.h\
 Common.h\
 ShowAlignment.h\
 ShowAlignment.cpp\
@@ -61,6 +58,10 @@ Tool.cpp\
 MSTguiNode.h\
 Align.h\
 Align.cpp\
+Matcher.h\
+Matcher.cpp\
+AlignmentAlgorithm.h\
+AlignmentAlgorithm.cpp\
 main.cpp
 
 # end of Makefile.am

@@ -36,75 +36,50 @@
 
 #include "BatonAnalyzer.h"
 #include "AlignmentInfo.h"
+#include "ArgParser.h"
 #include <limits>
 
-// The static variable for threshold
-int BatonAnalyzer::windowSize = 100;
-// The static variable for baton head size
-int BatonAnalyzer::nMerSize   = 3;
-// The static variable for threshold
-int BatonAnalyzer::threshold  = 7;
-// Acceptable number of differences when exploring left and right
-int BatonAnalyzer::numPermittedErrs = 10;
-// The good-enough alignment score command line argument
-int BatonAnalyzer::goodAlignmentScore = 15;
-
-// The set of command line arguments used by this analyzer.
-arg_parser::arg_record BatonAnalyzer::argsList[] = {
-    {"--threshold", "Min. baton count above which 2 reads are similar (def=7)",
-     &BatonAnalyzer::threshold, arg_parser::INTEGER},
-    {"--nMers", "The number of bases (1 to 3) to be used for baton ends",
-     &BatonAnalyzer::nMerSize, arg_parser::INTEGER},
-    {"--window", "The average size (in nt) of a window for matching identical batons",
-     &BatonAnalyzer::windowSize, arg_parser::INTEGER},
-    {"--permErrs", "#of differences to be accepted when checking candidate alignments",
-     &BatonAnalyzer::numPermittedErrs, arg_parser::INTEGER},        
-    {"--goodScore", "A good-enough alignment score to short circuit exhaustive analysis",
-     &BatonAnalyzer::goodAlignmentScore, arg_parser::INTEGER},    
-    {NULL, NULL, NULL, arg_parser::BOOLEAN}
-};
-
-BatonAnalyzer::BatonAnalyzer(const int refESTidx,
-                             const std::string& outputFileName)
-    : ESTAnalyzer("baton", refESTidx, outputFileName) {
+BatonAnalyzer::BatonAnalyzer(const bool usedForAssembly) 
+    : ESTAnalyzer("baton"), usedByAssembler(usedForAssembly) {
+    // Initialize command-line arguments to default values
+    threshold          = 7;
+    numPermittedErrs   = 10;
+    goodAlignmentScore = 15;
     // Clear out the reference sequence baton information
     refBatonList = NULL;
 }
 
 BatonAnalyzer::~BatonAnalyzer() {
-    // Free up the memory for the baton lists maintained in the cache.
-    
-    for(size_t idx = 0; (idx < blCache.size()); idx++) {
-        if (blCache[idx] != NULL) {
-            delete blCache[idx];
-        }
-    }
 }
 
-// Interface/API method defined in ESTAnalyzer base class
 void
-BatonAnalyzer::showArguments(std::ostream& os) {
-    ESTAnalyzer::showArguments(os);
-    // Use a arg parser object to conveniently display common options.
-    arg_parser ap(BatonAnalyzer::argsList);
-    os << ap;
+BatonAnalyzer::addCommandLineArguments(ArgParser& argParser) {
+    // Let base class add common parameters.
+    ESTAnalyzer::addCommandLineArguments(argParser);
+    // Now add our custom parameters.
+    const ArgParser::ArgRecord ArgsList[] = {
+        {"--threshold", "Min. baton count above which 2 reads are similar",
+         &threshold, ArgParser::INTEGER},
+        {"--permErrs", "#of differences to be accepted when checking candidate alignments",
+         &numPermittedErrs, ArgParser::INTEGER},        
+        {"--goodScore", "A good-enough alignment score to short circuit exhaustive analysis",
+         &goodAlignmentScore, ArgParser::INTEGER},
+        {"", "", NULL, ArgParser::INVALID}
+    };
+    argParser.addValidArguments(ArgsList);
 }
 
 // Interface/API method defined in ESTAnalyzer base class
 bool
-BatonAnalyzer::parseArguments(int& argc, char **argv) {
-    // Let the overloaded method do the actual task.
-    return parseArguments(argc, argv, false);
-}
-
-bool
-BatonAnalyzer::parseArguments(int& argc, char **argv,
-                              const bool assemblerFlag) {
-    arg_parser ap(BatonAnalyzer::argsList);
-    ap.check_args(argc, argv, false);
+BatonAnalyzer::initialize() {
+    // Let the base class do its initialization
+    if (!ESTAnalyzer::initialize()) {
+        // Error occured when initializing.  This is no good.
+        return false;
+    }
     // Ensure threshold is valid.
     if (threshold < 1) {
-        std::cerr << analyzerName
+        std::cerr << getName()
                   << ": Threshold must be >= 1 (suggested value: 7)"
                   << "(use --threshold option)\n";
         return false;
@@ -112,74 +87,37 @@ BatonAnalyzer::parseArguments(int& argc, char **argv,
     // Check and update the goodalignmentScore
     if (goodAlignmentScore == -1) {
         goodAlignmentScore = std::numeric_limits<int>::max();
-    }
-    if (assemblerFlag) {
-        // In this case, don't call base class methods as this class
-        // is being used for assembly.
-        return true;
-    }
-    // Now let the base class do processing and return the result.
-    return ESTAnalyzer::parseArguments(argc, argv);
-}
-
-// Interface/API method defined in ESTAnalyzer base class
-int
-BatonAnalyzer::initialize() {
-    // Use the overloaded method to get the job done.
-    return initialize(true);
-}
-
-int
-BatonAnalyzer::initialize(const bool loadData) {
-    if (loadData) {
-        // First load the data based on the file specified.
-        if ((estFileName != NULL) && (!loadFASTAFile(estFileName))) {
-            // Loading EST's from FASTA file was not successful.  Can't do
-            // much further.
-            return 1;
-        }
-        if ((sffFileName != NULL) && (!loadSFFFile(sffFileName))) {
-            // Loading EST's from SFF file was not successful.  Can't do
-            // much further.
-            return 2;
-        }
-    }
-    // Now that we know the number of cDNA fragments to be processed,
-    // initialize our cache with NULL values. We reserve twice the
-    // number of entries for normal and reverse complement baton list
-    blCache.reserve(EST::getESTCount() * 2);
-    blCache.resize (EST::getESTCount() * 2, NULL);
-    
+    }    
     // Check and warn that heuristics are not really being used, if we
     // have a heuristic chain specified.
     if (chain != NULL) {
-        std::cerr << analyzerName
+        std::cerr << getName()
                   << ": This analyzer does not use any heuristics. So "
                   << "the heuristic chain is being ignored.\n";
     }
     // Initialization successful.
-    return 0;
+    return true;
 }
 
 // Interface/API method defined in ESTAnalyzer base class
 int
-BatonAnalyzer::setReferenceEST(const int estIdx) {
+BatonAnalyzer::setReferenceEST(const EST* est) {
     // Clear out any baton list created for a direct-given consensus
     // type sequence.
-    if ((refESTidx == -1) && (refBatonList != NULL)) {
-        delete refBatonList;
+    if (refBatonList != NULL) {
+        // delete refBatonList;
         refBatonList = NULL;
+        refEST       = NULL;
     }
-    
-    if ((estIdx >= 0) && (estIdx < EST::getESTCount())) {
+    // Setup reference EST for future use
+    refEST = est;
+    if (est != NULL) {
         // Pre-compute normal baton list, if it is not already in our
         // blCache...
-        refBatonList = getBatonList(estIdx, false);
+        refBatonList = blCache.getBatonList(est, false);
         ASSERT ( refBatonList != NULL );
         // Build up the n-mer list for future use.
         refBatonList->getCodedNMers(codedRefNmers);
-        // Save reference EST idx for future use.
-        refESTidx = estIdx;
         return 0; // everything went well
     }
     // Invalid est index.
@@ -190,34 +128,37 @@ int
 BatonAnalyzer::setReferenceEST(const char* refSeq) {
     // Clear out any earlier baton list created for a direct-given
     // consensus type sequence.
-    if ((refESTidx == -1) && (refBatonList != NULL)) {
+    if (refBatonList != NULL) {
         delete refBatonList;
         refBatonList = NULL;
     }
     // Pre-compute normal baton list for the given reference sequence.
-    refBatonList = new BatonList(refSeq, nMerSize, false, windowSize);
+    refBatonList = new BatonList(refSeq, blCache.getBatonHeadSize(), false,
+                                 blCache.getWindowSize());
     ASSERT ( refBatonList != NULL );
     // Build up the n-mer list for future use.
     refBatonList->getCodedNMers(codedRefNmers);
-    // Set reference EST idx to an invalid value for consistency and
-    // cross referencing in the future.
-    refESTidx = -1;
+    // Set reference EST to an invalid value for consistency and cross
+    // referencing in the future.
+    refEST = NULL;
     return 0; // everything went well
 }
 
 // Implement interface method from ESTAnalyzer base class.
 float
-BatonAnalyzer::getMetric(const int otherEST) {
+BatonAnalyzer::getMetric(const EST* otherEST) {
+    ASSERT ( otherEST != NULL );
+    ASSERT ( refEST   != NULL );
     // First try comparing the "normal" baton lists for the reference
     // and other cDNA fragment.
-    const BatonList* const refBatonList = getBatonList(refESTidx, false);
-    const BatonList* const othBatonList = getBatonList(otherEST,  false);
+    const BatonList* const refBatonList = blCache.getBatonList(refEST, false);
+    const BatonList* const othBatonList = blCache.getBatonList(otherEST,false);
     ASSERT ( refBatonList != NULL );
     ASSERT ( othBatonList != NULL );
     // Compute the similarity metric.
     const float normMetric = getMetric(refBatonList, othBatonList);
     // Now obtain the reverse complement (RC) baton list for other
-    const BatonList* const rcBatonList = getBatonList(otherEST,  true);
+    const BatonList* const rcBatonList = blCache.getBatonList(otherEST,  true);
     // Comptue the RC similarity metric.
     const float rcMetric = getMetric(refBatonList, rcBatonList);
     // Return the best of the two as the final similarity metric
@@ -233,10 +174,10 @@ BatonAnalyzer::getMetric(const BatonList* const list1,
     ASSERT ( list1 != NULL );
     ASSERT ( list2 != NULL );
     // Get the high frequency window pairs..
-    std::vector<WindowPair> pairList;
+    std::priority_queue<WindowPair> pairList;
     list1->getWindowPairs(*list2, pairList, threshold);
-    // Use the size of the pair list as the similarity
-    return (float) pairList.size();
+    // Use the highest frequency window count as a similarity metric
+    return (float) (pairList.empty() ? 0 : pairList.top().getScore());
 }
 
 int
@@ -251,10 +192,9 @@ BatonAnalyzer::getBestAlignmentInWindow(const BatonList& refBatonList,
                                         const int numPermittedErrs,
                                         const int goodAlignmentScore) const {
     // Verify consistency
-    ASSERT ( refBatonList.getNmerSize() == nMerSize );
-    ASSERT ( othBatonList.getNmerSize() == nMerSize );
+    ASSERT ( refBatonList.getNmerSize() == othBatonList.getNmerSize() );
     // Compute all possible encoding values for the n-mers
-    const int MaxNmerValue = (1 << (nMerSize * 2));
+    const int MaxNmerValue = (1 << (refBatonList.getNmerSize() * 2));
     // For each baton pair that falls within the respective windows in
     // the two baton lists, track the best alignment thus far..
     int bestScore = 0;
@@ -348,28 +288,6 @@ BatonAnalyzer::getAlignmentScore(const IntVector& codedRefNmers, int baton1Pos,
     return (leftMoves + rightMoves);
 }
 
-// Helper method to manage cached batons. All the methods that need
-// access to a baton list should obtain it via this method.
-BatonList*
-BatonAnalyzer::getBatonList(const int estIdx, const bool getRC) {
-    // Determine index position for the cached entry.  The normal and
-    // RC baton lists for an cDNA fragment with index k are stored in
-    // at position k*2 and k*2+1 respectively.
-    const int cachePos = estIdx * 2 + (getRC ? 1 : 0);
-    // If we don't have an entry at the corresponding position, then
-    // we need to construct one now.
-    if (blCache[cachePos] == NULL) {
-        // Don't have a baton list here. So create one and save it for
-        // further use.
-        blCache[cachePos] = new BatonList(estIdx, nMerSize, getRC, windowSize);
-        // Print the baton list we just built for testing...
-        // std::cout << "EST #" << estIdx << std::endl;
-        // std::cout << *blCache[cachePos] << std::endl;
-    }
-    // When control drops here we always have a valid entry in the cache
-    return blCache[cachePos];
-}
-
 // Interface method from ESTAnalyzer
 bool
 BatonAnalyzer::getAlignmentData(int &alignmentData) {
@@ -380,7 +298,7 @@ BatonAnalyzer::getAlignmentData(int &alignmentData) {
 // Primary method method to compute the alignment between the reference
 // sequence and a given EST.
 bool
-BatonAnalyzer::align(const int otherEST, AlignmentInfo& info) {
+BatonAnalyzer::align(const EST* otherEST, AlignmentInfo& info) {
     // We should have a reference baton list already set
     ASSERT( refBatonList != NULL );
     // The following variables are populated in the align() method
@@ -391,8 +309,8 @@ BatonAnalyzer::align(const int otherEST, AlignmentInfo& info) {
     // results.
     if (align(otherEST, refAlignPos, othAlignPos, score, false)) {
         // Found a sufficiently good alignment. Update info and return.
-        info = AlignmentInfo(otherEST, refESTidx, refAlignPos - othAlignPos,
-                             score, false);
+        info = AlignmentInfo(otherEST->getID(), refEST->getID(),
+                             refAlignPos - othAlignPos, score, false);
         return true;
     }
     // Since first round of analysis failed, next check to see if
@@ -400,8 +318,8 @@ BatonAnalyzer::align(const int otherEST, AlignmentInfo& info) {
     // otherEST yeilds good results.
     if (align(otherEST, refAlignPos, othAlignPos, score, true)) {
         // Found a sufficiently good alignment. Update info and return
-        info = AlignmentInfo(otherEST, refESTidx, refAlignPos - othAlignPos,
-                             score, true);
+        info = AlignmentInfo(otherEST->getID(), refEST->getID(),
+                             refAlignPos - othAlignPos, score, true);
         return true;
     }
     // Both normal and reverse complement analysis failed.
@@ -411,13 +329,13 @@ BatonAnalyzer::align(const int otherEST, AlignmentInfo& info) {
 // Helper method method to compute the alignment between the reference
 // sequence and a given EST.
 bool
-BatonAnalyzer::align(const int otherEST, int& refAlignPos, int& othAlignPos,
+BatonAnalyzer::align(const EST* otherEST, int& refAlignPos, int& othAlignPos,
                      int& score, const bool doRC) {
     // We should have a reference baton list already set
     ASSERT( refBatonList != NULL );
     // Build the normal (not reverse complement) baton list for the
     // otherEST for analysis.
-    const BatonList *othBatonList = getBatonList(otherEST, doRC);
+    const BatonList *othBatonList = blCache.getBatonList(otherEST, doRC);
     ASSERT ( othBatonList != NULL );
     // check to see if we have sufficient number of identical batons
     // within a logical window in the two sequences.
@@ -439,9 +357,11 @@ BatonAnalyzer::align(const int otherEST, int& refAlignPos, int& othAlignPos,
         int currRefAlignPos, currOthAlignPos;
         int currScore =
             getBestAlignmentInWindow(*refBatonList, codedRefNmers,
-                                     pairList[winIdx].first, currRefAlignPos,
+                                     pairList[winIdx].getWindow1(),
+                                     currRefAlignPos,
                                      *othBatonList, codedOthNmers,
-                                     pairList[winIdx].second, currOthAlignPos,
+                                     pairList[winIdx].getWindow2(),
+                                     currOthAlignPos,
                                      numPermittedErrs, goodAlignmentScore);
         // Track the best alignment we have had so far...
         if (currScore > score) {

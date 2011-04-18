@@ -80,7 +80,7 @@ public class ServerWizard extends WizardDialog {
 		// Set up the column image we want to use.
 		setSequenceBackground("images/peace_wizard_column.png");
 		// Create a dummy server entry that is being edited by this wizard
-		server = new Server("", "", "", "", "", null, true);
+		server = new Server("", "", "", "", "", null, true, -1);
 		server.setPollTime(30);
 		// First setup the overview page.
 		createOverview();
@@ -92,6 +92,10 @@ public class ServerWizard extends WizardDialog {
 		ServerInfoWizardPage siwz =
 			new ServerInfoWizardPage(this, server, false);
 		addPage(siwz);
+		// Create the software component selection page.
+		ServerComponentsSelectionWizardPage scswp =
+			new ServerComponentsSelectionWizardPage(this, server);
+		addPage(scswp);
 		// Create the final summary page.
 		ServerAddingEntryWizardPage saewp =
 			new ServerAddingEntryWizardPage(this, server);
@@ -149,7 +153,7 @@ public class ServerWizard extends WizardDialog {
 	
 	/**
 	 * This method overrides the final notification method in this
-	 * class to launch the actuall background installer thread if
+	 * class to launch the actual background installer thread if
 	 * the wizard successfully completed.
 	 */
 	@Override
@@ -169,6 +173,30 @@ public class ServerWizard extends WizardDialog {
 				installer.getPanel(), DnDTabbedPane.Location.CENTER);
 		// Now start the installer as a background thread.
 		installer.execute();
+	}
+	
+	/**
+	 * Set flag to indicate if g++ was detected on the target server.
+	 * This method is used by the {@link ServerInfoWizardPage#checkGCC(String[])}
+	 * method to indicate if g++ was detected on the target machine.
+	 * 
+	 * @param flag If this flag is true, that indicates g++ was successfully
+	 * detected.
+	 */
+	public void setHaveGCC(final boolean flag) {
+		this.gccFlag = flag;
+	}
+	
+	/**
+	 * Determine if g++ has been detected on the target server. 
+	 * This method is used by the {@link ServerComponentsSelectionWizardPage#ServerComponentsSelectionWizardPage(WizardDialog, Server)}
+	 * to permit the user to enable/disable EAST installation.
+	 * 
+	 * @return This method returns true if g++ is available on the target
+	 * server. Otherwise it returns false.
+	 */
+	public boolean haveGCC() {
+		return gccFlag;
 	}
 	
 	/**
@@ -198,6 +226,16 @@ public class ServerWizard extends WizardDialog {
 		"server takes 3-5 minutes depending on your network,<br>" +
 		"speed of remote server, and load on the machine.<br></html>";
 
+	/**
+	 * Flag that is used to track if the server on which EAST is to be installed
+	 * has g++ on it. The availability of g++ is detected by the 
+	 * {@link ServerInfoWizardPage#checkGCC(String[])} method which then
+	 * sets this flag. The flag is used by the 
+	 * {@link ServerComponentsSelectionWizardPage#ServerComponentsSelectionWizardPage(WizardDialog, Server)}
+	 * class.
+	 */
+	private boolean gccFlag;
+	
 	/**
 	 * The DnDTabbedPane to which the actual PEACE installer tab 
 	 * must be added. This value is set in the constructor.

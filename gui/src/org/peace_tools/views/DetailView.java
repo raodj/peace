@@ -164,8 +164,8 @@ implements ActionListener, Runnable {
 	 */
 	protected void runCommand(ServerSession session, String command, 
 			String option, String[] streams) throws Exception {
-		ServerSession.OSType os = session.getOSType();
-		final String extension = (ServerSession.OSType.WINDOWS.equals(os)) ? "bat" : "sh"; 
+		Server.OSType os       = session.getOSType();
+		final String extension = (Server.OSType.WINDOWS.equals(os)) ? "bat" : "sh"; 
 		String remoteCmd = command + "." + extension + " " + option;
 		// Run command and get stdin and stdout
 		streams[0] = "";

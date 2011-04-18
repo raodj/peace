@@ -35,8 +35,14 @@
 //---------------------------------------------------------------------
 
 #include "Baton.h"
+#include "WindowPair.h"
 #include "EST.h"
+
 #include <vector>
+#include <queue>
+
+// Forward declarations to keep compiler happy and fast
+
 
 /** \file BatonList.h
 
@@ -75,19 +81,6 @@ typedef std::vector<Baton> NmerBatonList;
     \note Currently this typedef is not used.
 */
 typedef std::vector<NmerBatonList> WindowBatonList;
-
-/** \typedef std::pair<int, int> WindowPair
-
-    \brief A vector that contains the set of batons that have the same
-    <i>n</i>-mer sequence as their baton heads.
-
-    This typedef provides a convenient shortcut to refer to a pair of
-    integers that refer to a pair of logical windows between two given
-    pairs of cDNA fragments.  The data type is used to return a list
-    of window pairs whose number of identical batons exceed a given
-    threshold.
-*/
-typedef std::pair<int, int> WindowPair;
 
 /** \typedef std::vector<int> IntVector
 
@@ -131,9 +124,9 @@ public:
         fragment.  This method assumes that the cDNA fragment has
         already been loaded into the EST class.
         
-        \param[in] estIndex The index (in the EST class) of the cDNA
-        fragment for which the BatonList is to be built and maintained
-        by this object.
+        \param[in] est A pointer to an immutable EST object containing
+        the cDNA fragment for which the BatonList is to be built and
+        maintained by this object.
         
         \param[in] nMerSize The length (in number of nucleotides) of
         the Baton ends.  This ultimately determines the number of
@@ -152,7 +145,7 @@ public:
         window sizes set such that there is a 50% overlap between
         adjacent windows.
     */
-    BatonList(const int estIndex, const int nMerSize, const bool makeRC,
+    BatonList(const EST* est, const int nMerSize, const bool makeRC,
               const int windowSize = 100);
 
     /** Constructor to create a BatonList for a given cDNA fragment.
@@ -212,7 +205,7 @@ public:
         If an index is not available (because the sequence has been
         dynamically generated) then this method returns -1.
     */
-    inline int getIndex() const { return estIndex; }
+    inline int getIndex() const { return est->getID(); }
 
 	/** Determine the number of windows into which the batons has been
 		subdivided.
@@ -296,8 +289,7 @@ public:
         maintaing the batons.
     */
     inline const char* getSequence() const {
-        return (estIndex == -1) ? sequence.c_str() :
-            EST::getEST(estIndex)->getSequence();
+        return (est == NULL) ? sequence.c_str() : est->getSequence();
     }
 
     /** Obtain the length of the nucleotide sequence for which this
@@ -323,8 +315,7 @@ public:
         maintaing the batons.
     */
     inline int getSequenceLength() const {
-        return (estIndex == -1) ? sequence.size() :
-            EST::getEST(estIndex)->getSequenceLength();
+        return (est == NULL) ? sequence.size() : est->getSequenceLength();
     }
 
     /** Obtain the list of batons that all have the same <i>n</i>-mer
@@ -360,10 +351,12 @@ public:
         contain more than a given threshold of similar batons.
 
         This method essentially calls the other, overloaded method to
-        obtain the necessary information.  Refer to the documentation
-        on the other method for operational details.  Note that the
-        information about the identical baton frequencies in all
-        possible windows is not preserved by this method.
+        obtain the necessary information.  It then walks the sets of
+        windows and adds those pairs of windows that exceed the given
+        threshold to the supplied vector.  Note that the information
+        about the identical baton frequencies in all possible windows
+        (including those that are below the specified threshold) is
+        not preserved by this method.
 
         \param[in] other The other baton list with which the search
         for identical batons in windows must be performed.  Note that
@@ -373,10 +366,8 @@ public:
         \param[out] pairList This vector is populated by this method
         and is the primary return value from this method. This vector
         contains the pairs of windows whose identical baton count
-        exceeds the specified threshold. The pairs are integer values
-        where the first value represents the logical window in \c this
-        baton list and the second number indicates the logical window
-        in the other baton list.
+        exceeds the specified threshold. The information is stored in
+        the form of WindowPair objects.
 
         \param[in] threshold The number of identical batons that must
         be present in a given window pair in order for the pair to be
@@ -386,8 +377,43 @@ public:
                         std::vector<WindowPair>& pairList,
                         const int threshold = 7) const;
 
-    /** The main search/analysis method to obtain list of window-pairs
-        that contain more than a given threshold of similar batons.
+    /** Search/analysis method to obtain list of window-pairs that
+        contain more than a given threshold of similar batons.
+
+        This method essentially calls the other, overloaded method to
+        obtain the necessary information.  It then walks the sets of
+        windows and adds those pairs of windows that exceed the given
+        threshold to the supplied priority queue.  The priority queue
+        uses operator<() on WindowPair objects to sort them such that
+        window-pairs with highest number identical batons are at the
+        top of the priority queue.  Note that the information about
+        the identical baton frequencies in all possible windows
+        (including those that are below the specified threshold) is
+        not preserved by this method.
+
+        \param[in] other The other baton list with which the search
+        for identical batons in windows must be performed.  Note that
+        \c this and \c other baton list may have slightly different
+        window sizes depending on the length of their cDNA fragments.
+
+        \param[out] pairList This priority queue is populated by this
+        method and is the primary return value from this method. This
+        queue contains the pairs of windows whose identical baton
+        count exceeds the specified threshold. The information is
+        stored in the form of WindowPair objects.  The entries are
+        sorted with the window-pair with highest number of identical
+        batons at the top of the queue.
+
+        \param[in] threshold The number of identical batons that must
+        be present in a given window pair in order for the pair to be
+        added to the pairList.
+    */
+    void getWindowPairs(const BatonList& other,
+                        std::priority_queue<WindowPair>& pairList,
+                        const int threshold = 7) const;
+    
+    /** The search/analysis method to obtain list of window-pairs that
+        contain more than a given threshold of similar batons.
 
         This method performs the core task of comparing similar (with
         the same n-mer heads) batons from \c this baton list and \c
@@ -422,16 +448,9 @@ public:
         \c this and \c other baton list may have slightly different
         window sizes depending on the length of their cDNA fragments.
 
-        \param[out] pairList This vector is populated by this method
-        and is the primary return value from this method. This vector
-        contains the pairs of windows whose identical baton count
-        exceeds the specified threshold. The pairs are integer values
-        where the first value represents the logical window in \c this
-        baton list and the second number indicates the logical window
-        in the other baton list.
-
-        \param[out] identicalBatonCount This vector-of-vectors is used
-        to conveniently implement a 2-D array of integers.  The first
+        \param[out] identicalBatonCount This is the primary return
+        value from this method.  This vector-of-vectors is used to
+        conveniently implement a 2-D array of integers.  The first
         dimension is the logical window number in \c this batons while
         the second dimension is the logical window number in \c other
         batons.  The value \c identicalBatonCount[win1][win2] contains
@@ -446,7 +465,6 @@ public:
         added to the pairList.
     */
     void getWindowPairs(const BatonList& other,
-                        std::vector<WindowPair>& pairList,
 						std::vector< IntVector >& identicalBatonCount,
                         const int threshold = 7) const;	
 
@@ -609,34 +627,25 @@ protected:
 		
         \param[out] identicalBatonCount The 2-D vector-of-vectors to
         be updated with the number of matching baton counts.
-
-        \param[out] pairList The list to which the baton window
-        pair(s) are to be added if their identical-baton-count entries
-        exceed the specified threshold.
-
-        \param[in] threshold The number of identical batons that must
-        be present in a given window pair in order for the pair to be
-        added to the pairList.
     */
     void tallyBatons(const int baton1Win, const int numWin1,
                      const int baton2Win, const int numWin2,
-                     std::vector< IntVector > &identicalBatonCount,
-                     std::vector<WindowPair>& pairList,
-                     const int threshold) const;
+                     std::vector< IntVector > &identicalBatonCount) const;
         
 private:
-    /** The index (into the EST list) of the cDNA fragment for this
-        this class is maintaining the list of batons.
+    /** The pointer to an immutable EST object containing the cDNA
+        fragment for which this class is maintaining the list of
+        batons.
 
         This instance variable provides a convenient reference to the
         cDNA fragment for which this class is maintaining the list of
-        Batons.  Note that this value can be -1, if a valid index is
-        not specified (and this is the case when dealing with
+        Batons.  Note that this value can be NULL, if a valid object
+        is not available (and this is the case when dealing with
         generated, partial consensus sequences).  This value is
         initialized in the constructor and is never changed during the
         life time of an object.
     */
-    const int estIndex;
+    const EST* const est;
 
     /** The number of nucleotides constituting the baton heads.
 

@@ -43,7 +43,7 @@
 #include <string>
 
 // Make compiler happy and fast
-class ESTAnalyzer;
+class PEACE;
 
 /** An interactive console for manually studying ESTs.
 
@@ -60,8 +60,11 @@ public:
         The constructor is pretty straightforward and merely
         initializes all the instance variables to their default
         initial values.
+
+		\param[in] peace The instance of PEACE to be used for
+		performing interactive operations and analysis.
     */
-    InteractiveConsole(ESTAnalyzer* analyzer);
+    InteractiveConsole(PEACE* peace);
 
     /** The destructor.
 
@@ -94,8 +97,15 @@ public:
         <li>
         
         </ol>
+
+        \param[in,out] argc The number of command-line arguments that
+        were passed-in to the process.  This instance variable
+        determines the number of entries in the argv parameter.
+
+        \param[in,out] argv The array of command-line arguments to be
+        processed.		
     */
-    void processCommands();
+    void processCommands(int& argc, char *argv[]);
 
 protected:
     /** Helper method to tokenize a given string.
@@ -189,8 +199,8 @@ protected:
         This method is invoked whenever the user types the command
         "print" at the prompt. This method is invoked (from the \c
         processCommands method) via its method pointer stored in the
-        \c cmdHandlerList. This method simply displays a static help
-        text with the list of commands and some example usage.
+        \c cmdHandlerList. This method simply displays full detailed
+        information about a given EST fragment.
 
         \param[in] cmdWords The set of words/tokens from the command
         entered by the user. This method expects exactly one parameter
@@ -200,19 +210,34 @@ protected:
     */
     void print(const std::vector<std::string>& cmdWords);
 
+    /** Load information about some or all ESTs.
+
+        This method is invoked whenever the user types the command
+        "populate" at the prompt. This method is invoked (from the \c
+        processCommands method) via its method pointer stored in the
+        \c cmdHandlerList. This method repopulates a given cDNA entry.
+
+        \param[in] cmdWords The set of words/tokens from the command
+        entered by the user. This method expects exactly one parameter
+        and process it assuming it is an EST index or an FASTA
+        identifier corresponding to the EST whose information is to be
+        repopulated.
+    */
+    void populate(const std::vector<std::string>& cmdWords);
+	
 #ifndef HAVE_LIBREADLINE
     /** A helper method used only under Windows.
 
-	This is a replacement for the wonderful and interactive
-	readline functionality that is available under Linux. This
-	method displays the prompt and reads a line from the standard
-	input from the user.
-
-	\param[in] prompt The prompt string to be displayed to the user.
-
-	\return A std::string containing the line of input entered
-	by the user. Note that the returned pointer must be free'd
-	by the caller.
+        This is a replacement for the wonderful and interactive
+        readline functionality that is available under Linux. This
+        method displays the prompt and reads a line from the standard
+        input from the user.
+        
+        \param[in] prompt The prompt string to be displayed to the user.
+        
+        \return A std::string containing the line of input entered
+        by the user. Note that the returned pointer must be free'd
+        by the caller.
     */
     static char* readline(const char *prompt);
 #endif
@@ -244,19 +269,27 @@ private:
         from the supplied FASTA file.  This method also tracks and
         reports the time taken for loading the ESTs.
 
+        \param[in,out] argc The number of command-line arguments that
+        were passed-in to the process.  This instance variable
+        determines the number of entries in the argv parameter.
+
+        \param[in,out] argv The array of command-line arguments to be
+        processed.
+		
         \return This method returns \c true if the initialization was
         successful.  On errors it returns \c false.
     */
-    bool initialize();
+    bool initialize(int& argc, char* argv[]);
     
-    /** The analyzer to be used for analysis.
+    /** The instance of PEACE to be used for interactive analysis.
 
-        The analyzer to be used for performing the analysis to compute
-        similarity or distance metrics when the user requests it. This
-        pointer is set in the constructor and is never changed during
-        the life time of this object.
+        The PEACE object to be used for performing interactive
+        operations and analysis (to compute similarity or distance
+        metrics) when the user requests it. This pointer is set in the
+        constructor and is never changed during the life time of this
+        object.
     */
-    ESTAnalyzer* const analyzer;
+    PEACE* const peace;
 
     /** \struct CmdEntry
 
@@ -293,6 +326,5 @@ private:
     */
     InteractiveConsole& operator=(const InteractiveConsole& src);
 };
-
 
 #endif

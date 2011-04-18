@@ -23,47 +23,34 @@
 //---------------------------------------------------------------------------
 
 #include "Tool.h"
-#include "EST.h"
 #include "Common.h"
+#include "Utilities.h"
+#include "ESTList.h"
+#include "ArgParser.h"
 
 Tool::Tool() {
     // Simply initialize instance variables
     haveAlignmentData = false;
+    // Initialize peace with empty data.
+    int argc = 0;
+    peace.initialize(argc, NULL);
 }
 
 Tool::~Tool() {
     // Free up memory for any ests that may have been loaded
-    EST::deleteAllESTs();
+    peace.finalize();
 }
 
 bool
-Tool::loadFastaFile(const char* fileName) {
-    // Try and open the FASTA file
-    FILE *fastaFile = NULL;
-    if ((fastaFile = fopen(fileName, "rt")) == NULL) {
-        std::cout << "Error opening FASTA file " << fileName
-                  << std::endl;
-        return false;
-    }
-    // Now repeatedly load EST entries from the file.
-    int lineNum = 0;
-    EST *est    = NULL;
-    do {
-        // Load a est
-        est = EST::create(fastaFile, lineNum);
-    } while (est != NULL);
-    // Detect if all the data was read & processed
-    bool retVal = feof(fastaFile);
-    // close the file.
-    fclose(fastaFile);
-    // Return if everything went well.
-    return retVal;    
+Tool::loadFastaFile(const std::string& fileName) {
+    // Try and open the FASTA file using helper method in PEACE.
+    return peace.loadFile(fileName);
 }
 
 bool
-Tool::loadClusterInfo(const char* fileName) {
+Tool::loadClusterInfo(const std::string& fileName) {
     // Try and open the cluster file
-    std::ifstream clstrFile(fileName);
+    std::ifstream clstrFile(fileName.c_str());
     if (!clstrFile.good()) {
         std::cout << "Error opening clustering info. file " << fileName
                   << std::endl;
@@ -93,7 +80,8 @@ Tool::loadClusterInfo(const char* fileName) {
 }
 
 void
-Tool::setClustersToColor(std::string clusterList) {
+Tool::setClustersToColor(const std::string& clusterListParam) {
+    std::string clusterList(clusterListParam);
     while (!clusterList.empty()) {
         // Locate the next comma character and get cluster index
         const std::string::size_type commaPos = clusterList.find(',');
@@ -115,7 +103,9 @@ Tool::setClustersToColor(std::string clusterList) {
 
 int
 Tool::getColor(const int estIdx, const int defaultColor) const {
-    const EST *est = EST::getEST(estIdx);
+    const ESTList& estList = getESTList();
+    const EST *est = estList.get(estIdx);
+    ASSERT( est != NULL );
     int color      = defaultColor;
     // Find if the EST is in the color coding map.
     ColorCodeMap::const_iterator entry = colorMap.find(est->getInfo());
@@ -213,12 +203,26 @@ Tool::getFirstChild(const int parentIdx) const {
 }
 
 void
-Tool::showUsage(const std::string& tool, const arg_parser& ap) {
-    std::cout << "PEACE Tools (version 0.1)\n"
-              << "Copyring (C) Miami University, 2009-\n";
-    std::cout << "Usage: pTool --tool " << tool << " [options]\n"
-              << "where options are:\n";
-    std::cout << ap;
+Tool::addCmdLineArgs(const std::string& tool, ArgParser& ap) {
+    const ArgParser::ArgRecord GlobalArgs[] = {
+        {"", "PEACE Tools (version 0.2)", NULL, ArgParser::MAIN_MESSAGE},
+        {"", "Copyright (C) Miami University, 2009-",
+         NULL, ArgParser::MAIN_MESSAGE},
+        {"", "Usage: pTool --tool " + tool + " [options]",
+         NULL, ArgParser::MAIN_MESSAGE},
+        {"", "", NULL, ArgParser::INVALID}
+    };
+    ap.addValidArguments(GlobalArgs);
+}
+
+ESTList&
+Tool::getESTList() {
+    return *(peace.getContext()->getESTList());
+}
+
+const ESTList&
+Tool::getESTList() const {
+    return *(peace.getContext()->getESTList());
 }
 
 #endif

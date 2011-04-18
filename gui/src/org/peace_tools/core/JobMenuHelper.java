@@ -51,6 +51,7 @@ import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TreeSelectionListener;
 
 import org.peace_tools.core.job.JobWizard;
+import org.peace_tools.core.job.east.EASTJobWizard;
 import org.peace_tools.core.session.ServerSession;
 import org.peace_tools.core.session.SessionFactory;
 import org.peace_tools.data.JobListTableModel;
@@ -109,6 +110,11 @@ public class JobMenuHelper extends AbstractMenuHelper
 		jobMenu.add(getMenuItem(AbstractMenuHelper.ActionType.COMPUTE_MST, true));
 		jobMenu.add(getMenuItem(AbstractMenuHelper.ActionType.COMPUTE_CLUSTERS, true));
 		jobMenu.addSeparator();
+		// Add menus for EAST related jobs
+		jobMenu.add(getMenuItem(AbstractMenuHelper.ActionType.EAST_ASSEMBLY, true));
+		jobMenu.add(getMenuItem(AbstractMenuHelper.ActionType.CLUSTER_AND_EAST_ASSEMBLY, true));
+		jobMenu.addSeparator();
+		
 		// Context sensitive job operation menu items.
 		jobMenu.add(getMenuItem(AbstractMenuHelper.ActionType.START_JOB_MONITOR, true));
 		jobMenu.add(getMenuItem(AbstractMenuHelper.ActionType.STOP_JOB_MONITOR, true));
@@ -129,6 +135,9 @@ public class JobMenuHelper extends AbstractMenuHelper
 			// Add tools to the toolbar.
 			toolbar.add(getTool(AbstractMenuHelper.ActionType.COMPUTE_MST, true));
 			toolbar.add(getTool(AbstractMenuHelper.ActionType.COMPUTE_CLUSTERS, true));
+			// EAST assembly tools
+			toolbar.add(getTool(AbstractMenuHelper.ActionType.EAST_ASSEMBLY, true));
+			toolbar.add(getTool(AbstractMenuHelper.ActionType.CLUSTER_AND_EAST_ASSEMBLY, true));
 		}
 		// Return the job menu to the caller.
 		return jobMenu;
@@ -145,6 +154,15 @@ public class JobMenuHelper extends AbstractMenuHelper
 				 new JobWizard("Create New Clustering", mainFrame);
 			 Utilities.centerPanel(mainFrame, jobWizard);
 			 jobWizard.showWizard("http://www.peace-tools.org/downloads/manual.pdf#page=30");
+			 return;
+		}
+		if ("east".equals(cmd) || "peace_east".equals(cmd)) {
+			 EASTJobWizard ejw = EASTJobWizard.create("Assemble Clustered Data Set via EAST", mainFrame, 
+					 "peace_east".equals(cmd));
+			 if (ejw != null) {
+				 Utilities.centerPanel(mainFrame, ejw);
+				 ejw.showWizard("http://www.peace-tools.org/downloads/manual.pdf#page=30");
+			 }
 			 return;
 		}
 		// Rest of the menu options are context sensitive.
@@ -237,8 +255,8 @@ public class JobMenuHelper extends AbstractMenuHelper
 			session.connect();
 			monitor.setProgress(2);
 			// Now request the job runner script to abort the job.
-			ServerSession.OSType os = session.getOSType();
-			final String extension = (ServerSession.OSType.WINDOWS.equals(os)) ? "bat" : "sh"; 
+			Server.OSType os       = session.getOSType();
+			final String extension = (Server.OSType.WINDOWS.equals(os)) ? "bat" : "sh"; 
 			String remoteCmd = job.getPath() + "/jobRunner." + extension
 				+  " abort";
 			String streams[] = {"", ""};
@@ -312,10 +330,10 @@ public class JobMenuHelper extends AbstractMenuHelper
 		final boolean haveMonitor = ((job != null) && (job.getMonitor() != null));
         final boolean haveServer  = !"<n/a>".equals(model.getValueAt(row, 3));
 		// Enable / disable tools and menus based on the job status.
-		setEnabled("startMonitor", (job != null) && (!haveMonitor) && !job.isDone());
+		setEnabled("startMonitor", (job != null) && (!haveMonitor) && !job.isDone() && !job.isWaiting());
 		setEnabled("stopMonitor",  (job != null) && (haveMonitor));
 		setEnabled("viewJob",      (job != null));
-		setEnabled("abortJob",     (job != null) && !job.isDone());
+		setEnabled("abortJob",     (job != null) && !job.isDone() && !job.isWaiting());
 		setEnabled("deleteJob",    (job != null) && job.isDone());
 		
 		// If we have a server enabled then enable job view options
@@ -341,39 +359,49 @@ public class JobMenuHelper extends AbstractMenuHelper
 					(mainMenu ? MenuSubTitles[1] : null),
 					"NewCluster", this, IconPath + "NewCluster.png", 
 					null, true, false);
+		} else if (ActionType.EAST_ASSEMBLY.equals(actionType)) {
+			return Utilities.createMenuItem(Utilities.MENU_ITEM, "Job to Assemble via EAST",
+					(mainMenu ? MenuSubTitles[2] : null),
+					"east", this, IconPath + "EAST.png", 
+					null, true, false);
+		} else if (ActionType.CLUSTER_AND_EAST_ASSEMBLY.equals(actionType)) {
+			return Utilities.createMenuItem(Utilities.MENU_ITEM, "Job to Cluster & Assemble via EAST",
+					(mainMenu ? MenuSubTitles[3] : null),
+					"peace_east", this, IconPath + "PEACE_EAST.png", 
+					null, true, false);
 		} else if (ActionType.START_JOB_MONITOR.equals(actionType)) {
 			item = Utilities.createMenuItem(Utilities.MENU_ITEM, "Start Job Monitor",
-					(mainMenu ? MenuSubTitles[2] : null),
+					(mainMenu ? MenuSubTitles[4] : null),
 					"startMonitor", this, IconPath + "StartJobMonitor.png", 
 					null, false, false);
 		} else if (ActionType.STOP_JOB_MONITOR.equals(actionType)) {
 			item = Utilities.createMenuItem(Utilities.MENU_ITEM, "Stop Job Monitor",
-					(mainMenu ? MenuSubTitles[3] : null),
+					(mainMenu ? MenuSubTitles[5] : null),
 					"stopMonitor", this, IconPath + "StopJobMonitor.png", 
 					null, false, false);
 		} else if(ActionType.SHOW_JOB_DETAILS.equals(actionType)) {
 			item = Utilities.createMenuItem(Utilities.MENU_ITEM, "View Job Details",
-					(mainMenu ? MenuSubTitles[4] : null),
+					(mainMenu ? MenuSubTitles[6] : null),
 					"viewJob", this, IconPath + "ViewJob.png", 
 					null, false, false);
 		} else if (ActionType.ABORT_JOB.equals(actionType)) {
 			item = Utilities.createMenuItem(Utilities.MENU_ITEM, "Abort Job",
-					(mainMenu ? MenuSubTitles[5] : null),
+					(mainMenu ? MenuSubTitles[7] : null),
 					"abortJob", this, IconPath + "AbortJob.png", 
 					null, false, false);
 		} else if (ActionType.REMOVE_JOB.equals(actionType)) {
 			item = Utilities.createMenuItem(Utilities.MENU_ITEM, "Remove Job",
-					(mainMenu ? MenuSubTitles[6] : null),
+					(mainMenu ? MenuSubTitles[8] : null),
 					"deleteJob", this, IconPath + "Delete.png", 
 					null, false, false);
 		} else if (ActionType.SHOW_JOBS_ON_SERVER.equals(actionType)) {
 			item = Utilities.createMenuItem(Utilities.MENU_ITEM, "Show all Jobs on Server",
-					(mainMenu ? MenuSubTitles[7] : null),
+					(mainMenu ? MenuSubTitles[9] : null),
 					"showJobsOnServer", this, IconPath + "ServerInfo.png", 
 					null, false, false);
 		} else if (ActionType.SHOW_MY_JOBS_ON_SERVER.equals(actionType)) {
 			item = Utilities.createMenuItem(Utilities.MENU_ITEM, "Show my jobs on Server",
-					(mainMenu ? MenuSubTitles[8] : null),
+					(mainMenu ? MenuSubTitles[10] : null),
 					"showMyJobsOnServer", this, IconPath + "ServerMyJobs.png", 
 					null, false, false);
 		}
@@ -400,27 +428,33 @@ public class JobMenuHelper extends AbstractMenuHelper
 		} else if (ActionType.COMPUTE_CLUSTERS.equals(actionType)) {
 			return Utilities.createToolButton(IconPath + "NewCluster.png", null,
 					"NewCluster", this, MenuSubTitles[1], true);
+		} else if (ActionType.EAST_ASSEMBLY.equals(actionType)) {
+			return Utilities.createToolButton(IconPath + "EAST.png", null,
+					"east", this, MenuSubTitles[2], true);
+		} else if (ActionType.CLUSTER_AND_EAST_ASSEMBLY.equals(actionType)) {
+			return Utilities.createToolButton(IconPath + "PEACE_EAST.png", null,
+					"peace_east", this, MenuSubTitles[3], true);
 		} else if (ActionType.START_JOB_MONITOR.equals(actionType)) {
 			tool = Utilities.createToolButton(IconPath + "StartJobMonitor.png", null,					
-					"startMonitor", this, MenuSubTitles[2], false);
+					"startMonitor", this, MenuSubTitles[4], false);
 		} else if (ActionType.STOP_JOB_MONITOR.equals(actionType)) {
 			tool = Utilities.createToolButton(IconPath + "StopJobMonitor.png", null, 
-					"stopMonitor", this, MenuSubTitles[3], false);
+					"stopMonitor", this, MenuSubTitles[5], false);
 		} else if(ActionType.SHOW_JOB_DETAILS.equals(actionType)) {
 			tool = Utilities.createToolButton(IconPath + "ViewJob.png", null, 
-					"viewJob", this, MenuSubTitles[4], false);
+					"viewJob", this, MenuSubTitles[6], false);
 		} else if (ActionType.ABORT_JOB.equals(actionType)) {
 			tool = Utilities.createToolButton(IconPath + "AbortJob.png", null,
-					"abortJob", this,  MenuSubTitles[5], false);
+					"abortJob", this,  MenuSubTitles[7], false);
 		} else if (ActionType.REMOVE_JOB.equals(actionType)) {
 			tool = Utilities.createToolButton(IconPath + "Delete.png", null,
-					"deleteJob", this, MenuSubTitles[6], false);
+					"deleteJob", this, MenuSubTitles[8], false);
 		} else if (ActionType.SHOW_JOBS_ON_SERVER.equals(actionType)) {
 			tool = Utilities.createToolButton(IconPath + "ServerInfo.png", null,
-					"showJobsOnServer", this, MenuSubTitles[7], false);
+					"showJobsOnServer", this, MenuSubTitles[9], false);
 		} else if (ActionType.SHOW_MY_JOBS_ON_SERVER.equals(actionType)) {
 			tool = Utilities.createToolButton(IconPath + "ShowMyJobs.png", null,
-					"showMyJobsOnServer", this, MenuSubTitles[8], false);
+					"showMyJobsOnServer", this, MenuSubTitles[10], false);
 		}
 		// When control drops here that means the menu item is
 		// context sensitive. So track these menu items.
@@ -454,6 +488,8 @@ public class JobMenuHelper extends AbstractMenuHelper
 	private static final String MenuSubTitles[] = {
 		"Starts wizard to schedule job to compute MST and clustering for a ESTs in a data set",
 		"Computes new clustering using existing MST data (quick operation)",
+		"Assemble via EAST using existing clustering solution in workspace",
+		"Cluster & Assemble via EAST for cDNA fragments in a data set",
 		"Starts job monitor (daemon thread) for selected job",
 		"Stop job monitor (daemon thread) for selected job",
 		"Display ouputs, errors, and scripts for selected job",

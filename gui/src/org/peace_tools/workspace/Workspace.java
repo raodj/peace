@@ -75,7 +75,7 @@ import org.w3c.dom.NodeList;
  * </p>
  * 
  * Currently, each PEACE GUI instance operates only with a single Workspace.
- * Consequently to enfore the use of a single, unique Workspace object, this
+ * Consequently to enforce the use of a single, unique Workspace object, this
  * class has been designed using the Singleton design pattern.
  */
 public class Workspace {
@@ -257,7 +257,7 @@ public class Workspace {
 		Element workspace = workspaceData.createElementNS("http://www.peace-tools.org/", "Workspace");
 		workspaceData.appendChild(workspace);
 		// Add the necessary namespace attributes to the top-level element.
-		workspace.setAttributeNS(null, "Version", "0.1");
+		workspace.setAttributeNS(null, "Version", "0.2");
 		workspace.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns", DOMHelper.PEACE_NS);
 		workspace.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
 		workspace.setAttributeNS("http://www.w3.org/2001/XMLSchema-instance", "xsi:schemaLocation", DOMHelper.PEACE_NS + " PEACE.xsd");
@@ -296,7 +296,7 @@ public class Workspace {
 		out.println("<Workspace xmlns=\"http://www.peace-tools.org/\"\n" +
 						"\txmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n" +
 						"\txsi:schemaLocation=\"http://www.peace-tools.org/ PEACE.xsd\"\n" +
-						"\tVersion=\"0.1\">\n");
+						"\tVersion=\"0.2\">\n");
 		// Create a top-level server list entry for this class
 		out.printf("\t<%1$s>%2$s</%1$s>\n",   "Directory", workspaceDirectory);
 		out.printf("\t<%1$s>%2$s</%1$s>\n\n", "CreationTimestamp", creationTimestamp.toString());
@@ -445,39 +445,19 @@ public class Workspace {
 	public ArrayList<DataSet> getDataSets() { return dataSetList; }
 
 	/**
-	 * Obtain the MSTData entry for a given job ID.
+	 * Obtain the GeneratedFileList (GFL) entry for a given job ID.
 	 * 
-	 * @param jobID The ID of the job for which the MST data is to be
-	 * searched and retrieved.
+	 * @param jobID The ID of the job for which the generated/output
+	 * files are to be searched and retrieved.
 	 * 
-	 * @return The MSTData corresponding to the given job ID. If the
-	 * entry was not found this method returns null.
+	 * @return The GeneratedFileList corresponding to the given job 
+	 * ID. If the entry was not found this method returns null.
 	 */
-	public MSTData getMSTData(String jobID) {
+	public GeneratedFileList getGFL(String jobID) {
 		for(DataSet entry: dataSetList) {
-			MSTData mstEntry = entry.getMSTData(jobID);
-			if (mstEntry != null) {
-				return mstEntry;
-			}
-		}
-		// Entry not found.
-		return null;
-	}
-	
-	/**
-	 * Obtain the MSTClusterData entry for a given job ID.
-	 * 
-	 * @param jobID The ID of the job for which the cluster entry
-	 * is to be searched and retrieved.
-	 * 
-	 * @return The MSTClusterData corresponding to the given job ID.
-	 * If the entry was not found this method returns null.
-	 */
-	public MSTClusterData getClusterData(String jobID) {
-		for(DataSet entry: dataSetList) {
-			MSTClusterData cluster = entry.getClusterData(jobID);
-			if (cluster != null) {
-				return cluster;
+			GeneratedFileList gfl = entry.getGFL(jobID);
+			if (gfl != null) {
+				return gfl;
 			}
 		}
 		// Entry not found.

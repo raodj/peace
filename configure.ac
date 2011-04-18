@@ -61,7 +61,7 @@ AC_DEFUN([AC_CHECK_MPICC],
 	   AC_LANG_CONFTEST()
      
 	   AC_LINK_IFELSE(
-       [AC_LANG_PROGRAM([[#include "mpi.h"]],[[int argc=0; char **argv = 0; MPI::Init(argc, argv); MPI::Finalize()]])],
+       [AC_LANG_PROGRAM([[#include "mpi.h"],[#include <cstdlib>]],[[int argc=0; char **argv = 0; MPI::Init(argc, argv); MPI::Finalize()]])],
 	   [AC_MSG_RESULT([yes])],
        [AC_MSG_RESULT([no])
   	    AC_MSG_ERROR([
@@ -69,7 +69,10 @@ AC_DEFUN([AC_CHECK_MPICC],
 	  machine.  It claims MPI is installed and mpicc is your 
 	  path. However, mpicc is not operational and can't even 
 	  compile a simple MPI program. This is not a problem with 
-	  PEACE. Most likely no MPI program will compile on this machine.])
+	  PEACE. Most likely no MPI program will compile on this machine.
+	  Ensure you are loading the correct version of MPI (possibly
+	  using the 'module' command (example: module load openmpi-x86_64)
+	  in ~/.bashrc])
 	  		 ])
 
     fi
@@ -240,7 +243,7 @@ AC_DEFUN([AC_PROG_GCC],
 [
     AC_ARG_WITH(gcc,
             AC_HELP_STRING([--with-gcc],[Code will be compiled with gcc]),
-    [ if test "$withval" != "yes"; then
+    [ if test "$withval" == "yes"; then
 	  	 gcc="yes"
       else
 		gcc="no"
@@ -249,7 +252,7 @@ AC_DEFUN([AC_PROG_GCC],
 
      if test -z "$gcc"; then
          AC_MSG_CHECKING([for gcc])
-         gcc=`mpicxx --version 2>&1 | grep -i -w "GCC"`
+         gcc=`$CXX --version 2>&1 | grep -i -w "GCC"`
 	 	 if test -n "$gcc"; then
 	     	gcc="yes"
 	 	 else
@@ -326,6 +329,7 @@ AC_DEFUN([AC_CHECK_TR1_HASHMAP],
 ])
 
 # Checks for programs.
+#AC_CONFIG_MACRO_DIR([m4])
 AC_PROG_MPI
 AC_MSG_CHECKING([properties of (MPI) compiler])
 AC_MSG_RESULT([$CXX])
@@ -334,7 +338,7 @@ AC_LINK_STDCPP
 AC_PROG_ICC
 AC_PROG_GCC
 AC_CHECK_MPICC
-AC_PROG_RANLIB
+# AC_PROG_RANLIB
 
 # Check and set some default compiler flags for the build
 AC_CHECK_ARGS([-Minform=warn], [INFORM_WARN="-Minform=warn"], [INFORM_WARN=""])
@@ -353,7 +357,7 @@ AC_SUBST(FAST)
 AC_CHECK_LIB([m],[asin],,,[-lstdc++])
 AC_CHECK_FUNCS([MPI_Init])
 AC_SEARCH_LIBS([initscr],[curses],,,[-lstdc++])
-AC_SEARCH_LIBS([readline],[readline],,,[-lstdc++])
+AC_CHECK_LIB([readline],[readline],,,[-lstdc++])
 
 #AC_SEARCH_LIBS([gethostname], [c,nsl])
 #AC_CHECK_LIB([nsl],[gethostname])
@@ -387,9 +391,22 @@ AC_TYPE_SIGNAL
 AC_FUNC_STRTOD
 AC_CHECK_FUNCS([bzero floor gettimeofday memset mkdir modf pow rint sqrt strcasecmp strchr strdup strstr strtol])
 
+# Finally perform checks for lib tool. For some reason placing this
+# check earlier on in the set of rules seems to break autotools in 1.9
+# versions. Version 1.11+ of auto tools does not seem to have this
+# issue
+AC_PROG_LIBTOOL
+
 AC_CONFIG_FILES([Makefile
                  src/Makefile
+		 src/framework/Makefile
+		 src/shared/Makefile
+		 src/output/Makefile
+		 src/filtering/Makefile
+		 src/input/Makefile
+		 src/clustering/Makefile
 		 src/baton/Makefile
+		 src/assembly/Makefile
  		 tools/Makefile
  		 examples/Makefile])
 

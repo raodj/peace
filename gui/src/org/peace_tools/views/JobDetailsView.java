@@ -12,9 +12,9 @@ import org.peace_tools.core.session.ServerSession;
 import org.peace_tools.core.session.SessionFactory;
 import org.peace_tools.generic.ProgrammerLog;
 import org.peace_tools.generic.Utilities;
+import org.peace_tools.workspace.FileEntry;
+import org.peace_tools.workspace.GeneratedFileList;
 import org.peace_tools.workspace.Job;
-import org.peace_tools.workspace.MSTClusterData;
-import org.peace_tools.workspace.MSTData;
 import org.peace_tools.workspace.Server;
 import org.peace_tools.workspace.Workspace;
 
@@ -169,21 +169,16 @@ public class JobDetailsView extends DetailView {
 					job.getMemory(), job.getMaxRunTime());
 			outputs[0].insertString(outputs[0].getLength(), serverInfo, 
 					outputs[0].getStyle("overview"));
-			outputs[0].insertString(outputs[0].getLength(), "\nMST Data Summary:\n", 
+			outputs[0].insertString(outputs[0].getLength(), "\nGenerated Files Summary:\n", 
 					outputs[0].getStyle("subtitle"));
-			// The MST summary information.
-			MSTData mst = Workspace.get().getMSTData(job.getJobID());
-			if (mst != null) {
-				outputs[0].insertString(outputs[0].getLength(), mst.getSummary("\t"), 
-						outputs[0].getStyle("overview"));
-			}
-			// Append clustering information/parameters.
-			outputs[0].insertString(outputs[0].getLength(), "\nCluster Data Summary:\n", 
-					outputs[0].getStyle("subtitle"));
-			MSTClusterData cluster = Workspace.get().getClusterData(job.getJobID());
-			if (cluster != null) {
-				outputs[0].insertString(outputs[0].getLength(), cluster.getSummary("\t"), 
-					outputs[0].getStyle("overview"));
+			// The file summary information.
+			GeneratedFileList gfl = Workspace.get().getGFL(job.getJobID());
+			if (gfl != null) {
+				for(FileEntry fe: gfl.getEntries()) {
+					String summary = fe.getSummary("\t");
+					outputs[0].insertString(outputs[0].getLength(), summary, 
+							outputs[0].getStyle("overview"));
+				}
 			}
 		} catch (BadLocationException e) {
 			ProgrammerLog.log(e);

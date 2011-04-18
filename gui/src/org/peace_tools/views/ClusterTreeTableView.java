@@ -134,7 +134,7 @@ public class ClusterTreeTableView extends JPanel implements ActionListener {
 		// Create the tool bar at the top
 		createToolbar();
 		// Create summary information.
-		JTree summaryInfo = PropertiesTreeMaker.makeProperties(model.getWsEntry(), mainFrame);
+		JTree summaryInfo = PropertiesTreeMaker.makeClusterProperties(model.getWsEntry(), mainFrame);
 		// Place the summary information and the tree-table into a split panel using
 		// helper method.
 		contentPane = 

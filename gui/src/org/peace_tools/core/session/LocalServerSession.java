@@ -156,7 +156,7 @@ public class LocalServerSession extends ServerSession {
 		// Start up the process via OS-specific command processor
 		String cmdHandler = "/bin/bash";
 		String parameter  = "-c";
-		if (OSType.WINDOWS.equals(getOSType())) {
+		if (Server.OSType.WINDOWS.equals(getOSType())) {
 			cmdHandler = "cmd.exe";
 			parameter  = "/c";
 		}
@@ -225,15 +225,15 @@ public class LocalServerSession extends ServerSession {
 	 * does not exist then this method throws an exception.
 	 */
 	@Override
-	public OSType getOSType() throws Exception {
+	public Server.OSType getOSType() throws Exception {
 		String osName = System.getProperty("os.name");
 		// Determine OS type based on the response string
-		OSType osType = OSType.UNIX;
+		Server.OSType osType = Server.OSType.UNIX;
 		if (osName.indexOf("Windows") != -1) {
-			osType = OSType.WINDOWS;
+			osType = Server.OSType.WINDOWS;
 		}
 		if (osName.indexOf("Linux") != -1) {
-			osType = OSType.LINUX;
+			osType = Server.OSType.LINUX;
 		}
 		return osType;
 	}

@@ -34,13 +34,15 @@
 package org.peace_tools.workspace;
 
 import java.io.PrintWriter;
+
+import org.peace_tools.core.SummaryWriter;
 import org.w3c.dom.Element;
 
 /**
  * A simple class to encapsulate information about the frame/word
  * analyzer that was used to generate Minimum Spanning Tree (MST) data.
- * This class provides the necessary helper methods to marhsall and 
- * unmarshall the needed data from-and-to XML.
+ * This class provides the necessary helper methods to marhsal and 
+ * un-marshal the needed data from-and-to XML.
  */
 public class FWAnalyzer {
 	/**
@@ -172,16 +174,16 @@ public class FWAnalyzer {
 	public int getCacheSize() { return cacheSize; }
 
 	/**
-	 * Method to marshall the data stored in this object to become part of
+	 * Method to marshal the data stored in this object to become part of
 	 * a DOM tree element passed in. This method assumes that the element
 	 * passed in corresponds to the parent MSTData node in the DOM tree.
 	 * 
-	 * @param mstData The DOM element corresponding to the "MSTData"
+	 * @param job The DOM element corresponding to the "ClusteringJob"
 	 * node that contains this entry.
 	 */
-	public final void marshall(Element mstData) {
+	public final void marshall(Element job) {
 		// Create a top-level server entry for this server
-		Element analyzer = DOMHelper.addElement(mstData, "FWAnalyzer", null);
+		Element analyzer = DOMHelper.addElement(job, "FWAnalyzer", null);
 		analyzer.setAttribute("metric", (this.isDistance ? "distance" : "similarity"));
 		// Add new sub-elements for each value.
 		DOMHelper.addElement(analyzer, "Type", type.toString().toLowerCase());
@@ -192,7 +194,7 @@ public class FWAnalyzer {
 	}
 	
 	/**
-	 * Method to marshall the data stored in this object directly to a
+	 * Method to marshal the data stored in this object directly to a
 	 * XML fragment. The XML fragment is guaranteed to be compatible
 	 * with the PEACE work space configuration data. 
 	 * 
@@ -227,18 +229,53 @@ public class FWAnalyzer {
 	 * @return Return the information as a command line parameter.
 	 */
 	public String toCmdLine() {
-		final String[] AnalyzerName = {"twopassD2adapt", "twopassD2", "d2", "d2zim", "clu"};
+		final String[] AnalyzerName = {"twoPassD2adapt", "twoPassD2", "d2", "d2zim", "clu"};
+		final String[] ClusterMaker = {"amst", "na-mst", "na-mst", "na-mst", "na-mst"};
+		
 		String cmdLine = "--analyzer " + AnalyzerName[type.ordinal()];
 		cmdLine += " --frame " + windowSize;
 		cmdLine += " --word "  + wordSize;
 		cmdLine += " --cacheType " + cacheType;
 		cmdLine += " --cache " + cacheSize;
+		cmdLine += " --clusterMaker " + ClusterMaker[type.ordinal()];
+		
 		return cmdLine;
 	}
 	
 	@Override
 	public String toString() {
 		return "FWAnalyzer " + type;
+	}
+	
+	/**
+	 * Method to write summary information about the MST data.
+	 * 
+	 * This method is a convenience method that is used by various 
+	 * wizards to display summary information about the analyzer.
+	 * 
+	 * @param sw The summary writer to which the data is to be written.
+	 */
+	public void summarize(SummaryWriter sw) {
+		sw.addSubSection("Analyzer Name ", type.toString(), null);
+		sw.addSubSummary("Window size", "" + windowSize, null);
+		sw.addSubSummary("Word size", "" + wordSize, null);
+		sw.addSubSummary("Cache Type", cacheType.toString(), null);
+		sw.addSubSummary("Cache size", "" + cacheSize, 
+				"Number of entries in cache");
+	}
+	
+	/**
+	 * Method to obtain simple textual summary about the analyzer.
+	 * 
+	 * This method is a convenience method that is used by various 
+	 * wizards to display summary information about the analyzer.
+	 * 
+	 * @return The summary information about this analyzer.
+	 */
+	public String getSummary() {
+		return String.format(SUMMARY_TEMPLATE, type.toString(),
+				(isDistance ? "Distance" : "Similarity"),
+				windowSize, wordSize, cacheType, cacheSize);
 	}
 	
 	/**
@@ -275,4 +312,18 @@ public class FWAnalyzer {
 	 * (rather than similarity) for identifying similar ESTs.
 	 */
 	private final boolean isDistance;
+	
+	/**
+	 * A fixed string constant to ease generation of simple summary text
+	 * for use/display by GUI components. This text string is
+	 * suitably formatted (by the {@link #getSummary()} method)
+	 * via printf to fill-in values for various parameters.
+	 */
+	private static final String SUMMARY_TEMPLATE = 
+		"\tAnalyzer: %s\n" +
+		"\tMetric type: %s\n" +
+		"\tFrame: %d\n" +
+		"\tWord: %d\n" +
+		"\tCache Type: %s\n" +
+		"\tCache Size: %d\n";	
 }

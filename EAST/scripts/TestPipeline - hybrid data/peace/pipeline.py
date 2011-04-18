@@ -652,7 +652,7 @@ class Pipeline:
 # start of main script
 def main():
 	# parse command line arguments
-
+	print "--------------------- pipeline.py running -------------------\n"
 	usage= "usage: %prog [options] dataf cutf estsimparams"
 	parser = OptionParser(usage=usage)
 	parser.add_option("-p", "--peace", action="store_true", dest="runPeace", 

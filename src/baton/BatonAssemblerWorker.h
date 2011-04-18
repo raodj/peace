@@ -146,14 +146,8 @@ private:
        instantiate a BatonAssemblerWorker object.  Accordingly, the
        AssemblerFactory::create() method must be used to instantiate
        an object of this class.
-
-       \param[in] outputFile The name of the output file to which the
-       assembled information is to be written.  This value is simply
-       passed onto the base class as the output file name.  Refer to
-       base class documentation for details on usage of this
-       parameter.
     */
-    BatonAssemblerWorker(const std::string& outputFileName);
+    BatonAssemblerWorker();
 };
 
 #endif

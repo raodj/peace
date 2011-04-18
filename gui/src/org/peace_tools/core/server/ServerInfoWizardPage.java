@@ -89,7 +89,7 @@ implements Runnable, ActionListener {
 	 * @param lockPath Flag to indicate if this page must permit the
 	 * user to edit the install path.
 	 */
-	public ServerInfoWizardPage(WizardDialog wizard, Server server,
+	public ServerInfoWizardPage(ServerWizard wizard, Server server,
 			boolean lockPath) {
 		this.wizard   = wizard;
 		this.server   = server;
@@ -290,6 +290,120 @@ implements Runnable, ActionListener {
 	}
 
 	/**
+	 * This method checks to ensure that the install directory does not
+	 * exists but can be created.  This method was primarily introduced
+	 * to streamline the {@link #run()} method in this class. This 
+	 * method is called just one from {@link #run()} method.
+	 * 
+	 * @throws Exception This method throws an exception if the install
+	 * directory exists or if an error occurs when attempting to
+	 * create it.
+	 */
+	private void checkInstallDir() throws Exception {
+		final String instPath = server.getInstallPath();
+		FileInfo pathInfo     = serverSession.fstat(instPath);
+		if (pathInfo.exists()) {
+			// Error when running remote command. Bail out.
+			throw new Exception("The install path already exists on " +
+				"the server.\nPlease choose a different install path.");				
+		}
+		try {
+			// Ensure we can create the directory.
+			serverSession.mkdir(instPath);
+			// OK, we can create directory. For now delete it.
+			serverSession.rmdir(instPath);
+		} catch (Exception e) {
+			Exception err = new Exception("Unable to create the specified install " +
+			"path on the server.\nPlease choose a different install path.");
+			err.initCause(e);
+			throw err;
+		}
+	}
+	
+	/**
+	 * A refactored utility method that checks to ensure a Linux/Unix machine
+	 * has the basic set of development tools installed. This method is
+	 * called only once from the {@link #run()} method. This method was
+	 * introduced to streamline the {@link #run()} method.
+	 * 
+	 * @param streamsData The data returned by calling the command. This information
+	 * is passed back to the caller for display.
+	 * 
+	 * @throws Exception This method throws an exception if the server does not
+	 * have the necessary tools installed on it.
+	 */
+	private void checkBasicLinuxTools(String streamsData[]) throws Exception {
+		final String cmd = "/usr/bin/which automake autoconf tar gzip make grep";
+		if ((serverSession.exec(cmd, streamsData) != 0) || 
+				(streamsData[0] == null) ||	(streamsData[1].length() > 0)) {
+			throw new Exception("The server does not seem to have " +
+					"the necessary software tools.\nPEACE runtime cannot be installed " +
+					"without the necessary tools.\nThe software required are:\n" + cmd);
+		}
+	}
+
+	/**
+	 * A refactored utility method that checks to see if a Linux/Unix machine
+	 * has MPI and compiler installed. After detection it informs the user and
+	 * permits the user to abort installation (by throwing an exception) if
+	 * the user does not want to proceed without MPI. This method is called 
+	 * only once from the {@link #run()} method. This method was
+	 * introduced to streamline the {@link #run()} method.
+	 * 
+	 * @param streamsData The data returned by calling the command. This information
+	 * is passed back to the caller for display.
+	 * 
+	 * @throws Exception This method throws an exception if an error occurs
+	 * or if the user decided to abort install (due to absence of MPI).
+	 */
+	private void checkMPICompiler(String streamsData[]) throws Exception {
+		String cmd = "mpicxx --version";
+		if ((serverSession.exec(cmd, streamsData) != 0) || (streamsData[0] == null) || 
+				(streamsData[1].length() > 0)) {
+			int choice = JOptionPane.showConfirmDialog(wizard, 
+					NO_MPI_MSG, "Unable to find mpicc", 
+					JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+			if (choice == JOptionPane.NO_OPTION) {
+				throw new Exception("The remote server does not seem to have " +
+						"mpicc installed on it.\nPEACE clustering engine install " +
+				"aborted.");
+			}
+		}
+	}
+
+	/**
+	 * A refactored utility method that checks to see if a given server
+	 * has GCC compiler installed (for building EAST). After detection 
+	 * it informs the user and permits the user to abort installation 
+	 * (by throwing an exception) if the user does not want to proceed
+	 * without EAST. This method is called only once from the {@link #run()}
+	 * method. This method was introduced to streamline the {@link #run()} method.
+	 * 
+	 * @param streamsData The data returned by calling the command. This information
+	 * is passed back to the caller for display.
+	 * 
+	 * @throws Exception This method throws an exception if an error occurs
+	 * or if the user decided to abort install (due to absence of MPI).
+	 */
+	protected void checkGCC(String streamsData[]) throws Exception {
+		String cmd = "g++ --version";
+		if ((serverSession.exec(cmd, streamsData) != 0) || (streamsData[0] == null) || 
+				(streamsData[1].length() > 0)) {
+			int choice = JOptionPane.showConfirmDialog(wizard, 
+					NO_EAST_MSG, "Cannot install EAST (no g++)", 
+					JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
+			if (choice == JOptionPane.NO_OPTION) {
+				throw new Exception("The server does not seem to have " +
+						"g++ installed on it.\nPEACE clustering & assembler install " +
+				"aborted.");
+			}
+		} else {
+			// Found gcc. Set flag for future use
+			wizard.setHaveGCC(true);
+		}
+	}
+	
+	/**
 	 * This method is invoked from a separate thread from the pageChanging()
 	 * method. This method performs the task of attempting to connect to the
 	 * remote server using the credentials supplied by the user and validating
@@ -317,55 +431,24 @@ implements Runnable, ActionListener {
 			serverSession.connect();
 			// Now that we have connected, check if the directory does
 			// not exist.
-			final String instPath = server.getInstallPath();
-			FileInfo pathInfo     = serverSession.fstat(instPath);
-			if (pathInfo.exists()) {
-				// Error when running remote command. Bail out.
-				throw new Exception("The install path already exists on " +
-					"the server.\nPlease choose a different install path.");				
-			}
-			try {
-				// Ensure we can create the directory.
-				serverSession.mkdir(instPath);
-				// OK, we can create directory. For now delete it.
-				serverSession.rmdir(instPath);
-			} catch (Exception e) {
-				Exception err = new Exception("Unable to create the specified install " +
-				"path on the server.\nPlease choose a different install path.");
-				err.initCause(e);
-				throw err;
-			}
+			checkInstallDir();
 			// Ensure that the necessary tools are installed for Linux/
 			// Unix family of servers.
-			if (!ServerSession.OSType.WINDOWS.equals(serverSession.getOSType())) {
-				String cmd = "/usr/bin/which automake autoconf tar gzip " +
-						"make grep";
-				if ((serverSession.exec(cmd, streamsData) != 0) ||
-						(streamsData[0] == null) || 
-						(streamsData[1].length() > 0)) {
-					throw new Exception("The remote server does not seem to have " +
-							"the necessary software tools.\nPEACE runtime cannot be installed " +
-							"without the necessary tools.\nThe software required are:\n" + cmd);
-				}
+			if (!Server.OSType.WINDOWS.equals(serverSession.getOSType())) {
+				// Check if Unix/Linux server has basic development tools installed.
+				checkBasicLinuxTools(streamsData);
 				// OK, the basic stuff checks out. Next check if we have mpicc.
-				String prevOutput = streamsData[0]; 
-				cmd = "/usr/bin/which mpicc";
-				if ((serverSession.exec(cmd, streamsData) != 0) ||
-						(streamsData[0] == null) || 
-						(streamsData[1].length() > 0)) {
-					int choice = JOptionPane.showConfirmDialog(wizard, 
-							NO_MPI_MSG, "Unable to find mpicc", 
-							JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
-					if (choice == JOptionPane.NO_OPTION) {
-						throw new Exception("The remote server does not seem to have " +
-								"mpicc installed on it.\nPEACE clustering engine install " +
-								"aborted.");
-					}
-					// Check to ensure we have some c++ compiler installed?
-				} else {
-					// Add current output with previous output.
-					streamsData[0] = prevOutput + "\n" + streamsData[0];
-				}
+				String prevOutput = "STANDARD TOOLS DETAILS:\n" + streamsData[0];
+				// Check to see if the server has MPI installed. This method
+				// throws an exception if user decides to abort install.
+				checkMPICompiler(streamsData);
+				// Add current output with previous output.
+				prevOutput = prevOutput + "\nMPI COMPILER DETAILS:\n" + streamsData[0]; 
+				// Check to see if we have GCC for building EAST. The
+				// gcc flag in the parent server wizard class is set by
+				// the following method call.
+				checkGCC(streamsData);
+				streamsData[0] = prevOutput + "\nGCC (for EAST) DETAILS:\n" + streamsData[0];
 			} else {
 				// Set a default detail so the user does not freak out.
 				streamsData[0] = "No special tools are needed for windows servers.\n" +
@@ -384,7 +467,7 @@ implements Runnable, ActionListener {
 		// in the run() method below.
 		final Exception result = exp;
 		final JPanel    page   = this;
-		final String    output = "Tools Detected:\n" + streamsData[0];
+		final String    output = streamsData[0];
 		// When control drops here we have either successfully
 		// verified install path (no exceptions) or not.
 		// Report the completion on the main AWTThread.
@@ -454,7 +537,7 @@ implements Runnable, ActionListener {
 	 * page. This reference is used to enable and disable 
 	 * buttons on this wizard appropriately.
 	 */
-	private final WizardDialog wizard;
+	private final ServerWizard wizard;
 	
 	/**
 	 * Information about the actual server entry being edited. This
@@ -558,6 +641,17 @@ implements Runnable, ActionListener {
 		"Consequently, in the current version of PEACE spaces cannot<br>" +
 		"be present in the installation path.<br><br>" +
 		"<b>Please choose a path without spaces in it.<b></html>";
+	
+	/**
+	 * A warning message that is displayed when gcc is unavailable 
+	 * on a given machine/server and consequently EAST cannot be installed.
+	 */
+	private static final String NO_EAST_MSG = "<html>" + 
+		"The C++ compiler from GNU Compiler Collection (GCC) (i.e., g++)<br>" +
+		"was not found in the default path. Currently, GCC is needed for<br>" +
+		"building EAST and consequently EAST will not be installed. <br><br>" +
+		"However, you may still proceed further with installation<br>" +
+		"of the PEACE clustering engine.</html>";
 	
 	/**
 	 * A serialization UID to keep the compiler happy.

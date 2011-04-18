@@ -36,6 +36,9 @@ package org.peace_tools.workspace;
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+
+import org.peace_tools.core.SummaryWriter;
+import org.peace_tools.generic.Utilities;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -63,9 +66,34 @@ public class DataSet {
 		FASTA,
 		/**
 		 * This enumeration is used to indicate a Standard Flowgram Format
-		 * (SFF) file.
+		 * (SFF) file. Further details on the SFF file format can be found at:
+		 * http://www.ncbi.nlm.nih.gov/Traces/trace.cgi?cmd=show&f=formats&m=doc&s=formats#sff
 		 */
-		SFF };
+		SFF,
+		/**
+		 * This enumeration is used to indicate an ACE file format used in
+		 * genomics. See http://en.wikipedia.org/wiki/ACE_file_format.
+		 */
+		ACE,
+		/**
+		 * This enumeration indicates a SAM (Sequence Alignment/Map) text file 
+		 * format that is used for storing large nucleotide sequence alignments. 
+		 * See http://samtools.sourceforge.net/ for details.
+		 */
+		SAM,
+		/**
+		 * This is the binary version of SAM. 
+		 */
+		BAM,
+		/**
+		 * A general Tab Separated Value (TSV) text file. 
+		 */
+		TSV,
+		/**
+		 * A regular ASCII text file.
+		 */
+		TXT
+	};
 	
 	/**
 	 * Helper method to utilize data from a DOM tree to create a suitable
@@ -93,23 +121,19 @@ public class DataSet {
 				DataFileType.valueOf(type.toUpperCase()) : DataFileType.FASTA; 
 		// Create the data set entry.
 		DataSet dataSet= new DataSet(id, path, desc, fileType);
+		// Parse in any statistics element about this data set
+		Element estStats = DOMHelper.getElement(data, "Stats");
+		if (estStats != null) {
+			dataSet.stats = DataFileStats.create(path, estStats); 
+		}
 		// Now parse in any MSTData elements for this DataSet
-		NodeList mstNodes = data.getElementsByTagName("MSTData");
+		NodeList mstNodes = data.getElementsByTagName("GeneratedFileList");
 		for(int idx = 0; (idx < mstNodes.getLength()); idx++) {
 			Element node = (Element) mstNodes.item(idx);
-			// Create a MST data set using the node.
-			MSTData mst = MSTData.create(node);
-			mst.setDataSet(dataSet);
-			dataSet.mstList.add(mst);
-		}
-		// Now parse in any Cluster Data elements for this DataSet
-		NodeList clstrNodes = data.getElementsByTagName("MSTClusterData");
-		for(int idx = 0; (idx < mstNodes.getLength()); idx++) {
-			Element node = (Element) clstrNodes.item(idx);
-			// Create a MST data set using the node.
-			MSTClusterData clstr = MSTClusterData.create(node);
-			clstr.setDataSet(dataSet);
-			dataSet.clusterList.add(clstr);
+			// Create a generated file list using the node.
+			GeneratedFileList gfl = GeneratedFileList.create(node);
+			dataSet.gflList.add(gfl);
+			gfl.setDataSet(dataSet);
 		}
 		// All the data was parsed in successfully.
 		return dataSet;
@@ -138,8 +162,8 @@ public class DataSet {
 		this.path        = path;
 		this.description = description;
 		this.fileType    = fileType;
-		this.mstList     = new ArrayList<MSTData>();
-		this.clusterList = new ArrayList<MSTClusterData>();
+		this.gflList     = new ArrayList<GeneratedFileList>();
+		this.stats       = null;
 	}
 	
 	/**
@@ -246,61 +270,37 @@ public class DataSet {
 	}
 	
 	/**
-	 * Obtain the list of MST data files encapsulated by this data set.
+	 * Obtain the list of GeneratedFileList (GFL) data files 
+	 * encapsulated by this data set.
 	 * 
-	 * @return The list (zero or more) of MST data files that are associated
-	 * with this data set.
+	 * @return The list (zero or more) of GeneratedFileList objects
+	 * data files that are associated with this data set. This
+	 * return value is never null (but can be an empty list).
 	 */
-	public ArrayList<MSTData> getMSTList() { return mstList; }
-	
-	/**
-	 * Obtain the list of clustering data files encapsulated by this data set.
-	 * 
-	 * @return The list (zero or more) of clustering data files that are
-	 *         associated with this data set.
-	 */
-	public ArrayList<MSTClusterData> getClusterList() { return clusterList; }
+	public ArrayList<GeneratedFileList> getGflList() { return gflList; }
 
 	/**
-	 * Obtain the MSTData entry for a given job ID.
+	 * Obtain the Generated File List (GFL) entry for a given job ID.
 	 * 
 	 * @param jobID The ID of the job for which the MST data is to be
 	 * searched and retrieved.
 	 * 
-	 * @return The MSTData corresponding to the given job ID. If the
+	 * @return The GFL object corresponding to the given job ID. If the
 	 * entry was not found this method returns null.
 	 */
-	public MSTData getMSTData(String jobID) {
-		for(MSTData entry: mstList) {
-			if (jobID.equals(entry.getJobSummary().getJobID())) {
-				return entry;
+	public GeneratedFileList getGFL(String jobID) {
+		for(GeneratedFileList gfl: gflList) {
+			if (jobID.equals(gfl.getJobSummary().getJobID())) {
+				return gfl;
 			}
 		}
 		// Entry not found.
 		return null;
 	}
 	
-	/**
-	 * Obtain the MSTClusterData entry for a given job ID.
-	 * 
-	 * @param jobID The ID of the job for which the cluster entry
-	 * is to be searched and retrieved.
-	 * 
-	 * @return The MSTClusterData corresponding to the given job ID.
-	 * If the entry was not found this method returns null.
-	 */
-	public MSTClusterData getClusterData(String jobID) {
-		for(MSTClusterData entry: clusterList) {
-			if (jobID.equals(entry.getJobSummary().getJobID())) {
-				return entry;
-			}
-		}
-		// Entry not found.
-		return null;
-	}
 
 	/**
-	 * Method to marshall the data stored in this object to become part of
+	 * Method to marshal the data stored in this object to become part of
 	 * a DOM tree element passed in. This method assumes that the element
 	 * passed in corresponds to the parent Workspace node in the DOM tree.
 	 * 
@@ -316,18 +316,18 @@ public class DataSet {
 		DOMHelper.addElement(estData, "ID", id);
 		DOMHelper.addElement(estData, "Path", path);
 		DOMHelper.addElement(estData, "Description", description);
-		// Add new sub-elements for each MSTData entries.
-		for(MSTData mst : mstList) {
-			mst.marshall(dataset);
+		// Add stats element if we have one.
+		if (stats != null) {
+			stats.marshall(estData);
 		}
-		// Add new sub-elements for each MSTClusterData entries.
-		for(MSTClusterData clstr : clusterList) {
-			clstr.marshall(dataset);
+		// Add new sub-elements for each GFL entry.
+		for(GeneratedFileList gfl: gflList) {
+			gfl.marshall(dataset);
 		}
 	}
 	
 	/**
-	 * Method to marshall the data stored in this object directly to a XML
+	 * Method to marshal the data stored in this object directly to a XML
 	 * fragment. The XML fragment is guaranteed to be compatible with the PEACE
 	 * work space configuration data.
 	 * 
@@ -345,100 +345,88 @@ public class DataSet {
 		out.printf(STR_ELEMENT, "ID", id);
 		out.printf(STR_ELEMENT, "Path", path);
 		out.printf(STR_ELEMENT, "Description", DOMHelper.xmlEncode(description));
-		out.printf("%s\t</ESTData>\n", Indent); 
-		// Add new sub-elements for each MSTData entries.
-		for(MSTData mst : mstList) {
-			mst.marshall(out);
+		// Marshal out any statistics object we may have
+		if (stats != null) {
+			stats.marshall(out);
 		}
-		// Add new sub-elements for each MSTClusterData entries.
-		for(MSTClusterData clstr : clusterList) {
-			clstr.marshall(out);
+		out.printf("%s\t</ESTData>\n", Indent); 
+		// Add new sub-elements for each GeneratedFileList entries.
+		for(GeneratedFileList gfl : gflList) {
+			gfl.marshall(out);
 		}
 		// Close the DataSet tag
 		out.printf("%s</DataSet>\n", Indent);
 	}
 	
 	/**
-	 * Add a new Minimum Spanning Tree (MST) data file to this
-	 * data set. The MST data must have been generated for the EST
-	 * file associated with this data set.
+	 * Add a new GeneratedFileList (GFL) object to this
+	 * data set. The GeneratedFileList data must have been generated
+	 * for the EST file associated with this data set.
 	 *  
-	 * <p><b>Note:</b> This method reports the newly added MSTData entry to
+	 * <p><b>Note:</b> This method reports the newly added entry to
 	 * all workspace listeners by firing a suitable event.</p>
 	 * 
-	 * @param mstData The new MSTData entry to be added to this 
+	 * @param gfl The new GeneratedFileList entry to be added to this 
 	 * data set.
 	 */
-	public synchronized void add(MSTData mstData) {
+	public synchronized void add(GeneratedFileList gfl) {
 		Workspace ws = Workspace.get();
-		if (mstData != null) {
-			mstList.add(mstData);
-			mstData.setDataSet(this);
-			WorkspaceEvent wse = new WorkspaceEvent(mstData,
+		if (gfl != null) {
+			gflList.add(gfl);
+			gfl.setDataSet(this);
+			WorkspaceEvent wse = new WorkspaceEvent(gfl,
 					WorkspaceEvent.Operation.INSERT);
 			ws.fireWorkspaceChanged(wse);
 		}
 	}
 	
 	/**
-	 * Remove an existing Minimum Spanning Tree (MST) data file from 
+	 * Remove an existing GeneratedFileList (GFL) data file from 
 	 * this data set.
 	 *  
-	 * <p><b>Note:</b> This method reports the removed MSTData entry to
+	 * <p><b>Note:</b> This method reports the removed entry to
 	 * all workspace listeners by firing a suitable event.</p>
 	 * 
-	 * @param mstData The MSTData entry to be removed from this data set. 
+	 * @param gfl The MSTData entry to be removed from this data set. 
 	 */
-	public synchronized void remove(MSTData mstData) {
+	public synchronized void remove(GeneratedFileList gfl) {
 		Workspace ws = Workspace.get();
-		if (mstData != null) {
-			mstList.remove(mstData);
-			WorkspaceEvent wse = new WorkspaceEvent(mstData,
+		if (gfl != null) {
+			gflList.remove(gfl);
+			WorkspaceEvent wse = new WorkspaceEvent(gfl,
 					WorkspaceEvent.Operation.DELETE);
 			ws.fireWorkspaceChanged(wse);
 		}
 	}
 
-	/**
-	 * Add a new MST-based clustering data file to this
-	 * data set. The MST data must have been generated for the EST
-	 * file associated with this data set.
-	 *  
-	 * <p><b>Note:</b> This method reports the newly added entry to
-	 * all workspace listeners by firing a suitable event.</p>
-	 * 
-	 * @param cluster The new clustering entry to be added to this 
-	 * data set.
-	 */
-	public synchronized void add(MSTClusterData cluster) {
-		Workspace ws = Workspace.get();
-		if (cluster != null) {
-			clusterList.add(cluster);
-			cluster.setDataSet(this);
-			WorkspaceEvent wse = new WorkspaceEvent(cluster,
-					WorkspaceEvent.Operation.INSERT);
-			ws.fireWorkspaceChanged(wse);
-		}
-	}
 
 	/**
-	 * Remove an existing MST-based clustering data file from 
-	 * this data set.
-	 *  
-	 * <p><b>Note:</b> This method reports the removed cluster entry 
-	 * to all work space listeners by firing a suitable event.</p>
+	 * Set aggregate statistics information about the cDNA data file.
 	 * 
-	 * @param cluster The cluster entry to be removed from this 
-	 * data set. 
+	 * This method can be used to setup the aggregate statistics about
+	 * the cDNA fragments associated with this data set. This information
+	 * is persisted in the workspace XML providing rapid access to the
+	 * aggregate statistics without having to recompute them.
+	 * 
+	 * @param stats The aggregate statistics about this data set.
 	 */
-	public synchronized void remove(MSTClusterData cluster) {
-		Workspace ws = Workspace.get();
-		if (cluster != null) {
-			clusterList.remove(cluster);
-			WorkspaceEvent wse = new WorkspaceEvent(cluster,
-					WorkspaceEvent.Operation.DELETE);
-			ws.fireWorkspaceChanged(wse);
-		}
+	public void setStats(DataFileStats stats) {
+		this.stats = stats;
+	}
+	
+	/**
+	 * Set aggregate statistics information about the cDNA data file.
+	 * 
+	 * This method can be used to obtain the aggregate statistics about
+	 * the cDNA fragments associated with this data set. This information
+	 * is typically obtained from its persisted copy in the workspace XML 
+	 * providing rapid access to the aggregate statistics without having 
+	 * to recompute them.
+	 * 
+	 * @param stats The aggregate statistics about this data set.
+	 */
+	DataFileStats getStats() {
+		return stats;
 	}
 	
 	/**
@@ -456,18 +444,73 @@ public class DataSet {
 	}
 	
 	/**
-	 * The optional list of MST data files that are currently associated
-	 * with this data set. The mst list contains the MST data that was
-	 * derived by analyzing the EST file associated with this data set.
+	 * Method to write summary information about the data set.
+	 * 
+	 * This method is a convenience method that is used by various 
+	 * wizards to display summary information about the data set.
+	 * The summary information about the data set include information
+	 * about the source cDNA data file along with statistics about
+	 * the data set.
+	 * 
+	 * @param sw The summary writer to which the data is to be written.
 	 */
-	private ArrayList<MSTData> mstList;
+	public void summarize(SummaryWriter sw) {
+		sw.addSection("Data Set Summary");
+		final File tempFile = new File(path);
+		sw.addSummary("File Name", tempFile.getName(), description);
+		sw.addSummary("Path",      tempFile.getPath(), null);
+		sw.addSummary("File type", fileType.toString(), null);
+		// Add statistics about the data set if available.
+		if (stats != null) {
+			stats.summarize(sw);
+		}
+	}
 	
 	/**
-	 * The optional list of clustering data files that are currently associated
-	 * with this data set. The list contains the clustering data that was
-	 * derived by analyzing the MST file(s) associated with this data set.
+	 * Helper method to check if the MST file exists and is readable.
+	 * 
+	 * This is a convenience method that can be used to verify that
+	 * the MST file (associated with this entry) exists and is readable.
+	 * 
+	 * @return This method returns true if the MST file exists and is
+	 * readable. Otherwise this method returns false.
 	 */
-	private ArrayList<MSTClusterData> clusterList;
+	public boolean isGood() {
+		File f = new File(path);
+		return (f.exists() && f.canRead());
+	}
+	
+	/**
+	 * Helper method to get a tool-tip text for GUI components to use.
+	 * 
+	 * This is a helper method that provides an HTML formatted tool-tip
+	 * text that can be readily displayed by the GUI. The tool-tip
+	 * is a multi-line HTML fragment that includes: file path,
+	 * file type, description, and statistics (if available).
+	 * 
+	 * @return A HTML document that contains a HTML-formatted tool-tip
+	 * text. This string is never null.
+	 */
+	public String getToolTipText() {
+		final File   tempFile = new File(path);
+		final String shortPath= Utilities.trim(tempFile.getPath(), 50);
+		final String htmlDesc = Utilities.wrapStringToHTML(description, 45);
+		final String formatStr= ((stats != null) ? TOOL_TIP_WITH_STATS_TEMPLATE :
+			                                          TOOL_TIP_NO_STATS_TEMPLATE);
+		final String toolTip  =
+			String.format(formatStr, shortPath, fileType.toString(), 
+					htmlDesc, stats.getCount(), stats.getAvgLength(), 
+					stats.getLengthSD());
+		return toolTip;
+	}
+	
+	/**
+	 * The optional list of generated data files that are currently 
+	 * associated with this data set. Each entry in this list contains
+	 * a list of generated output files/artifacts from jobs run using
+	 * this data set (or one of the underlying artifacts).
+	 */
+	private ArrayList<GeneratedFileList> gflList;
 	
 	/**
 	 * The complete path to the actual EST file on the local machine. The
@@ -498,4 +541,39 @@ public class DataSet {
 	 * sequences for viewing and analysis.
 	 */
 	private DataFileType fileType;
+	
+	/**
+	 * A statistics object that contains the meta data about the cDNA file
+	 * associated with this data set. This element is an optional element
+	 * and may not be present in older data set entries created by PEACE.
+	 */
+	private DataFileStats stats;
+	
+	/**
+	 * A fixed string constant to ease generation of tool tip text
+	 * for use/display by GUI components. This text string is
+	 * suitably formatted (by the {@link #getToolTipText()} method)
+	 * via printf to fill-in values for various parameters.
+	 */
+	private static final String TOOL_TIP_WITH_STATS_TEMPLATE = "<html>" +
+		"<b>Path:</b> %s<br/>" +
+		"<b>File Type:</b> %s<br/>" +
+		"<b>Description:</b> %s<br/>" + 
+		"<b>cDNA/EST Entries:</b> %d<br/>" +
+		"<b>Avg. Size per Entry:</b> %.2f (SD: %.2f)" +
+		"</html>";
+	
+	/**
+	 * A fixed string constant to ease generation of tool tip text
+	 * for use/display by GUI components. This text string is
+	 * suitably formatted (by the {@link #getToolTipText()} method)
+	 * via printf to fill-in values for various parameters. This
+	 * string is used in cases where the data set does not have
+	 * pre-computed aggregate statistics associated with it.
+	 */
+	private static final String TOOL_TIP_NO_STATS_TEMPLATE = "<html>" +
+		"<b>Path:</b> %s<br/>" +
+		"<b>File Type:</b> %s<br/>" +
+		"<b>Description:</b> %s<br/>" + 
+		"</html>";
 }

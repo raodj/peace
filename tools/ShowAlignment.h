@@ -35,8 +35,8 @@
 //---------------------------------------------------------------------
 
 #include "Tool.h"
+
 #include <stdio.h>
-#include <arg_parser.h>
 #include <vector>
 
 class ShowAlignment : public Tool {
@@ -66,8 +66,9 @@ public:
 
         \param[in] srcFileName The FASTA-compatible data file that
         contains the source genes/transcripts from which ESTs were
-        generated.  This method reads ESTs from this file until the
-        necessary EST is read.
+        generated.  This method reads ESTs from this file and extracts
+        the cDNA fragment at the given srcDataIndex.  If this file
+        name is an empty string (\c "") then this file is ignored.
 
         \param[in] estFileName The name of the file that contains the
         actual sequence of ESTs to be aligned.
@@ -76,8 +77,8 @@ public:
         successfully.  On errors this method generates suitable error
         messages and returns \c false.
     */
-    bool loadData(const int srcDataIndex, const char* srcFileName,
-                  const char *estFileName);
+    bool loadData(const int srcDataIndex, const std::string& srcFileName,
+                  const std::string& estFileName);
 
     /** Dump the alignment to the output file.
 

@@ -36,9 +36,10 @@
 
 #include "InteractiveConsole.h"
 #include "Utilities.h"
-#include "ESTAnalyzer.h"
-#include "EST.h"
+#include "PEACE.h"
+#include "ESTList.h"
 #include "MPIHelper.h"
+#include "ESTAnalyzer.h"
 
 #include <algorithm>
 #include <stdio.h>
@@ -55,7 +56,7 @@
 
 #define INTRO                                                           \
     "\033[1;38mPEACE: Parallel EST Analyzer and Clustering Engine\n"    \
-    "\033[0;39mCopyright (c) Miami University, Oxford, OHIO."           \
+    "\033[0;39mCopyright (c) Miami University, Oxford, OHIO.\n"         \
     "All rights reserved.\n"                                            \
     "Type the command \033[1;32mhelp\033[0;39m to obtain list "         \
     "of commands to run\n"
@@ -68,12 +69,13 @@ InteractiveConsole::CmdEntry InteractiveConsole::cmdHandlerList[] = {
     {"analyze",   &InteractiveConsole::analyze},
     {"help",      &InteractiveConsole::help},
     {"print",     &InteractiveConsole::print},
+    {"populate",  &InteractiveConsole::populate},
     {"", NULL}
 };
 
-InteractiveConsole::InteractiveConsole(ESTAnalyzer* estAnalyzer) :
-    analyzer(estAnalyzer) {
-    ASSERT ( analyzer != NULL );
+InteractiveConsole::InteractiveConsole(PEACE* peaceInst) :
+    peace(peaceInst) {
+    ASSERT ( peace != NULL );
 }
 
 InteractiveConsole::~InteractiveConsole() {
@@ -81,22 +83,23 @@ InteractiveConsole::~InteractiveConsole() {
 }
 
 bool
-InteractiveConsole::initialize() {
+InteractiveConsole::initialize(int& argc, char *argv[]) {
     // Print a standard intro..
     std::cout << INTRO << std::endl;    
 
     // Initialize the analyzer and load the ESTs from a FASTA file.
     // Collate and print time taken for initializaton.
-    std::cout << "Loading ESTs..." << std::flush;
+    std::cout << "Loading cDNA fragments..." << std::flush;
     const double startTime = MPI_WTIME();
-    bool retVal = analyzer->initialize() == 0;
+    bool retVal = peace->initialize(argc, argv, false) == 0;
     // Track initialization time in milliseconds
     const double elapsedTime = (MPI_WTIME() - startTime) * 1000.0;
     if (!retVal) {
         // Error occured during initialization. Bail out.
-        std::cerr << "Error initializing EST analyzer.\nExiting.\n";
+        std::cerr << "Error initializing PEACE.\nExiting.\n";
     } else {
-        std::cout << "Loaded " << EST::getESTCount() << " ESTs.\n"
+        const int estCount = peace->getContext()->getESTList()->size();
+        std::cout << "Loaded " << estCount << " cDNA fragments.\n"
                   << "* Elapsed time: " << elapsedTime << " msecs.\n\n";
     }
     // Let the caller know if initialization was successful.
@@ -104,9 +107,9 @@ InteractiveConsole::initialize() {
 }
 
 void
-InteractiveConsole::processCommands() {
+InteractiveConsole::processCommands(int& argc, char *argv[]) {
     // Initialize and load ESTs
-    if (!initialize()) {
+    if (!initialize(argc, argv)) {
         // Error during initialization. Bail out
         return;
     }
@@ -182,13 +185,13 @@ InteractiveConsole::printStats(const std::vector<std::string>& UNREFERENCED_PARA
     // Collate and print statistics about the ESTs
     const double startTime = MPI_WTIME();
     // Obtain the list of ESTs to process
-    const std::vector<EST*>& estList = EST::getESTList();
+    const ESTList* estList = peace->getContext()->getESTList();
     // Count min, max, and mean length of ESTs
     size_t minLen = 0xffffffff, maxLen    = 0;
     double lenSum = 0, lenSumSqr = 0;
-    for(size_t idx = 0; (idx < estList.size()); idx++) {
+    for(int idx = 0; (idx < estList->size()); idx++) {
         // Obtain the length of the EST
-        const size_t len = strlen(estList[idx]->getSequence());
+        const size_t len = estList->get(idx)->getSequenceLength();
         // Update the statistics
         minLen = std::min<size_t>(minLen, len);
         maxLen = std::max<size_t>(maxLen, len);
@@ -197,10 +200,10 @@ InteractiveConsole::printStats(const std::vector<std::string>& UNREFERENCED_PARA
         lenSumSqr += (len * len);
     }
     // Print the statistics for display.
-    const double meanLen = lenSum / estList.size();
-    const double stdDev  = sqrt((lenSumSqr - estList.size() *
-                                 meanLen * meanLen) / (estList.size() - 1));
-    std::cout << "Number of ests       : " << estList.size() << std::endl;
+    const double meanLen = lenSum / estList->size();
+    const double stdDev  = sqrt((lenSumSqr - estList->size() *
+                                 meanLen * meanLen) / (estList->size() - 1));
+    std::cout << "Number of ests       : " << estList->size() << std::endl;
     std::cout << "Mean EST size        : " << meanLen << " bp\n";
     std::cout << "Deviation in EST size: " << stdDev << " bp\n";
     std::cout << "Minimum EST size     : " << minLen << " bp\n";
@@ -220,17 +223,19 @@ InteractiveConsole::exit(const std::vector<std::string>& UNREFERENCED_PARAMETER(
 void
 InteractiveConsole::list(const std::vector<std::string>& UNREFERENCED_PARAMETER(cmdWords)) {
     // Obtain the list of ESTs to print
-    const std::vector<EST*>& estList = EST::getESTList();
+    const ESTList* estList = peace->getContext()->getESTList();
     // Print the header for additional information.
     std::cout << "Index      FASTA Identifier\n"
-              << "---------------------------------------------------------\n";
+              << std::string(79, '-') << std::endl;
     // Print information about each EST
-    for(size_t idx = 0; (idx < estList.size()); idx++) {
+    const std::string NoInfo = "<unpopulated>";
+    for(int idx = 0; (idx < estList->size()); idx++) {
+        const EST* est = estList->get(idx);
         std::cout << std::setw(8) << idx
-                  << " : " << estList[idx]->getInfo()
+                  << " : " << (est->isPopulated() ? est->getInfo() : NoInfo)
                   << std::endl;
     }
-    std::cout << "---------------------------------------------------------\n";
+    std::cout << std::string(79, '-') << std::endl;
 }
 
 void
@@ -247,19 +252,28 @@ InteractiveConsole::analyze(const std::vector<std::string>& cmdWords) {
         // invalid index values or FASTA identifiers.
         return;
     }
+    // Ensure we have an analyzer to work with.
+    ESTAnalyzer *analyzer = peace->getContext()->getAnalyzer();
+    if (analyzer == NULL) {
+        std::cout << "analyze command requires that an EST analyzer to use.\n"
+                  << "Use --analyzer command line option.\n";
+        return;
+    }
+    
     // Print brief information about ESTs being analyzed to aid user
-    const EST* const est1 = EST::getEST(index1);
-    const EST* const est2 = EST::getEST(index2);
+    const ESTList* estList = peace->getContext()->getESTList();
+    const EST* const est1 = estList->get(index1);
+    const EST* const est2 = estList->get(index2);
     std::cout << "Analyzing EST " << est1->getInfo() << " (index: " << index1
               << ") with\n"
-              << "          EST "    << est2->getInfo() << " (index: " << index2
+              << "          EST " << est2->getInfo() << " (index: " << index2
               << ")...\n";
     // Do the analysis part while tracking time taken.
     const double startTime = MPI_WTIME();
     // Setup the reference est for analysis.
-    analyzer->setReferenceEST(index1);
+    analyzer->setReferenceEST(est1);
     // Get the distance/similarity metric.
-    float metric = analyzer->analyze(index2);
+    float metric = analyzer->analyze(est2);
     // Compute time elapsed in milliseconds
     const double elapsedTime = (MPI_WTIME() - startTime) * 1000.0;
     // Display analysis results
@@ -279,8 +293,8 @@ InteractiveConsole::analyze(const std::vector<std::string>& cmdWords) {
 int
 InteractiveConsole::getESTIndex(const std::string& id) const {
     // Obtain the list of ESTs to check
-    const std::vector<EST*>& estList = EST::getESTList();
-    const int  EstCount              = (int) estList.size();
+    const ESTList* estList = peace->getContext()->getESTList();
+    const int  EstCount    = estList->size();
     
     // Try and process id as a number.
     char *endptr = NULL;
@@ -291,7 +305,7 @@ InteractiveConsole::getESTIndex(const std::string& id) const {
         // No it was not a number. Assume it is a fasta header and
         // search for it.
         for(index = 0; (index < EstCount); index++) {
-            if (id == estList[index]->getInfo()) {
+            if (id == estList->get(index)->getInfo()) {
                 // Found a match
                 break;
             }
@@ -321,11 +335,46 @@ InteractiveConsole::print(const std::vector<std::string>& cmdWords) {
         return;
     }
     // Print information about EST
-    const EST* const est = EST::getEST(index);
-    std::cout << "Info on EST " << est->getInfo()
+    const std::string NoInfo = "<unpopulated>";
+    const ESTList* estList = peace->getContext()->getESTList();
+    const EST* const est = estList->get(index);
+    std::cout << "Info on EST "
+              << (est->isPopulated() ? est->getInfo() : NoInfo)
               << " (index: "    << index << "), Len: "
-              << strlen(est->getSequence()) << " base pairs\n";
-    std::cout << est->getSequence() << std::endl;
+              << est->getSequenceLength() << " base pairs\n";
+    std::cout << (est->isPopulated() ? est->getSequence() : NoInfo)
+              << std::endl;
+}
+
+void
+InteractiveConsole::populate(const std::vector<std::string>& cmdWords) {
+    if ((cmdWords.size() < 2) || (cmdWords.size() > 3)) {
+        std::cout << "The populate command requires one or two arguments:\n"
+                  << "    populate <estIndex/header>\tpopulate<startIndex> "
+                  << "<endIndex>.\n";
+        return;
+    }
+    // Convert parameter to consistent index value
+    const int startIndex = getESTIndex(cmdWords[1]);
+    const int endIndex   = (cmdWords.size() == 2 ? startIndex :
+                            getESTIndex(cmdWords[2]));
+    if ((startIndex == -1) || (endIndex == -1) || (startIndex > endIndex)) {
+        // invalid index values or FASTA identifiers.
+        std::cout << "Invalid start or end index values specified.\n";
+        return;
+    }
+    // Load information about the set of ESTs
+    ESTList* estList = peace->getContext()->getESTList();    
+    int repopCount = 0;
+    for(int idx = startIndex; (idx <= endIndex); idx++) {
+        const EST* est = estList->get(idx, true);
+        if (est->isPopulated()) {
+            repopCount++;
+        }
+    }
+    std::cout << "Repopulated " << repopCount << " of "
+              << (endIndex - startIndex + 1) << " (range: "
+              << startIndex << " to " << endIndex << ")\n";
 }
 
 void
@@ -339,6 +388,7 @@ InteractiveConsole::help(const std::vector<std::string>& UNREFERENCED_PARAMETER(
               << "print     Print information about a given EST.\n"
               << "analyze   Print d2/clu metrics for a given pair of ESTs.\n"
               << "stats     Print statistics about all the ESTs.\n"
+              << "populate  Repopulate a given EST (or range of ESTs)\n"
               << "exit      Quit out of PEACE interactive console.\n";
 }
 

@@ -44,6 +44,7 @@ import org.peace_tools.core.session.SessionFactory;
 import org.peace_tools.generic.UserLog;
 import org.peace_tools.workspace.Job;
 import org.peace_tools.workspace.JobBase;
+import org.peace_tools.workspace.JobBase.JobStatusType;
 import org.peace_tools.workspace.Server;
 import org.peace_tools.workspace.Workspace;
 
@@ -199,7 +200,7 @@ public class JobMonitor implements Runnable {
 	private boolean updateJobStatus() {
 		String extension = ".sh";
 		try {
-			if (ServerSession.OSType.WINDOWS.equals(session.getOSType())) {
+			if (Server.OSType.WINDOWS.equals(session.getOSType())) {
 				extension = ".bat";
 			}
 		} catch (Exception e) {
@@ -279,6 +280,9 @@ public class JobMonitor implements Runnable {
 			int exitStatus = Integer.parseInt(progInfo[2].trim());
 			status = (exitStatus == 0) ? JobBase.JobStatusType.FINISHING :
 				JobBase.JobStatusType.FAILED;
+		} else if ("waiting".equals(progInfo[1])) {
+			// The job is in waiting status unless it has already failed
+			status = (!job.isDone() ? JobStatusType.WAITING : job.getStatus());
 		}
 		// Update the job status information if it has changed
 		if (!status.equals(job.getStatus())) {

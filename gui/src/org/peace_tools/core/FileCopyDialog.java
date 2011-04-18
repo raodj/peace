@@ -51,10 +51,10 @@ import org.peace_tools.core.session.ServerSession;
 import org.peace_tools.core.session.SessionFactory;
 import org.peace_tools.generic.ProgrammerLog;
 import org.peace_tools.generic.Utilities;
+import org.peace_tools.workspace.FileEntry;
+import org.peace_tools.workspace.GeneratedFileList;
 import org.peace_tools.workspace.Job;
 import org.peace_tools.workspace.JobBase;
-import org.peace_tools.workspace.MSTClusterData;
-import org.peace_tools.workspace.MSTData;
 import org.peace_tools.workspace.Server;
 import org.peace_tools.workspace.Workspace;
 
@@ -86,20 +86,24 @@ public class FileCopyDialog extends JDialog implements Runnable {
 		// Obtain and save the MSTData and ClusterDataEntries that
 		// contain the name of the destination file for this job.
 		Workspace workspace    = Workspace.get();
-		MSTData mstEntry       = workspace.getMSTData(job.getJobID());
-		MSTClusterData cluster = workspace.getClusterData(job.getJobID());
+		GeneratedFileList gfl  = workspace.getGFL(job.getJobID());
 		// Save the target file names in an array for later reference.
-		targetFileNames    = new String[2];
-		targetFileNames[0] = mstEntry.getPath();
-		targetFileNames[1] = cluster.getPath();
-		// Setup the labels using a helper method in a panel.
-		fileInfo    = new JLabel[2];
-		fileInfo[0] = createLabel("MST", targetFileNames[0]); 
-		fileInfo[1] = createLabel("Cluster", targetFileNames[1]);
+		// In addition setup the labels using a helper method in a panel
+		final int FileCount = gfl.getEntries().size();
+		targetFileNames     = new String[FileCount];
+		fileInfo            = new JLabel[FileCount];
 		// Create a panel to contain the labels.
-		JPanel labelPanel = new JPanel(new GridLayout(2, 1));
-		labelPanel.add(fileInfo[0]);
-		labelPanel.add(fileInfo[1]);
+		JPanel labelPanel = new JPanel(new GridLayout(FileCount, 1));
+		for(int i = 0; (i < targetFileNames.length); i++) {
+			FileEntry fe       = gfl.getEntries().get(i);
+			targetFileNames[i] = fe.getPath();
+			// Create label
+			final String info  = "" + fe.getType() + " [" +
+				fe.getMimeType() + "]";
+			fileInfo[i]        = createLabel(info, targetFileNames[i]);
+			// Add it to GUI panel.
+			labelPanel.add(fileInfo[i]);
+		}
 		// Create a panel with information and labels 
 		JPanel infoPanel = new JPanel(new BorderLayout(5, 0));
 		infoPanel.add(new JLabel("<html><b>Please wait while the following File(s) are<br>" + 
@@ -182,10 +186,14 @@ public class FileCopyDialog extends JDialog implements Runnable {
 				progressBar.setIndeterminate(true);
 				// Indicate that we are copying a given file.
 				this.fileInfo[i].setIcon(Utilities.getIcon("images/16x16/Download.png"));
-				// First create a output stream to copy data to
+				// Create a file object to make life easier
 				File destFile = new File(targetFileNames[i]);
 				progressInfo.setText("Transferring: " + destFile.getName());
-				// Create an output stream.
+				// First create the destination folder if it does not exit.
+				if (!destFile.getParentFile().exists()) {
+					destFile.getParentFile().mkdir();
+				}
+				// Create a output stream to copy data
 				FileOutputStream fos = new FileOutputStream(targetFileNames[i]);
 				ProgrammerLog.log("Starting transfer of " + destFile.getName() + "\n");
 				session.copy(fos, job.getPath(), destFile.getName(), progressBar);

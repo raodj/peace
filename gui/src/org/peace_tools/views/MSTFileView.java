@@ -108,7 +108,7 @@ public class MSTFileView extends JPanel implements ListSelectionListener {
     				jsp, null, -1, null, null, null);
         
 		// Create summary information.
-		JTree summaryInfo = PropertiesTreeMaker.makeProperties(treeModel.getWsEntry(), mainFrame);
+		JTree summaryInfo = PropertiesTreeMaker.makeMSTProperties(treeModel.getWsEntry(), mainFrame);
 		// Place the summary information and the tree-table into a split panel using
 		// helper method.
 		JSplitPane contentPane = 

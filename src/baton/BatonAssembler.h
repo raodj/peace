@@ -36,9 +36,14 @@
 
 #include "Assembler.h"
 #include "AlignmentInfo.h"
+#include "BatonListCache.h"
+#include "DefaultSequenceAligner.h"
 
 #include <set>
 #include <fstream>
+
+// Forward declarations
+class BatonAnalyzer;
 
 /** \file BatonAssembler.h
     
@@ -87,57 +92,28 @@ public:
         
         The destructor frees up any dynamic memory allocated by this
         class.  The destructor also deletes the instance of the
-        BatonAnalyzer class created in the constructor.
+        SequenceAnalyzer object created in the initialize() method.
     */
     virtual ~BatonAssembler();
-    
-    /** Display valid command line arguments for this assembler.
-	
-        This is used to display all valid command line options that
-        are supported by this assembler.  Many of the options for
-        specifying window size, <i>n</i>-mer size, threshold,
-        permitted errors, and sufficiently good alignment score is
-        delegated to the BatonAnalyzer member in this class.
 
-        \note The Assembler base class requires that derived EST
-        assembler classes <b>must</b> override this method to display
-        help for their custom command line arguments.  When this
-        method is overridden don't forget to call the corresponding
-        base class implementation to display common options.
+	/** Add valid command line arguments for this assembler.
+		
+        This method must be used to add all valid command line options
+        that are supported by this assembler.  Note that derived
+        classes may override this method to add additional command
+        line options that are applicable to it.  This method is
+        invoked when the clustering sub-system is initialized.
+		
+        \note Derived assembler classes <b>must</b> override this
+        method to display help for their custom command line
+        arguments.  When this method is overridden don't forget to
+        call the corresponding base class implementation to add common
+        options.
         
-        \param[out] os The output stream to which the valid command
-        line arguments must be written.
+        \param[out] argParser The argument parser to which the command
+        line arguments for this component are to be added.
     */
-    virtual void showArguments(std::ostream& os);
-
-    /** Process command line arguments.
-
-        This method is used to process command line arguments specific
-        to this assembler.  This method is typically used from the
-        core system just after an derived assembler has been
-        instantiated (MPI (if used) has already been initialized).
-        This method must consumes all valid command line arguments
-        applicable to the implementation.  If the command line
-        arguments were valid and successfully processed, then this
-        method returns \c true.
-
-        \note Derived assembler classes are expected to override this
-        method to process any command line arguments that are custom
-        to their operation.  When this method is overridden don't
-        forget to call the corresponding base class implementation to
-        display common options.
-        
-        \param[in,out] argc The number of command line arguments to be
-        processed.
-
-        \param[in,out] argv The array of command line arguments.
-
-        \return This method returns \c true if the command line
-        arguments were successfully processed.  Otherwise this method
-        returns \c false.  This method returns true if all arguments
-        are consumed successfully.
-    */
-    virtual bool parseArguments(int& argc, char **argv);
+    virtual void addCommandLineArguments(ArgParser& argParser);
 
 	/** A method to handle initialization tasks.
 		
@@ -158,10 +134,10 @@ public:
         
         </ol>
         
-		\return This method returns zero on success. On errors, this
-		method returns a non-zero value.
+		\return This method returns \true on success. On errors, this
+		method returns \c false.
     */
-    virtual int initialize();
+    virtual bool initialize();
 		
 protected: 
     /* The constructor for this class.
@@ -169,74 +145,39 @@ protected:
        The constructor is made protected so that this class cannot be
        directly instantiated.  Instead one of the derived classes must
        be suitably instantiated.
-
-       \param[in] outputFile The name of the output file to which the
-       assembly information is to be written.  If this parameter is
-       the empty string then output is written to standard output.
-       This value is simply passed onto the base class.
     */
-    BatonAssembler(const std::string& outputFileName);
+    BatonAssembler();
 
-	/** Helper method to compute the start and ending indexes of the
-        EST that this process owns.
+    /** The sequence aligner that does pair-wise alignment.
 
-        This method was introduced to keep the math and logic clutter
-        involved in computing the list of owned ESTs out of the
-        methods that use the information.  This method returns the
-        range, such that: \c startIndex <= \em ownedESTidx < \c
-        endIndex.
-		
-        \note This method must be invoked only after MPI::Intialize()
-        has beeen called and the ESTs to be processed have be loaded
-        (so that EST::getESTList() returns a valid list of ESTs).
-
-        \param[out] startIndex The starting (zero-based) index value
-        of the contiguous range of ESTs that this process owns.
-
-        \param[out] endIndex The ending (zero-based) index value of
-        the contiguous range ESTs that this process owns.  The value
-        returned in this parameter is \b not included in the range of
-        values.
-
-		\note Currently, this method has exact implementation as in
-		MSTClusterMaker::getOwnedESTidx. This method has been
-		copy-pasted so that filters can operate on their own different
-		sub-set of ESTs if they choose. Maybe the method can be
-		combined together.
-    */
-    static void getOwnedESTidx(int& startIndex, int& endIndex);
-
-    /** The baton analyzer that does pair-wise alignment.
-
-        This instance variable provides a reference to the baton
+        This instance variable provides a reference to the sequence
         analyzer that performs the core task of analyzing a pair of
         cDNA sequences and providing a suitable alignment for them,
         assuming that the two sequences are sufficiently similar to
-        warrant alignment.  This pointer is initialized in the
-        constructor (via the ESTAnalyzerFactory) and deleted in the
-        destructor.
+        warrant alignment.  
     */
-    BatonAnalyzer* const analyzer;
+    DefaultSequenceAligner aligner;
 
-    /** Compute alignment between refESTidx and the subset of ESTs
+    /** Compute alignment between a given EST and the subset of ESTs
         owned by this assembler process.
 
         This method is a common helper method that is shared by the
-        manager and worker processes.  This method is repeatedly
-        invoked (with different reference fragments) to compute
-        alignment between a given reference sequence and the subset of
-        entries owned by this assembler process.
+        manager and worker processes.  In this context the term
+        'local' is used to refer to the local process on which this
+        method is invoked.  This method is repeatedly invoked (with
+        different reference fragments) to compute alignment between a
+        given reference sequence and the subset of entries owned by
+        this assembler process.
         
         \note The subset of fragments owned by this process is
-        computed via a call to the getOwnedESTidx method in this
-        class.
+        computed via a call to the getOwnedESTidx() method.
 
         \note Fragments that were aligned are flagged as having been
         processed by this method.
         
-        \param[in] refESTidx The index of the reference sequence to be
-        used for exploring and discovering similar fragments that can
-        be aligned together.
+        \param[in] refEST A pointer to the reference EST to be used
+        for exploring and discovering similar fragments that can be
+        aligned together.
 
         \param[out] alignList This vector is populated with the list
         of alignments that were discovered in the subset of fragments
@@ -244,31 +185,21 @@ protected:
         by this method.  New alignment information is simply added to
         this list.
     */
-    void localAssembly(const int refESTidx, AlignmentInfoList& alignList);
+    void localAssembly(const EST* refEST, AlignmentInfoList& alignList);
 
-    /** Name of file to report progress in during assembly.
+	/** A shared BatonList cache to cache baton lists.
 
-        This command line argument provides the name of the log file
-		where progress information is to be written. The progress
-		information is in the form: \#estsProcessed, \#ests. The file
-		name is specified via a command line argument \c --progress.
-		This value is used only by the BatonAssemblerManager class.
-		Possibly this parameter must be moved down to the child class.
-    */
-    static char *progFileName;
+		This object is used to contain a shared list of BatonList
+		objects that are cached and reused during various analysis.
+		Entries in the cache are created on demand.  In addition to
+		the BatonAssembler hierarchy, the BatonAnalyzer also uses this
+		cache for analysis.  The BatonListCache adds a couple of
+		command line arguments to customize its operations.
+	*/
+	BatonListCache blCache;
 	
 private:
-    /** The set of arguments specific to the baton assembler.
-
-        This instance variable contains a static list of command line
-        arguments that are specific only to the baton assembler class.
-        This argument list is statically defined and shared by all
-        instances of this class.
-
-        \note Use of static arguments and parameters makes this class
-        hierarchy not MT-safe.
-    */
-    static arg_parser::arg_record argsList[];
+    // Currently this class does not have any private members
 };
 
 #endif

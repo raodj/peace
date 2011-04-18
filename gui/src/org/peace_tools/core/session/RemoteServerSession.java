@@ -153,7 +153,7 @@ implements ServerHostKeyVerifier {
 		// Create connection to the remote host. Use a temporary 
 		// variable so that if exceptions are thrown our instance 
 		// variable continues to remain valid.
-		Connection connection = new Connection(server.getName());
+		Connection connection = new Connection(server.getName(), server.getPort());
 		// Setup preferred key algorithms to be used for this host if the
 		// host is in the known hosts list.
 		String[] hostkeyAlgos = 
@@ -582,7 +582,7 @@ implements ServerHostKeyVerifier {
 	 * does not exist then this method throws an exception.
 	 */
 	@Override
-	public OSType getOSType() throws Exception {
+	public Server.OSType getOSType() throws Exception {
 		if (connection == null) {
 			throw new IOException("Remote session not connected.");
 		}
@@ -603,7 +603,7 @@ implements ServerHostKeyVerifier {
 		}
 		// Determine OS type based on the response string
 		osType = (streamsData[0].indexOf("Linux") != -1) ? 
-				OSType.LINUX : OSType.UNIX;
+				Server.OSType.LINUX : Server.OSType.UNIX;
 		return osType;
 	}
 
@@ -902,7 +902,7 @@ implements ServerHostKeyVerifier {
 	 * set after the getOSType() method is called. If a connection
 	 * is lost or closed, then this value is reset.
 	 */
-	private OSType osType;
+	private Server.OSType osType;
 
 	/**
 	 * This is a convenience class that is provided by Ganymede SSH to 

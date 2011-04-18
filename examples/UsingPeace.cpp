@@ -34,22 +34,48 @@
 //
 //---------------------------------------------------------------------
 
-/** A example on how to use PEACE library and its features.
+/** \file UsingPeace
 
+    \brief A example on how to use PEACE library and some of its
+    features.
 
+    This C++ source code provides a straightforward example
+    illustrating the use of PEACE library to perform some
+    non-traditional task.  Often it may be more convenient to directly
+    use the interactive mode of PEACE for performing most operations.
 */
 
-#include "ClusterMakerFactory.h"
 #include "ESTAnalyzerFactory.h"
 #include "HeuristicFactory.h"
 #include "HeuristicChain.h"
 #include "ParameterSetManager.h"
 
-#include "ClusterMaker.h"
 #include "ESTAnalyzer.h"
 #include "Heuristic.h"
-#include "EST.h"
+#include "ESTList.h"
 
+/**  The main method to illustrate a non-standard use of PEACE
+     library.
+
+     The following method illustrates the following general steps that
+     are involved in using PEACE:
+
+     <ol>
+
+     <li>Step 1: Create and populate the list of cDNA fragments to be
+     processd in a ESTList.  In this example, we use a pair of static
+     cDNA fragments.  However, the data can be generated as well.</li>
+
+     <li>Step 2: This is an optional step of setting up heuristics to
+     speedup analysis of cDNA fragments. PEACE does not require the
+     use of heuristics.</li>
+
+     <li>Step 3: The analyzer to be used is created via the
+     ESTAnalyzerFactory.  Once the analyzer is created, the heuristic
+     chain and the estList references are setup for its use.</li>
+
+     </ol>
+*/
 int
 main(int argc, char* argv[]) {
     // First let's populate the list of ESTs with some sample
@@ -60,70 +86,74 @@ main(int argc, char* argv[]) {
 
     // NOTE: The sequences must be at least 100 base pairs long. This
     // length is what the system has been designed for. If your ESTs
-    // are shorter than 100 base paris then your milage will vary.
-    EST::create(0, "TestSeq#1", "AAAAATTTTCCCGGGAAATTTCCGGGAAATTTCCCGGAAAAA" \
+    // are shorter than 100 base pairs then your milage will vary.
+    ESTList estList;
+    estList.add(0, std::string("TestSeq#1"),
+                "AAAAATTTTCCCGGGAAATTTCCGGGAAATTTCCCGGAAAAA"            \
                 "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-    EST::create(1, "TestSeq#2", "AAAAATTTTCCCGGGAAATTTCCGGGAAATTTCCCGGAAAAA" \
+    estList.add(1, std::string("TestSeq#2"),
+                "AAAAATTTTCCCGGGAAATTTCCGGGAAATTTCCCGGAAAAA"            \
                 "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
-    
-    // Initialize the dynamic parameters manager (a required step)
-    ParameterSetManager::setupParameters();
-
     // Create a heuristic chain to hold the uv and tv heuristics that
     // we are going to use. We could have created these two heuristics
     // separately. But the chain eases creating heuristics for us.
-    HeuristicChain* chain = HeuristicChain::setupChain("uv-tv", 0, "");
-    // Let initialize and setup both heuristics via the chain
-    chain->initialize();
-    chain->setReferenceEST(0); // Set reference EST using index value.
-
+    HeuristicChain chain;
+    chain.setupChain("uv-tv");
+    chain.setESTList(&estList);
+    
     // Next create the d2 EST analyzer.  In the example below, we will
     // use std::auto_ptr<> that will automatically delete the pointers
     // once they go out of scope. That way we don't have to worry
     // about freeing the pointers later on -- basically gives an
     // automatic-smart garbage collection feature.
-    std::auto_ptr<ESTAnalyzer> d2(ESTAnalyzerFactory::create("d2", 0, ""));
-    // Set some parameters. We need a temporary location to hold
-    // constant strings (even though we don't mutate it as the API
-    // requires mutable strings)
-    char param0[]  = "./UsingPeace";
-    char param1[]  = "--frame",   value1[] = "50";
-    char param2[]  = "--word",    value2[] = "6";
-    char param3[]  = "--estFile", value3[] = "<none>";
-    char* params[] = {param0,  // First param is always executable name.
-                      param1, value1, param2, value2, // Set Window & Word size
-                      param3, value3};  // Last parameter is mandatory
-    int paramCount = sizeof(params) / sizeof(char*);
-    d2->parseArguments(paramCount, params);
+    std::auto_ptr<ESTAnalyzer> d2(ESTAnalyzerFactory::create("d2"));
+    // Configure the properties of the analyzer. For this we need to
+    // know.  The properties of the specific analyzer are represented
+    // as <name, value> pairs.  The names are specified by a short
+    // string.  A convenient way to obtain and display valid
+    // properties is shown (and commented out) below:
+    // d2->showArguments(std::cout);
 
+    // Setup properties of d2 analyzer
+    d2->setArgument("--frame", 50);
+    d2->setArgument("--word",  6);
+    
+    // Setup the heuristics and est list for the analyzer to work with.
+    d2->setESTList(&estList);
+    d2->setHeuristicChain(&chain);
+    
+    // Initialize the analyzer (it also initializes the heuristic chain).
+    if (!d2->initialize()) {
+        std::cerr << "Error initializing ESTAnalyzer " << d2->getName()
+                  << ". Aborting.\n";
+        return 1;
+    }
     // Now let's first use the UV heuristic to see if the pairs of
     // ESTs pass UV heuristic.
-    Heuristic* uv = chain->getHeuristic("uv");
-    // Get UV heuristic to analyze EST #0 (reference EST set earlier
-    // on in this example) and EST #1
-    bool result = uv->shouldAnalyze(1);
+    Heuristic* uv = chain.getHeuristic("uv");
+    ASSERT( uv != NULL );
+    // Get UV heuristic to analyze EST #0 (reference EST) and EST #1
+    uv->setReferenceEST(estList.get(0));
+    bool result = uv->shouldAnalyze(estList.get(1));
     std::cout << "UV heuristic says that EST #0 and EST #1 are "
               << (result ? "" : "not ") << "related." << std::endl;
 
     // Next let's use the TV heuristic to see if the pairs of ESTs
     // pass TV heuristic.
-    Heuristic* tv = chain->getHeuristic("tv");
-    // Get TV heuristic to analyze EST #0 (reference EST set earlier
-    // on in this example) and EST #1
-    result = tv->shouldAnalyze(1);
+    Heuristic* tv = chain.getHeuristic("tv");
+    ASSERT ( tv != NULL );
+    // Get TV heuristic to analyze EST #0 (reference EST) and EST #1
+    tv->setReferenceEST(estList.get(0));
+    result = tv->shouldAnalyze(estList.get(1));
     std::cout << "TV heuristic says that EST #0 and EST #1 are "
               << (result ? "" : "not ") << "related." << std::endl;
 
     // Now let's run d2 analyzer and obtain d2 score between EST #0
     // (the reference EST set earlier) and EST #1
-    d2->initialize();
-    d2->setReferenceEST(0);
-    const float metric = d2->analyze(1);
+    d2->setReferenceEST(estList.get(0));
+    const float metric = d2->analyze(estList.get(1));
     std::cout << "d2 score between EST #0 and EST #1 is: "
               << (int) metric << std::endl;
-
-    // Free up our chain.
-    delete chain;
     // Everything went well.
     return 0;
 }

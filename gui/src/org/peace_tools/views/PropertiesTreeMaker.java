@@ -30,14 +30,15 @@ import org.peace_tools.data.ESTList;
 import org.peace_tools.generic.CustomBorder;
 import org.peace_tools.generic.IconTreeNode;
 import org.peace_tools.generic.Utilities;
+import org.peace_tools.workspace.ClusteringJob;
+import org.peace_tools.workspace.DataFileStats;
 import org.peace_tools.workspace.DataSet;
 import org.peace_tools.workspace.FWAnalyzer;
+import org.peace_tools.workspace.FileEntry;
 import org.peace_tools.workspace.Filter;
 import org.peace_tools.workspace.Heuristic;
 import org.peace_tools.workspace.Job;
 import org.peace_tools.workspace.JobSummary;
-import org.peace_tools.workspace.MSTClusterData;
-import org.peace_tools.workspace.MSTData;
 import org.peace_tools.workspace.Param;
 import org.peace_tools.workspace.Server;
 import org.peace_tools.workspace.Workspace;
@@ -63,7 +64,7 @@ public class PropertiesTreeMaker {
 	 * entry as the main entry. This method calls the various internal
 	 * helper methods in this class to build the complete three.
 	 * 
-	 * @param mst The MST workspace entry for which a detailed properties tree
+	 * @param mst The workspace entry for which a detailed properties tree
 	 * is to be built by this method.
 	 * 
 	 * @param parent The parent component to be used to display dialog boxes
@@ -71,11 +72,11 @@ public class PropertiesTreeMaker {
 	 * 
 	 * @return The detailed properties tree for the given MST entry
 	 */
-	public static JTree makeProperties(MSTData mst, Component parent) {
+	public static JTree makeMSTProperties(FileEntry mst, Component parent) {
 		// First create the root element for the tree.
 		DefaultMutableTreeNode root = makeMSTProperties(mst, true, true, parent);
 		// Add job information if available.
-		root.add(makeJobProperties(mst.getJobSummary()));
+		root.add(makeJobProperties(mst.getGFL().getJobSummary()));
 		// Create the tree model to be populated with necessary information.
 		DefaultTreeModel model = new DefaultTreeModel(root);
 		JTree propertiesTree = new JTree(model);
@@ -85,7 +86,7 @@ public class PropertiesTreeMaker {
 		propertiesTree.setRootVisible(true);
 		// Set renderer to display icons correctly
 		addPropertiesRenderer(propertiesTree);
-		// Return the Jtree to the user.
+		// Return the tree to the user.
 		return propertiesTree;
 	}
 	
@@ -191,7 +192,7 @@ public class PropertiesTreeMaker {
 	 * 
 	 * @return The detailed properties tree for the given cluster entry.
 	 */
-	public static JTree makeProperties(MSTClusterData cluster, Component parent) {
+	public static JTree makeClusterProperties(FileEntry cluster, Component parent) {
 		// First create the root element for the tree.
 		DefaultMutableTreeNode root = new IconTreeNode(cluster, CustomIcons[CLUSTER_ICON]);
 		// Add information about the clustering file.
@@ -200,23 +201,22 @@ public class PropertiesTreeMaker {
 		// Add information about the physical cluster file on disk on local machine
 		root.add(makeFileProperties(cluster.getPath(), "Cluster File Properties"));
 		// Add clustering summary information.
-		root.add(makeSummaryProperties(cluster, parent));
+		root.add(makeClusterSummaryProperties(cluster, parent));
 		// Add information about the source FASTA file.
-		root.add(makeDataSetProperties(cluster.getDataSet(), parent));
+		root.add(makeDataSetProperties(cluster.getGFL().getDataSet(), parent));
 		// Add MST information if available.
-		MSTData mst = Workspace.get().getMSTData(cluster.getJobSummary().getJobID());
+		FileEntry mst = cluster.getGFL().findEntry(FileEntry.FileEntryType.MST);
 		if (mst != null) {
 			root.add(makeMSTProperties(mst, false, true, parent));
 		} else {
 			// MST information could not be located. Add dummy node.
 			DefaultMutableTreeNode mstNode = new IconTreeNode("MST (data unavailable", 
 															  CustomIcons[ERROR_ICON]);
-			root.add(new DefaultMutableTreeNode("Internal ID: " + cluster.getMSTID()));
 			root.add(new DefaultMutableTreeNode("Note: MST entry may have been deleted by user"));
 			root.add(mstNode);
 		}
 		// Add job information if available.
-		root.add(makeJobProperties(cluster.getJobSummary()));
+		root.add(makeJobProperties(cluster.getGFL().getJobSummary()));
 		// Create the tree model to be populated with necessary information.
 		DefaultTreeModel model = new DefaultTreeModel(root);
 		JTree propertiesTree = new JTree(model);
@@ -242,7 +242,7 @@ public class PropertiesTreeMaker {
 	 * @return A sub-tree with necessary statistical summary information to be included 
 	 * in the main properties tree at an appropriate location.
 	 */
-	private static MutableTreeNode makeSummaryProperties(MSTClusterData cluster, Component parent) {
+	private static MutableTreeNode makeClusterSummaryProperties(FileEntry cluster, Component parent) {
 		// If the clustering file exists then let's also make summary information.
 		DefaultMutableTreeNode summary = null;
 		try {
@@ -326,22 +326,20 @@ public class PropertiesTreeMaker {
 	 * @return A sub-tree with necessary MST properties information to be included 
 	 * in the main properties tree at an appropriate location.
 	 */
-	private static DefaultMutableTreeNode makeMSTProperties(MSTData mst,
+	private static DefaultMutableTreeNode makeMSTProperties(FileEntry mst,
 			boolean needDataSetInfo, boolean needFileInfo, Component parent) {
 		// Create the top-level sub-tree node to hold file information
 		DefaultMutableTreeNode mstNode = new IconTreeNode(mst, CustomIcons[MST_ICON]);
 		// Add data set properties if needed.
 		if (needDataSetInfo) {
 			// Get the helper method to populate information about data set
-			mstNode.add(makeDataSetProperties(mst.getDataSet(), parent));
+			mstNode.add(makeDataSetProperties(mst.getGFL().getDataSet(), parent));
 		}
 		// Add ID and user supplied description next.
 		mstNode.add(new DefaultMutableTreeNode("Internal ID: " + mst.getID()));
 		mstNode.add(new DefaultMutableTreeNode("Description: " + mst.getDescription()));
 		// Set the type of analyzer that we are working with
-		mstNode.add(new DefaultMutableTreeNode("Type: " + mst.getType()));
-		// Add sub-tree about the type of analyzer being using.
-		mstNode.add(makeAnalyzerProperties(mst.getFWAnalyzer()));
+		mstNode.add(new DefaultMutableTreeNode("Mime Type: " + mst.getMimeType()));
 		// Add file information if requested
 		if (needFileInfo) {
 			// Get the helper method to populate physical information about
@@ -378,10 +376,34 @@ public class PropertiesTreeMaker {
 		jobNode.add(new DefaultMutableTreeNode("CPUs per Node: " + job.getCPUsPerNode()));
 		jobNode.add(new DefaultMutableTreeNode("Max requested memory (MB): " + job.getMemory()));
 		jobNode.add(new DefaultMutableTreeNode("Max requested runtime (hours): " + job.getMaxRunTime()));
-		// Now add information about heuristics based on the analyzer being used.
-		MSTData mstEntry = Workspace.get().getMSTData(job.getJobID());
-		boolean autoHeuristics = ((mstEntry != null) && 
-				(mstEntry.getFWAnalyzer().getType().equals(FWAnalyzer.FWAnalyzerType.TWOPASSD2)));
+		// Now add information about heuristics (if any)
+		if (job instanceof ClusteringJob) {
+			makeClusteringJobProperties(jobNode, (ClusteringJob) job);
+		}
+		return jobNode;
+	}
+
+	/**
+	 * Helper method to create a properties node for a given clustering job entry.
+	 * 
+	 * This is an internal helper method that is used to build the properties
+	 * node for a given clustering job entry. This method adds nodes for
+	 * the following entries that are specific to a clustering job:
+	 * FWAnalyzer properties, Heuristics, and Filters.
+	 * 
+	 * @param jobNode The mutable tree node to which entries for this job
+	 * are to be added.
+	 * 
+	 * @param job The job object to be used to create a suitable property 
+	 * sub-tree for display to the user.
+	 *   
+	 * @return A sub-tree with necessary MST properties information to be included 
+	 * in the main properties tree at an appropriate location.
+	 */
+	private static void makeClusteringJobProperties(DefaultMutableTreeNode jobNode, ClusteringJob job) {
+		// Add entry about the analyzer
+		jobNode.add(makeAnalyzerProperties(job.getFWAnalyzer()));
+		boolean autoHeuristics = job.isAutoHeuristic();
 		// Create node for heuristics.
 		DefaultMutableTreeNode heuristicsNode = new IconTreeNode("Heuristics", CustomIcons[HEURISTICS_ICON]);
 		// Add heuristics only if autoHeuristics is not enabled.
@@ -399,9 +421,6 @@ public class PropertiesTreeMaker {
 			filtersNode.add(makeFilterProperties(filter));
 		}
 		jobNode.add(filtersNode);
-		
-		// Return the MST information back to the caller
-		return jobNode;
 	}
 
 	/**
@@ -513,13 +532,13 @@ public class PropertiesTreeMaker {
 				estList = DataStore.get().getSFF(dataSet.getPath(), parent);
 			}
 			if (estList != null) {
-				double[] fastaStats = estList.computeStatistics();
+				DataFileStats fastaStats = estList.computeStatistics();
 				summary = new DefaultMutableTreeNode("Summary Statistics");
-				summary.add(new DefaultMutableTreeNode("Fragment count: " + fastaStats[0]));
-				summary.add(new DefaultMutableTreeNode("Shortest fragment: " + fastaStats[1]));
-				summary.add(new DefaultMutableTreeNode("Longest fragment: " + fastaStats[2]));
-				summary.add(new DefaultMutableTreeNode("Average fragment length: " + fastaStats[3]));
-				summary.add(new DefaultMutableTreeNode("SD in length: " + fastaStats[4]));
+				summary.add(new DefaultMutableTreeNode("Fragment count: " + fastaStats.getCount()));
+				summary.add(new DefaultMutableTreeNode("Shortest fragment: " + fastaStats.getMinLength()));
+				summary.add(new DefaultMutableTreeNode("Longest fragment: " + fastaStats.getMaxLength()));
+				summary.add(new DefaultMutableTreeNode("Average fragment length: " + fastaStats.getAvgLength()));
+				summary.add(new DefaultMutableTreeNode("SD in length: " + fastaStats.getLengthSD()));
 			}
 		} catch (Exception e) {
 			JPanel msg = Utilities.collapsedMessage("Unable to compute summary statistics for FASTA file.", 
@@ -565,6 +584,10 @@ public class PropertiesTreeMaker {
 		// Add cache size and other cache information.
 		fwNode.add(new DefaultMutableTreeNode("Cache type: " + analyzer.getCacheType()));
 		fwNode.add(new DefaultMutableTreeNode("Cache size: " + analyzer.getCacheSize()));
+		// Add cluster maker type implicitly used for this analyzer
+		final String NA_MST = "Non-adaptive MST (na-mst)";
+		final String[] ClusterMaker = {"Adaptive MST (amst)", NA_MST, NA_MST, NA_MST, NA_MST};
+		fwNode.add(new DefaultMutableTreeNode("Cluster maker:" + ClusterMaker[analyzer.getType().ordinal()]));
 		// Return the MST information back to the caller
 		return fwNode;
 	}

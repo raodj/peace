@@ -38,8 +38,8 @@
 #include "MPIHelper.h"
 #include "MPIStats.h"
 
-BatonAssemblerWorker::BatonAssemblerWorker(const std::string& outputFileName)
-    : BatonAssembler(outputFileName) {
+BatonAssemblerWorker::BatonAssemblerWorker()
+    : BatonAssembler() {
     // Nothing else to be done here for now.
 }
 
@@ -52,6 +52,7 @@ BatonAssemblerWorker::assemble() {
     // The operations in the following loop must be coordinated with
     // the sequence of operations in the manager process as well.
     // The reference EST index that is updated in the loops below.
+    ASSERT( estList != NULL );
     int refESTidx = -1;
     do {
         // First get the index of the reference sequence with which
@@ -64,11 +65,12 @@ BatonAssemblerWorker::assemble() {
             break;
         }
         // Mark reference EST as having been processed.
-        EST::getEST(refESTidx)->setProcessed(true);        
+        EST* const refEST = estList->get(refESTidx);
+        refEST->setProcessed(true);        
         // Do some of the alignment on the worker using the common
         // base class helper.
         AlignmentInfoList alignmentList;
-        localAssembly(refESTidx, alignmentList);
+        localAssembly(refEST, alignmentList);
         // Add a dummy last entry to indicate end of list. This also
         // helps in cases where we don't have any elements.
         alignmentList.push_back(AlignmentInfo());

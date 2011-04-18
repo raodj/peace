@@ -38,121 +38,36 @@ include $(top_builddir)/Makefile.common.am
 AM_CPPFLAGS=$(GLOBALCPPFLAGS)
 AM_CXXFLAGS=$(GLOBALCXXFLAGS)
 
-AM_CPPFLAGS += -Ibaton
+AM_CPPFLAGS += -Ibaton -Icommon -Ioutput -Iinput -Iframework -Ishared -Ifiltering -Iclustering -Iassembly
 
-SUBDIRS = baton
+SUBDIRS = framework shared input output filtering clustering assembly baton
 
-noinst_LIBRARIES = libpeace.a
+noinst_LTLIBRARIES = libpeace.la
 bin_PROGRAMS = peace
 
-peace_LDFLAGS = -L.
-peace_LDADD = $(STDCPP) libpeace.a baton/libbaton.a libpeace.a
+libpeace_la_SOURCES = \
+	PEACE.h \
+	PEACE.cpp \
+	config.h \
+	Version.h
 
-libpeace_a_SOURCES = \
-arg_parser.cpp\
-arg_parser.h\
-ESTAnalyzer.cpp\
-ESTAnalyzerFactory.cpp\
-ESTAnalyzerFactory.h\
-ESTAnalyzer.h\
-EST.cpp\
-EST.h\
-FMWSCA.cpp\
-FMWSCA.h\
-D2.h\
-D2.cpp\
-FWAnalyzer.cpp\
-FWAnalyzer.h\
-MatrixFileAnalyzer.h \
-MatrixFileAnalyzer.cpp \
-HTMLHeader.h\
-ResultLog.cpp\
-ResultLog.h\
-Utilities.cpp\
-Utilities.h\
-ClusterMaker.h\
-ClusterMaker.cpp\
-ClusterMakerFactory.h\
-ClusterMakerFactory.cpp\
-MSTNode.h\
-MSTNode.cpp\
-MST.h\
-MST.cpp\
-MSTCache.h\
-MSTCache.cpp\
-MSTClusterMaker.h\
-MSTClusterMaker.cpp\
-CLU.h\
-CLU.cpp\
-ESTCustomData.h\
-MSTCluster.h\
-MSTCluster.cpp\
-MPIStats.h\
-MPIStats.cpp\
-Heuristic.h\
-Heuristic.cpp\
-HeuristicFactory.h\
-HeuristicFactory.cpp\
-HeuristicChain.h\
-HeuristicChain.cpp\
-UVSampleHeuristic.h\
-UVSampleHeuristic.cpp\
-NewUVHeuristic.h\
-NewUVHeuristic.cpp\
-ESTCodec.cpp\
-ESTCodec.h\
-TVHeuristic.h\
-TVHeuristic.cpp\
-D2Zim.h\
-D2Zim.cpp\
-AdaptiveTwoPassD2.h\
-AdaptiveTwoPassD2.cpp\
-TwoPassD2.h\
-TwoPassD2.cpp\
-MSTMultiListCache.h\
-MSTMultiListCache.cpp\
-MSTHeapCache.h\
-MSTHeapCache.cpp\
-CachedESTInfoHelper.h\
-TransCacheEntry.h\
-TransCacheEntry.cpp\
-TransMSTClusterMaker.cpp\
-TransMSTClusterMaker.h\
-MPIHelper.h \
-MPIHelper.cpp \
-Filter.h \
-Filter.cpp \
-LengthFilter.h \
-LengthFilter.cpp \
-FilterFactory.h \
-FilterFactory.cpp \
-FilterChain.h \
-FilterChain.cpp \
-LCFilter.h \
-LCFilter.cpp \
-ParameterSet.h \
-ParameterSetManager.h \
-ParameterSetManager.cpp \
-SFFReader.h \
-SFFReader.cpp \
-OldTVHeuristic.cpp \
-OldTVHeuristic.h \
-OldUVHeuristic.h \
-OldUVHeuristic.cpp \
-OldTwoPassD2.cpp \
-OldTwoPassD2.h \
-OldMSTClusterMaker.h \
-OldMSTClusterMaker.cpp \
-FileLoader.h \
-FileLoader.cpp \
-Assembler.h \
-Assembler.cpp \
-AssemblerFactory.h \
-AssemblerFactory.cpp
+libpeace_la_LIBADD = \
+	framework/libframework.la \
+	shared/libshared.la \
+	input/libinput.la \
+	output/liboutput.la \
+	filtering/libfiltering.la \
+	clustering/libclustering.la \
+	assembly/libassembly.la \
+	baton/libbaton.la
+
+peace_LDFLAGS = -L.
+peace_LDADD = $(STDCPP) libpeace.la
+#input/libinput.a output/liboutput.a filtering/libfiltering.a clustering/libclustering.a shared/libshared.a framework/libframework.a output/liboutput.a assembly/libassembly.a baton/libbaton.a shared/libshared.a
 
 peace_SOURCES = \
-main.cpp\
-InteractiveConsole.h\
-InteractiveConsole.cpp
+	main.cpp\
+	InteractiveConsole.h \
+	InteractiveConsole.cpp
 
 # end of Makefile.am

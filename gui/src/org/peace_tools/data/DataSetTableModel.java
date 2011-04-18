@@ -42,6 +42,8 @@ import javax.swing.table.AbstractTableModel;
 
 import org.peace_tools.generic.ProgrammerLog;
 import org.peace_tools.workspace.DataSet;
+import org.peace_tools.workspace.FileEntry;
+import org.peace_tools.workspace.GeneratedFileList;
 import org.peace_tools.workspace.Workspace;
 import org.peace_tools.workspace.WorkspaceEvent;
 import org.peace_tools.workspace.WorkspaceListener;
@@ -79,9 +81,11 @@ public class DataSetTableModel extends AbstractTableModel implements WorkspaceLi
 		ArrayList<DataSet> dataSets = ws.getDataSets();
 		int fileCount = 0;
 		for(DataSet ds: dataSets) {
-			fileCount += ds.getClusterList().size();
-			fileCount += ds.getMSTList().size();
-			fileCount++; // Account for EST FASTA file itself
+			final ArrayList<GeneratedFileList> gflList = ds.getGflList();
+			for(GeneratedFileList gfl: gflList) {
+				fileCount += gfl.getEntries().size();
+			}
+			fileCount++; // Account for cDNA file itself
 		}
 		return fileCount;
 	}
@@ -104,14 +108,15 @@ public class DataSetTableModel extends AbstractTableModel implements WorkspaceLi
 				return ds.getPath(); 
 			}
 			row--; // account for EST file skipped.
-			if (ds.getMSTList().size() > row) {
-				return ds.getMSTList().get(row).getPath();
+			final ArrayList<GeneratedFileList> gflList = ds.getGflList();
+			for(GeneratedFileList gfl: gflList) {
+				if (gfl.getEntries().size() > row) {
+					FileEntry fe = gfl.getEntries().get(row);
+					return fe.getPath();
+				}
+				// Track files skipped
+				row -= gfl.getEntries().size();
 			}
-			row -= ds.getMSTList().size(); // track mst files skipped
-			if (ds.getClusterList().size() > row) {
-				return ds.getClusterList().get(row).getPath();
-			}
-			row -= ds.getClusterList().size(); // track cluster files skipped
 		}
 		// invalid row!
 		return null;
@@ -135,14 +140,15 @@ public class DataSetTableModel extends AbstractTableModel implements WorkspaceLi
 				return ds; 
 			}
 			row--; // account for EST file skipped.
-			if (ds.getMSTList().size() > row) {
-				return ds.getMSTList().get(row);
+			final ArrayList<GeneratedFileList> gflList = ds.getGflList();
+			for(GeneratedFileList gfl: gflList) {
+				if (gfl.getEntries().size() > row) {
+					FileEntry fe = gfl.getEntries().get(row);
+					return fe;
+				}
+				// Track files skipped
+				row -= gfl.getEntries().size();
 			}
-			row -= ds.getMSTList().size(); // track mst files skipped
-			if (ds.getClusterList().size() > row) {
-				return ds.getClusterList().get(row);
-			}
-			row -= ds.getClusterList().size(); // track cluster files skipped
 		}
 		// invalid row!
 		return null;
@@ -160,12 +166,25 @@ public class DataSetTableModel extends AbstractTableModel implements WorkspaceLi
 	 * the entry was not found, then this method returns -1.
 	 */
 	public int getRow(Object entry) {
-		final int RowCount = getRowCount();
-		for(int row = 0; (row < RowCount); row++) {
-			if (this.getEntry(row) == entry) {
+		int row = 0;
+		Workspace ws = Workspace.get();
+		ArrayList<DataSet> dataSets = ws.getDataSets();
+		for(DataSet ds: dataSets) {
+			if (entry == ds) {
+				// Return the EST FASTA file path.
 				return row;
 			}
+			row++; // account for EST file skipped.
+			final ArrayList<GeneratedFileList> gflList = ds.getGflList();
+			for(GeneratedFileList gfl: gflList) {
+				int location = gfl.getEntries().lastIndexOf(entry);
+				if (location != -1) {
+					return row + location;
+				}
+				row += gfl.getEntries().size();
+			}
 		}
+		// Object not found.
 		return -1;
 	}
 	

@@ -42,7 +42,7 @@ import javax.swing.ListModel;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 
-import org.peace_tools.workspace.MSTClusterData;
+import org.peace_tools.workspace.FileEntry;
 
 /**
  * A custom data model to provide pre-alignment information using MST and
@@ -100,7 +100,7 @@ public class OverlapModel implements ComboBoxModel {
 	 * @param wsEntry The clustering data work space entry from where the
 	 * overlap view was launched.
 	 */
-	public OverlapModel(ClusterFile clusters, ESTList ests, MSTClusterData wsEntry) {
+	public OverlapModel(ClusterFile clusters, ESTList ests, FileEntry wsEntry) {
 		this.estList         = ests;
 		this.clusterFile     = clusters;
 		this.selectedCluster = -1;
@@ -120,7 +120,7 @@ public class OverlapModel implements ComboBoxModel {
 	 * overlap view was launched.
 	 */
 	public static OverlapModel create(ClusterFile clusters, ESTList ests, MST mst, 
-									  MSTClusterData wsEntry) {
+									  FileEntry wsEntry) {
 		if (!mst.hasAlignmentInfo()) {
 			// Can't use this MST as there is no alignment 
 			return null;
@@ -347,7 +347,7 @@ public class OverlapModel implements ComboBoxModel {
 	 * @return The reference to the MSTClusterData workspace entry whose
 	 * data is "modeled" by this class.
 	 */
-	public MSTClusterData getWsEntry() { return wsEntry; }
+	public FileEntry getWsEntry() { return wsEntry; }
 	
 	//-------------------------------------------------------
 	
@@ -690,7 +690,7 @@ public class OverlapModel implements ComboBoxModel {
 	 * overlap model was partially obtained. This information can be
 	 * used by "view" classes to create additional views as needed.
 	 */
-	private final MSTClusterData wsEntry;
+	private final FileEntry wsEntry;
 	
 	/**
 	 * A table (A sparse 2-dimensional array) of ESTEntries.

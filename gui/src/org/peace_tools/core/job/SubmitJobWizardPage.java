@@ -290,8 +290,8 @@ implements Runnable {
 	private void submitJob() throws Exception {
 		setStepStatus(4, true);
 		log.append("Submitting/starting job on server...\n");
-		ServerSession.OSType os = server.getOSType();
-		final String extension = (ServerSession.OSType.WINDOWS.equals(os)) ? "bat" : "sh"; 
+		Server.OSType os = server.getOSType();
+		final String extension = (Server.OSType.WINDOWS.equals(os)) ? "bat" : "sh"; 
 		Job job = wizard.getJob();
 		String remotePath = job.getPath() + "/jobRunner." + extension
 			+  " start";
@@ -328,14 +328,14 @@ implements Runnable {
 		Job job = wizard.getJob();
 		Server srvr = Workspace.get().getServerList().getServer(job.getServerID());
 		// Now compute the PEACE executable path and arguments.
-		ServerSession.OSType os = server.getOSType();
-		String cmdLineParams    = wizard.toCmdLine(getServerESTFile(), 
-												   wizard.getDataSet().getFileType());
+		Server.OSType os        = server.getOSType();
+		String cmdLineParams    = null; // wizard.toCmdLine(getServerESTFile(), 
+										//  wizard.getDataSet().getFileType());
 		String exePath          = srvr.getInstallPath();
 		String launcherPath     = exePath;
 		String jobRunnerPath    = null;
 		String jobRunnerFile    = null;
-		if (ServerSession.OSType.WINDOWS.equals(os)) {
+		if (Server.OSType.WINDOWS.equals(os)) {
 			exePath += "/peace.exe";
 			launcherPath += "/launcher.exe";
 			jobRunnerPath = "installFiles/windows/";
@@ -356,16 +356,17 @@ implements Runnable {
 			drive = jobPath.substring(0, 2);
 		}
 		String runnerScript = Utilities.readSmallTextFile(jobRunnerPath + jobRunnerFile);
-		runnerScript = runnerScript.replace("%workDir%", jobPath);
+		runnerScript = runnerScript.replace("%workDir%",   jobPath);
 		runnerScript = runnerScript.replace("%workDrive%", drive);
-		runnerScript = runnerScript.replace("%peace%", exePath);
-		runnerScript = runnerScript.replace("%launcher%", launcherPath);
-		runnerScript = runnerScript.replace("%cmdLine%", cmdLineParams);
+		runnerScript = runnerScript.replace("%exe%",       exePath);
+		runnerScript = runnerScript.replace("%launcher%",  launcherPath);
+		runnerScript = runnerScript.replace("%cmdLine%",   cmdLineParams);
 		runnerScript = runnerScript.replace("%nodes%", "" + job.getNodes());
 		runnerScript = runnerScript.replace("%cpusPerNode%", "" + job.getCPUsPerNode());
 		runnerScript = runnerScript.replace("%memory%", "" + job.getMemory());
 		runnerScript = runnerScript.replace("%maxRunTime%", "" + job.getMaxRunTime());
 		runnerScript = runnerScript.replace("%peaceVersion%", Version.GUI_VERSION.replace('\n', ' '));
+		runnerScript = runnerScript.replace("%jobID%", "PEACE_" + job.getJobID());
 		
 		log.append("Command line arguments: " + cmdLineParams + "\n");
 		// Now copy the runnerScript to a remote file.
@@ -482,7 +483,7 @@ implements Runnable {
 		// First add necessary work space entries.
 		setStepStatus(0, true);
 		log.append("Creating workspace entries...");
-		wizard.createWorkspaceEntries();
+		// wizard.createWorkspaceEntries();
 		log.append("Done.\n");
 		setStepStatus(0, false);
 	}
