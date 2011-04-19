@@ -140,10 +140,10 @@ ArgParser::parseArguments(int& argc, char* argv[], bool caxoe) {
                 removeArgument(argument, argc, argv);
                 break;
 
-            case LONG_LONG:
+            case LONG:
                 removeArgument(argument, argc, argv);
-                *(reinterpret_cast<long long*>(argRec.data)) =
-                    atoll(argv[argument]);
+                *(reinterpret_cast<long*>(argRec.data)) =
+                    atol(argv[argument]);
                 removeArgument(argument, argc, argv);
                 break;
 
@@ -268,8 +268,8 @@ ArgParser::getValue(const ArgRecord& argRec) {
     case DOUBLE:
         retVal << *(reinterpret_cast<double*>(argRec.data));
         break;
-    case LONG_LONG:
-        retVal << *(reinterpret_cast<long long*>(argRec.data));
+    case LONG:
+        retVal << *(reinterpret_cast<long*>(argRec.data));
         break;                
     case STRING:
         retVal << *(reinterpret_cast<std::string*>(argRec.data));

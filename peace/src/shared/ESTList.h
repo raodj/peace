@@ -87,7 +87,7 @@ public:
         destructor calls the reset() method to clear out all the
         contents of this list.
     */
-    ~ESTList();
+    virtual ~ESTList();
   
     /** Obtain a immutable pointer to an EST entry in this list.
 
