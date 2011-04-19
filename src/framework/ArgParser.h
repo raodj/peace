@@ -90,7 +90,7 @@ public:
 		written to the screen.
     */
     enum ArgType {BOOLEAN, INTEGER, UNSIGNED_INT, STRING, STRING_LIST,
-                  FLOAT, DOUBLE, LONG_LONG, INFO_MESSAGE, MAIN_MESSAGE,
+                  FLOAT, DOUBLE, LONG, INFO_MESSAGE, MAIN_MESSAGE,
 				  INVALID};
 
 	/** \typedef typedef std::vector<std::string> StringList

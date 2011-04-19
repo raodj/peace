@@ -83,7 +83,7 @@ TransMSTClusterMaker::initialize() {
     
     // Reserve space for TransCacheEntrys
     ASSERT ( estList != NULL );
-    const int EstListSize = estList->size();
+    const size_t EstListSize = estList->size();
     metricCache.reserve(EstListSize);
     metricCache.insert(metricCache.begin(), EstListSize, NULL);
     // Everything went well.
