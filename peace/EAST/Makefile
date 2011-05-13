@@ -1,6 +1,6 @@
 CC = g++
 DEBUG = -g
-OPTS = ${DEBUG} -Wall 
+OPTS = ${DEBUG} -Wall -Wextra
 
 O_FILES = Alignment.o AlignmentAlgorithm.o CalculatedOvlDistance.o D2.o ESTAssembly.o \
 	  Graph.o InclusionNodes.o OvlDistance.o Prim.o Reconstruction.o SingleBase.o SixTuple.o \

@@ -119,7 +119,7 @@ int ESTAssembly::readEstFile() {
 	in.close();
 
 	//generate a graph from the input file
-	int i=0;
+	size_t i=0;
 	while (i<ests.size()) {
 		//the sequence is upper-case
 		g->addNode(Node(ests[i], ests[i+1], toUpperCase(ests[i+2])));
@@ -225,7 +225,7 @@ int ESTAssembly::readEstQualFile() {
 	in2.close();
 
 	//generate a graph from the input files
-	int i=0;
+	size_t i=0;
 	while (i<ests.size()) {
 		//the sequence is upper-case
 		g->addNode(Node(ests[i], ests[i+1], toUpperCase(ests[i+2]), getIntScores(scores[i/3])));
@@ -238,7 +238,7 @@ int ESTAssembly::readEstQualFile() {
 std::vector<int> ESTAssembly::getIntScores(const std::string& str) {
 	vector<int> ret;
 	string tmp = "";
-	for (int i=0; i<str.size(); i++) {
+	for (size_t i=0; i<str.size(); i++) {
 		if (str[i] != ' ') {
 			tmp.push_back(str[i]);
 		} else {
@@ -293,7 +293,7 @@ void ESTAssembly::readMST() {
 
 	// Make a undirected MST.
 	DefGraph mst(nOfNodes);
-	for (int j=0; j<nodes.size(); j++) {
+	for (size_t j=0; j<nodes.size(); j++) {
 		addEdge(mst, int(nodes[j][0]), int(nodes[j][1]), nodes[j][2], false);
 	}
 
@@ -339,7 +339,7 @@ vector<string> ESTAssembly::split(const string& str, char delimit) {
 
 string ESTAssembly::toUpperCase(const string& str) {
 	string retStr;
-	for (int i=0; i<str.size(); i++) {
+	for (size_t i=0; i<str.size(); i++) {
 		retStr.push_back(toupper(str[i]));
 	}
 	return retStr;

@@ -21,23 +21,23 @@ void AlignmentAlgorithm::setScoringMatrix(int match, int mismatch) {
 	int m = match;
 	int n = mismatch;
 					   //A, C, G, T, N, P, Y, R, W, S, K, M, D, V, H, B, X
-	int score[17][17] = {m, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n,  //A
-						 n, m, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n,  //C
-						 n, n, m, n, n, n, n, n, n, n, n, n, n, n, n, n, n,  //G
-						 n, n, n, m, n, n, n, n, n, n, n, n, n, n, n, n, n,  //T
-						 n, n, n, n, m, n, n, n, n, n, n, n, n, n, n, n, n,  //N
-						 n, n, n, n, n, m, n, n, n, n, n, n, n, n, n, n, n,  //P: gap
-						 n, m, n, m, n, n, m, n, n, n, n, n, n, n, n, n, n,  //Y: C, T
-						 m, n, m, n, n, n, n, m, n, n, n, n, n, n, n, n, n,  //R: A, G
-						 m, n, n, m, n, n, n, n, m, n, n, n, n, n, n, n, n,  //W: A, T
-						 n, m, m, n, n, n, n, n, n, m, n, n, n, n, n, n, n,  //S: G, C
-						 n, n, m, m, n, n, n, n, n, n, m, n, n, n, n, n, n,  //K: T, G
-						 m, m, n, n, n, n, n, n, n, n, n, m, n, n, n, n, n,  //M: C, A
-						 m, n, m, m, n, n, n, n, n, n, n, n, m, n, n, n, n,  //D: not C
-						 m, m, m, n, n, n, n, n, n, n, n, n, n, m, n, n, n,  //V: not T
-						 m, m, n, m, n, n, n, n, n, n, n, n, n, n, m, n, n,  //H: not G
-						 n, m, m, m, n, n, n, n, n, n, n, n, n, n, n, m, n,  //B: not A
-						 n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, m   //X: unknown
+	int score[17][17] = {{m, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n},  //A
+						 {n, m, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n},  //C
+						 {n, n, m, n, n, n, n, n, n, n, n, n, n, n, n, n, n},  //G
+                         {n, n, n, m, n, n, n, n, n, n, n, n, n, n, n, n, n},  //T
+                         {n, n, n, n, m, n, n, n, n, n, n, n, n, n, n, n, n},  //N
+                         {n, n, n, n, n, m, n, n, n, n, n, n, n, n, n, n, n},  //P: gap
+                         {n, m, n, m, n, n, m, n, n, n, n, n, n, n, n, n, n},  //Y: C, T
+						 {m, n, m, n, n, n, n, m, n, n, n, n, n, n, n, n, n},  //R: A, G
+						 {m, n, n, m, n, n, n, n, m, n, n, n, n, n, n, n, n},  //W: A, T
+						 {n, m, m, n, n, n, n, n, n, m, n, n, n, n, n, n, n},  //S: G, C
+						 {n, n, m, m, n, n, n, n, n, n, m, n, n, n, n, n, n},  //K: T, G
+						 {m, m, n, n, n, n, n, n, n, n, n, m, n, n, n, n, n},  //M: C, A
+						 {m, n, m, m, n, n, n, n, n, n, n, n, m, n, n, n, n},  //D: not C
+						 {m, m, m, n, n, n, n, n, n, n, n, n, n, m, n, n, n},  //V: not T
+						 {m, m, n, m, n, n, n, n, n, n, n, n, n, n, m, n, n},  //H: not G
+						 {n, m, m, m, n, n, n, n, n, n, n, n, n, n, n, m, n},  //B: not A
+						 {n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, n, m}   //X: unknown
 				};
 
 	for (int i=0; i<17; i++) {

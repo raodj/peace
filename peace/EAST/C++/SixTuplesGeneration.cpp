@@ -38,7 +38,7 @@ void SixTuplesGeneration::processAlignArray() {
 	vector<SixTuple*> rightMostNodes;
 	map<int, int> ends; //used to avoid duplicate calculation for right most nodes
 	//get all the nodes which has no left nodes or no right nodes to them
-	for (int i=0; i<alignArray.size(); i++) {
+	for (size_t i=0; i<alignArray.size(); i++) {
 		SixTuple* curTuple = alignArray[i];
 		if (curTuple->leftNode == -1) {
 			leftMostNodes.push_back(curTuple);	//store sixtuple of the node
@@ -70,7 +70,7 @@ void SixTuplesGeneration::processAlignArray() {
 		}
 	}
 
-	for (int i=0; i<rightMostNodes.size(); i++) {
+	for (size_t i=0; i<rightMostNodes.size(); i++) {
 		SixTuple* curTuple = rightMostNodes[i];
 		int cNode = curTuple->curNode;
 		pair<map<int,int>::iterator,bool> insertRet = ends.insert(pair<int, int> (cNode, 0));
@@ -86,7 +86,7 @@ void SixTuplesGeneration::processAlignArray() {
 
 	leftMostNodes.clear();
 	rightMostNodes.clear();
-	for (int i=0; i<alignArray.size(); i++) {
+	for (size_t i=0; i<alignArray.size(); i++) {
 		SixTuple* curTuple = alignArray[i];
 		if (curTuple->leftNode == -1) {
 			leftMostNodes.push_back(curTuple);	//store sixtuple of the node
@@ -103,7 +103,7 @@ void SixTuplesGeneration::processAlignArray() {
 	 * makes six-tuple[0] != -1 or until the level we specified in the property file, then return the six-tuple.
 	 * If we fail to find any node, we consider it a real left end.
 	 */
-	for (int i=0; i<leftMostNodes.size(); i++) {
+	for (size_t i=0; i<leftMostNodes.size(); i++) {
 		SixTuple* curTuple = leftMostNodes[i];
 		int tEnd = curTuple->curNode; //index of the node
 		ends.insert(pair<int, int> (tEnd, 0));
@@ -120,7 +120,7 @@ void SixTuplesGeneration::processAlignArray() {
 			curTuple->isNull = tmpTuple.isNull;
 		}
 	}
-	for (int i=0; i<rightMostNodes.size(); i++) {
+	for (size_t i=0; i<rightMostNodes.size(); i++) {
 		SixTuple* curTuple = rightMostNodes[i];
 		int tEnd = curTuple->curNode; //index of the node
 		pair<map<int,int>::iterator,bool> insertRet = ends.insert(pair<int, int> (tEnd, 0));
@@ -138,7 +138,7 @@ void SixTuplesGeneration::processAlignArray() {
 	leftMostNodes.clear();
 	rightMostNodes.clear();
 	ends.clear();
-	for (int i=0; i<alignArray.size(); i++) {
+	for (size_t i=0; i<alignArray.size(); i++) {
 		SixTuple* curTuple = alignArray[i];
 		if (curTuple->leftNode == -1) {
 			leftMostNodes.push_back(curTuple);	//store sixtuple of the node
@@ -161,7 +161,7 @@ void SixTuplesGeneration::processAlignArray() {
 	 *  	if there is no edge, weight=INT_MAX.
 	 */
 	int tLen = 0;
-	for (int i=0; i<alignArray.size(); i++) {
+	for (size_t i=0; i<alignArray.size(); i++) {
 		SixTuple* curTuple = alignArray[i];
 		if (curTuple->leftNode != -1) {
 			tLen++;
@@ -173,7 +173,7 @@ void SixTuplesGeneration::processAlignArray() {
 
 	vector<vector<int>  > tmpDGraph = vector<vector<int> > (tLen, vector<int> (4));
 	int tmpIndex = 0;
-	for (int i=0; i<alignArray.size(); i++) {
+	for (size_t i=0; i<alignArray.size(); i++) {
 		SixTuple* curTuple = alignArray[i];
 		int curIdx = curTuple->curNode;
 		if (curTuple->leftNode != -1) {
@@ -202,7 +202,7 @@ void SixTuplesGeneration::processAlignArray() {
 	//Get all the nodes which has the value of -1 in alignArray[x][0]
 
 	vector<SixTuple*> tmpLeftNodes;
-	for (int i=0; i<alignArray.size(); i++) {
+	for (size_t i=0; i<alignArray.size(); i++) {
 		SixTuple* curTuple = alignArray[i];
 		if (curTuple->leftNode == -1) {
 			tmpLeftNodes.push_back(curTuple);	//store index of the node
@@ -210,12 +210,12 @@ void SixTuplesGeneration::processAlignArray() {
 	}
 	//remove false left ends
 	leftMostNodes.clear();
-	for (int i=0; i<tmpLeftNodes.size(); i++) {
+	for (size_t i=0; i<tmpLeftNodes.size(); i++) {
 		int tEnd = tmpLeftNodes[i]->curNode;
 		int f = 0;
 		//if the left end appears in second element of dGraph, that means some
 		//node is on its left, so it is not a real left end.
-		for (int j=0; j<tmpDGraph.size(); j++) {
+		for (size_t j=0; j<tmpDGraph.size(); j++) {
 			if (tmpDGraph[j][1] == tEnd) {	// false left end
 				f = 1;
 				break;
