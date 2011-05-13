@@ -95,14 +95,14 @@ vector<int> OvlDistance::getOVLDistance(const string& tS1, const string& tS2, bo
 	int lLenOverlap = 0;
 	int rLenOverlap = 0;
 
-	for (int i = 0; i < leftPos.size(); i++) {
+	for (size_t i = 0; i < leftPos.size(); i++) {
 		int lPos = leftPos[i];
 		int tLenOverlap = s2.length() - lPos;
 		int tmpDis = INT_MAX;
-		if (tLenOverlap > s1.length()) { //if s1 is included in s2
+		if (tLenOverlap > (int) s1.length()) { //if s1 is included in s2
 			if (USE_QUALITY_FILE == 1) { //use quality file
 				vector<int> s2Qual;
-				for (int j=lPos; j<lPos+s1.length(); j++) {
+				for (size_t j=lPos; j<lPos+s1.length(); j++) {
 					s2Qual.push_back(qual2[j]);
 				}
 				tmpDis = alignment.getDistance(s1,
@@ -119,7 +119,7 @@ vector<int> OvlDistance::getOVLDistance(const string& tS1, const string& tS2, bo
 				for (int j=0; j<tLenOverlap; j++) {
 					s1Qual.push_back(qual1[j]);
 				}
-				for (int j=lPos; j<s2.length(); j++) {
+				for (size_t j=lPos; j<s2.length(); j++) {
 					s2Qual.push_back(qual2[j]);
 				}
 				tmpDis = alignment.getDistance(s1.substr(0, tLenOverlap),
@@ -135,7 +135,7 @@ vector<int> OvlDistance::getOVLDistance(const string& tS1, const string& tS2, bo
 		}
 	}
 
-	for (int i = 0; i < rightPos.size(); i++) {
+	for (size_t i = 0; i < rightPos.size(); i++) {
 		int rPos = rightPos[i];
 		int tLenOverlap = rPos + windowSize;
 		int lenInS1 = s1.length() - tLenOverlap;
@@ -158,7 +158,7 @@ vector<int> OvlDistance::getOVLDistance(const string& tS1, const string& tS2, bo
 			if (USE_QUALITY_FILE == 1) { //use quality file
 				vector<int> s1Qual;
 				vector<int> s2Qual;
-				for (int j=lenInS1; j<s1.length(); j++) {
+				for (size_t j=lenInS1; j<s1.length(); j++) {
 					s1Qual.push_back(qual1[j]);
 				}
 				for (int j=0; j<tLenOverlap; j++) {
@@ -255,14 +255,14 @@ bool OvlDistance::checkInclusion(const string& s1, const string& s2, bool create
 	int rLenOverlap = 0;
 
 	// if all leftPos[i] are -1, disLeft will be kept to be INT_MAX.
-	for (int i = 0; i < leftPos.size(); i++) {
+	for (size_t i = 0; i < leftPos.size(); i++) {
 		int lPos = leftPos[i];
 		int tLenOverlap = s2.length() - lPos;
 		int tmpDis = INT_MAX;
-		if (tLenOverlap > s1.length()) { //if s1 is included in s2
+		if (tLenOverlap > (int) s1.length()) { //if s1 is included in s2
 			if (USE_QUALITY_FILE == 1) { //use quality file
 				vector<int> s2Qual;
-				for (int j=lPos; j<lPos+s1.length(); j++) {
+				for (size_t j=lPos; j<lPos+s1.length(); j++) {
 					s2Qual.push_back(qualScore2[j]);
 				}
 				tmpDis = alignment.getDistance(s1.substr(0, s1.length()),
@@ -279,7 +279,7 @@ bool OvlDistance::checkInclusion(const string& s1, const string& s2, bool create
 				for (int j=0; j<tLenOverlap; j++) {
 					s1Qual.push_back(qualScore1[j]);
 				}
-				for (int j=lPos; j<s2.length(); j++) {
+				for (size_t j=lPos; j<s2.length(); j++) {
 					s2Qual.push_back(qualScore2[j]);
 				}
 				tmpDis = alignment.getDistance(s1.substr(0, tLenOverlap),
@@ -296,7 +296,7 @@ bool OvlDistance::checkInclusion(const string& s1, const string& s2, bool create
 	}
 
 	// if all rightPos[i] are -1, disRight will be kept to be INT_MAX.
-	for (int i = 0; i < rightPos.size(); i++) {
+	for (size_t i = 0; i < rightPos.size(); i++) {
 		int rPos = rightPos[i];
 		int tLenOverlap = rPos + windowSize;
 		int lenInS1 = s1.length() - tLenOverlap;
@@ -319,7 +319,7 @@ bool OvlDistance::checkInclusion(const string& s1, const string& s2, bool create
 			if (USE_QUALITY_FILE == 1) { //use quality file
 				vector<int> s1Qual;
 				vector<int> s2Qual;
-				for (int j=lenInS1; j<s1.length(); j++) {
+				for (size_t j=lenInS1; j<s1.length(); j++) {
 					s1Qual.push_back(qualScore1[j]);
 				}
 				for (int j=0; j<tLenOverlap; j++) {

@@ -83,7 +83,7 @@ void Reconstruction::printConsensus() {
 	vector<string> consensus = reconstruct();
     if (OUTPUT_ACE == 0) {
         outFile1.open(consensusFileName.c_str(),ios::trunc);
-        for (int i=0; i<consensus.size(); i++) {
+        for (size_t i=0; i<consensus.size(); i++) {
             string str = consensus[i];
             size_t found = str.find('\n');
 
@@ -131,7 +131,7 @@ void Reconstruction::printConsensus() {
     outFile2.open(singletonFileName.c_str(),ios::trunc);
 
     int num = 0;
-    for (int i=0; i<usedNodes.size(); i++) {
+    for (size_t i=0; i<usedNodes.size(); i++) {
         if (usedNodes[i] == 0) {	//singleton
             outFile2 << ">" << g->getCommentOfNode(i) << "\n";
             outFile2 << g->getSeqOfNode(i) << "\n";
@@ -162,7 +162,7 @@ std::vector<std::string> Reconstruction::reconstruct() {
     std::stringstream out;
     out << printStr << ret.size() << " consensus from above " << leftMostNodes.size() << " left ends:\n";
     printStr = out.str();
-    for (int p=0; p<ret.size(); p++) {
+    for (size_t p=0; p<ret.size(); p++) {
         printStr = printStr + ret[p] + "\n";
     }
 
@@ -189,7 +189,7 @@ std::vector<std::string> Reconstruction::reconstuctForEachCluster() {
     int first = 0;
     while (true) {
         bool exit = 1;
-        for (int i=first; i<allNodes.size(); i++) {
+        for (size_t i=first; i<allNodes.size(); i++) {
             if (allNodes[i] == 0) { //find the first node which has not been processed
                 first = i;
                 allNodes[first] = 1;
@@ -244,7 +244,7 @@ std::vector<std::string> Reconstruction::reconstuctForEachCluster() {
     for (int i=0; i<clusterIdx; i++) {
         cout << "Cluster " << i << ", number of left ends in the cluster is " << clusterLeftEnds[i].size() << endl;
         vector<string> ret = processLeftEnds(clusterLeftEnds[i], dGraph); //reconstruct from left ends in the cluster
-        for (int k=0; k<ret.size(); k++)
+        for (size_t k=0; k<ret.size(); k++)
             retStr.push_back(ret[k]);
     }
 
@@ -257,7 +257,7 @@ std::vector<std::vector<int> > Reconstruction::genDGraph() {
      * Calculate the length of dGraph.
      */
     int len = 0;
-    for (int i=0; i<alignArray.size(); i++) {
+    for (size_t i=0; i<alignArray.size(); i++) {
         if (alignArray[i]->leftNode != -1) {
             len++;
         }
@@ -271,7 +271,7 @@ std::vector<std::vector<int> > Reconstruction::genDGraph() {
      */
     vector<vector<int> > dGraph = vector<vector<int> > (len, std::vector<int>(4));
     int indexOfDGraph = 0;
-    for (int i=0; i<alignArray.size(); i++) {
+    for (size_t i=0; i<alignArray.size(); i++) {
         SixTuple* curTuple = alignArray[i];
         if (curTuple->leftNode != -1) {
             dGraph[indexOfDGraph][0] = curTuple->leftNode;
@@ -292,7 +292,7 @@ std::vector<std::vector<int> > Reconstruction::genDGraph() {
 
     // Make a directed graph graphForPrim.
     graphForPrim = DefGraph(g->graphNodes.size());
-    for (int j=0; j<dGraph.size(); j++) {
+    for (size_t j=0; j<dGraph.size(); j++) {
         if (dGraph[j][3] != 0) {	//there is an edge between the nodes
             graphForPrim[dGraph[j][0]].push_back(Edge(dGraph[j][1], dGraph[j][2]));
         }
@@ -338,7 +338,7 @@ vector<string>Reconstruction::processLeftEnds(vector<int>& curLeftEnds, vector<v
         includedEnds.push_back(allLeftEnds[0]);
 
         vector<LeftEnd> excludedEnds;
-        for (int i=1; i<allLeftEnds.size(); i++) {
+        for (size_t i=1; i<allLeftEnds.size(); i++) {
             vector<int> ovlDis = g->calDist.searchDistance(allLeftEnds[i].index, s1Idx);
 
             if (ovlDis[1] == INT_MIN) { //if resultArray[i].firstEst is included in s1
@@ -478,7 +478,7 @@ string Reconstruction::reconstructFromEnds(vector<vector<int> > leftEnds, vector
     printStr = printStr + "Start from node " + tstr.str() + " to do reconstruction" + "\n\n";
 
     vector<StartPos> tmpArray;
-    for (int j=0; j<sPos.size(); j++) {
+    for (size_t j=0; j<sPos.size(); j++) {
         ite = ends.find(j);
         if ((ite != ends.end()) || (sPos[j] != 0)) { // is left end or a node which has got its position
             tmpArray.push_back(StartPos(sPos[j], j));
@@ -523,7 +523,7 @@ vector<string> Reconstruction::reconstructSeq(vector<StartPos>& a) {
         return ret;
     }
     vector<StartPos> resultArray(addedNodes.size());
-    for (int i=0; i<addedNodes.size(); i++) {
+    for (size_t i=0; i<addedNodes.size(); i++) {
         UsedNode tmpNode = addedNodes[i];
         resultArray[i] = StartPos(tmpNode.pos, tmpNode.index);
     }
@@ -550,7 +550,7 @@ vector<string> Reconstruction::reconstructSeq(vector<StartPos>& a) {
         curSeq = g->getSeqOfNode(resultArray[i].index);
         string curName = g->getNameOfNode(resultArray[i].index);
         string tmpConsensus = tConsensus;
-        if (tmpConsensus.length() > comparisonLen) {
+        if ((int) tmpConsensus.length() > comparisonLen) {
             tmpConsensus = tConsensus.substr(tConsensus.size()-comparisonLen+1);
         }
 
@@ -719,7 +719,7 @@ vector<string> Reconstruction::reconstructSeq(vector<StartPos>& a) {
         COStr += replace(tConsensus, "P", "*") + "\n";
         idxOfContig++;
 
-        for (int i=0; i<bases.size(); i++) {
+        for (size_t i=0; i<bases.size(); i++) {
             int phredScore = bases[i]->getQualScore();
             if (phredScore != -1) {
                 ss << phredScore;
@@ -744,7 +744,7 @@ vector<string> Reconstruction::reconstructSeq(vector<StartPos>& a) {
     //End: For ACE output format
 
     //release bases
-    for (int i=0; i<bases.size(); i++) {
+    for (size_t i=0; i<bases.size(); i++) {
         delete bases[i];
     }
 
@@ -773,7 +773,7 @@ vector<string> Reconstruction::reconstructSeqWithQual(vector<StartPos>& a) {
         return ret;
     }
     vector<StartPos> resultArray(addedNodes.size());
-    for (int i=0; i<addedNodes.size(); i++) {
+    for (size_t i=0; i<addedNodes.size(); i++) {
         UsedNode tmpNode = addedNodes[i];
         resultArray[i] = StartPos(tmpNode.pos, tmpNode.index);
     }
@@ -809,22 +809,22 @@ vector<string> Reconstruction::reconstructSeqWithQual(vector<StartPos>& a) {
         string tmpConsensus = tConsensus;
 
         vector<int> qualOfTmpConsensus;
-        if (tmpConsensus.length() > comparisonLen) {
+        if ((int) tmpConsensus.length() > comparisonLen) {
             int tmpConStart = tConsensus.size()-comparisonLen+1;
             tmpConsensus = tConsensus.substr(tmpConStart);
             if (i == 1) {
-                for (int tmpCon=tmpConStart; tmpCon < tConsensus.size(); tmpCon++) {
+                for (size_t tmpCon=tmpConStart; tmpCon < tConsensus.size(); tmpCon++) {
                     qualOfTmpConsensus.push_back(firstSeqQualScores[tmpCon]);
                 }
             } else {
-                for (int tmpCon=tmpConStart; tmpCon < tConsensus.size(); tmpCon++) {
+                for (size_t tmpCon=tmpConStart; tmpCon < tConsensus.size(); tmpCon++) {
                     qualOfTmpConsensus.push_back(bases[tmpCon]->curqualVal);
                 }
             }
         } else if (i == 1) {
             qualOfTmpConsensus = firstSeqQualScores;
         } else {
-            for (int tmpCon=0; tmpCon < tConsensus.size(); tmpCon++) {
+            for (size_t tmpCon=0; tmpCon < tConsensus.size(); tmpCon++) {
                 qualOfTmpConsensus.push_back(bases[tmpCon]->curqualVal);
             }
         }
@@ -981,7 +981,7 @@ vector<string> Reconstruction::reconstructSeqWithQual(vector<StartPos>& a) {
                 if (c2 != '-') {
                     qualScore = curSeqQualScores[posInEst+curScorePos];
                     curScorePos++;
-                } else if (bases.size() > j){
+                } else if ((int) bases.size() > j){
                     int curBaseNum = bases[j]->curBaseNum;
                     if (curBaseNum > 0) {
                         qualScore = (bases[j]->curqualVal)/curBaseNum;
@@ -1037,7 +1037,7 @@ vector<string> Reconstruction::reconstructSeqWithQual(vector<StartPos>& a) {
         COStr += replace(tConsensus, "P", "*") + "\n";
         idxOfContig++;
 
-        for (int i=0; i<bases.size(); i++) {
+        for (size_t i=0; i<bases.size(); i++) {
             int phredScore = bases[i]->getQualScore();
             if (phredScore != -1) {
                 ss << phredScore;
@@ -1062,7 +1062,7 @@ vector<string> Reconstruction::reconstructSeqWithQual(vector<StartPos>& a) {
     //End: For ACE output format
 
     //release bases
-    for (int i=0; i<bases.size(); i++) {
+    for (size_t i=0; i<bases.size(); i++) {
         delete bases[i];
     }
 
@@ -1152,7 +1152,7 @@ vector<UsedNode> Reconstruction::addInclusionNodes(vector<StartPos>& input) {
         tmpList.insert(pair<int, int> (curIdx, pos));
 
         vector<int> chdIdx = incNodes->containPNode(curIdx, g->graphNodes.size()); //inclusion children index of the curIdx if exist.
-        for (int j=0; j<chdIdx.size(); j++) {
+        for (size_t j=0; j<chdIdx.size(); j++) {
             tmpList.insert(pair<int, int> (chdIdx[j], pos+1));
             usedNodes[chdIdx[j]] = 1; //mark this node being used
         }
@@ -1187,7 +1187,7 @@ void Reconstruction::getStartPos(int parentNode, DefGraph& tree, vector<vector<i
         int index = (*it).node;
 
         int overlapLen = 0;
-        for (int i=0; i<d.size(); i++) {
+        for (size_t i=0; i<d.size(); i++) {
             if ((d[i][0] == parentNode) && (d[i][1] == index)) {
                 overlapLen = d[i][3];
                 break;

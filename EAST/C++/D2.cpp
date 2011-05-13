@@ -114,8 +114,9 @@ BestWindowMatches D2::matchEndWindows(string s1, string s2, bool createNewHash, 
 	bestRightWindow[0] = 0;
 	int numBestRight = 1;
 	int bestRightScore = d2_right;
-
-	for (int i=0; i < s2.length() - windowSize; i++) {
+    // Pre-compute where the following for-loop should stop
+    const int lastNtPos = (int) s2.length() - windowSize;
+	for (int i=0; i < lastNtPos; i++) {
 		int firstWord = encodeWord(s2, i, d2WordSize, d2WordFilter);
 		int lastWord = encodeWord(s2, i + windowSize - d2WordSize + 1, d2WordSize, d2WordFilter);
 
@@ -186,7 +187,9 @@ bool D2::uv_tv_Heuristic(string s1, string s2, bool createNewHash) {
 	if (createNewHash)
 		H = createWindowHash(s2, 0, s2.length(), heuristicWordSize, heuristicWordFilter, heuristicNumWords);
 	int total = 0;
-	for (int i=0; total < u && i <= s1.length() - heuristicWordSize; i += uv_skip) {
+    // Pre-compute the last nucleotide where the following for-loop should end
+    const int lastNtPos = (int) s1.length() - heuristicWordSize;
+	for (int i=0; total < u && i <= lastNtPos; i += uv_skip) {
 		int code = encodeWord(s1, i, heuristicWordSize, heuristicWordFilter);
 		if (code >= 0) {
 			total += H[code];
@@ -200,7 +203,8 @@ bool D2::uv_tv_Heuristic(string s1, string s2, bool createNewHash) {
 	vector<int> arr(tv_max, 0);
 	int current_position = 0;
 	int current_code = encodeWord(s1, 0, heuristicWordSize, heuristicWordFilter);
-	while (current_code < 0 && current_position <=  s1.length() - heuristicWordSize) {
+    const int lastWordPos = (int) s1.length() - heuristicWordSize;
+	while (current_code < 0 && current_position <=  lastWordPos) {
 		current_position += -current_code;
 		current_code = encodeWord(s1, current_position, heuristicWordSize, heuristicWordFilter);  // Shift over past the N
 	}
@@ -211,7 +215,8 @@ bool D2::uv_tv_Heuristic(string s1, string s2, bool createNewHash) {
 	else
 		total = 0;
 
-	while (current_position < s1.length() - heuristicWordSize ) {
+    const int lastWordNtPos = s1.length() - heuristicWordSize;
+	while (current_position < lastWordNtPos) {
 		if (total >= t)
 			return true;
 
@@ -225,7 +230,7 @@ bool D2::uv_tv_Heuristic(string s1, string s2, bool createNewHash) {
 			current_code = encodeWord(s1, current_position, heuristicWordSize, heuristicWordFilter);
 			while (current_code < 0) {
 				current_position += -current_code;
-				if (current_position > s1.length() - heuristicWordSize)
+				if (current_position > lastWordNtPos)
 					break;
 				current_code = encodeWord(s1, current_position, heuristicWordSize, heuristicWordFilter);
 			}
