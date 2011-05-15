@@ -254,7 +254,7 @@ public class JobWizard extends WizardDialog {
 				analyzer,            // FWAnalyzer
 				cwp.getThreshold(),  // clustering threshold
 				hwp.getHeuristics(), // heuristic list
-				fwp.getFilters(),     // Filter list
+				fwp.getFilters(),    // Filter list
 				parameters);
 		// Ensure parameters are populated
 		job.setupParameters(jiwp.getDataSet(), createGFL(), jiwp.isMaksBasesSet());
