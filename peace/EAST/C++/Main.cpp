@@ -3,6 +3,8 @@
 #include "ESTAssembly.h"
 #include "AlignmentAlgorithm.h"
 #include "ParamDeclare.h"
+#include "ProgressReporter.h"
+
 using namespace std;
 
 void setParamDefault() {
@@ -40,6 +42,7 @@ void setParamDefault() {
 	OUTPUT_ACE=0;
 	LEN_DIFFERENCE=300;
 	SHORTER_EST_LEN=300;
+    PROGRESS_FILE_NAME="";
 }
 
 int parse_args(int argc, char* argv[]) {
@@ -115,7 +118,13 @@ int parse_args(int argc, char* argv[]) {
 			USE_QUALITY_FILE = 1;
 		} else if (switchStr == "-ace" || switchStr == "-OUTPUT_ACE") {
 			OUTPUT_ACE = 1;
-		}
+		} else if (switchStr == "-CONVERT_TO_SAM") {
+            // Nothing to be done. We just consume this parameter
+            // here. It is really used in the east.sh wrapper script
+            // that is used by the GUI.
+        } else if (switchStr == "--progress") {
+            PROGRESS_FILE_NAME = argv[++marker];
+        }
 		marker++;
 	}
 	return marker;   // The first non-optional parameter will now be at argv[marker]
@@ -150,6 +159,13 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
+    // Initialize progress reporting if requested by user
+    ProgressReporter& pr = ProgressReporter::get();    
+    if (!PROGRESS_FILE_NAME.empty()) {
+        pr.initialize(PROGRESS_FILE_NAME, 4);
+        pr.reportProgress(0);
+    }
+    
 	ESTAssembly* assemble = NULL;
 
 	if (USE_QUALITY_FILE == 1) { //use quality file
@@ -169,7 +185,8 @@ int main(int argc, char* argv[]) {
 	cout << "used time for NW score: " << uTime2 << endl;
 
 	delete assemble;
+    // Report final step of progress
+    pr.reportProgress(4);
+    // All done successfully.
+    return 0;
 }
-
-
-

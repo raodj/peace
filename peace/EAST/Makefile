@@ -1,10 +1,10 @@
 CC = g++
 DEBUG = -g
-OPTS = ${DEBUG} -Wall -Wextra
+OPTS = ${DEBUG} -Wall -Wextra -O3
 
 O_FILES = Alignment.o AlignmentAlgorithm.o CalculatedOvlDistance.o D2.o ESTAssembly.o \
 	  Graph.o InclusionNodes.o OvlDistance.o Prim.o Reconstruction.o SingleBase.o SixTuple.o \
-	  SixTuplesGeneration.o 
+	  SixTuplesGeneration.o ProgressReporter.o
 
 
 Main: Main.cpp ${O_FILES}
@@ -48,6 +48,9 @@ SixTuple.o: SixTuple.cpp SixTuple.h
 
 SixTuplesGeneration.o: SixTuplesGeneration.cpp SixTuplesGeneration.h SixTuple.h Graph.h Param.h InclusionNodes.h
 	${CC} -c SixTuplesGeneration.cpp ${OPTS}
+
+ProgressReporter.o: ProgressReporter.cpp ProgressReporter.h
+	${CC} -c ProgressReporter.cpp ${OPTS}
 
 clean:
 	rm *.o Main

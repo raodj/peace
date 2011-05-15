@@ -1,4 +1,5 @@
 #include "SixTuplesGeneration.h"
+#include "ProgressReporter.h"
 #include <cstdlib>
 
 using namespace std;
@@ -21,6 +22,9 @@ void SixTuplesGeneration::init() {
 	cout << "The time used to generate 6-tuples is " << end-start << endl;
 	cout << "There are " << incNodes->getSize() << " nodes in the inclusion list." << endl;
 	cout << "There are " << alignArray.size() << " nodes in alignArray.\n" << endl;
+    // Report we have made some progress
+    ProgressReporter& pr = ProgressReporter::get();
+    pr.reportProgress(1);
 
 	cout << "Start to process 6-tuples." << endl;
 	start = time(NULL);
@@ -28,6 +32,8 @@ void SixTuplesGeneration::init() {
 	end = time(NULL);
 	cout << "End to process 6-tuples.\n" << endl;
 	cout << "The time used to process 6-tuples is " << end-start << endl;
+    // Report we have made some more progress
+    pr.reportProgress(2);
 }
 
 void SixTuplesGeneration::createAlignArray() {
