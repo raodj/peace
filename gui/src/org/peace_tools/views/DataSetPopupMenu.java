@@ -47,6 +47,7 @@ import org.peace_tools.generic.Utilities;
 import org.peace_tools.workspace.DataSet;
 import org.peace_tools.workspace.FileEntry;
 import org.peace_tools.workspace.FileEntry.FileEntryType;
+import org.peace_tools.workspace.GeneratedFileList;
 import org.peace_tools.workspace.Job;
 import org.peace_tools.workspace.JobBase;
 import org.peace_tools.workspace.Workspace;
@@ -134,6 +135,12 @@ public class DataSetPopupMenu extends JPopupMenu implements ActionListener {
 		}
 		getComponent(1).setEnabled(entry instanceof DataSet);
 		// getComponent(1).setEnabled(entry instanceof MSTData);
+		
+		// Enable/display default and text views 
+		final boolean isGFL = (entry instanceof GeneratedFileList);
+		getComponent(3).setEnabled(!isGFL);
+		getComponent(6).setEnabled(!isGFL);
+		
 		getComponent(4).setEnabled(isCLS);
 		getComponent(5).setEnabled(isCLS);
 		// Enable/disable expand or collapse options
