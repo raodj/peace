@@ -56,7 +56,7 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "-----------------------------------------------------"
-echo "Creating build system using autoconf..."
+echo "Creating build system using autoconf in $PWD..."
 autoreconf -i -v 2>&1
 if [ $? -ne 0 ]; then
    echo "-----------------------[ Error ]-----------------------------"

@@ -235,7 +235,7 @@ public class ServerWizard extends WizardDialog {
 	 * class.
 	 */
 	private boolean gccFlag;
-	
+		
 	/**
 	 * The DnDTabbedPane to which the actual PEACE installer tab 
 	 * must be added. This value is set in the constructor.

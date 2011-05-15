@@ -60,6 +60,7 @@ import org.peace_tools.generic.GenericWizardPage;
 import org.peace_tools.generic.Utilities;
 import org.peace_tools.generic.WizardDialog;
 import org.peace_tools.workspace.Server;
+import org.peace_tools.workspace.Server.OSType;
 
 /**
  * This class serves as the first interactive page in a ServerWizard.
@@ -384,12 +385,20 @@ implements ActionListener, Runnable {
 		// in the run() method below.
 		final Exception result = exp;
 		final JPanel    page   = this;
-		final String    version= (server.isRemote() ? streamsData[0] + "\n" : "") + 
-			"Operating System (OS) = " + server.getOSType(); // Version & OS Info 
-		
+		String    osInfo       = (server.isRemote() ? streamsData[0] + "\n" : "") +
+			"Operating System (OS) = ";
+			 
+		// Add some disambiguation information for Unix type hosts
+		if (OSType.UNIX.equals(server.getOSType())) {
+			osInfo += "Unix/Unix-compatible OS\n" + 
+				"(such as: OS-X, Solaris, etc.)";
+		} else {
+			osInfo += server.getOSType();
+		}
 		// When control drops here we have either successfully
 		// connected (no exceptions) or we failed connecting.
 		// Report the completion on the main AWTThread.
+		final String version = osInfo;
 		SwingUtilities.invokeLater(new Runnable() {
 			@Override
 			public void run() {
