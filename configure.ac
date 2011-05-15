@@ -36,6 +36,7 @@
 
 AC_PREREQ(2.6)
 AC_INIT([peace], [0.95.0], [raodm@muohio.edu])
+AC_CONFIG_AUX_DIR([.])
 AM_INIT_AUTOMAKE([1.9.0])
 AC_CONFIG_SRCDIR([src/config.h.in])
 AC_CONFIG_HEADER([src/config.h])

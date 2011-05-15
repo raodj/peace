@@ -3,7 +3,7 @@
 	ProjectType="Visual C++"
 	Version="9.00"
 	Name="peace"
-	ProjectGUID="{26936C37-BAA3-4E38-B383-20DC0B128947}"
+	ProjectGUID="{9EBA0669-F2A1-4D6D-9A20-5C7D3067437C}"
 	RootNamespace="peace"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
@@ -21,7 +21,7 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			CharacterSet="2"
+			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -41,13 +41,13 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
+				AdditionalIncludeDirectories="../src/input;../src/shared;../src/output;../src/filtering;../src/clustering;../src/assembly;../src/framework"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE;_WINDOWS"
 				MinimalRebuild="true"
-				BasicRuntimeChecks="0"
+				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
 				WarningLevel="4"
-				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="4"
 			/>
 			<Tool
@@ -93,7 +93,7 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
-			CharacterSet="2"
+			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -115,13 +115,12 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
+				AdditionalIncludeDirectories="../src/input;../src/shared;../src/output;../src/filtering;../src/clustering;../src/assembly;../src/framework"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE;_WINDOWS"
-				BasicRuntimeChecks="0"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="4"
-				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -174,11 +173,11 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\src\InteractiveConsole.cpp"
+				RelativePath="..\src\InteractiveConsole.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\src\main.cpp"
+				RelativePath="..\src\main.cpp"
 				>
 			</File>
 		</Filter>
@@ -188,7 +187,7 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\src\InteractiveConsole.h"
+				RelativePath="..\src\InteractiveConsole.h"
 				>
 			</File>
 		</Filter>

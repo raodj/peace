@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9.00"
-	Name="peace_library"
-	ProjectGUID="{B19A9162-87B7-4972-9261-4BF7FEF3C464}"
-	RootNamespace="peace_library"
+	Name="clustering"
+	ProjectGUID="{2746EEEB-7B71-4C8A-8AC2-55825CC69C1D}"
+	RootNamespace="clustering"
 	Keyword="Win32Proj"
 	TargetFrameworkVersion="196613"
 	>
@@ -21,7 +21,7 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
-			CharacterSet="2"
+			CharacterSet="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -41,14 +41,13 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
+				AdditionalIncludeDirectories="..\src\output;..\src\shared;..\src;..\src\framework"
 				PreprocessorDefinitions="WIN32;_DEBUG;_LIB;_WINDOWS"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
-				ProgramDataBaseFileName="$(IntDir)\peace_library_vc90.pdb"
 				WarningLevel="4"
-				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="4"
 			/>
 			<Tool
@@ -84,7 +83,7 @@
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
-			CharacterSet="2"
+			CharacterSet="1"
 			WholeProgramOptimization="1"
 			>
 			<Tool
@@ -106,12 +105,12 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
+				AdditionalIncludeDirectories="..\src\output;..\src\shared;..\src;..\src\framework"
 				PreprocessorDefinitions="WIN32;NDEBUG;_LIB;_WINDOWS"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="4"
-				Detect64BitPortabilityProblems="false"
 				DebugInformationFormat="3"
 			/>
 			<Tool
@@ -152,167 +151,119 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
-				RelativePath=".\src\AdaptiveTwoPassD2.cpp"
+				RelativePath="..\src\clustering\AdaptiveMSTClusterMaker.cpp"
 				>
 			</File>
 			<File
-				RelativePath="src\arg_parser.cpp"
+				RelativePath="..\src\clustering\AdaptiveTwoPassD2.cpp"
 				>
 			</File>
 			<File
-				RelativePath="src\CLU.cpp"
+				RelativePath="..\src\clustering\CLU.cpp"
 				>
 			</File>
 			<File
-				RelativePath="src\ClusterMaker.cpp"
+				RelativePath="..\src\clustering\ClusteringSubSystem.cpp"
 				>
 			</File>
 			<File
-				RelativePath="src\ClusterMakerFactory.cpp"
+				RelativePath="..\src\clustering\ClusterMakerFactory.cpp"
 				>
 			</File>
 			<File
-				RelativePath="src\D2.cpp"
+				RelativePath="..\src\clustering\D2.cpp"
 				>
 			</File>
 			<File
-				RelativePath="src\D2Zim.cpp"
+				RelativePath="..\src\clustering\D2Zim.cpp"
 				>
 			</File>
 			<File
-				RelativePath="src\EST.cpp"
+				RelativePath="..\src\clustering\ESTAnalyzerFactory.cpp"
 				>
 			</File>
 			<File
-				RelativePath="src\ESTAnalyzer.cpp"
+				RelativePath="..\src\clustering\FMWSCA.cpp"
 				>
 			</File>
 			<File
-				RelativePath="src\ESTAnalyzerFactory.cpp"
+				RelativePath="..\src\clustering\FWAnalyzer.cpp"
 				>
 			</File>
 			<File
-				RelativePath="src\ESTCodec.cpp"
+				RelativePath="..\src\clustering\Heuristic.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\src\Filter.cpp"
+				RelativePath="..\src\clustering\HeuristicChain.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\src\FilterChain.cpp"
+				RelativePath="..\src\clustering\HeuristicFactory.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\src\FilterFactory.cpp"
+				RelativePath="..\src\clustering\MatrixFileAnalyzer.cpp"
 				>
 			</File>
 			<File
-				RelativePath="src\FMWSCA.cpp"
+				RelativePath="..\src\clustering\MSTCache.cpp"
 				>
 			</File>
 			<File
-				RelativePath="src\FWAnalyzer.cpp"
+				RelativePath="..\src\clustering\MSTClusterMaker.cpp"
 				>
 			</File>
 			<File
-				RelativePath="src\Heuristic.cpp"
+				RelativePath="..\src\clustering\MSTHeapCache.cpp"
 				>
 			</File>
 			<File
-				RelativePath="src\HeuristicChain.cpp"
+				RelativePath="..\src\clustering\MSTMultiListCache.cpp"
 				>
 			</File>
 			<File
-				RelativePath="src\HeuristicFactory.cpp"
+				RelativePath="..\src\clustering\NewUVHeuristic.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\src\LCFilter.cpp"
+				RelativePath="..\src\clustering\NonAdaptiveMSTClusterMaker.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\src\LengthFilter.cpp"
+				RelativePath="..\src\clustering\OldTVHeuristic.cpp"
 				>
 			</File>
 			<File
-				RelativePath="src\MatrixFileAnalyzer.cpp"
+				RelativePath="..\src\clustering\OldTwoPassD2.cpp"
 				>
 			</File>
 			<File
-				RelativePath=".\src\MPIHelper.cpp"
+				RelativePath="..\src\clustering\OldUVHeuristic.cpp"
 				>
 			</File>
 			<File
-				RelativePath="src\MPIStats.cpp"
+				RelativePath="..\src\clustering\ParameterSetManager.cpp"
 				>
 			</File>
 			<File
-				RelativePath="src\MST.cpp"
+				RelativePath="..\src\clustering\TransCacheEntry.cpp"
 				>
 			</File>
 			<File
-				RelativePath="src\MSTCache.cpp"
+				RelativePath="..\src\clustering\TransMSTClusterMaker.cpp"
 				>
 			</File>
 			<File
-				RelativePath="src\MSTCluster.cpp"
+				RelativePath="..\src\clustering\TVHeuristic.cpp"
 				>
 			</File>
 			<File
-				RelativePath="src\MSTClusterMaker.cpp"
+				RelativePath="..\src\clustering\TwoPassD2.cpp"
 				>
 			</File>
 			<File
-				RelativePath="src\MSTHeapCache.cpp"
-				>
-			</File>
-			<File
-				RelativePath="src\MSTMultiListCache.cpp"
-				>
-			</File>
-			<File
-				RelativePath="src\MSTNode.cpp"
-				>
-			</File>
-			<File
-				RelativePath="src\NewUVHeuristic.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\ParameterSetManager.cpp"
-				>
-			</File>
-			<File
-				RelativePath="src\ResultLog.cpp"
-				>
-			</File>
-			<File
-				RelativePath=".\src\SFFReader.cpp"
-				>
-			</File>
-			<File
-				RelativePath="src\TransCacheEntry.cpp"
-				>
-			</File>
-			<File
-				RelativePath="src\TransMSTClusterMaker.cpp"
-				>
-			</File>
-			<File
-				RelativePath="src\TVHeuristic.cpp"
-				>
-			</File>
-			<File
-				RelativePath="src\TwoPassD2.cpp"
-				>
-			</File>
-			<File
-				RelativePath="src\Utilities.cpp"
-				>
-			</File>
-			<File
-				RelativePath="src\UVSampleHeuristic.cpp"
+				RelativePath="..\src\clustering\UVSampleHeuristic.cpp"
 				>
 			</File>
 		</Filter>
@@ -322,199 +273,131 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\src\AdaptiveTwoPassD2.h"
+				RelativePath="..\src\clustering\AdaptiveMSTClusterMaker.h"
 				>
 			</File>
 			<File
-				RelativePath="src\arg_parser.h"
+				RelativePath="..\src\clustering\AdaptiveTwoPassD2.h"
 				>
 			</File>
 			<File
-				RelativePath="src\BipartiteData.h"
+				RelativePath="..\src\clustering\BipartiteData.h"
 				>
 			</File>
 			<File
-				RelativePath="src\CachedESTInfo.h"
+				RelativePath="..\src\clustering\CachedESTInfo.h"
 				>
 			</File>
 			<File
-				RelativePath="src\CachedESTInfoHelper.h"
+				RelativePath="..\src\clustering\CachedESTInfoHelper.h"
 				>
 			</File>
 			<File
-				RelativePath="src\CLU.h"
+				RelativePath="..\src\clustering\CLU.h"
 				>
 			</File>
 			<File
-				RelativePath="src\ClusterMaker.h"
+				RelativePath="..\src\clustering\ClusteringSubSystem.h"
 				>
 			</File>
 			<File
-				RelativePath="src\ClusterMakerFactory.h"
+				RelativePath="..\src\clustering\ClusterMakerFactory.h"
 				>
 			</File>
 			<File
-				RelativePath="src\D2.h"
+				RelativePath="..\src\clustering\D2.h"
 				>
 			</File>
 			<File
-				RelativePath="src\D2Zim.h"
+				RelativePath="..\src\clustering\D2Zim.h"
 				>
 			</File>
 			<File
-				RelativePath="src\EST.h"
+				RelativePath="..\src\clustering\ESTAnalyzerFactory.h"
 				>
 			</File>
 			<File
-				RelativePath="src\ESTAnalyzer.h"
+				RelativePath="..\src\clustering\FMWSCA.h"
 				>
 			</File>
 			<File
-				RelativePath="src\ESTAnalyzerFactory.h"
+				RelativePath="..\src\clustering\FWAnalyzer.h"
 				>
 			</File>
 			<File
-				RelativePath="src\ESTCodec.h"
+				RelativePath="..\src\clustering\Heuristic.h"
 				>
 			</File>
 			<File
-				RelativePath="src\ESTCustomData.h"
+				RelativePath="..\src\clustering\HeuristicChain.h"
 				>
 			</File>
 			<File
-				RelativePath=".\src\Filter.h"
+				RelativePath="..\src\clustering\HeuristicFactory.h"
 				>
 			</File>
 			<File
-				RelativePath=".\src\FilterChain.h"
+				RelativePath="..\src\clustering\MatrixFileAnalyzer.h"
 				>
 			</File>
 			<File
-				RelativePath=".\src\FilterFactory.h"
+				RelativePath="..\src\clustering\MSTCache.h"
 				>
 			</File>
 			<File
-				RelativePath="src\FMWSCA.h"
+				RelativePath="..\src\clustering\MSTClusterMaker.h"
 				>
 			</File>
 			<File
-				RelativePath="src\FWAnalyzer.h"
+				RelativePath="..\src\clustering\MSTHeapCache.h"
 				>
 			</File>
 			<File
-				RelativePath="src\HashMap.h"
+				RelativePath="..\src\clustering\MSTMultiListCache.h"
 				>
 			</File>
 			<File
-				RelativePath="src\Heuristic.h"
+				RelativePath="..\src\clustering\NewUVHeuristic.h"
 				>
 			</File>
 			<File
-				RelativePath="src\HeuristicChain.h"
+				RelativePath="..\src\clustering\OldTVHeuristic.h"
 				>
 			</File>
 			<File
-				RelativePath="src\HeuristicFactory.h"
+				RelativePath="..\src\clustering\OldTwoPassD2.h"
 				>
 			</File>
 			<File
-				RelativePath="src\HTMLHeader.h"
+				RelativePath="..\src\clustering\OldUVHeuristic.h"
 				>
 			</File>
 			<File
-				RelativePath=".\src\LCFilter.h"
+				RelativePath="..\src\clustering\ParameterSet.h"
 				>
 			</File>
 			<File
-				RelativePath=".\src\LengthFilter.h"
+				RelativePath="..\src\clustering\PartitionData.h"
 				>
 			</File>
 			<File
-				RelativePath="src\MatrixFileAnalyzer.h"
+				RelativePath="..\src\clustering\TransCacheEntry.h"
 				>
 			</File>
 			<File
-				RelativePath=".\src\MPIHelper.h"
+				RelativePath="..\src\clustering\TransMSTClusterMaker.h"
 				>
 			</File>
 			<File
-				RelativePath="src\MPIStats.h"
+				RelativePath="..\src\clustering\TVHeuristic.h"
 				>
 			</File>
 			<File
-				RelativePath="src\MST.h"
+				RelativePath="..\src\clustering\TwoPassD2.h"
 				>
 			</File>
 			<File
-				RelativePath="src\MSTCache.h"
-				>
-			</File>
-			<File
-				RelativePath="src\MSTCluster.h"
-				>
-			</File>
-			<File
-				RelativePath="src\MSTClusterMaker.h"
-				>
-			</File>
-			<File
-				RelativePath="src\MSTHeapCache.h"
-				>
-			</File>
-			<File
-				RelativePath="src\MSTMultiListCache.h"
-				>
-			</File>
-			<File
-				RelativePath="src\MSTNode.h"
-				>
-			</File>
-			<File
-				RelativePath="src\NewUVHeuristic.h"
-				>
-			</File>
-			<File
-				RelativePath=".\src\ParameterSet.h"
-				>
-			</File>
-			<File
-				RelativePath=".\src\ParameterSetManager.h"
-				>
-			</File>
-			<File
-				RelativePath="src\PartitionData.h"
-				>
-			</File>
-			<File
-				RelativePath="src\ResultLog.h"
-				>
-			</File>
-			<File
-				RelativePath=".\src\SFFReader.h"
-				>
-			</File>
-			<File
-				RelativePath="src\TransCacheEntry.h"
-				>
-			</File>
-			<File
-				RelativePath="src\TransMSTClusterMaker.h"
-				>
-			</File>
-			<File
-				RelativePath="src\TVHeuristic.h"
-				>
-			</File>
-			<File
-				RelativePath="src\TwoPassD2.h"
-				>
-			</File>
-			<File
-				RelativePath="src\Utilities.h"
-				>
-			</File>
-			<File
-				RelativePath="src\UVSampleHeuristic.h"
+				RelativePath="..\src\clustering\UVSampleHeuristic.h"
 				>
 			</File>
 		</Filter>
@@ -524,10 +407,6 @@
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
 		</Filter>
-		<File
-			RelativePath=".\ReadMe.txt"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>
