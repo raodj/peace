@@ -158,6 +158,35 @@ public class JobList {
 		WorkspaceEvent we = new WorkspaceEvent(job, WorkspaceEvent.Operation.INSERT);
 		Workspace.get().fireWorkspaceChanged(we);
 	}
+	
+	/**
+	 * Method to insert a new job entry to the job list while ensuring
+	 * the job entry is prior to any other job entries that depend on it.
+	 * 
+	 * This method inserts the specified job to the job list and 
+	 * fires a WorkspaceEvent indicating the addition of the new
+	 * entry to all listeners. The insertion is done such that
+	 * the order of dependence is reflected in the list to help with
+	 * user understanding of dependence.
+	 * 
+	 * @param job The new job entry to be added to the job list.
+	 */
+	public synchronized void insert(Job job) {
+		// Find first job entry (if any) that is dependent on this job.
+		int index;
+		for(index = 0; (index < jobs.size()); index++) {
+			final String currDepJobID = jobs.get(index).getPreviousJobID();
+			if ((currDepJobID != null) && (currDepJobID.equals(job.getJobID()))) {
+				// Found the first job that is dependent on this job. So insert
+				// new job before the current one.
+				break;
+			}
+		}
+		jobs.add(index, job);
+		// Fire notification to listeners to update GUIs
+		WorkspaceEvent we = new WorkspaceEvent(job, WorkspaceEvent.Operation.INSERT);
+		Workspace.get().fireWorkspaceChanged(we);
+	}
 
 	/**
 	 * Method to remove a job entry.

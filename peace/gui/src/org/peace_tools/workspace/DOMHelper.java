@@ -363,7 +363,8 @@ public class DOMHelper {
 	 * @param elementName
 	 *            The name of element to search for.
 	 * @return The element node within the list of DOM nodes. If the element is
-	 *         not found, this method returns null.
+	 *         not found then this method throws a DOMException.
+	 * @throws DOMException This method throws an exception if the node was not found.
 	 */
 	private static Element getElement(NodeList nodes, String elementName) {
 		if ((nodes == null) || (nodes.getLength() < 1)) {

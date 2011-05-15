@@ -520,7 +520,7 @@ public class Workspace {
     /**
      * Utility method to notify all the listeners about a change to the Workspace.
      * 
-     *  This method is used by various classes to report changes occuring to the
+     *  This method is used by various classes to report changes occurring to the
      *  workspace. This method is invoked by various classes constituting the
      *  workspace.
      *

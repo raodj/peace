@@ -37,6 +37,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 
 import org.peace_tools.core.SummaryWriter;
+import org.peace_tools.workspace.JobBase.JobType;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -306,7 +307,7 @@ public class GeneratedFileList {
 		// Notify all listeners about the change.
 		Workspace ws = Workspace.get();
 		ws.fireWorkspaceChanged(new WorkspaceEvent(this, 
-				WorkspaceEvent.Operation.INSERT));
+				WorkspaceEvent.Operation.UPDATE));
 	}
 
 	/**
@@ -319,7 +320,9 @@ public class GeneratedFileList {
 	 */
 	@Override
 	public String toString() {
-		return "Generated Files [Job ID: " + jobSummary.getJobID() + "]";
+		final String jobTypeStr = jobSummary.getType().equals(JobType.CLUSTERING) ? 
+				"Clustering" : "EAST";
+		return jobTypeStr + " Job Files [" + jobSummary.getJobID() + "]";
 	}
 	
 	/**
