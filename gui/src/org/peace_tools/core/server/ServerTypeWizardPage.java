@@ -239,7 +239,7 @@ implements ActionListener, Runnable {
 	 * has been refactored out into its own method.
 	 * 
 	 * <p><b>Note:</b>This method is to be invoked only from the {@link #run()}
-	 * method after a connection has been established.</p>
+	 * method after a connection has been established for remote servers.</p>
 	 * 
 	 * @return The standard output and error streams that contain the 
 	 * Linux version for display to user.
@@ -364,7 +364,9 @@ implements ActionListener, Runnable {
 			srvrSession.connect();
 			// Now that we have connected, check if the remote
 			// host is a Linux machine.
-			streamsData = checkRemoteServer();
+			if (server.isRemote()) {
+				streamsData = checkRemoteServer();
+			}
 			// Setup the OS type for future reference.
 			server.setOSType(srvrSession.getOSType());
 			// The connection was successful! Credentials 
@@ -382,8 +384,8 @@ implements ActionListener, Runnable {
 		// in the run() method below.
 		final Exception result = exp;
 		final JPanel    page   = this;
-		final String    version= streamsData[0] + 
-			"\nOperating System (OS) = " + server.getOSType(); // Version & OS Info 
+		final String    version= (server.isRemote() ? streamsData[0] + "\n" : "") + 
+			"Operating System (OS) = " + server.getOSType(); // Version & OS Info 
 		
 		// When control drops here we have either successfully
 		// connected (no exceptions) or we failed connecting.
