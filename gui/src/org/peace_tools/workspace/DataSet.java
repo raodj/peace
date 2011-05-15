@@ -381,6 +381,52 @@ public class DataSet {
 	}
 	
 	/**
+	 * Add a new GeneratedFileList (GFL) object to this
+	 * data set before any entries for dependent jobs. This method can
+	 * be used to insert the GFL for a job on which some other
+	 * job may depend. In this case, the GFL is inserted before the
+	 * GFL for dependent job.
+	 * 
+	 * The GeneratedFileList data must have been generated
+	 * for the EST file associated with this data set.
+	 *  
+	 * <p><b>Note:</b> This method reports the newly added entry to
+	 * all workspace listeners by firing a suitable event.</p>
+	 * 
+	 * @param gfl The new GeneratedFileList entry to be added to this 
+	 * data set.
+	 */
+	public synchronized void insert(GeneratedFileList gfl) {
+		if (gfl == null) {
+			// nothing further to be done.
+			return;
+		}
+		// Extract job ID of GLF to be inserted for convenience during searching below
+		final String toInsJobID = gfl.getJobSummary().getJobID();
+		assert( toInsJobID != null );
+		// Find the first GLF entry whose previous jobID matches this GFL's job ID
+		int insertPos;
+		for(insertPos = 0; (insertPos < gflList.size()); insertPos++) {
+			final JobSummary currSummary  = gflList.get(insertPos).getJobSummary();
+			final String     prevJobID    = currSummary.getPreviousJobID(); 
+			if ((prevJobID != null) && (prevJobID.equals(toInsJobID))) {
+				// Found the first GFL entry that is dependent on this new
+				// entry being inserted. So we need to insert the new entry
+				// at insertPos
+				break;
+			}
+		}
+		// When control drops here insertPos indicates the position where the
+		// next entry is to be inserted. This could be at the end of the list too.
+		gflList.add(insertPos, gfl);
+		gfl.setDataSet(this);
+		// Fire update invent to everyone interested.
+		Workspace ws = Workspace.get();
+		WorkspaceEvent wse = new WorkspaceEvent(gfl, WorkspaceEvent.Operation.INSERT);
+		ws.fireWorkspaceChanged(wse);
+	}
+	
+	/**
 	 * Remove an existing GeneratedFileList (GFL) data file from 
 	 * this data set.
 	 *  
