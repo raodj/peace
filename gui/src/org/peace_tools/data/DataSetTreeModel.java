@@ -293,13 +293,37 @@ public class DataSetTreeModel implements TreeModel, WorkspaceListener {
 	}
 	
     /**
-     * The only event raised by this model is TreeStructureChanged with the
-     * appropriate entry to be  
+     * Helper method to generate events notifying listeners that the
+     * structure of a given node has drastically changed. This method is
+     * used by the {@link #workspaceChanged(WorkspaceEvent)} method to
+     * notify tree mode listeners that the content of a given node has
+     * significantly changed. This notification is used when nodes are
+     * added or deleted.
+     * 
+     *  @param oldRoot The node whose underlying content has drastically
+     *  changed.
      */
     protected void fireTreeStructureChanged(Object oldRoot) {
         TreeModelEvent e = new TreeModelEvent(this, new Object[] {oldRoot});
         for (TreeModelListener tml : treeModelListeners) {
             tml.treeStructureChanged(e);
+        }
+    }
+    
+    /**
+     * Helper method to generate events notifying listeners that the
+     * information associated with a node has changed in some way. This method is
+     * used by the {@link #workspaceChanged(WorkspaceEvent)} method to
+     * notify tree mode listeners that the information associated with a 
+     * given node (such as job status etc.) has changed. This method is
+     * not used to report changes to the tree structure.
+     * 
+     *  @param node The node whose information has changed or has been updated.
+     */
+    protected void fireTreeNodesChanged(Object node) {
+        TreeModelEvent e = new TreeModelEvent(this, new Object[] {node});
+        for (TreeModelListener tml : treeModelListeners) {
+            tml.treeNodesChanged(e);
         }
     }
 
@@ -310,13 +334,14 @@ public class DataSetTreeModel implements TreeModel, WorkspaceListener {
 		final WorkspaceEvent.EntryType entryType = event.getEntryType();
 		if (!entryType.equals(WorkspaceEvent.EntryType.DATA_SET) &&
 			!entryType.equals(WorkspaceEvent.EntryType.MST_DATA) &&
+			!entryType.equals(WorkspaceEvent.EntryType.GENERATED_FILE_LIST) &&
 			!entryType.equals(WorkspaceEvent.EntryType.MST_CLUSTER_DATA)) {
 			// We don't care bout this update.
 			return;
 		}
 		// Translate work space event to a model event.
 		if (event.getOperation().equals(WorkspaceEvent.Operation.UPDATE)) {
-			fireTreeStructureChanged(event.getSource());
+			fireTreeNodesChanged(event.getSource());
 			return;
 		} 
 		// For inserts and deletes the changes are a bit more
