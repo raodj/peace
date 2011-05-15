@@ -192,8 +192,12 @@ public class DataSetTreeView extends JPanel implements ActionListener {
         	// There were no nodes at the click point. Nothing to do
         	return;
         }
-        // Check and display the view (if one does not exist)
-        mainFrame.getViewFactory().createView(path.getLastPathComponent(), false, false);
+        // Check and display the view (if one does not exist) only for
+        // nodes that are not generated file list nodes.
+        final Object entry = path.getLastPathComponent();
+        if (!(entry instanceof GeneratedFileList)) {
+        	mainFrame.getViewFactory().createView(path.getLastPathComponent(), false, false);
+        }
 	}
 	    
 	/**

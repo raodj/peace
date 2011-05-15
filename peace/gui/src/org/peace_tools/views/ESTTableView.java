@@ -37,6 +37,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -264,6 +265,11 @@ public class ESTTableView extends JPanel implements ActionListener, ChangeListen
 		toolbar.add(basesPerCol);
 		basesPerCol.addChangeListener(this);
 		basesPerCol.setEnabled(false);
+		// Fix the maximum width of this field to make thing prettier
+		Dimension maxSize = basesPerCol.getPreferredSize();
+		maxSize.width     = maxSize.width * 3 / 2;
+		basesPerCol.setPreferredSize(maxSize);
+		basesPerCol.setMaximumSize(maxSize);
 		// Put wrapping message.
 		toolbar.add(new JLabel(" nt/column"));
 		
@@ -273,6 +279,8 @@ public class ESTTableView extends JPanel implements ActionListener, ChangeListen
 		toolbar.add(Utilities.createToolButton("images/16x16/Help.png", 
 				null, "help", this, 
 				"Read about the the FASTA display and various controls", true));
+		// Create a horizontal expandable strut
+		toolbar.add(Box.createHorizontalGlue());
 		// Add tool bar to the north
 		add(toolbar, BorderLayout.NORTH);
 	}
