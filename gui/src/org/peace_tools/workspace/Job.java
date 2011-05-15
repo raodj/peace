@@ -494,11 +494,12 @@ public abstract class Job extends JobBase {
 		final String Indent = "\t\t";
 		final String STR_ELEMENT = Indent + "\t" + "<%1$s>%2$s</%1$s>\n";
 		final String NUM_ELEMENT = Indent + "\t" + "<%1$s>%2$d</%1$s>\n";
+		final String xmlDesc     = DOMHelper.xmlEncode(description);
 		
 		// Add new sub-elements for each value.
 		out.printf(STR_ELEMENT, "Type", type.toString().toLowerCase());
 		out.printf(STR_ELEMENT, "JobID", jobID);
-		out.printf(STR_ELEMENT, "Description", description);
+		out.printf(STR_ELEMENT, "Description", xmlDesc);
 		out.printf(STR_ELEMENT, "ServerID", serverID);
 		out.printf(STR_ELEMENT, "Path", path);
 		out.printf(NUM_ELEMENT, "Nodes", nodes);

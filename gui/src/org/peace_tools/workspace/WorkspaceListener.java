@@ -45,10 +45,10 @@ public interface WorkspaceListener {
 	/**
 	 * This method is invoked on all workspace listeners registered with
 	 * the current Workspace. The event contains the necessary information
-	 * to report the change that has occured to a workspace.
+	 * to report the change that has occurred to a workspace.
 	 *  
 	 * @param event The event that contains the information regarding the
-	 * change that has occured to the workspace.
+	 * change that has occurred to the workspace.
 	 */
 	public void workspaceChanged(WorkspaceEvent event);
 }

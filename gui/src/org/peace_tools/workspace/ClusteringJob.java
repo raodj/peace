@@ -122,12 +122,14 @@ public class ClusteringJob extends Job {
 	 * during reading and processing elements from the DOM node.
 	 */
 	private static ArrayList<Heuristic> parseHeuristicChain(Element jobNode) throws Exception {
-		// Parse out the heuristic chain using a helper method.
-		Element chainNode= DOMHelper.getElement(jobNode, "HeuristicChain");
-		if (chainNode == null) {
+		// Check to ensure we have a chain to parse out.
+		if (!DOMHelper.hasElement(jobNode, "HeuristicChain")) {
 			return null;
 		}
-		NodeList chain   = chainNode.getElementsByTagName("Heuristic");
+		// Parse out the heuristic chain using a helper method.
+		Element chainNode = DOMHelper.getElement(jobNode, "HeuristicChain");
+		assert (chainNode!= null);
+		NodeList chain    = chainNode.getElementsByTagName("Heuristic");
 		ArrayList<Heuristic> heuristics = new ArrayList<Heuristic>(); 
 		for(int idx = 0; (idx < chain.getLength()); idx++) {
 			Element node = (Element) chain.item(idx);
@@ -265,7 +267,9 @@ public class ClusteringJob extends Job {
 	 * @param threshold The threshold value used to partition a MST.
 	 * 
 	 * @param heuristics The list of heuristics that were used to accelerate 
-	 * the MST generation algorithm. This list may be null.
+	 * the MST generation algorithm. This list may be null for no heuristics at all
+	 * and the defaults will kick in. If this list not-null but empty then 
+	 * all heuristics are disabled.
 	 * 
 	 * @param filters The list of filters that were used to filter out short ESTs or
 	 * ESTs with low complexity sections to ensure that the resultant clustering is
