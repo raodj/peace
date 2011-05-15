@@ -83,10 +83,17 @@ public class SubmitJobWizardPage extends GenericSubmitJobWizardPage {
 		super(wizard, title, subTitle, (clusteringJob || !alsoClustering)); 
 		this.wizard        = wizard;
 		this.clusteringJob = clusteringJob;
+		this.alsoClustering= alsoClustering;
 	}
 	
 	@Override
 	protected Job getJob() {
+		// If we are also clustering then to avoid user confusion in job IDs
+		// and order in which entries are added to the workspace, we create
+		// the clustering job entry first
+		if (alsoClustering) {
+			wizard.createJobEntry(false, true);
+		}
 		return wizard.createJobEntry(!clusteringJob, true);
 	}
 
@@ -97,9 +104,17 @@ public class SubmitJobWizardPage extends GenericSubmitJobWizardPage {
 
 	@Override
 	protected FileEntry[] getFilesToCopy() {
-		// Intentionally returning null as there are no
-		// additional files to copy.
-		return null;
+		if (alsoClustering) {
+			// Intentionally returning null as there are no
+			// additional files to copy.
+			return null;
+		}
+		// For direct assembly the MST file needs to be copied
+		// to the server (the source EST file is handled separately
+		// already).
+		FileEntry[] filesToCopy = new FileEntry[1];
+		filesToCopy[0] = wizard.getMSTFile();
+		return filesToCopy;
 	}
 
 	@Override
@@ -145,7 +160,15 @@ public class SubmitJobWizardPage extends GenericSubmitJobWizardPage {
 	 * this instance is dealing with a clustering job.
 	 */
 	private final boolean clusteringJob;
-	
+
+	/**
+	 * Flag to indicate if this page is working in a mode
+	 * where the wizard has been launched for clustering+assembly.
+	 * If this flag is false, then the wizard is meant to
+	 * perform just assembly.
+	 */
+	private final boolean alsoClustering;
+
 	/**
 	 * A serialization UID to keep the compiler happy.
 	 */
