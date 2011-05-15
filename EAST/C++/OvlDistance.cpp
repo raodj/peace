@@ -192,7 +192,7 @@ vector<int> OvlDistance::getOVLDistance(const string& tS1, const string& tS2, bo
 	 *
 	 * Note: if ovlWindowSize > length of s1, disRight and disLeft would not be equal to zero.
 	 */
-	if ((abs(lenOverlap) == s1.length()) && (s1.length() <= s2.length())
+	if ((abs(lenOverlap) == (int) s1.length()) && (s1.length() <= s2.length())
 			&& ((disRight <= InclusionThreshold) || (abs(disLeft)
 					<= InclusionThreshold))) {
 		lenOverlap = min(s1.length(), s2.length());
@@ -347,7 +347,7 @@ bool OvlDistance::checkInclusion(const string& s1, const string& s2, bool create
 
 	/*if s1 is included in s2, return true, else return false
 	 */
-	if ((abs(lenOverlap) == s1.length()) && (s1.length() <= s2.length())
+	if ((abs(lenOverlap) == (int) s1.length()) && (s1.length() <= s2.length())
 			&& ((disRight <= InclusionThreshold) || (abs(disLeft)
 					<= InclusionThreshold))) {
 		return true;

@@ -1,4 +1,5 @@
 #include "Reconstruction.h"
+#include "ProgressReporter.h"
 #include <sstream>
 #include <cstdlib>
 
@@ -69,6 +70,9 @@ void Reconstruction::getConsensus() {
 	end = time(NULL);
 	cout << "End to reconstruct." << endl;
 	cout << "The time used to reconstruct is " << end-start << endl;
+    // Report progress made
+    ProgressReporter& pr = ProgressReporter::get();
+    pr.reportProgress(3);
 }
 
 /*

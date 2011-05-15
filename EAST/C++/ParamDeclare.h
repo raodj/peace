@@ -79,4 +79,7 @@ int OUTPUT_ACE;
 int LEN_DIFFERENCE;
 int SHORTER_EST_LEN;
 
+// The progress file to which progress information is to be written
+std::string PROGRESS_FILE_NAME;
+
 #endif
