@@ -371,7 +371,8 @@ public:
 
         \param[in] threshold The number of identical batons that must
         be present in a given window pair in order for the pair to be
-        added to the pairList.
+        added to the pairList. This value is also known as
+        criticalValue.
     */
     void getWindowPairs(const BatonList& other,
                         std::vector<WindowPair>& pairList,
@@ -745,6 +746,19 @@ private:
         requirement).
     */
     static int bitMask;
+
+    /** A dummy operator=
+
+        The operator=() is supressed for this class as it has constant
+        members whose value is set when the object is created.  These
+        values cannot be changed during the lifetime of this object.
+
+        \param[in] src The source object from where data is to be
+        copied.  Currently this value is ignored.
+
+        \return Reference to this.
+    */
+    BatonList& operator=(const BatonList& src);	
 };
 
 /** \fn std::ostream& operator<<(std::ostream&, const BatonList&)

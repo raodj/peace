@@ -66,6 +66,8 @@ BatonListCache.cpp \
 SequenceAligner.h \
 SequenceAligner.cpp \
 DefaultSequenceAligner.h \
-DefaultSequenceAligner.cpp
+DefaultSequenceAligner.cpp \
+Segment.h \
+Segment.cpp
 
 # end of Makefile.am

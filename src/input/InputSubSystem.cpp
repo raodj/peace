@@ -76,7 +76,7 @@ InputSubSystem::loadInputs() {
 }
 
 void 
-InputSubSystem::finalizeComponents(const bool success) {
+InputSubSystem::finalizeComponents(const bool UNREFERENCED_PARAMETER(success)) {
     inputFileFactory.finalize();
     sharedESTList.reset();
 }

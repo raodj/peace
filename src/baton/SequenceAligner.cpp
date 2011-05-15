@@ -57,7 +57,7 @@ SequenceAligner::run() {
     std::cerr << "Error: SequenceAligner::run() method should never "
               << "be called.  Aborting!";
     exit(2);
-    return 0;
+    // return 0;
 }
 
 #endif
