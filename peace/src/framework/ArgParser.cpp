@@ -117,8 +117,8 @@ ArgParser::parseArguments(int& argc, char* argv[], bool caxoe) {
 
             case UNSIGNED_INT:
                 removeArgument(argument, argc, argv);
-                sscanf(argv[argument], "%u",
-                       reinterpret_cast<unsigned int*>(argRec.data));
+                *(reinterpret_cast<unsigned int*>(argRec.data)) =
+		    (unsigned int) atol(argv[argument]);
                 removeArgument(argument, argc, argv);
                 break;
                
@@ -130,7 +130,7 @@ ArgParser::parseArguments(int& argc, char* argv[], bool caxoe) {
 
             case FLOAT:
                 removeArgument(argument, argc, argv);
-                *(reinterpret_cast<float*>(argRec.data))= atof(argv[argument]);
+                *(reinterpret_cast<float*>(argRec.data))= (float) atof(argv[argument]);
                 removeArgument(argument, argc, argv);
                 break;
                 

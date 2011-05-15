@@ -377,7 +377,20 @@ private:
         is set to \c true in the initialize() method to indicate
         initialization has been completed.
     */
-    bool initializedFlag;	
+    bool initializedFlag;
+
+	/** A dummy operator=
+
+        The operator=() is supressed for this class as it has constant
+        members whose value is set when the object is created.  These
+        values cannot be changed during the lifetime of this object.
+
+        \param[in] src The source object from where data is to be
+        copied.  Currently this value is ignored.
+
+        \return Reference to this.
+    */
+    Component& operator=(const Component& src);
 };
 
 #endif

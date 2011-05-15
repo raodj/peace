@@ -39,6 +39,7 @@
 #include "HashMap.h"
 #include "ESTList.h"
 #include <cmath>
+#include <sstream>
 
 // The static variable to generate unique cluster ID values.
 int MSTCluster::clusterIDSequence = 0;
@@ -285,11 +286,14 @@ operator<<(std::ostream& os, const MSTCluster& cluster) {
 
 std::string
 MSTCluster::getESTInfo(const int estIdx, const ESTList& estList) const {
-    std::string info("ESTidx #");
-    info += estIdx;
-    const EST *est = estList.get(estIdx);
+    std::string info = "";
+    const EST *est   = estList.get(estIdx);
     if ((est != NULL) && (est->getInfo() != NULL)) {
         info = est->getInfo();
+    } else {
+	std::ostringstream estInfo;
+	estInfo << "ESTidx #" << estIdx;
+	info = estInfo.str();
     }
     return info;
 }

@@ -57,7 +57,7 @@
 */
 class FMWSCA : public FWAnalyzer {
     friend class ESTAnalyzerFactory;
-    using ESTAnalyzer::getMetric;
+    using FWAnalyzer::getMetric;
 public:
     /** The destructor.
         

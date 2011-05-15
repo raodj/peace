@@ -98,9 +98,11 @@ OldTwoPassD2::initialize() {
     chain->getParamSetMgr()->setupParameters(false);
     // Setup the fact that we would like all 'N' characters to be
     // normalized for this analyzer.
+#ifndef _WINDOWS
 #warning "Check to ensure randomization of 'N' bases is not yet in place"
     // ESTAnalyzer::setRandomizeNbases(true);
-    
+#endif
+
     // Let the base class initialize any additional heuristics
     if (!FWAnalyzer::initialize()) {
         // Error occured when initializing.  This is no good.

@@ -42,7 +42,7 @@
 DefaultSequenceAligner::DefaultSequenceAligner() :
     SequenceAligner("default") {
     // Initialize command-line arguments to default values
-    threshold          = 7;
+    threshold          = 7;  // aka (criticalValue)
     numPermittedErrs   = 10;
     goodAlignmentScore = 15;
     // Clear out the reference sequence baton information
@@ -148,14 +148,15 @@ DefaultSequenceAligner::align(const EST* otherEST, AlignmentInfo& info) {
 }
 
 // Helper method method to compute the alignment between the reference
-// sequence and a given EST.
+// sequence and a given EST by searching window-pairs with a large
+// number of identical batons
 bool
 DefaultSequenceAligner::align(const EST* otherEST, int& refAlignPos,
                               int& othAlignPos, int& score, const bool doRC) {
     // We should have a reference baton list already set
     ASSERT( refBatonList != NULL );
-    // Build the normal (not reverse complement) baton list for the
-    // otherEST for analysis.
+    // Build the normal or reverse complement (based on doRC flag)
+    // baton list for the otherEST for analysis.
     const BatonList *othBatonList = blCache->getBatonList(otherEST, doRC);
     ASSERT ( othBatonList != NULL );
     // check to see if we have sufficient number of identical batons
@@ -173,8 +174,9 @@ DefaultSequenceAligner::align(const EST* otherEST, int& refAlignPos,
     
     // Set starting default score to zero
     score = 0;
-    // Search among pairs of windows returned in the list for best
-    // alignment.  But first get the coded n-mers for the otherEST.
+    // Search among pairs of windows (with sufficent number of
+    // identical batons) returned in the list for best alignment.  But
+    // first get the coded n-mers for the otherEST.
     IntVector codedOthNmers;
     othBatonList->getCodedNMers(codedOthNmers);
     for(size_t winIdx = 0; (winIdx < pairList.size()); winIdx++) {
@@ -195,7 +197,8 @@ DefaultSequenceAligner::align(const EST* otherEST, int& refAlignPos,
             othAlignPos = currOthAlignPos;
         }
         // Short circuit exhaustive alignment search if a reasonably
-        // good alignment was found.
+        // good alignment was found. The parameter goodAlignmentScore is
+        // also-known-as signficiantAlignment.
         if (score >= goodAlignmentScore) {
             break;
         }
@@ -204,6 +207,8 @@ DefaultSequenceAligner::align(const EST* otherEST, int& refAlignPos,
     return true;
 }
 
+// Helper method that determines best alignment using batons in a
+// given window-pair (called only by align() method above).
 int
 DefaultSequenceAligner::getBestAlignmentInWindow(const std::string& refSeq,
                                         const BatonList& refBatonList,
@@ -228,15 +233,23 @@ DefaultSequenceAligner::getBestAlignmentInWindow(const std::string& refSeq,
         for(NmerBatonList::const_iterator refBaton = refBatonList[nMer].begin();
             (refBaton != refBatonList[nMer].end()); refBaton++) {
             if (!refBatonList.isBatonInWindow(*refBaton, refWindow)) {
-                // This baton is not in the window are are
+                // This baton is not in the window we are
                 // checking. So skip it.
                 continue;
             }
             for(NmerBatonList::const_iterator othBaton = othBatonList[nMer].begin();
                 (othBaton != othBatonList[nMer].end()); othBaton++) {
                 if (!othBatonList.isBatonInWindow(*othBaton, othWindow)) {
-                    // This baton is not in the window are
+                    // This baton is not in the window we are
                     // checking. So skip it.
+                    continue;
+                }
+                // Check to ensure that the batons are identical.
+                if (refBaton->getLength() != othBaton->getLength()) {
+                    // These two batons have the same k-mer heads but
+                    // are of different lengths. Consequently, they
+                    // are not identical batons. Skip this pair for
+                    // further analysis.
                     continue;
                 }
                 // Determine alignment score for the current pair of
@@ -266,11 +279,161 @@ DefaultSequenceAligner::getBestAlignmentInWindow(const std::string& refSeq,
     return bestScore;
 }
 
+// This is a custom helper method that is used to search to the
+// left of an identical baton-pair starting positions to locate
+// first position where two consecutive nucleotide differences
+// occur.
+Segment
+DefaultSequenceAligner::makeSegment(const std::string& refSeq,
+                                    const int baton1Pos,
+                                    const int refSeqStartPos,
+                                    const int refSeqEndPos,
+                                    const std::string& otherSeq,
+                                    const int baton2Pos,
+                                    const int othSeqStartPos,
+                                    const int othSeqEndPos) const {
+    // Use the helper methods to search to the left to determine the
+    // left-bounds of Segment
+    const int leftSpanLen =
+        countMatchingBasesToLeft(refSeq,   baton1Pos, refSeqStartPos,
+                                 otherSeq, baton2Pos, othSeqStartPos);
+    // Use the helper methods to search to the right to determine the
+    // right-bounds of Segment
+    const int rightSpanLen =
+        countMatchingBasesToRight(refSeq,   baton1Pos, refSeqEndPos,
+                                  otherSeq, baton2Pos, othSeqEndPos);
+    // Now form the segment using the left and right spans.
+    return Segment(baton1Pos - leftSpanLen, baton2Pos - rightSpanLen,
+                   leftSpanLen + rightSpanLen);
+}
+
+// This method attempts to figure out the left-position where the
+// nucleotides in refSeq and otherSeq differ by two consecutively
+// different base-pairs.
 int
-DefaultSequenceAligner::getAlignmentScore(const std::string& refSeq,
+DefaultSequenceAligner::countMatchingBasesToLeft(const std::string& refSeq,
+                                                 const int baton1Pos,
+                                                 const int refSeqStartPos,
+                                                 const std::string& otherSeq,
+                                                 const int baton2Pos,
+                                                 const int othSeqStartPos) const {
+    // Ensure we can even move to the left if possible.
+    if ((baton1Pos <= refSeqStartPos) || (baton2Pos <= othSeqStartPos)) {
+        // The baton positions are already at or before start of
+        // sequences
+        return 0;
+    }
+    // Setup variables used in the while loop below to determine
+    // number of different nucleotides seen thus far.
+    register int refSeqPos = baton1Pos - 1;  // index in refSeq
+    register int othSeqPos = baton1Pos - 1;  // index int otherSeq
+    register int diffNtCnt = 0;              // Count of different nts thus far
+    
+    // This loop typically ends when either currRefPos or currOthPos
+    // becomes -1 (zero is a valid index).
+    while ((refSeqPos >= refSeqStartPos) && (othSeqPos >= othSeqStartPos)) {
+        if (refSeq[refSeqPos] == otherSeq[othSeqPos]) {
+            // Nucleotides at this position match. Reset diffNtCnt
+            // variable to indicate there are no differences thusfar.
+            diffNtCnt = 0;
+        } else {
+            // Found different nucleotides at this position.
+            diffNtCnt++;
+            if (diffNtCnt > 1) {
+                // When the diffNtCnt is greater than 1, then we found
+                // two consecutive nucleotide differences. Time to
+                // break out of the while loop.
+                break;
+            }
+        }
+        // Check the previous nucleotides for (mis)match
+        refSeqPos--;
+        othSeqPos--;
+    }
+    // Return number of positions moved to left in reference sequence
+    // (in case you are wondering, it will be the same in other
+    // sequence as well). However, we never return a negative value.
+    return baton1Pos - refSeqPos;
+}
+
+// This method attempts to figure out the right-position where the
+// nucleotides in refSeq and otherSeq differ by two consecutively
+// different base-pairs.
+int
+DefaultSequenceAligner::countMatchingBasesToRight(const std::string& refSeq,
+                                                  const int baton1Pos,
+                                                  const int refSeqEndPos,
+                                                  const std::string& otherSeq,
+                                                  const int baton2Pos,
+                                                  const int othSeqEndPos) const {
+    // Ensure we can even move to the right if possible.
+    if ((baton1Pos >= refSeqEndPos) || (baton2Pos >= othSeqEndPos)) {
+        // The baton positions are already at or before start of
+        // sequences
+        return 0;
+    }
+    // Setup variables used in the while loop below to determine
+    // number of different nucleotides seen thus far.
+    register int refSeqPos = baton1Pos + 1;  // index in refSeq
+    register int othSeqPos = baton1Pos + 1;  // index int otherSeq
+    register int diffNtCnt = 0;              // Count of different nts thus far
+    
+    // This loop typically ends when either currRefPos or currOthPos
+    // becomes greater than refSeqEndPos or othSeqEndPos respectively.
+    while ((refSeqPos < refSeqEndPos) && (othSeqPos < othSeqEndPos)) {
+        if (refSeq[refSeqPos] == otherSeq[othSeqPos]) {
+            // Nucleotides at this position match. Reset diffNtCnt
+            // variable to indicate there are no differences thusfar.
+            diffNtCnt = 0;
+        } else {
+            // Found different nucleotides at this position.
+            diffNtCnt++;
+            if (diffNtCnt > 1) {
+                // When the diffNtCnt is greater than 1, then we found
+                // two consecutive nucleotide differences. Time to
+                // break out of the while loop.
+                break;
+            }
+        }
+        // Check the next pair of nucleotides for (mis)match
+        refSeqPos++;
+        othSeqPos++;
+    }
+    // Return number of positions moved to left in reference sequence
+    // (in case you are wondering, it will be the same in other
+    // sequence as well). However, we never return a negative value.
+    return refSeqPos - baton1Pos;
+}
+
+// Helper method to determine start (or seed) for a segment to the
+// left of a given pair (ref for reference sequence, and oth for other
+// sequence being aligned with ref) of positions in two cDNA
+// fragments.
+bool
+DefaultSequenceAligner::findSeedToLeft(const IntVector& codedRefNmers,
+                                       const int refStartPos,
+                                       const IntVector& codedOthNmers,
+                                       const int othStartPos,
+                                       int& refSeedPos, int& othSeedPos) const {
+    // Compute the left-position where we are going to stop searching
+    const int refLeftStopPos = (refStartPos > 10) ? (refStartPos - 9) :
+        refStartPos;
+    const int othLeftStopPos = (othStartPos > 10) ? (othStartPos - 9) :
+        refStartPos;
+    // Check to see if we have something to search for
+    if ((refLeftStopPos <= 0) || (othLeftStopPos <= 0)) {
+        // No seeds to search for.
+        return false;
+    }
+    // 
+}
+
+
+int
+DefaultSequenceAligner::getAlignmentScore(const std::string& UNUSED(refSeq),
                                           const IntVector& codedRefNmers,
                                           int baton1Pos,
-                                          const std::string& otherSeq,
+                                          const std::string& UNUSED(otherSeq),
                                           const IntVector& codedOthNmers,
                                           int baton2Pos,
                                           int numPermittedErrs) const {
@@ -360,3 +523,5 @@ DefaultSequenceAligner::tryRightExtension(const IntVector& codedRefNmers,
 }
 
 #endif
+
+//  LocalWords:  signficiant

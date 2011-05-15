@@ -86,22 +86,31 @@ void
 BatonList::buildBatons(const int winSize) {
     // Ensure we have at least one window.
     const int seqLen = getSequenceLength() - nMerSize + 1;
-    windowCount      = seqLen / winSize; // number of windows (can be 0!)
-    const int excess = seqLen % winSize;  // bases that don't evenly fit
-    // If more than 50% of windowSize does not fit then create an
-    // additional window by decreasing window size.  Otherwise, grow
-    // window size by a few bases to evenly distribute the excess.
-    if (excess > winSize / 2) {
-        // Create a new window and make window size smaller.
-        windowCount++;  // can't be 0 anymore.
-        windowSize = seqLen / windowCount;
-    } else if (windowCount > 0) {
-        // Only a few bases don't seem to fit. Grow each window by a
-        // few bases to accommodate the excess.
-        windowSize = winSize + (excess / windowCount);
-    } else if (windowCount == 0) {
-        ASSERT( seqLen < winSize );
-        windowSize = seqLen;
+
+    // Below we compute an appropriate window size for the given cDNA
+    // fragment such that window size does not exceed winSize and the
+    // nucleotides are evenly distributed between windows.
+
+    if (seqLen <= winSize * 2 / 3) {
+        // The sequence is less than 1.5 times the maximum window
+        // size. In this case we are going to have a single window to
+        // accomodate the whole cDNA fragment.
+        windowSize  = seqLen;
+        windowCount = 1;
+    } else {  // Sequence is longer than 1.5 times max window size
+        windowCount      = seqLen / winSize;  // number of windows
+        const int excess = seqLen % winSize;  // bases that don't evenly fit
+        if ((excess / windowCount) > (winSize / 5)) {
+            // More than a fifth of the nucletoides don't fit evenly
+            // between the windows. So increase number of windows (while
+            // decreasing number of nucleotides in each window).
+            windowCount++;
+            windowSize = seqLen / windowCount;
+        } else {
+            // Grow the window size by a tad bit to evenly distribute
+            // the nucleotides between the windows.
+            windowSize += (excess / windowCount);
+        }
     }
     
     // Due to overlapping windows we actually have twice the number of
@@ -154,7 +163,8 @@ BatonList::getWindowPairs(const BatonList& other,
     // identicalBatonCount 2-D array.
     getWindowPairs(other, identicalBatonCount, threshold);
     // Now process the entries in the 2-D array and create WindowPair
-    // objects of entries that exceed the given threshold.
+    // objects of entries that exceed the given threshold (threshold
+    // is aka criticalValue).
     for(size_t win1 = 0; (win1 < identicalBatonCount.size()); win1++) {
         const IntVector& win1Entries = identicalBatonCount[win1];
         for(size_t win2 = 0; (win2 < win1Entries.size()); win2++) {

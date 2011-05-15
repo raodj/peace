@@ -65,7 +65,8 @@ BatonAssemblerManager::initialize() {
 
 int
 BatonAssemblerManager::assemble() {
-    // Populate the list of all fragments to be assembled
+    // Populate the list of all fragments to be assembled in the
+    // estsToProcess vector (used in while-loop below)
     setupESTsToBeProcessed();
     // Cut initial progress entry if requested
     reportProgress(0);

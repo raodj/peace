@@ -110,6 +110,53 @@ operator<<(std::ostream& os, const std::string& str) {
 #define UNREFERENCED_PARAMETER(param)
 #endif
 
+#if !defined(_WINDOWS) && !defined(ICC) && !defined(GCC)
+
+#ifndef UNREFERENCED_PARAMETER
+/** \def UNREFERENCED_PARAMETER(param) Workaround warning C4100 in VS 2005
+    and remark #869 in icc.
+
+	\note This macro is deprecated as it causes unintended homographs
+	in Windows. Use the UNUSED macro instead.
+	
+    This macro is a simple work around to supress the C4100 warning
+    (unreferenced parameter).  This warning is generated at Level 4
+    under visual studio 2005.  GCC produces this warning with -Wextra
+    comiler flag.
+*/
+#define UNREFERENCED_PARAMETER(param) param
+#endif
+
+#else
+// Deprecated! use the UNUSED macro below instead.
+#define UNREFERENCED_PARAMETER(param)
+#endif
+
+#if !defined(_WINDOWS) && !defined(ICC) && !defined(GCC)
+
+#ifndef UNUSED
+/** \def UNUSED(param) Workaround warning C4100 in VS 2005
+    and remark #869 in icc about unused parameters.
+
+	\note This macro used to be called
+	UNREFERENCED_PARAMETER. However, the former name causes unintended
+	homographs in Windows. Consequently, the earlier macro has been
+	renamed to this shorter version.
+	
+    This macro is a simple work around to supress the C4100 warning
+    (unreferenced parameter).  This warning is generated at Level 4
+    under visual studio 2005.  GCC produces this warning with -Wextra
+    comiler flag.
+*/
+#define UNUSED(param) param
+#endif
+
+#else
+// Deprecated! use the UNUSED macro below instead.
+#define UNUSED(param)
+#endif
+
+
 #ifdef _WINDOWS
 /** \def fmax Macro to return the maximum of 2 values.
 
@@ -128,6 +175,28 @@ operator<<(std::ostream& os, const std::string& str) {
 	have this method and this macro serves as a replacement.
 */
 #define fmin(x, y) ((x < y) ? x : y)
+#endif
+
+#ifdef _WINDOWS
+/** \def srandom Macro to map GlibC's srandom to srand function
+
+    This macro provides a replacement for the srandom() function
+	defined in math.h under Linux.  However, VS 2005 does not
+	have this method and this macro maps it to srand() function
+	instead.
+*/
+#define srandom(x) srand(x)
+#endif
+
+#ifdef _WINDOWS
+/** \def random Macro to map GlibC's random to rand function
+
+    This macro provides a replacement for the random() function
+	defined in math.h under Linux.  However, VS 2005 does not
+	have this method and this macro maps it to rand() function
+	instead.
+*/
+#define random() rand()
 #endif
 
 #if (!defined(_WINDOWS) && !defined(vsnprintf_s))

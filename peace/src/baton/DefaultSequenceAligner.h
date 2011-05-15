@@ -36,8 +36,9 @@
 
 #include "SequenceAligner.h"
 #include "BatonList.h"
+#include "Segment.h"
 
-// Forward declaration to keep compiler happy and fast
+// Forward declarations (if any) to keep compiler happy and fast
 
 
 /** A simple pair-wise sequence aligner.
@@ -602,7 +603,327 @@ protected:
     int goodAlignmentScore;
 
 private:
-    
+
+	/** This is a custom helper method that is used to search to the
+        left and right of an identical baton-pair starting positions
+        to form the longest Segment possible.
+
+        <p>This helper method is used to form a Segment that
+        identifies a sequence of identical nucleotides starting from a
+        given pair of batons. This method searches to both the left
+        and the right of the starting position. However, the span of
+        the Segment will not exceed the specified bounds. This feature
+        is used by this class to repeatedly form Segments after an
+        inital, sufficiently long (at least as long as
+        DefaultSequenceAligner#goodAlignmentScore) Segment is
+        formed.</p>
+
+        <p>This method essentially uses the countMatchingBasesToLeft()
+        and countMatchingBasesToRight() method to form the
+        Segment. Consequently this method by itself is relatively
+        straightforward.</p>
+
+        \attention We use a cusomtimzed methods for left and right
+        exploration because these methods are frequently used method
+        and we would like to keep the code as small and customized as
+        possible to get maximum performance.
+        
+        \param[in] refSeq The nucleotide sequence for the reference
+        cDNA fragment against which we are trying to locate other
+        candidate sequences for matching.
+
+        \param[in] baton1Pos The starting position of the baton in the
+        refSeq from where the search to the left in refSeq must
+        commence.
+
+        \param[in] refSeqStartPos The starting position in refSeq
+        where search must terminate. This value must not be less than
+        0 (zero).
+
+        \param[in] refSeqEndPos The ending position in refSeq where
+        search must terminate. This value cannot exceed the length of
+        the nucleotide sequence (i.e., refSeq.size()).
+        
+        \param[in] otherSeq The nucleotide sequence for the other cDNA
+        fragment which is being tested for candidacy in current
+        consensus sequence.
+
+        \param[in] baton2Pos The starting position of an
+        identical-baton in the otherSeq from where the search to the
+        left in otherSeq must commence.
+
+        \param[in] othSeqStartPos The starting position in otherSeq
+        where search must terminate. This value is typically 0 (zero).
+
+        \param[in] othSeqEndPos The ending position in otherSeq where
+        search must terminate. This value cannot exceed the length of
+        the nucleotide sequence (i.e., refSeq.size()).
+        
+        \return This method returns the left-distance from baton1Pos
+        where the first, two consecutively differing nucleotides were
+        found.  For example, the following method call (nucleotide
+        sequences intentionally camel-cased and indented to help
+        illustration) should return 8.
+    */
+    Segment makeSegment(const std::string& refSeq, const int baton1Pos,
+                        const int refSeqStartPos, const int refSeqEndPos,
+                        const std::string& otherSeq, const int baton2Pos,
+                        const int othSeqStartPos, const int othSeqEndPos) const;
+	/** This is a custom helper method that is used to search to the
+        left of an identical baton-pair starting positions to locate
+        first position where two consecutive nucleotide differences
+        occur.
+
+        This helper method is used to determine the maximum left-most
+        initial position of similarity between the reference sequence
+        and another sequence for determining the best possible
+        alignment using a given pair of identical batons from the two
+        sequences.  This method searches for two consecutively
+        different nucletodies (one difference may indicate a SNP and
+        we intentionally skip over them) in the given pair of
+        sequences.  This method proceeds towards the left of the two
+        sequences (until the beginning of either of the sequence is
+        hit).
+
+        \note We use a cusomtimzed methods for left and right
+        exploration because these methods are frequently used method
+        and we would like to keep the code as small and customized as
+        possible to get maximum performance.
+        
+        \param[in] refSeq The nucleotide sequence for the reference
+        cDNA fragment against which we are trying to locate other
+        candidate sequences for matching.
+
+        \param[in] baton1Pos The starting position of the baton in the
+        refSeq from where the search to the left in refSeq must
+        commence.
+
+        \param[in] refSeqStartPos The starting position in refSeq
+        where search must terminate. This value is typically 0
+        (zero).
+
+        \param[in] otherSeq The nucleotide sequence for the other cDNA
+        fragment which is being tested for candidacy in current
+        consensus sequence.
+
+        \param[in] baton2Pos The starting position of an
+        identical-baton in the otherSeq from where the search to the
+        left in otherSeq must commence.
+
+        \param[in] othSeqStartPos The starting position in otherSeq
+        where search must terminate. This value is typically 0 (zero).
+        
+        \return This method returns the left-distance from baton1Pos
+        where the first, two consecutively differing nucleotides were
+        found.  For example, the following method call (nucleotide
+        sequences intentionally camel-cased and indented to help
+        illustration) should return 8.
+
+        \code
+        
+        countMatchingBasesToLeft("atcgatCGatcGaTcgatcgatcg",
+                                 16, 0, 
+                                     "atACatcTaAcgatcgatcgatcg",
+                                 12, 0);
+
+
+        \endcode
+
+        Note that if even a single step cannot be made, then this
+        method returns 0 (zero).
+    */
+	int countMatchingBasesToLeft(const std::string& refSeq,
+								 const int baton1Pos,
+								 const int refSeqStartPos,
+								 const std::string& otherSeq,
+								 const int baton2Pos,
+								 const int othSeqStartPos) const;
+
+	/** This is a custom helper method that is used to search to the
+        right of an identical baton-pair starting positions to locate
+        first position where two consecutive nucleotide differences
+        occur.
+        
+        This helper method is used to determine the maximum right-most
+        initial position of similarity between the reference sequence
+        and another sequence for determining the best possible
+        alignment using a given pair of identical batons from the two
+        sequences.  This method searches for two consecutively
+        different nucletodies (one difference may indicate a SNP and
+        we intentionally skip over them) in the given pair of
+        sequences.  This method proceeds towards the right of the two
+        sequences (until the end of either of the sequence is hit).
+
+        \note We use a cusomtimzed methods for left and right
+        exploration because these methods are frequently used method
+        and we would like to keep the code as small and customized as
+        possible to get maximum performance.
+        
+        \param[in] refSeq The nucleotide sequence for the reference
+        cDNA fragment against which we are trying to locate other
+        candidate sequences for matching.
+
+        \param[in] baton1Pos The starting position of the baton in the
+        refSeq from where the search to the right in refSeq must
+        commence.
+
+        \param[in] refSeqEndPos The ending position in refSeq where
+        search must terminate. This value is typically the length of
+        the nucleotide sequence (i.e., refSeq.size()).
+
+        \param[in] otherSeq The nucleotide sequence for the other cDNA
+        fragment which is being tested for candidacy in current
+        consensus sequence.
+
+        \param[in] baton2Pos The starting position of an
+        identical-baton in the otherSeq from where the search to the
+        right in otherSeq must commence.
+
+        \param[in] othSeqEndPos The ending position in otherSeq where
+        search must terminate. This value is typically the length of
+        the nucleotide sequence (i.e., refSeq.size()).
+        
+        \return This method returns the right-distance from baton1Pos
+        where the first, two consecutively differing nucleotides were
+        found.  For example, the following method call (nucleotide
+        sequences intentionally camel-cased and indented to help
+        illustration) should return 6.
+
+        \code
+        
+        countMatchingBasesToRight("nnnnatCgaTCgatcgatcgatcg",
+                                  4, 24, 
+                                      "atGgaCGgatcgatcgatc",
+                                  0, 20);
+
+
+        \endcode
+
+        Note that if even a single step cannot be made, then this
+        method returns 0 (zero).
+    */
+	int countMatchingBasesToRight(const std::string& refSeq,
+                                  const int baton1Pos,
+                                  const int refSeqStartPos,
+                                  const std::string& otherSeq,
+                                  const int baton2Pos,
+                                  const int othSeqStartPos) const;
+
+    /** Helper method to determine start (or seed) for a segment to
+        the left of a given pair of positions in two cDNA fragments.
+
+        <p>This is a helper method that is used to locate the start of
+        a new sub-alignment segment to the left of a given pair of
+        starting positions on the reference and other cDNA fragments.
+        This method is repeatedly invoked from the
+        makeMultipleSegments() method in this class to try and form
+        multiple sub-alignment segments.</p>
+        
+        This method essentially searches for the first position where
+        the encoded <i>n</i>-mers are \b not different.  The two
+        identical coded <i>n</i>-mers are called \i seeds in this
+        context. The seed positions are used to form the next
+        sub-alignment Segment. The search starts at the given pair of
+        positions in the two cDNA fragments and proceeds to the left.
+        The search does not exceed 10 bases from the given starting
+        position.
+
+        \note This method first moves one step to the left (if
+        possible) and then performs the comparison.
+        
+        \param[in] codedRefNmers A vector containing the encoded list
+        of <i>n</i>-mers from a reference cDNA fragment.  Typically,
+        the reference fragment is a given sequence against which
+        comparisons for sufficiently similar cDNA fragments is being
+        performed.
+
+        \param[in] refStartPos The starting index position in the
+        reference codedRefNmers vector from where the search (to the
+        left) must commence.
+
+        \param[in] codedOthNmers A vector containing the encoded list
+        of <i>n</i>-mers from another cDNA fragment that is being
+        aligned with the reference cDNA fragment.
+
+        \param[in] othStartPos The starting index position in the
+        codedOthNmers vector from where the search (to the left) must
+        commence.
+
+        \param[out] refSeedPos The seed position on the reference cDNA
+        fragment from where the next Segment can be formed.  This
+        value is meaningful only if this method returns \c true to
+        indicate that a valid seed was found.
+
+        \param[out] othSeedPos The seed position on the other cDNA
+        fragment from where the next Segment can be formed.  This
+        value is meaningful only if this method returns \c true to
+        indicate that a valid seed was found.
+
+        \return This method returns true if a valid pair of seed were
+        found to the left of the starting positions.  If a valid seed
+        was not found, then this method returns false.
+    */
+	bool findSeedToLeft(const IntVector& codedRefNmers, const int refStartPos,
+                        const IntVector& codedOthNmers, const int othIndexPos,
+                        int& refSeedPos, int& othSeedPos) const;
+
+    /** Helper method to determine start (or seed) for a segment to
+        the right of a given pair of positions in two cDNA fragments.
+
+        <p>This is a helper method that is used to locate the start of
+        a new sub-alignment segment to the right of a given pair of
+        starting positions on the reference and other cDNA fragments.
+        This method is repeatedly invoked from the
+        makeMultipleSegments() method in this class to try and form
+        multiple sub-alignment segments.</p>
+        
+        This method essentially searches for the first position where
+        the encoded <i>n</i>-mers are \b not different.  The two
+        identical coded <i>n</i>-mers are called \i seeds in this
+        context. The seed positions are used to form the next
+        sub-alignment Segment. The search starts at the given pair of
+        positions in the two cDNA fragments and proceeds to the right.
+        The search does not exceed 10 bases from the given starting
+        position.
+
+        \note This method first moves one step to the right (if
+        possible) and then performs the comparisons.
+        
+        \param[in] codedRefNmers A vector containing the encoded list
+        of <i>n</i>-mers from a reference cDNA fragment.  Typically,
+        the reference fragment is a given sequence against which
+        comparisons for sufficiently similar cDNA fragments is being
+        performed.
+
+        \param[in] refStartPos The starting index position in the
+        reference codedRefNmers vector from where the search (to the
+        right) must commence.
+
+        \param[in] codedOthNmers A vector containing the encoded list
+        of <i>n</i>-mers from another cDNA fragment that is being
+        aligned with the reference cDNA fragment.
+
+        \param[in] othStartPos The starting index position in the
+        codedOthNmers vector from where the search (to the right) must
+        commence.
+
+        \param[out] refSeedPos The seed position on the reference cDNA
+        fragment from where the next Segment can be formed.  This
+        value is meaningful only if this method returns \c true to
+        indicate that a valid seed was found.
+
+        \param[out] othSeedPos The seed position on the other cDNA
+        fragment from where the next Segment can be formed.  This
+        value is meaningful only if this method returns \c true to
+        indicate that a valid seed was found.
+
+        \return This method returns true if a valid pair of seed were
+        found to the right of the given pair of starting positions.
+        If a valid seed was not found, then this method returns false.
+    */
+	bool findSeedToRight(const IntVector& codedRefNmers, const int refStartPos,
+                         const IntVector& codedOthNmers, const int othIndexPos,
+                         int& refSeedPos, int& othSeedPos) const;
 };
 
 #endif

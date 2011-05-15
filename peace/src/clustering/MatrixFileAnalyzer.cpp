@@ -87,7 +87,7 @@ MatrixFileAnalyzer::initialize() {
         // Error even opening the data file. 
         std::cerr << "Error opening matrix data file "
                   << dataFileName << " for reading." << std::endl;
-        return 1;
+        return false;
     }
     int  currCol   = 0;
     int  currRow   = 0;  // Current row in distanceValues array
@@ -103,7 +103,7 @@ MatrixFileAnalyzer::initialize() {
             if (!parseESTCount(line.c_str())) {
                 // Could not parse the estCount properly.
                 fclose(input);
-                return 2;
+                return false;
             }
         } else {
             // This line must have some distance values.
@@ -111,7 +111,7 @@ MatrixFileAnalyzer::initialize() {
                 // Too much data!
                 std::cerr << "Excess data in matrix file.\n";
                 fclose(input);
-                return 3;
+                return false;
             }
             currCol += parseMetrics(line.c_str(), distanceValues[currRow],
                                     currCol, estCount - currCol);
@@ -128,10 +128,10 @@ MatrixFileAnalyzer::initialize() {
     if (currRow != estCount) {
         std::cerr << "Insufficient data in matrix file for "
                   << estCount << " ESTs.\n";
-        return 4;
+        return false;
     }
     // When control drops here that mean everything went well.
-    return 0;
+    return true;
 }
 
 bool
@@ -176,8 +176,6 @@ MatrixFileAnalyzer::getMetric(const EST* otherEST) {
     ASSERT( otherEST != NULL );
     ASSERT( refEST   != NULL );
     return distanceValues[refEST->getID()][otherEST->getID()];
-    // Invalid est index.
-    return -1;
 }
 
 int

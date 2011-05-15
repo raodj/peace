@@ -42,7 +42,7 @@
 RuntimeContext::RuntimeContext() {
     // Add some of the standard/default information to the runtime
     // configuration information.
-    std::string peaceInfo(VERSION);
+    std::string peaceInfo(PEACE_VERSION);
     peaceInfo = peaceInfo + " (Released on: " + RELEASE_DATE + ")";
     addConfig("PEACE Version", peaceInfo);
     // Add time when configuration was created
