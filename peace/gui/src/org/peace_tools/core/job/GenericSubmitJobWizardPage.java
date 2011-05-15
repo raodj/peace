@@ -598,13 +598,15 @@ implements Runnable {
 		// First create a full job entry for this job.
 		Job job = getJob();
 		// Add all the entries to the work space.
-		workspace.getJobList().add(job);
+		workspace.getJobList().insert(job);
 		log.append("\tAdded job entry to workspace.\n");
 
 		// Get the generated files list for this job.
 		GeneratedFileList gfl = getGeneratedFiles();
 		DataSet dataSet = getDataSet();
-		dataSet.add(gfl);
+		// Add GFL before any existing GFLs that are dependent on
+		// this job.
+		dataSet.insert(gfl);
 		log.append("\tAdded generated files to workspace.\n");
 		log.append("Done.\n");
 		setStepStatus(0, false);

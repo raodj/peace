@@ -110,7 +110,7 @@ implements Runnable {
 		"Submitting job for running on a server");
 		setBorder(new EmptyBorder(5, 5, 5, 5));
 		// Create the job summary information text area.
-		log = new JTextArea(3, 10);
+		log = new JTextArea(6, 10);
 		JScrollPane jsp = new JScrollPane(log);
 		jsp.setMinimumSize(log.getPreferredSize());
 		JComponent logBox = 
