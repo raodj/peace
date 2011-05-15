@@ -285,9 +285,18 @@ implements ActionListener {
 	 * entries once the wizard has successfully completed.
 	 * 
 	 * @return A HeuristicList object containing the necessary information
-	 * about the heuristics configured by the user.
+	 * about the heuristics configured by the user. If the user has chosen
+	 * two-pass-d2 then this method returns null indicating default heuristics
+	 * are to be used.
 	 */
 	protected ArrayList<Heuristic> getHeuristics() {
+		if (awp.getAnalyzerType().equals(FWAnalyzer.FWAnalyzerType.TWOPASSD2)) {
+			// For two-pass-d2 we use default heuristics by returning null here.
+			// Note that there is a big difference between null return (indicating
+			// default heuristics) versus empty heuristic list (indicating no
+			// heuristics at all)
+			return null;
+		}
 		ArrayList<Heuristic> heurList = new ArrayList<Heuristic>(2);
 		final boolean useHeuristics = 
 			awp.getAnalyzerType().equals(FWAnalyzer.FWAnalyzerType.TWOPASSD2_DONT_ADAPT) ||
