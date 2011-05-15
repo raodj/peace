@@ -34,6 +34,7 @@
 package org.peace_tools.core.server;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.GridLayout;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -206,8 +207,18 @@ implements ItemListener {
 	 */
 	@Override
 	public void pageChanged(WizardDialog dialog, int currPage, int prevPage) {
-		// Enable/disable check box for EAST dependign on whether gcc has been found
+		// Enable/disable check box for EAST depending on whether GCC has been found
 		Utilities.setEnabled(guiSoftComps[1], wizard.haveGCC());
+		// By default check the EAST check box. For this we need to find
+		// the appropriate component.
+		Component[] children = guiSoftComps[1].getComponents();
+		for(Component child: children) {
+			if (child instanceof JCheckBox) {
+				JCheckBox eastCB = (JCheckBox) child;
+				eastCB.setSelected(true);
+				break;
+			}
+		}
 	}
 
 	@Override
