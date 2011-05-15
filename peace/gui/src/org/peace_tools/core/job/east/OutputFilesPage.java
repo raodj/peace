@@ -371,6 +371,9 @@ implements ActionListener {
 		final String[] Usage = {"Def. Dir", "MST File", "Cluster File", "Consensus File", 
 				"Singleton File", "Statistics File"};
 		for(int i = 1; (i < entryIndex); i++) {
+			if (outFileNames[i] == null) {
+				continue;
+			}
 			final File prevEntry = new File(outFileNames[i].getText());
 			if (prevEntry.equals(tmpEntry)) {
 				// Duplicate file found
@@ -408,7 +411,7 @@ implements ActionListener {
 			parentDir = "";
 		}
 		// Add a job# to the parent directory to organize files better
-		final int jobCount = Workspace.get().getJobList().getJobs().size();
+		final int jobCount = Workspace.get().getJobList().getJobs().size() + 1;
 		parentDir += File.separator + "job" + jobCount;
 		// Setup default path based on path of the data set
 		outFileNames[0].setText(parentDir);
@@ -425,7 +428,7 @@ implements ActionListener {
 		this.contigOutputLabel.setText(outFileFormat + " contig/consensus output file:");
 		final String[] NameSuffixes = {null, ".mst", ".cls", 
 				"_east_contigs." + outFileFormat.toLowerCase(), 
-				"_east_singletons.txt", "_east_stats.txt"};
+				"_east_singletons.fasta", "_east_stats.txt"};
 		for(int i = 1; (i < outFileNames.length); i++) {
 			if (outFileNames[i] != null) {
 				outFileNames[i].setText(baseFileName + NameSuffixes[i]);

@@ -398,10 +398,10 @@ public class EASTJobWizard extends WizardDialog {
 			FWAnalyzer analyzer = new FWAnalyzer(FWAnalyzerType.TWOPASSD2, true, 100, 6, "heap", 128);
 			// Create entries for default set of filters used by PEACE
 			ArrayList<Filter> filtList = (assembly ? null : ClusteringJob.createDefaultFilters());
-			// Create empty heuristics as we use an adaptive two-pass-d2
+			// Create no heuristics as we use an adaptive two-pass-d2
 			// analyzer that uses its own custom heuristics and does not
 			// need any heuristics specified on the command line.
-			ArrayList<Heuristic> heurList = (assembly ? null : new ArrayList<Heuristic>());
+			ArrayList<Heuristic> heurList = null;
 			// Create clustering job
 			ClusteringJob clsJob = 
 				new ClusteringJob(
@@ -419,15 +419,6 @@ public class EASTJobWizard extends WizardDialog {
 			// Ensure parameters are populated
 			GeneratedFileList gfl = createGFL(false, reserveJobID, clsJob);
 			clsJob.setupParameters(getDataSet(), gfl, true);
-			// Update the dependent job ID & summary on the EAST job.
-			if (job[1] != null) {
-				job[1].setPreviousJobID(jobID);
-				// Update status of any job summaries in the data sets
-				GeneratedFileList eastGfl = Workspace.get().getGFL(job[1].getJobID());
-				if (eastGfl != null) {
-					eastGfl.getJobSummary().setPreviousJobID(jobID);
-				}
-			}
 			// Setup the common job variable for further use
 			tmpJob = clsJob;
 		} else {
@@ -456,6 +447,15 @@ public class EASTJobWizard extends WizardDialog {
 		// a job ID.
 		if (reserveJobID) {
 			job[jobIndex] = tmpJob;
+		}
+		// Update the dependent job ID & summary on the EAST job.
+		if ((job[0] != null) && (job[1] != null)) {
+			job[1].setPreviousJobID(job[0].getJobID());
+			// Update status of any job summaries in the data sets
+			GeneratedFileList eastGfl = Workspace.get().getGFL(job[1].getJobID());
+			if (eastGfl != null) {
+				eastGfl.getJobSummary().setPreviousJobID(job[0].getJobID());
+			}
 		}
 		// Return the newly constructed job object back to the caller
 		return tmpJob;

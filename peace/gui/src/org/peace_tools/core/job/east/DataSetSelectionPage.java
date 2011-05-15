@@ -109,7 +109,8 @@ implements ListCellRenderer, ActionListener {
 		public Choice(DataSet dataSet) {
 			// Extract the information string to be set for this choice.
 			File tmpData  = new File(dataSet.getPath());			
-			String dsInfo = "<html><b>" + Utilities.trim(tmpData.getName(), 40) + "</b><br/>" +
+			String dsInfo = "<html><b>" + Utilities.trim(tmpData.getName(), 30) + "</b> " +
+				"[<font size=\"-2\">" + Utilities.trim(tmpData.getPath(), 30) + "</font>]<br/>" +
 				"<font size=\"-2\"><i>" + Utilities.trim(dataSet.getDescription(), 60) + "</i></font></html>";
 			// Setup the various instance variables
 			this.sourceDataObject = dataSet;
@@ -131,8 +132,10 @@ implements ListCellRenderer, ActionListener {
 			// Extract the information string to be set for this choice.
 			File mstFile  = new File(mst.getPath());
 			File estFile  = new File(mst.getGFL().getDataSet().getPath());
-			String dsInfo = "<html><b>" + Utilities.trim(mstFile.getName(), 40) + "</b><br/>" +
-				"<font size=\"-2\"><b>EST File:</b>" + Utilities.trim(estFile.getName(), 40) + "<br/>" +
+			String dsInfo = "<html><b>" + Utilities.trim(mstFile.getName(), 30) + "</b> " +
+				"[<font size=\"-2\">" + Utilities.trim(mstFile.getPath(), 30) + "</font>]<br/>" +
+				"<font size=\"-2\"><b>EST File:</b>" + Utilities.trim(estFile.getName(), 30) + 
+				" [<font size=\"-2\">" + Utilities.trim(estFile.getPath(), 30) + "</font>]<br/>" +
 				"<font size=\"-2\"><i>" + Utilities.trim(mst.getDescription(), 60) + "</i></font></html>";
 			// Setup the various instance variables
 			this.sourceDataObject = mst;
@@ -268,8 +271,10 @@ implements ListCellRenderer, ActionListener {
 	private Vector<Choice> getDataSetsAsChoices() {
 		Vector<Choice> choiceList = new Vector<Choice>();
 		for(DataSet ds: Workspace.get().getDataSets()) {
-			Choice c = new Choice(ds);
-			choiceList.add(c);
+			if (ds.isGood() && (ds.getFileType().equals(DataFileType.FASTA))) {
+				Choice c = new Choice(ds);
+				choiceList.add(c);
+			}
 		}
 		return choiceList;
 	}
@@ -288,7 +293,7 @@ implements ListCellRenderer, ActionListener {
 		for(DataSet ds: Workspace.get().getDataSets()) {
 			for(GeneratedFileList gfl: ds.getGflList()) {
 				FileEntry mst = gfl.findEntry(FileEntryType.MST);
-				if (mst != null) {
+				if ((mst != null) && (mst.isGood())) {
 					Choice c = new Choice(mst);
 					choiceList.add(c);
 				}
