@@ -449,6 +449,11 @@
 				<!-- Flag to indicate if PEACE's Distributed Empirical Comparison and
 				     Analysis Framework -->
 				<xsd:element name="hasDECAF" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
+				<!-- Flag to indicate if this server has AMOS tools
+					 installed on it. AMOS tools (see
+					 http://sourceforge.net/apps/mediawiki/amos/)
+					 are used to convert ACE to SAM -->
+				<xsd:element name="hasAMOSTools" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>				
 			</xsd:sequence>
 			<xsd:attribute name="type" type="ServerType" use="required" />
 			<xsd:attribute name="os"   type="ServerOS"   use="optional" />

@@ -1127,6 +1127,7 @@ public class Utilities {
 		detailBtn.setBorder(null);
 		detailBtn.setContentAreaFilled(false);
 		detailBtn.setSelected(true);
+		detailBtn.setFocusable(false);
 		detailBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent arg0) {

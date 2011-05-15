@@ -6,6 +6,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.util.ArrayList;
 
+import javax.swing.Box;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
@@ -17,8 +18,10 @@ import javax.swing.border.EmptyBorder;
 
 import org.peace_tools.generic.GenericWizardPage;
 import org.peace_tools.generic.Utilities;
+import org.peace_tools.generic.WizardDialog;
 import org.peace_tools.workspace.DataSet.DataFileType;
 import org.peace_tools.workspace.Param;
+import org.peace_tools.workspace.Server;
 
 /**
  * This wizard page is relatively straightforward wizard page 
@@ -56,9 +59,16 @@ public class EASTBasicParamsPage extends GenericWizardPage {
 	 * message describing the purpose of each parameter.
 	 * 
 	 * @param wizard The wizard that logically owns this page.
+	 * 
+	 * @param eastSWP The server wizard page that the user uses to select
+	 * the server on which the EAST job is going to run. Information about
+	 * the server selected by the user is used to determine the features
+	 * available on the server (and the set of output file formats
+	 * presented by this wizard).
 	 */
-	public EASTBasicParamsPage(EASTJobWizard wizard) {
-		this.wizard = wizard;
+	public EASTBasicParamsPage(EASTJobWizard wizard, ServerWizardPage eastSWP) {
+		this.wizard  = wizard;
+		this.eastSWP = eastSWP;
 		assert(this.wizard != null);
 		// Setup the title(s) for this page and border
 		setTitle("EAST Parameters", 
@@ -72,17 +82,22 @@ public class EASTBasicParamsPage extends GenericWizardPage {
 		// Create the check boxes for bounded NW and ACE output
 		useBoundedNW = new JCheckBox();
 		useBoundedNW.setSelected(true);
-		// Create the list of valid output file formats
-		DataFileType[] FileFormats = {DataFileType.FASTA, DataFileType.ACE, DataFileType.SAM};
+		// Create the list of fixed valid output file formats. 
+		// SAM is added later on if server supports it.
+		DataFileType[] FileFormats = {DataFileType.ACE, DataFileType.FASTA};
 		contigOutputFormat = new JComboBox(FileFormats);
 		
+		// Create label indicating why SAM is not an valid output format
+		noAMOSTools = new JLabel("<htmL>Server does not have AMOS tools and <br/>" +
+				"therefore cannot create SAM output.</html>", 
+				Utilities.getIcon("images/16x16/Warning.png"), JLabel.LEFT);
 		// Add the various components along with suitable descriptive
 		// labels to a suitable container panel
 		JPanel subPanel = new JPanel(new GridBagLayout());
-		add(subPanel, numOfLevels, NUMLEVELS_INFO_MSG);
-		add(subPanel, useBoundedNW, BOUNDED_NW_INFO_MSG);
-		add(subPanel, contigOutputFormat, CONTIG_OUTPUT_INFO_MSG);
-		
+		add(subPanel, numOfLevels, NUMLEVELS_INFO_MSG, null);
+		add(subPanel, useBoundedNW, BOUNDED_NW_INFO_MSG, null);
+		add(subPanel, contigOutputFormat, CONTIG_OUTPUT_INFO_MSG, null);
+		add(subPanel, Box.createHorizontalBox(), null, noAMOSTools);
 		// Create the wizard-page-level informational message label.
 		JLabel info = new JLabel(PAGE_INFO_MSG,
 				Utilities.getIcon("images/32x32/Information.png"),
@@ -110,14 +125,20 @@ public class EASTBasicParamsPage extends GenericWizardPage {
 	 * of a grid bag layout. This component occupies as little
 	 * space as possible.
 	 * 
-	 * @param right The label text to be added to the right 
+	 * @param labelText The label text to be added to the right 
 	 * column of the grid bag layout. This component will
-	 * occupy rest of the row.
+	 * occupy rest of the row. Note either labelText or label
+	 * must be used (can't use both) 
+	 * 
+	 * @param label The label to be added to the right column of
+	 * the grid bag layout. This component will occupy rest of
+	 * the row. Note that either label or labelText must be used
+	 * (both can't be used).
 	 * 
 	 */
-	private void add(JPanel bag, JComponent left, String label) {
-		// Create label to be placed to right of component
-		final JLabel right = new JLabel(label);
+	private void add(JPanel bag, JComponent left, String labelText, JLabel label) {
+		// Create label to be placed to right of component if it is null.
+		final JLabel right = (label != null) ? label : new JLabel(labelText);
 		// Determine row based on current number of components
 		final int row = bag.getComponentCount() / 2;
 		GridBagConstraints gbc = new GridBagConstraints();
@@ -166,7 +187,43 @@ public class EASTBasicParamsPage extends GenericWizardPage {
 		if (!contigOutputFormat.getSelectedItem().equals(DataFileType.FASTA)) {
 			paramList.add(new Param("-OUTPUT_ACE", null));
 		}
+		if (contigOutputFormat.getSelectedItem().equals(DataFileType.SAM)) {
+			paramList.add(new Param("-CONVERT_TO_SAM", null));
+		}
+		// Add command line option to generate progress information
+		paramList.add(new Param("--progress", "progress.dat"));
 		return paramList;
+	}
+	
+	/**
+	 * Method to fill-in default file names and path when this page is
+	 * displayed.
+	 * 
+	 * This method is called just before this page is to be displayed.
+	 * This page merely adds/removes SAM as an optional output file
+	 * format if the server has AMOS tools installed on it.
+	 * 
+	 */
+	@Override
+	public void pageChanged(WizardDialog dialog, int currPage, int prevPage) {
+		// Convenient reference to the server on which EAST is going run.
+		final Server eastServer = eastSWP.getServerInfoPanel().getSelectedServer();
+		// Get the first output file format that is currently in the list.
+		DataFileType firstFF = (DataFileType) contigOutputFormat.getItemAt(0);
+		// Add SAM file format if the server supports it and our current
+		// first entry is not SAM.
+		if ((eastServer.hasAMOSTools()) && !DataFileType.SAM.equals(firstFF)) {
+			contigOutputFormat.insertItemAt(DataFileType.SAM, 0);
+		}
+		// Remove SAM file format if the server DOES NOT support it and our current
+		// first entry is not SAM.
+		if ((!eastServer.hasAMOSTools()) && DataFileType.SAM.equals(firstFF)) {
+			contigOutputFormat.remove(0);	
+		}
+		// Select first entry by default.
+		contigOutputFormat.setSelectedIndex(0);
+		// Show/hide warning label about missing AMOS tools
+		noAMOSTools.setVisible(!eastServer.hasAMOSTools());
 	}
 	
 	/**
@@ -194,6 +251,15 @@ public class EASTBasicParamsPage extends GenericWizardPage {
 	 * in finding the "real" left end.
 	 */
 	private JSpinner numOfLevels;
+
+	/**
+	 * A short message to indicate why SAM is not an available 
+	 * output format as AMOS tools are not installed on the server.
+	 * This label is shown/hidden by the {@link #pageChanged(WizardDialog, int, int)}
+	 * method depending on the features of the selected server.
+	 * The label is created by the constructor.
+	 */
+	private final JLabel noAMOSTools;
 	
 	/**
 	 * A reference to the wizard dialog that logically owns this
@@ -201,6 +267,15 @@ public class EASTBasicParamsPage extends GenericWizardPage {
 	 * buttons on this wizard appropriately.
 	 */
 	private final EASTJobWizard wizard;
+
+	/**
+	 * A reference to the server wizard page that contains the server
+	 * selected by the user for running the EAST job. Information about
+	 * the server selected by the user is used to determine the features
+	 * available on the server (and the set of output file formats
+	 * presented by this wizard).
+	 */
+	private final ServerWizardPage eastSWP;
 	
 	/**
 	 * A generic informational message that is displayed at the
@@ -245,7 +320,7 @@ public class EASTBasicParamsPage extends GenericWizardPage {
 		"generated by the assembler are to be stored. Output file path<br/>" +
 		"will be set in subsequent steps in this wizard." +
 		"</font></html>";
-	
+
 	/**
 	 * A generated serialization UID to keep the compiler happy.
 	 */
