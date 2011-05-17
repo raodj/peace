@@ -103,7 +103,8 @@ int APIENTRY _tWinMain(HINSTANCE hInstance,
 	
 	index = cmdLine.find(_T("peace.exe"));
 	std::tstring exePath = cmdLine.substr(0, index + 9);
-	std::tstring peaceParams = cmdLine.substr(index + 9);
+	// Preserve the whole command-line including exe name.
+	std::tstring peaceParams = cmdLine;
 
 	// Create files for redirecting stdout and stderr.
 	HANDLE stdOut = createOutputFile(_T("job.stdout"));
@@ -174,6 +175,8 @@ createProcess(const TCHAR *appName, const TCHAR* arguments,
 	startupInfo.hStdError   = stdErr;
 	startupInfo.hStdInput   = INVALID_HANDLE_VALUE;
 	inheritHandles          = TRUE;
+	// We don't want to create a console
+	creationFlags          |= CREATE_NO_WINDOW;
     } else {
 	// Since we don't have I/O streams let child
 	// run as a detached process.
