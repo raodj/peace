@@ -1,6 +1,12 @@
+
 CC = g++
 DEBUG = -g
 OPTS = ${DEBUG} -Wall -Wextra -O3
+
+OS = $(shell uname -s)
+ifeq ($(OS),Darwin)
+	OPTS += -DOSX
+endif
 
 O_FILES = Alignment.o AlignmentAlgorithm.o CalculatedOvlDistance.o D2.o ESTAssembly.o \
 	  Graph.o InclusionNodes.o OvlDistance.o Prim.o Reconstruction.o SingleBase.o SixTuple.o \
