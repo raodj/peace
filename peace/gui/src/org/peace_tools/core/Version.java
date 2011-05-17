@@ -44,7 +44,8 @@ public class Version {
 	   This constant provides a convenient way to track and log the version
 	   information of the software for tracking version changes.
 	*/
-	public static final String GUI_VERSION = "Version 0.96 \n(April 30 2011)";
+	public static final String GUI_VERSION = "Version 0.96 \n(June 30 2011)";
+		
 	
 	/** A simple copyright message.
 
