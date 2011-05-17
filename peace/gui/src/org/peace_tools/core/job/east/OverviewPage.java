@@ -111,14 +111,15 @@ public class OverviewPage extends GenericWizardPage {
 	 */
 	private static final String CLUSTER_OVERVIEW_MSG = "<html>"+
 		"This wizard guides you through the process of clustering (via PEACE)<br/>" +
-		"to create a Minimum Spanning Tree (MST) which is then used for assembly<br/>"+
-		"by EAST.  Clustering can run in parallel but assembly job runs as a single<br/>" +
-		"process on a given server on which EAST has been installed.  The time<br/>" +
-		"taken by PEACE to cluster and EAST to assemble <i>n</i> cDNA fragments is \u03F4" +
-		"(<i>n</i>\u00B2).<br/><br/>" +
+		"and then assembly via EAST. Clustering can run in parallel but assembly<br/>" +
+		"job runs as a single process on a given server.  The time taken by PEACE<br/>" +
+		"cluster and EAST to assemble <i>n</i> cDNA fragments is \u03F4" +
+		"(<i>n</i>\u00B2).<br/>" +
+		"<b>This wizard does not permit you to customize</b><br/>" +
+		"<b>clustering parameters.</b> Use the clustering wizard<br/>" +
+		"to perform custom clustering.<br/><br/>" +
 		"<b>Note</b>: You can perform assembly via EAST directly if an MST file has<br/>"+
-		"already been created through a previous clustering job. To directly assemble<br/>" +
-		"via EAST, use the assembly only tool." +
+		"already been created through a previous clustering job." +
 		"</html>";
 
 	
