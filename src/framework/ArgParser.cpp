@@ -69,7 +69,7 @@ ArgParser::addValidArguments(const ArgRecord validArguments[]) {
                           << "{\"\", \"\", NULL, ArgType::INVALID}"
                           << " marker or increase MAXIMUM_ARGUMENTS"
                           << std::endl;
-                exit(-1);
+                exit(100);
             }
         }
     }
@@ -97,9 +97,12 @@ ArgParser::parseArguments(int& argc, char* argv[], bool caxoe) {
                 if ((argument + 1 == argc) ||
                     ((argv[argument + 1][0] == '-') &&
                      (argv[argument + 1][1] == '-'))) {
-                    std::cerr << "Parameter for " << argv[argument]
+                    std::cerr << "Parameter for " << argRec.command
+			      << " (" << argRec.help << ")"
+			      << " at position " << match << " of "
+			      << NumArgs
                               << " is missing" << std::endl;
-                    exit(-1);
+                    exit(101);
                 }
             }
             
@@ -164,7 +167,7 @@ ArgParser::parseArguments(int& argc, char* argv[], bool caxoe) {
                 foundMatch = false;
                 std::cerr << "Invalid arg type in arg array!" << std::endl;
                 if (caxoe) {
-                    exit(-1);
+                    exit(102);
                 }
             }
             if (foundMatch) {
@@ -210,7 +213,7 @@ ArgParser::checkRemainingArguments(int argc, char* argv[],
             std::cerr << "\nSee help below for Valid arguments.\n\n";
             std::cerr << *this << std::endl;
             if (caxoe) {
-                exit(-1);
+                exit(103);
             }
             return false;
         }
