@@ -228,7 +228,7 @@ public class PEACEInstaller extends SwingWorker<Void, Void> implements DocumentL
 			// Copy the installation files over.
 			String instCmd  = copyInstallFiles(rss);
 			// Add optional command line option to try and install EAST
-			if (server.hasEASTInstalled()) {
+			if ((instCmd != null) && (server.hasEASTInstalled())) {
 				instCmd += " --buildEAST";
 			}
 			int    exitCode = 0;
