@@ -69,8 +69,12 @@ int
 FilteringSubSystem::initializeSubSystem(ArgParser& argParser) {
     // Check and setup default entries if none have been specified.
     if (filterNames.empty()) {
-        filterNames.push_back("lengthFilter");
-        filterNames.push_back("lcFilter");
+        // As of May 16 2011, karroje and raodm decided not to include
+        // filters by default. Consequently, the following two lines
+        // of code have been commented out.
+        
+        // filterNames.push_back("lengthFilter");
+        // filterNames.push_back("lcFilter");
     }
     // Process one filter name at a time.
     for(size_t filIdx = 0; (filIdx < filterNames.size()); filIdx++) {
