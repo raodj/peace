@@ -215,7 +215,7 @@ implements ItemListener {
 		for(Component child: children) {
 			if (child instanceof JCheckBox) {
 				JCheckBox eastCB = (JCheckBox) child;
-				eastCB.setSelected(true);
+				eastCB.setSelected(wizard.haveGCC());
 				break;
 			}
 		}

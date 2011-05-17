@@ -478,6 +478,9 @@ implements Runnable, ActionListener {
 					throw new Exception("The remote server does not seem to have " +
 							"AMOS Tools installed on it.\nPEACE clustering engine install " +
 							"cancelled by user.");
+				} else {
+					// The user want's to continue without AMOS tools.
+					return;
 				}
 			} else {
 				// Command completed successfully. Save outputs in main stream and
