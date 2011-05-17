@@ -621,13 +621,20 @@ AlignResult AlignmentAlgorithm::getSWAlignment(const std::string& s1,
 	int numOfRows = s1.length();
 	int numOfCols = s2.length();
 	//intMatrix trace = createIntMatrix(numOfRows + 1, numOfCols + 1);
-	int trace[numOfRows + 1][numOfCols + 1];
-	trace[0][0] = 0;
-
+	//int trace[numOfRows + 1][numOfCols + 1];
 	//intMatrix alignMatrix = createIntMatrix(numOfRows + 1, numOfCols + 1);
-	int alignMatrix[numOfRows + 1][numOfCols + 1];
-	//initialize the matrix
+	//int alignMatrix[numOfRows + 1][numOfCols + 1];
+
+	int** trace = new int*[numOfRows+1];
+	int** alignMatrix = new int*[numOfRows+1];
+
+	for (int i=0; i < numOfRows+1; i++) {
+	  trace[i] = new int[numOfCols+1];
+	  alignMatrix[i] = new int[numOfCols+1];
+	}
+	trace[0][0] = 0;
 	alignMatrix[0][0] = 0;
+
 	//int* encodedBases2 = new int[numOfCols];
 	int encodedBases2[numOfCols];
 	for (int i = 1; i <= numOfCols; i++) {
@@ -718,6 +725,12 @@ AlignResult AlignmentAlgorithm::getSWAlignment(const std::string& s1,
 	result.str1 = tStr1;
 	result.str2 = tStr2;
 
+	for (int i=0; i < numOfRows; i++) {
+	  delete [] trace[i];
+	  delete [] alignMatrix[i];
+	}
+	delete [] trace;
+	delete [] alignMatrix;
 	//deleteIntMatrix(trace, numOfRows+1);
 	//deleteIntMatrix(alignMatrix, numOfRows+1);
 	//delete [] encodedBases2;
