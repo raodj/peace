@@ -125,7 +125,7 @@ implements ActionListener {
 	 */
 	private JPanel adjustCheckBox(JCheckBox cb, String cmd) {
 		cb.setBackground(Color.white);
-		cb.setSelected(true);
+		cb.setSelected(false);
 		cb.setActionCommand(cmd);
 		cb.setAlignmentX(0);
 		cb.addActionListener(this);

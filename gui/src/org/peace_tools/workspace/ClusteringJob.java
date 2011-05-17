@@ -39,7 +39,6 @@ import java.util.ArrayList;
 import org.peace_tools.core.SummaryWriter;
 import org.peace_tools.workspace.DataSet.DataFileType;
 import org.peace_tools.workspace.FWAnalyzer.FWAnalyzerType;
-import org.peace_tools.workspace.Filter.FilterType;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
@@ -187,16 +186,9 @@ public class ClusteringJob extends Job {
      * parameters used by the PEACE clustering engine.
      */
 	public static  ArrayList<Filter> createDefaultFilters() {
-		// Create the length filter
-		Filter lenFilter = new Filter(FilterType.LengthFilter);
-		lenFilter.addParameter(new Param("minESTLen", "50"));
-		// Create the low-complexity filter
-		Filter lcFilter = new Filter(FilterType.LCFilter);
-		lcFilter.addParameter(new Param("lcPatterns", "A C"));
-		// Create the filter chain/list and add the filters to it
+		// Create the filter chain/list and without any filters which
+		// is the default setting in PEACE.
 		ArrayList<Filter> filters = new ArrayList<Filter>();
-		filters.add(lenFilter);
-		filters.add(lcFilter);
 		return filters;
 	}
 
@@ -356,7 +348,7 @@ public class ClusteringJob extends Job {
 	 */
 	public String getFiltersCmdLine() {
 		if (filters == null) {
-			return ""; // no filters at all
+			return ""; // use default filter settings in PEACE.
 		}
 		// Next covert filter information to command line parameters.
 		String filterParams = "";
@@ -368,7 +360,7 @@ public class ClusteringJob extends Job {
 				filterParams += filter.toCmdLine();
 			}
 		} else {
-			// The command line parameter for no heuristics case is null
+			// The command line parameter for no filters case is null
 			cmdLine += "null";
 		}
 		cmdLine += filterParams;
