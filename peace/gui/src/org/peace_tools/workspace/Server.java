@@ -701,7 +701,7 @@ public class Server {
 		case EAST_EXE:
 			return installPath + eastPath + "Main" + exeSuffix;
 		case WIN_LAUNCHER:
-			return installPath + "launcher" + exeSuffix;
+			return installPath + "\\launcher" + exeSuffix;
 		case JOB_RUNNER:
 			return installPath + jobRunnerPath + "jobRunner" + scriptSuffix;
 		default:

@@ -46,7 +46,7 @@ REM ---------------------------------------------------------------------
     %workDrive%
     
     if "%1" == "start" (
-        start %launcher% %launcher% %peace% %cmdLine%
+        start %launcher% %launcher% %exe% %cmdLine%
         goto end
     ) 
     if "%1" == "status" (
