@@ -620,18 +620,15 @@ AlignResult AlignmentAlgorithm::getSWAlignment(const std::string& s1,
 	//calculate the alignment score and record the traceback path
 	int numOfRows = s1.length();
 	int numOfCols = s2.length();
-	//intMatrix trace = createIntMatrix(numOfRows + 1, numOfCols + 1);
-	//int trace[numOfRows + 1][numOfCols + 1];
-	//intMatrix alignMatrix = createIntMatrix(numOfRows + 1, numOfCols + 1);
-	//int alignMatrix[numOfRows + 1][numOfCols + 1];
 
-	int** trace = new int*[numOfRows+1];
-	int** alignMatrix = new int*[numOfRows+1];
+#ifdef OSX
+	intMatrix trace = createIntMatrix(numOfRows + 1, numOfCols + 1);
+	intMatrix alignMatrix = createIntMatrix(numOfRows + 1, numOfCols + 1);
+#else
+	int trace[numOfRows + 1][numOfCols + 1];
+	int alignMatrix[numOfRows + 1][numOfCols + 1];
+#endif
 
-	for (int i=0; i < numOfRows+1; i++) {
-	  trace[i] = new int[numOfCols+1];
-	  alignMatrix[i] = new int[numOfCols+1];
-	}
 	trace[0][0] = 0;
 	alignMatrix[0][0] = 0;
 
@@ -725,14 +722,10 @@ AlignResult AlignmentAlgorithm::getSWAlignment(const std::string& s1,
 	result.str1 = tStr1;
 	result.str2 = tStr2;
 
-	for (int i=0; i < numOfRows; i++) {
-	  delete [] trace[i];
-	  delete [] alignMatrix[i];
-	}
-	delete [] trace;
-	delete [] alignMatrix;
-	//deleteIntMatrix(trace, numOfRows+1);
-	//deleteIntMatrix(alignMatrix, numOfRows+1);
+#ifdef OSX
+	deleteIntMatrix(trace, numOfRows+1);
+	deleteIntMatrix(alignMatrix, numOfRows+1);
+#endif
 	//delete [] encodedBases2;
 
 	return result;
