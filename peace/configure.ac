@@ -59,7 +59,6 @@ AC_DEFUN([AC_CHECK_MPICC],
 	   AC_MSG_CHECKING([whether $CXX is operational])
 	   
 	   AC_LANG([C++])
-	   AC_LANG_CONFTEST()
      
 	   AC_LINK_IFELSE(
        [AC_LANG_PROGRAM([[#include "mpi.h"],[#include <cstdlib>]],[[int argc=0; char **argv = 0; MPI::Init(argc, argv); MPI::Finalize()]])],
@@ -132,7 +131,6 @@ AC_DEFUN([AC_LINK_STDCPP],
 [
      AC_MSG_CHECKING([whether $CXX needs stdc++])
      AC_LANG([C++])
-     AC_LANG_CONFTEST()
      
      AC_LINK_IFELSE(
          [AC_LANG_PROGRAM([[#include "mpi.h"]],[[std::cout << "Hello";]])],
@@ -279,7 +277,6 @@ AC_DEFUN([AC_CHECK_HASHMAP],
 [
      AC_MSG_CHECKING([whether hash map is operational])
      AC_LANG([C++])
-     AC_LANG_CONFTEST()
 
 	 # First try to run hash map without a custom string hasher
      AC_LINK_IFELSE(
@@ -317,7 +314,6 @@ AC_DEFUN([AC_CHECK_TR1_HASHMAP],
 [
      AC_MSG_CHECKING([whether tr1/unordered_map is available])
      AC_LANG([C++])
-     AC_LANG_CONFTEST()
      
      AC_LINK_IFELSE(
 	     [AC_LANG_PROGRAM([[#include <tr1/unordered_map>],[#include <string>]],[[const std::tr1::unordered_map<const char*, int> map; map.find("1")]])],
