@@ -53,7 +53,8 @@ convertToSAM=`echo $* | grep -c -w "\-CONVERT_TO_SAM"`
 
 # Save the contig output file name for reference below.
 # The contig file is the 3rd cmdline arg from the end
-((contig_pos=$#-2)); eval contigFile=\$$contig_pos
+contig_pos=$(( $# - 2 ))
+contigFile=`echo $* | cut -d' ' -f $contig_pos`
 
 # First run east with the given command line parameters
 # to generate ACE output format (if SAM conversion was selected)
@@ -80,7 +81,7 @@ if [ $convertToSAM -eq 0 ]; then
 	exit 0
 fi
 
-echo "Converting to SAM file format..."
+echo "Converting $contigFile to SAM file format..."
 # Ensure that the output contig file is good.
 if [ ! -f $contigFile -o ! -s $contigFile ]; then
 	echo "EAST did not generate a valid contig file in $contigFile" >&2
