@@ -1,0 +1,164 @@
+\begin{thebibliography}{}
+
+\bibitem[Birol {\em et~al.}(2009)Birol, Jackman, Nielsen, Qian, Varhol, Stazyk,
+  Morin, Zhao, Hirst, Schein, Horsman, Connors, Gascoyne, Marra, and
+  Jones]{Birol09}
+Birol, I., Jackman, S.~D., Nielsen, C.~B., Qian, J.~Q., Varhol, R., Stazyk, G.,
+  Morin, R.~D., Zhao, Y., Hirst, M., Schein, J.~E., Horsman, D.~E., Connors,
+  J.~M., Gascoyne, R.~D., Marra, M.~A., and Jones, S. J.~M. (2009).
+\newblock De novo transcriptome assembly with abyss.
+\newblock {\em Bioinformatics\/}, {\bf 25}(21), 2872--7.
+
+\bibitem[Chevreux(2010)Chevreux]{MiraWeb}
+Chevreux, B. (2010).
+\newblock http://www.chevreux.org/projects\_mira.html.
+
+\bibitem[Chevreux {\em et~al.}(2004)Chevreux, Pfisterer, Drescher, Driesel,
+  M{\"u}ller, Wetter, and Suhai]{Chevreux04}
+Chevreux, B., Pfisterer, T., Drescher, B., Driesel, A.~J., M{\"u}ller, W.
+  E.~G., Wetter, T., and Suhai, S. (2004).
+\newblock Using the miraest assembler for reliable and automated mrna
+  transcript assembly and snp detection in sequenced ests.
+\newblock {\em Genome Res\/}, {\bf 14}(6), 1147--59.
+
+\bibitem[Eid {\em et~al.}(2009)Eid, Fehr, Gray, Luong, Lyle, Otto, Peluso,
+  Rank, Baybayan, Bettman, Bibillo, Bjornson, Chaudhuri, Christians, Cicero,
+  Clark, Dalal, Dewinter, Dixon, Foquet, Gaertner, Hardenbol, Heiner, Hester,
+  Holden, Kearns, Kong, Kuse, Lacroix, Lin, Lundquist, Ma, Marks, Maxham,
+  Murphy, Park, Pham, Phillips, Roy, Sebra, Shen, Sorenson, Tomaney, Travers,
+  Trulson, Vieceli, Wegener, Wu, Yang, Zaccarin, Zhao, Zhong, Korlach, and
+  Turner]{Eid09}
+Eid, J., Fehr, A., Gray, J., Luong, K., Lyle, J., Otto, G., Peluso, P., Rank,
+  D., Baybayan, P., Bettman, B., Bibillo, A., Bjornson, K., Chaudhuri, B.,
+  Christians, F., Cicero, R., Clark, S., Dalal, R., Dewinter, A., Dixon, J.,
+  Foquet, M., Gaertner, A., Hardenbol, P., Heiner, C., Hester, K., Holden, D.,
+  Kearns, G., Kong, X., Kuse, R., Lacroix, Y., Lin, S., Lundquist, P., Ma, C.,
+  Marks, P., Maxham, M., Murphy, D., Park, I., Pham, T., Phillips, M., Roy, J.,
+  Sebra, R., Shen, G., Sorenson, J., Tomaney, A., Travers, K., Trulson, M.,
+  Vieceli, J., Wegener, J., Wu, D., Yang, A., Zaccarin, D., Zhao, P., Zhong,
+  F., Korlach, J., and Turner, S. (2009).
+\newblock {Real-time DNA sequencing from single polymerase molecules.}
+\newblock {\em Science (New York, NY)\/}, {\bf 323}(5910), 133--138.
+
+\bibitem[Hazelhurst(2008)Hazelhurst]{Hazelhurst08}
+Hazelhurst, S. (2008).
+\newblock Algorithms for clustering expressed sequence tags: the wcd tool.
+\newblock {\em South African Computer Journal\/}, {\bf 40}, 51--62.
+
+\bibitem[Hazelhurst and Bergheim(2003)Hazelhurst and Bergheim]{Hazelhurst03}
+Hazelhurst, S. and Bergheim, A. (2003).
+\newblock Estsim: A tool for creating benchmarks for est clustering algorithms.
+\newblock {\em Dept. of Computer Science, Univ. of Witwatersrand (South
+  Africa), Tech. Rep. CS-2003-1\/}.
+
+\bibitem[Hide {\em et~al.}(1994)Hide, Burke, and Davison]{Hide94}
+Hide, W., Burke, J., and Davison, D.~B. (1994).
+\newblock Biological evaluation of d2, an algorithm for high-performance
+  sequence comparison.
+\newblock {\em Journal of Computational Biology\/}, {\bf 1}(3), 199--215.
+
+\bibitem[Huang and Madan(1999)Huang and Madan]{Huang99}
+Huang, X. and Madan, A. (1999).
+\newblock Cap3: A dna sequence assembly program.
+\newblock {\em Genome Res\/}, {\bf 9}(9), 868--877.
+
+\bibitem[Li and Durbin(2010)Li and Durbin]{Li10}
+Li, H. and Durbin, R. (2010).
+\newblock {Fast and accurate long-read alignment with Burrows-Wheeler
+  transform.}
+\newblock {\em Bioinformatics (Oxford, England)\/}, {\bf 26}(5), 589--595.
+
+\bibitem[Li {\em et~al.}(2008)Li, Wang, Mor, and Sklar]{Li08}
+Li, H., Wang, J., Mor, G., and Sklar, J. (2008).
+\newblock {A neoplastic gene fusion mimics trans-splicing of RNAs in normal
+  human cells.}
+\newblock {\em Science (New York, NY)\/}, {\bf 321}(5894), 1357--1361.
+
+\bibitem[Li {\em et~al.}(2009)Li, Handsaker, Wysoker, Fennell, Ruan, Homer,
+  Marth, Abecasis, Durbin, and {1000 Genome Project Data Processing
+  Subgroup}]{Li09}
+Li, H., Handsaker, B., Wysoker, A., Fennell, T., Ruan, J., Homer, N., Marth,
+  G., Abecasis, G., Durbin, R., and {1000 Genome Project Data Processing
+  Subgroup} (2009).
+\newblock {The Sequence Alignment/Map format and SAMtools}.
+\newblock {\em Bioinformatics (Oxford, England)\/}, {\bf 25}(16), 2078--2079.
+
+\bibitem[Li {\em et~al.}(2010)Li, Zhu, Ruan, Qian, and Fang]{Li10b}
+Li, R., Zhu, H., Ruan, J., Qian, W., and Fang, X. (2010).
+\newblock {De novo assembly of human genomes with massively parallel short read
+  sequencing}.
+\newblock {\em Genome {\ldots}\/}.
+
+\bibitem[Liang {\em et~al.}(2000)Liang, Holt, Pertea, and Karamycheva]{Liang00}
+Liang, F., Holt, I., Pertea, G., and Karamycheva, S. (2000).
+\newblock An optimized protocol for analysis of est sequences.
+\newblock {\em Nucleic Acids Res\/}.
+
+\bibitem[Mitelman and Johansson(2007)Mitelman and Johansson]{Mitelman07}
+Mitelman, F. and Johansson, B. (2007).
+\newblock {The impact of translocations and gene fusions on cancer causation}.
+\newblock {\em Nature Reviews Cancer\/}.
+
+\bibitem[Nagaraj {\em et~al.}(2007)Nagaraj, Deshpande, and Gasser]{Nagaraj07}
+Nagaraj, S., Deshpande, N., and Gasser, R. (2007).
+\newblock Estexplorer: an expressed sequence tag (est) assembly and annotation
+  platform.
+\newblock {\em Nucleic Acids Res\/}.
+
+\bibitem[Needleman and Wunsch(1970)Needleman and Wunsch]{Needleman70}
+Needleman, S.~B. and Wunsch, C.~D. (1970).
+\newblock A general method applicable to the search for similarities in the
+  amino acid sequence of two proteins.
+\newblock {\em J Mol Biol\/}, {\bf 48}(3), 443--53.
+
+\bibitem[Pertea {\em et~al.}(2003)Pertea, Huang, Liang, and
+  Antonescu]{Pertea03}
+Pertea, G., Huang, X., Liang, F., and Antonescu, V. (2003).
+\newblock {\ldots} indices clustering tools (tgicl): a software system for fast
+  clustering of large est datasets.
+\newblock {\em Bioinformatics\/}.
+
+\bibitem[Prim(1957)Prim]{Prim57}
+Prim, R. (1957).
+\newblock Shortest connection networks and some generalizations.
+\newblock {\em Bell System Technical Journal\/}.
+
+\bibitem[Rao {\em et~al.}(2010)Rao, Moler, Ozden, Zhang, Liang, and
+  Karro]{Rao10}
+Rao, D.~M., Moler, J.~C., Ozden, M., Zhang, Y., Liang, C., and Karro, J.~E.
+  (2010).
+\newblock Peace: Parallel environment for assembly and clustering of gene
+  expression.
+\newblock {\em Nucleic Acids Res\/}, {\bf 38 Suppl}, W737--42.
+
+\bibitem[Richter {\em et~al.}(2008)Richter, Ott, Auch, Schmid, and
+  Huson]{Richter08}
+Richter, D.~C., Ott, F., Auch, A.~F., Schmid, R., and Huson, D.~H. (2008).
+\newblock Metasim: a sequencing simulator for genomics and metagenomics.
+\newblock {\em PLoS ONE\/}, {\bf 3}(10), e3373.
+
+\bibitem[Robertson {\em et~al.}(2010)Robertson, Schein, Chiu, Corbett, Field,
+  Jackman, Mungall, Lee, Okada, Qian, Griffith, Raymond, Thiessen, Cezard,
+  Butterfield, Newsome, Chan, She, Varhol, Kamoh, Prabhu, Tam, Zhao, Moore,
+  Hirst, Marra, Jones, Hoodless, and Birol]{Robertson10}
+Robertson, G., Schein, J., Chiu, R., Corbett, R., Field, M., Jackman, S.~D.,
+  Mungall, K., Lee, S., Okada, H.~M., Qian, J.~Q., Griffith, M., Raymond, A.,
+  Thiessen, N., Cezard, T., Butterfield, Y.~S., Newsome, R., Chan, S.~K., She,
+  R., Varhol, R., Kamoh, B., Prabhu, A.-L., Tam, A., Zhao, Y., Moore, R.~A.,
+  Hirst, M., Marra, M.~A., Jones, S. J.~M., Hoodless, P.~A., and Birol, I.
+  (2010).
+\newblock {De novo assembly and analysis of RNA-seq data.}
+\newblock {\em Nature methods\/}, {\bf 7}(11), 909--912.
+
+\bibitem[Smith and Waterman(1981)Smith and Waterman]{Smith81}
+Smith, T.~F. and Waterman, M.~S. (1981).
+\newblock Identification of common molecular subsequences.
+\newblock {\em J Mol Biol\/}, {\bf 147}(1), 195--7.
+
+\bibitem[Zerbino and Birney(2008)Zerbino and Birney]{Zerbino08}
+Zerbino, D.~R. and Birney, E. (2008).
+\newblock Velvet: algorithms for de novo short read assembly using de bruijn
+  graphs.
+\newblock {\em Genome Res\/}, {\bf 18}(5), 821--9.
+
+\end{thebibliography}
