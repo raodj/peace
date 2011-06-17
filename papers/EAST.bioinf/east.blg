@@ -3,44 +3,44 @@ Capacity: max_strings=500000, hash_size=500000, hash_prime=425003
 The top-level auxiliary file: east.aux
 The style file: natbib.bst
 Database file #1: all.bib
-You've used 23 entries,
+You've used 22 entries,
             2378 wiz_defined-function locations,
-            684 strings with 9282 characters,
-and the built_in function-call counts, 13451 in all, are:
-= -- 1069
-> -- 1211
-< -- 10
-+ -- 379
-- -- 375
-* -- 1401
-:= -- 2502
-add.period$ -- 103
-call.type$ -- 23
-change.case$ -- 144
-chr.to.int$ -- 23
-cite$ -- 23
-duplicate$ -- 427
-empty$ -- 679
-format.name$ -- 412
-if$ -- 2519
+            679 strings with 9128 characters,
+and the built_in function-call counts, 13058 in all, are:
+= -- 1030
+> -- 1189
+< -- 9
++ -- 371
+- -- 369
+* -- 1371
+:= -- 2432
+add.period$ -- 99
+call.type$ -- 22
+change.case$ -- 137
+chr.to.int$ -- 22
+cite$ -- 22
+duplicate$ -- 410
+empty$ -- 656
+format.name$ -- 403
+if$ -- 2442
 int.to.chr$ -- 1
 int.to.str$ -- 0
-missing$ -- 22
-newline$ -- 117
-num.names$ -- 92
-pop$ -- 149
+missing$ -- 21
+newline$ -- 112
+num.names$ -- 88
+pop$ -- 141
 preamble$ -- 1
-purify$ -- 145
+purify$ -- 138
 quote$ -- 0
-skip$ -- 287
+skip$ -- 273
 stack$ -- 0
-substring$ -- 668
-swap$ -- 73
+substring$ -- 656
+swap$ -- 71
 text.length$ -- 0
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 207
+type$ -- 198
 warning$ -- 0
-while$ -- 98
+while$ -- 95
 width$ -- 0
-write$ -- 291
+write$ -- 279
