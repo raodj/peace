@@ -87,7 +87,7 @@ Li, H., Handsaker, B., Wysoker, A., Fennell, T., Ruan, J., Homer, N., Marth,
 Li, R., Zhu, H., Ruan, J., Qian, W., and Fang, X. (2010).
 \newblock {De novo assembly of human genomes with massively parallel short read
   sequencing}.
-\newblock {\em Genome {\ldots}\/}.
+\newblock {\em Genome {\ldots}\/}, {\bf 20}, 265--272.
 
 \bibitem[Liang {\em et~al.}(2000)Liang, Holt, Pertea, and Karamycheva]{Liang00}
 Liang, F., Holt, I., Pertea, G., and Karamycheva, S. (2000).
@@ -104,12 +104,6 @@ Nagaraj, S., Deshpande, N., and Gasser, R. (2007).
 \newblock Estexplorer: an expressed sequence tag (est) assembly and annotation
   platform.
 \newblock {\em Nucleic Acids Res\/}.
-
-\bibitem[Needleman and Wunsch(1970)Needleman and Wunsch]{Needleman70}
-Needleman, S.~B. and Wunsch, C.~D. (1970).
-\newblock A general method applicable to the search for similarities in the
-  amino acid sequence of two proteins.
-\newblock {\em J Mol Biol\/}, {\bf 48}(3), 443--53.
 
 \bibitem[Pertea {\em et~al.}(2003)Pertea, Huang, Liang, and
   Antonescu]{Pertea03}
