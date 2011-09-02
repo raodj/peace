@@ -33,6 +33,9 @@ public class ResultAnalysis {
 	ArrayList<String> eastContigs;
 	ArrayList<String> cap3Singletons;
 	ArrayList<String> eastSingletons;
+	ArrayList<String> tgiclContigs;
+	ArrayList<String> velvetContigs;
+	ArrayList<String> miraContigs;
 	int cap3Time;
 	int eastTime;
 	int cap3NumUsedEsts;
@@ -54,11 +57,18 @@ public class ResultAnalysis {
 		//sigletons from cap3
 		cap3Singletons = readFile(props.getProperty("Cap3Singletons"));
 
-		//contigs from esta
+		//contigs from EAST
 		eastContigs = readFile(props.getProperty("EastContigs"));
 
-		//sigletons from esta
+		//sigletons from EAST
 		eastSingletons = readFile(props.getProperty("EastSingletons"));
+
+		//contigs from TGICL
+		tgiclContigs = readFile(props.getProperty("TgiclContigs"));
+		//contigs from VELVET
+		velvetContigs = readFile(props.getProperty("VelvetContigs"));
+		//contigs from MIRA
+		miraContigs = readFile(props.getProperty("MiraContigs"));
 
 		outputFileName = props.getProperty("OutputFile");
 	}
@@ -75,7 +85,7 @@ public class ResultAnalysis {
 			 */
 			File oriFile = (new File(fileName));
 			if (!oriFile.exists()) {
-				System.out.println("The file " + fileName + " does not exist!");
+				//System.out.println("The file " + fileName + " does not exist!");
 				return null;
 			}
 			BufferedReader in = new BufferedReader(new FileReader(oriFile));
@@ -105,7 +115,7 @@ public class ResultAnalysis {
 	 * 
 	 */
 	public void analysis() {
-		int c[] = new int[13];
+		int c[] = new int[16];
 		if (cap3Contigs != null) {
 			c[1] = cap3Contigs.size();
 
@@ -144,6 +154,55 @@ public class ResultAnalysis {
 			c[8] = getAScore(lStr, oriSeq);
 		}
 		
+		if (tgiclContigs != null) {
+			int num = tgiclContigs.size();
+
+			//get the longest contig
+			String lStr = "";
+			int len = 0;
+			for (int i=0; i<num; i++) {
+				String tStr = tgiclContigs.get(i);
+				int tLen = tStr.length();
+				if (tLen > len) {
+					len = tLen;
+					lStr = tStr;
+				}
+			}
+			c[13] = getAScore(lStr, oriSeq);
+		}
+		if (velvetContigs != null) {
+			int num = velvetContigs.size();
+
+			//get the longest contig
+			String lStr = "";
+			int len = 0;
+			for (int i=0; i<num; i++) {
+				String tStr = velvetContigs.get(i);
+				int tLen = tStr.length();
+				if (tLen > len) {
+					len = tLen;
+					lStr = tStr;
+				}
+			}
+			c[14] = getAScore(lStr, oriSeq);
+		}
+		if (miraContigs != null) {
+			int num = miraContigs.size();
+
+			//get the longest contig
+			String lStr = "";
+			int len = 0;
+			for (int i=0; i<num; i++) {
+				String tStr = miraContigs.get(i);
+				int tLen = tStr.length();
+				if (tLen > len) {
+					len = tLen;
+					lStr = tStr;
+				}
+			}
+			c[15] = getAScore(lStr, oriSeq);
+		}
+
 		if (cap3Singletons != null) {
 			c[3] = cap3Singletons.size();
 		}
@@ -169,8 +228,8 @@ public class ResultAnalysis {
 				outFile.delete();
 			}
 			BufferedWriter out = new BufferedWriter(new FileWriter(outFile, true));
-			out.write(">CAP3 vs. EAST\n");
-			out.write(">Cap3NumContigs  EastNumContigs  Cap3NumSing  EastNumSin  Cap3Len  EastLen  Cap3AScore  EastAScore  Cap3Time  EastTime  Cap3NumUsedEsts  EastNumUsedEsts\n");
+			out.write(">CAP3 vs. EAST vs. TGICL vs. VELVET vs. MIRA\n");
+			out.write(">Cap3NumContigs  EastNumContigs  Cap3NumSing  EastNumSin  Cap3Len  EastLen  Cap3AScore  EastAScore  Cap3Time  EastTime  Cap3NumUsedEsts  EastNumUsedEsts TgiclAScore VelvetAScore MiraAScore\n");
 			for (int i=1; i<c.length; i++) {
 				out.write(String.valueOf(c[i]));
 				out.write("\t");
@@ -298,6 +357,9 @@ public class ResultAnalysis {
 				props.setProperty("Cap3Contigs", args[8]);
 				props.setProperty("Cap3Singletons", args[9]);
 				props.setProperty("OutputFile", args[10]);
+				props.setProperty("TgiclContigs", args[11]);
+				props.setProperty("VelvetContigs", args[12]);
+				props.setProperty("MiraContigs", args[13]);
 			} else {
 				props = getProperties("analysis.properties");
 			}
@@ -317,11 +379,11 @@ public class ResultAnalysis {
 		ana.analysis();
 
 		
-		//Substitution sub = new ForAScore();
-		//String consensus = "TGATCCGAGAGAACTTATAGGTCGCATCTGAGAGCGGCTAGAGCCGTCTCTCAATCCGATCCTAGGCGAGATAGTCTTTGA";
-		//String gene = "TGATCCGAGAGAGGATATAGGTCGCGTCTGAGAGCGGCTAGAGCCGTCTCTCATTCCGATCCTAGGCGAGATAGTCTTTGACCGTTCTATATGAGGGACCCGTCCTAGTGGACGTTAAACTCTGAGGCAACATGTAAGCCGGAACGTG";
-	    //AScore ascore = (new AScore (sub, consensus, gene));
-	    //System.out.println(ascore.getScore());
+//		Substitution sub = new ForAScore();
+//		String consensus = "AGAGGATATAGGTCGCGTCTGAGAG";
+//		String gene = "TGATCCGAGAGAGGATATAGGTCGCGTCTGAGAGCGGCT";
+//	    AScore ascore = (new AScore (sub, consensus, gene));
+//	    System.out.println(ascore.getScore());
 		//System.out.println(ana.getAScore(consensus, gene));
 //		ana.getDiff(consensus);
 	}
