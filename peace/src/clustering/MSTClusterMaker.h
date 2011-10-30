@@ -430,6 +430,56 @@ protected:
         be generated.
     */
     virtual float analyze(const EST *otherEST);
+
+    /** Helper method to compute \i local distance/similarity metrics
+        and populate the information in the supplied smList.
+
+        This method is invoked from the populateCache() method in this
+        class. This method has been introduced to streamline the code
+        in populateCache() method and provide a mechanism for derived
+        classes to further customize its operations.  The
+        implementation for this method in this class operates as
+        follows:
+
+        <ol>
+
+        <li>Each process computes the range of local ESTs to operate
+        on via a call to the getLocallyOwnedESTidx() method.</li>
+
+        <li>It set's up the supplied estIdx as the reference EST for
+        the series of analyses being performed in the next step.</li>
+        
+        <li>For each locally-owned \i unprocessed EST that is not in
+        the MST, this method:
+
+        <ol>
+
+        <li> Computes the similarity/distance metric via the analyzer.</li>
+
+        <li>Furthermore, any alignment information and direction data
+        supplied by the analyzer (if any) is obtained and stored into
+        a CachedESTInfo object.</li>
+
+        <li>The computed CachedESTInfo object is then added to the
+        supplied smList (second parameter). The method ensures that
+        the list has at least one entry in it if an analysis was
+        performed.</li>
+
+        </ol>
+        
+        </ol>
+
+        \param[in] estIdx The index of the reference EST (typically
+        the EST that was just added to the MST) for which the adjacent
+        neighbors (based on similarity/distance metric) need to be
+        determined.
+
+        \param[out] smList The vector to which neighbors are to be
+        stored and returned.  This list is not cleared by this
+        method. Moreover, the list is not sorted or organized in any
+        manner.
+    */
+    virtual void computeSMList(const int estIdx, SMList& smList);
     
     /** Computes sends/receives similarity list for a given EST.
 

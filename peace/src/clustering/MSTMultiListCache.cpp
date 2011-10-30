@@ -189,8 +189,11 @@ MSTMultiListCache::getBestEntry(int& srcESTidx, int& destESTidx,
         // these lists are already sorted) in this list.
         const CachedESTInfo& estInfo = cacheEntry.second.front();
         // Is this entry better than the ones before?
-        if (analyzer->compareMetrics(estInfo.metric, metric)) {
-            // Yes, it is!  Good. update the necessary information.
+        // If this is the first choice we encounter we pick it by default!
+        if ((analyzer->compareMetrics(estInfo.metric, metric)) ||
+            (srcESTidx == -1)) {
+            // Yes, socre is better or this is the first entry.
+            // Update the necessary information.
             srcESTidx     = cacheEntry.first;
             destESTidx    = estInfo.estIdx;
             metric        = estInfo.metric;
@@ -260,6 +263,32 @@ MSTMultiListCache::displayStats(std::ostream &os, const int MyRank) const {
     os << "    Cache Repopulation count : " << cacheRepopulation << "\n"
        << "    #EST analyses performed  : " << analysisCount
        << std::endl;
+}
+
+void
+MSTMultiListCache::print(std::ostream& os) const {
+    // Print one row for each main entry in the cache.
+    for(std::vector<MSTCacheEntry>::const_iterator curr = cache.begin();
+        (curr != cache.end()); curr++) {
+        const MSTCacheEntry& cacheRow = *curr;
+        // Print row only if the row has some entries in its list
+        if (cacheRow.second.empty()) {
+            continue;
+        }
+        // Print the id of the EST that was used as the reference EST
+        // for comparisons for this cache entry.
+        os << "* " << cacheRow.first;
+        // Print each pair of ESTid, value out for this entry.
+        const SMList& list = cacheRow.second;
+        for(SMList::const_iterator entry = list.begin();
+            (entry != list.end()); entry++) {
+            const CachedESTInfo& estInfo = *entry;
+            os << " <" << estInfo.estIdx
+               << ","  << estInfo.metric
+               << ">";
+        }
+        os << std::endl;
+    }
 }
 
 #endif
