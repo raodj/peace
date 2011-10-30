@@ -244,6 +244,17 @@ public:
     */
     void preprocess(SMList& list);
 
+    /** Provide a human-readable version of the contents in the cache.
+
+        This method can be used to obtain a human readable dump of the
+        contents in the cache. This is typically useful for
+        troubleshooting/debugging purposes.
+
+        \param[out] os The output stream to which the contents of the
+        cache is to be written.
+    */
+    void print(std::ostream& os) const;
+	
 protected:    
     /** Helper method to prune a given SMList.
 

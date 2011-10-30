@@ -259,6 +259,17 @@ public:
         the actual values displayed by this method.
     */
     virtual void displayStats(std::ostream &os, const int MyRank) const = 0;
+
+    /** Provide a human-readable version of the contents in the cache.
+
+        This method can be used to obtain a human readable dump of the
+        contents in the cache. This is typically useful for
+        troubleshooting/debugging purposes.
+
+        \param[out] os The output stream to which the contents of the
+        cache is to be written.
+    */
+    virtual void print(std::ostream& UNUSED(os)) const {}
     
 protected:
      /** The constructor.

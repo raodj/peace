@@ -38,6 +38,7 @@
 #include "ArgParser.h"
 #include "AdaptiveMSTClusterMaker.h"
 #include "NonAdaptiveMSTClusterMaker.h"
+#include "NNMSTClusterMaker.h"
 #include "TransMSTClusterMaker.h"
 
 void
@@ -53,6 +54,8 @@ ClusterMakerFactory::addCommandLineInfo(ArgParser& argParser) {
          NULL, ArgParser::INFO_MESSAGE},
         {"", "tmst  : MST-based Cluster Maker with Transitivity",
          NULL, ArgParser::INFO_MESSAGE},
+        {"", "nn-mst  : Nearest-Neighbor, Adaptive MST-based Cluster Maker",
+         NULL, ArgParser::INFO_MESSAGE},        
         {"", "", NULL, ArgParser::INVALID}
     };
     argParser.addValidArguments(DummyArgs);
@@ -72,6 +75,8 @@ ClusterMakerFactory::create(const std::string& name, ESTAnalyzer *analyzer) {
         return new TransMSTClusterMaker(analyzer);
     } else if (name == "na-mst") {
         return new NonAdaptiveMSTClusterMaker(analyzer);
+    } else if (name == "nn-mst") {
+        return new NNMSTClusterMaker(analyzer);
     }
     
     // invalid analyzer name!

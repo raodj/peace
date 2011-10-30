@@ -164,7 +164,7 @@ MSTClusterMaker::managerUpdateCaches(int estIdx, const bool refreshEST) {
         if (ownerRank != MANAGER_RANK) {
             MPI_CODE({
                     int dummy;
-                    TRACK_IDLE_TIME(MPI_RECV(&dummy, 1, MPI_TYPE_INT, ownerRank,
+                    TRACK_IDLE_TIME(MPI_RECV(&dummy,1,MPI_TYPE_INT,ownerRank,
                                              SIMILARITY_COMPUTATION_DONE));
                 });
         }
@@ -257,6 +257,8 @@ MSTClusterMaker::addMoreChildESTs(const int parentESTidx, int& estToAdd,
 void
 MSTClusterMaker::updateProgress(const int estsAnalyzed,
                                 const int totalESTcount) {
+    // Dump the cache for testing purposes
+    cache->print(std::cout);
     if (progFileName.empty()) {
         // No need to report progress
         return;
@@ -457,19 +459,26 @@ MSTClusterMaker::initialize() {
     return true;
 }
 
+
+// Helper method called from pouplateCache(). This may be overridden
+// by a derived class.
 void
-MSTClusterMaker::populateCache(const int estIdx, SMList* metricList) {
+MSTClusterMaker::computeSMList(const int estIdx, SMList& smList) {
     // First determine the list of ESTs that this process must deal
     // with using the helper method.
     int startESTidx, endESTidx;
     getLocallyOwnedESTidx(startESTidx, endESTidx);
+    // Pre-allocate sufficient space in outgoing vector to minimize
+    // repeated memory growth. We intentionally do not use endESTidx -
+    // startESTidx for size because the number of ESTs can be in
+    // millions and will cause memory issues.
+    smList.reserve(128);
     // Setup the reference estIdx in the analyzer which given the
     // analyzer a chance to optimize initialization.
     ASSERT( estList != NULL );
     analyzer->setReferenceEST(estList->get(estIdx));
     // Now compute similarity metric and store information in a SMList
     // data structure.
-    SMList smList;
     const float InvalidMetric = analyzer->getInvalidMetric();
     // Flag to ensure only one invalid metric gets added
     bool needInvalidMetric = true;
@@ -505,6 +514,14 @@ MSTClusterMaker::populateCache(const int estIdx, SMList* metricList) {
             needInvalidMetric= (needInvalidMetric && isMetricOK);
         }
     }
+}
+
+void
+MSTClusterMaker::populateCache(const int estIdx, SMList* metricList) {
+    // Get the refactored method to compute metrics for locally-owned ESTs
+    SMList smList;
+    computeSMList(estIdx, smList);
+    
     // Preprocess the SMList to make it optimal for the MSTCache to
     // process in a distributed manner.
     cache->preprocess(smList);

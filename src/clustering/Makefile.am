@@ -102,6 +102,8 @@ libclustering_la_SOURCES = \
 	ClusterMakerFactory.h \
 	ClusterMakerFactory.cpp \
 	ClusteringSubSystem.h \
-	ClusteringSubSystem.cpp
+	ClusteringSubSystem.cpp \
+	NNMSTClusterMaker.h \
+	NNMSTClusterMaker.cpp
 
 # end of Makefile.am
