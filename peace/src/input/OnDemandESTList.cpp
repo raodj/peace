@@ -110,4 +110,29 @@ OnDemandESTList::reset() {
     ESTList::reset();
 }
 
+std::string
+OnDemandESTList::getESTInfo(const int estID) const {
+    if ((estID < 0) || (estID >= (int) estVector.size())) {
+        // Invalid EST id
+        return "";
+    }
+    // Extract the entry.
+    const EST *est = estVector[estID];
+    // Check if we already have the data
+    if (est->isPopulated()) {
+        return est->getInfo();
+    }
+    // Create a mutable copy of the requested EST
+    EST copy(*est);
+    // Search through the files trying to repopulate the EST.
+    for(size_t id = 0; (id < inputFileList.size()); id++) {
+        if (inputFileList[id]->repopulate(copy)) {
+            // Successfully repopulated
+            return copy.getInfo();
+        }
+    }
+    // Could not repopulate the entry
+    return "";
+}
+
 #endif
