@@ -125,8 +125,8 @@ AssemblySubSystem::run() {
         return 5;
     }
     // Let the assembler do its thing
-    if (!runtimeContext->getAssembler()->assemble()) {
-        // Initializatin of the assembler failed.
+    if (runtimeContext->getAssembler()->assemble()) {
+        // Assembler had trouble...
         return 2;
     }    
     // Everything went on well
