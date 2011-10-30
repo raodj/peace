@@ -57,6 +57,10 @@ liboutput_la_SOURCES = \
 	ResultLog.cpp \
 	HTMLHeader.h \
 	ClusterWriter.h \
-	ClusterWriter.cpp
+	ClusterWriter.cpp \
+	SAMWriter.h \
+	SAMWriter.cpp \
+	ACEWriter.h \ \
+	ACEWriter.cpp
 
 # end of Makefile.am
