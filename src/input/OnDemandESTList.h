@@ -143,7 +143,7 @@ public:
         true. The reference to the global list can be obtained via a
         call to the get() method.
     */
-    bool add(InputFile* inputFile, const long startIndex = 0,
+    bool add(InputFile* inputFile, const long startIndex = 0x7ffffffL,
              const long endIndex = 0x7ffffffL);
     
     /** Clears out all EST entries, open input files, and resets
@@ -171,6 +171,23 @@ public:
     */
     EST* repopulate(int index) const;
 
+	/** Obtain the information associated with a given EST (load it if
+        not available).
+        
+        This method returns the name and other information associated
+        with the EST.  This information is typically the first header
+        line read from a FASTA file. If the information is not
+        available then just the information is loaded from
+
+        \param index The index of the entry for which a pointer is to
+        be returned by this method.  This index value must be in the
+        range 0 &le; ESTList::size().
+        
+        \return Any information available for this EST. Return the
+        information
+    */
+	virtual std::string getESTInfo(const int index) const;
+        
 protected:
     /** The input source from where some (or all) of the EST data has
         been read.

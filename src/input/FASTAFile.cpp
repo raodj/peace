@@ -99,6 +99,8 @@ FASTAFile::readEntry(std::string& info, std::string& sequence,
     // The information should not exceed 1024 characters as per the
     // standard?  Read header line into info.
     std::getline(fastaFile, info);
+    // We remove the leading ">" from the information field.
+    info = info.substr(1);
     // Now read the actual sequence information from the fasta file.
     // This is performed until either EOF is reached or the next
     // header is detected.
