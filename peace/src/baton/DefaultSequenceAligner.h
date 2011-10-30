@@ -41,6 +41,20 @@
 // Forward declarations (if any) to keep compiler happy and fast
 
 
+/** \def SEED_SEARCH_DIST
+
+	\brief Number of coded n-mers to be checked to the left and right
+	to find matching seeds.
+
+	This named constant is used to determine the maximum number of
+	coded n-mers to be checked to the left and right of a Segment to
+	determine matching seeds. The matching seeds are used to start
+	construction of the next segment of alignment.  This constant
+	is used by DefaultSequenceAlignner::findSeedToLeft() and
+	DefaultSequenceAlignner::findSeedToRight() methods.
+*/
+#define SEED_SEARCH_DIST 9
+
 /** A simple pair-wise sequence aligner.
 
     This class provides a simple implementation of a SequenceAligner.
@@ -123,9 +137,10 @@ public:
 		which the reference EST (or sequence) is to be analyzed and if
 		valid/possible aligned.
 
-        \param[out] info The information regarding the alignment (if
-        one is computed) is populated into this object.  The alignment
-        information includes the following information:
+        \param[out] alignInfo The information regarding the
+        baton-based alignment (if one is computed) is populated into
+        this object.  The alignment information includes the following
+        information:
 
         <ul>
 
@@ -159,7 +174,7 @@ public:
         determined to be unrelated), then this method returns \c
         false.
     */
-    virtual bool align(const EST* otherEST, AlignmentInfo& info);
+    virtual bool align(const EST* otherEST, BatonAlignmentInfo& alignInfo);
 
     /** Set the reference EST id for analysis.
 
@@ -182,11 +197,31 @@ public:
         non-zero value as the error code.
     */
     virtual int setReferenceEST(const EST* est);
+
+    /** Set the reference nucleotide sequence for analysis.
+
+        This method is invoked just before a batch of ESTs are aligned
+        via a call to the align(EST *) method.  This method saves the
+        reference sequence passed in for further analysis in refSeq
+        instance variable.  Next, it builds the normal BatonList for
+        the given reference sequence.  The generated BatonList is not
+        cached but is stored in refBatonList for further reference.
+
+        \note This method must be called only after the \c
+        initialize() method is called.
+
+		\param[in] refSeq The nucleotide sequence to be used as the
+		reference sequence for further alignment.
+
+        \return This method always returns zero.
+    */
+    virtual int setReferenceEST(const std::string& refSeq);
     
 protected:
-    /** Helper method to align a given EST with the reference sequence.
+    /** Helper method to align a given EST with the reference
+		sequence.
 
-        This method helps the primary API into this analyzer for
+        This method helps the primary API method for this analyzer for
         attempting to align a given EST with the reference sequence.
         Note that the reference sequence is set via a call to one of
         the setReferenceEST methods in this class.  This method
@@ -207,13 +242,13 @@ protected:
         <li>For each window-pair returned by
         BatonList::getWindowPairs() method, this method (in an
         iterative manner) uses the helper method
-        getBestAlignmentInWindow to determine the best possible
-        alignment using the identical batons within the given
-        window-pair.</li>
+        getBestAlignmentInWindow() to determine the best possible
+        alignment (and associated Segment objects) using the identical
+        batons within the given window-pair.</li>
 
-        <li>This method tracks the best alignment information using
-        the supplied output parameters and returns \c true indicating
-        a possible alignment was found.</li>
+        <li>If a good alignment is found by the helper then method
+        immediately returns with \c true indicating an alignment was
+        found.</li>
         
         </ol>
 
@@ -221,33 +256,25 @@ protected:
         which the reference EST (or sequence) is to be analyzed and if
         valid/possible aligned.
 
-        \param[out] refAlignPos The index position within the
-        reference sequence where the best possible alignment with the
-        \c otherEST was found.
-
-        \param[out] othAlignPos The index position within the \c
-        otherEST where the best possible alignment with the reference
-        EST (or sequence) was found.
-
-        \param[out] score The alignment score (for the best alignment)
-        associated with the alignment between \c otherEST and the
-        reference sequence at \c othAlignPos and \c refAlignPos
-        respectively.
-
         \param[out] doRC This parameter is set to \c true then a
         reverse complement nucleotide sequence of \c otherEST is used
         to compute candidate alignment.  Otherwise the normal
         nucleotide sequence of \c otherEST is used to compute
         alignment.
         
+        \param[out] alignInfo The baton-based alignment information
+        object to be populated by this method if a good alignment was
+        found.  Note that the value in this object is meaningful only
+        if this method returns \c true.
+
         \return This method returns \c true if a valid alignment was
         found between the reference sequence and \c otherEST.  If a
         valid alignment was not found (that means the pairs were
         determined to be unrelated), then this method returns \c
         false.
     */
-    virtual bool align(const EST* otherEST, int& refAlignPos, int& othAlignPos,
-                       int& score, const bool doRC);
+    virtual bool align(const EST* otherEST, const bool doRC,
+					   BatonAlignmentInfo& alignInfo);
 
     /** Helper method that determines best alignment using batons in a
         given window-pair.
@@ -269,17 +296,14 @@ protected:
         <li>For each pair of batons that satisfy the aforementioned
         condition (that is, identical batons whose starting index
         position lies within the given, respective windows) this
-        method uses the getAlignmentScore method to compute the
-        alignment score for the given pair of batons. It tracks the
-        best alignment found and returns the corresponding
-        information.  If an alignment score exceeds the
-        goodAlignmentScore value, then it immediately returns that
-        alignment without further search.</li>
+        method uses the makeSegment() method to compute an initial
+        segment of alignment.</li>
 
-        <li>This method returns the best alignment score (and sets the
-        refAlignPos and othAlignPos) determined within the given pair
-        of windows.</li>
-        
+        <li>If the initial segment is sufficiently long (longer than
+        goodAlignmentScore user-configurable parameter), then this
+        method gathers additional Segment objects of alignment into
+        the alignInfo parameter and then returns with the score.</li>
+
         </ol>
 
         \note The instance variables refBatonList and codedRefNmers
@@ -306,12 +330,6 @@ protected:
         range \f$0 \le refWindow \lt refBatonList.getWindowCount()
         \f$.
 
-        \param[out] refAlignPos The index position in the reference
-        cDNA fragment from where the best alignment score was
-        determined.  This value corresponds to the starting index
-        position of the baton in the reference cDNA which yielded the
-        best alignment score.
-
         \param[in] othBatonList The baton list containing the various
         batons (in all windows) for the other cDNA fragment which is
         being aligned with the reference fragment.
@@ -327,12 +345,6 @@ protected:
         range \f$0 \le othWindow \lt othBatonList.getWindowCount()
         \f$.
 
-        \param[out] othAlignPos The index position in the reference
-        cDNA fragment from where the best alignment score was
-        determined.  This value corresponds to the starting index
-        position of the baton in the other cDNA which yielded the best
-        alignment score.
-
         \param[in] numPermittedErrs The number of permitted or
         acceptable errors/differences that are to be tolerated when
         computing the alignments.
@@ -347,22 +359,28 @@ protected:
         as the best alignment.  Setting this value of \c INT_MAX will
         cause this method to exhaustively search for best alignment.
 
+        \param[out] segments The alignment information that is
+        computed by this method.  The alignment information is placed
+        in this list only if a good-enough alignment is found.
+        Consequently, the data in this object is meanigful only if ths
+        method returns positive score.
+        
         \return This method returns the best alignment score that was
         found based on the set of identical batons in the given pair
-        of windows.
+        of windows. If a good-enough alignment was not found, then
+        this method returns -1.
     */
     int getBestAlignmentInWindow(const std::string& refSeq,
 								 const BatonList& refBatonList,
                                  const IntVector& codedRefNmers,
                                  const int refWindow,
-                                 int&  refAlignPos,
 								 const std::string& otherSeq,
                                  const BatonList& othBatonList,
                                  const IntVector& codedOthNmers,
                                  const int othWindow,
-                                 int&  othAlignPos,
                                  const int numPermittedErrs,
-                                 const int goodAlignmentScore) const;
+                                 const int goodAlignmentScore,
+                                 SegmentList& segments) const;
         
     /** Determine alignment score using the starting positions of a
         pair of batons in a given pair of encoded cDNA fragments.
@@ -517,16 +535,29 @@ protected:
         minimum return value is one.
     */    
 	int
-    tryRightExtension(const IntVector& codedRefNmers, size_t refIndexPos,
-                      const IntVector& codedOthNmers, size_t othIndexPos) const;
+    tryRightExtension(const IntVector& codedRefNmers, int refIndexPos,
+                      const IntVector& codedOthNmers, int othIndexPos) const;
 
     /** Pointer to the reference EST to align against.
 
         This member object is used to hold a pointer to a given
         reference EST.  This member is initialized to NULL in the
-        constructor and is changed by the setReferenceEST() id.
+        constructor and is changed by the setReferenceEST() methods.
+        This pointer can be NULL if a direct reference sequence has
+        been set (instead of a reference EST).
     */
     const EST* refEST;
+
+    /** The reference sequence for align against.
+
+        This member object is used to hold the reference nucleotide
+        sequence against which ESTs are to be aligned. This member
+        always as a reference sequence immaterial of which one of the
+        setReferenceEST() method is used. It either points to the
+        nucleotide sequence of refEST (if refEST is not NULL) or the
+        reference sequence that has been directly set.
+    */
+    std::string refSeq;
     
     /** The baton list for the reference cDNA sequence.
 
@@ -583,27 +614,58 @@ protected:
     */
     int numPermittedErrs;
 
-    /** An alignment score to be considered as a good enough alignment
-        score to short circuit exhaustive search of candidate
-        alignments.
+    /** An alignment score, obtained using a single pair of batons, to
+        be considered as a good enough alignment score to short
+        circuit exhaustive search of candidate alignments.
 
-        This analyzer can be configured to exhaustively compare the
+        <p>This analyzer can be configured to exhaustively compare the
         alignment score between all pairs of identical batons within
         the given windows to determine the best possible alignment.
         However, exhaustive analysis may not be needed if a
         sufficiently good alignment is encountered.  This value
         specifies a sufficiently good alignment score which when
         encountered, this method immediate returns that value/position
-        as the best alignment.  The default value is 15.  Setting this
+        as the best alignment.  The default value is 25.  Setting this
         value of \c -1 will cause this analyzer to exhaustively search
         for best alignment.  This value is a command line argument
         that can be set by the user via the \c --goodScore command
-        line argument.
+        line argument.</p>
+
+		<p>Note the difference between this parameter and
+		minAlignScore. This parameter is the score (currently, number
+		of matching nucleotides) between a single-pair of contiguous
+		fragments of cDNA from the reference EST and other EST being
+		aligned.  On the other hand, the minAlignScore is the sum of
+		the scores from all pairs of aligned cDNA fragments from the
+		reference EST and other EST.</p>
+   
     */
     int goodAlignmentScore;
 
-private:
+	/** An alignment score, obtained from full alignment (using all
+		segments) to be considered as good enough alignment (thereby
+		short circuiting further/exhaustive search).
 
+		<p>This parameter determines when a complete alignment is
+		considered sufficiently good to be short circuit further
+		search for alignments. The default value is 15.  This value
+		can become larger as the average length of cDNA fragments to
+		be aligned increases.  However, care must be taken when
+		setting it to large values as it may cause good alignments to
+		be rejected resulting in too many singletons.  This value is
+		command line argument that can be set by the user via the \c
+		--minAlignScore command line argument.</p>
+		
+		<p>Note the difference between this parameter and
+		goodAlignmentScore. This parameter is the score (currently,
+		number of matching nucleotides) between all pairs of aligned
+		sub-fragments. In contrast, the goodAlignmentScore is just
+		between one pair of sub-fragments and is used to decide if
+		constructing a full alignment is worthwhile.</p>
+	*/
+	int minAlignScore;
+	
+private:
 	/** This is a custom helper method that is used to search to the
         left and right of an identical baton-pair starting positions
         to form the longest Segment possible.
@@ -669,6 +731,67 @@ private:
                         const int refSeqStartPos, const int refSeqEndPos,
                         const std::string& otherSeq, const int baton2Pos,
                         const int othSeqStartPos, const int othSeqEndPos) const;
+
+	/** This is a custom helper method that is used to continue to
+        construct segments to the left-and-right of one segment with
+        sufficiently long alignment.
+
+        <p>This helper method is used to form multiple segments that
+        identify the series of segments with good alignment between
+        the reference and other sequence. This method assumes that an
+        initial reference segment (with maximum contiguous alignment)
+        has already been constructed.  This method then searches to
+        the left and then to the right of the reference segment to
+        identify other sub-alignment segments. </p>
+
+        \attention We use a cusomtimzed methods for left and right
+        exploration because these methods are frequently used method
+        and we would like to keep the code as small and customized as
+        possible to get maximum performance.
+        
+        \param[in] refSeq The nucleotide sequence for the reference
+        cDNA fragment against which we are trying to locate other
+        candidate sequences for matching.
+
+        \param[in] codedRefNmers A vector containing the encoded list
+        of <i>n</i>-mers from another cDNA fragment that is being
+        aligned with the reference cDNA fragment.
+
+		\param[in] otherSeq The nucleotide sequence for the other cDNA
+        fragment which is being aligned with the refSeq.
+		
+        \param[in] codedOthNmers A vector containing the encoded list
+        of <i>n</i>-mers from another cDNA fragment that is being
+        aligned with the reference cDNA fragment.
+
+		\param[in] refSeg The reference segment that has already been
+		formed indicating the region of maximum alignment between the
+		reference and other sequences.  This segment is appropriately
+		added to the segments (outgoing vector/list of segments)
+		parameter.
+
+		\param[out] segements This list is populated with segments (as
+		they are formed) by this method. Any existing entries are
+		initially cleared out prior to adding segments.  When this
+		method returns this vector will containin the list of sgements
+		formed by this method.  This vector/list is sorted with
+		segments appearing in a left-to-right manner. The refSeg is
+		appropriately included in this list.  Consequently, at a bare
+		minimum, this list has at least one entry when this method
+		returns.
+		
+        \return This method returns the count of total number of
+        nucleotides that were aligned into segments. This value is
+        essentially the sum of the lengths of Segments constituting
+        the alignment between the reference and other cDNA sequences.
+    */
+    int makeMultipleSegments(const std::string& refSeq,
+                             const IntVector& codedRefNmers,
+                             const std::string& otherSeq,
+                             const IntVector& codedOthNmers,
+                             const Segment& refSeg,
+                             SegmentList& segments) const;
+    
 	/** This is a custom helper method that is used to search to the
         left of an identical baton-pair starting positions to locate
         first position where two consecutive nucleotide differences
@@ -723,7 +846,7 @@ private:
         
         countMatchingBasesToLeft("atcgatCGatcGaTcgatcgatcg",
                                  16, 0, 
-                                     "atACatcTaAcgatcgatcgatcg",
+                                 "atACatcTaAcgatcgatcgatcg",
                                  12, 0);
 
 
@@ -924,6 +1047,42 @@ private:
 	bool findSeedToRight(const IntVector& codedRefNmers, const int refStartPos,
                          const IntVector& codedOthNmers, const int othIndexPos,
                          int& refSeedPos, int& othSeedPos) const;
+
+    bool findNearestSeed(const IntVector& codedRefNmers, const int refStartPos,
+                         const int refEndPos,
+                         const IntVector& codedOthNmers, const int othStartPos,
+                         const int othEndPos,
+                         int& refSeedPos, int& othSeedPos) const;
+
+    /** \typedef std::pair<int, int> SeedInfo
+
+        \brief A typedef for convenient reference to seed information
+        in the findNearestSeed() method.
+
+        This is just a convenient typedef that is used to make the
+        code more readable. The pair of integers (SeedInfo.first,
+        SeedInfo.second) hold the coded n-mer value and its index
+        position respectively. This information is used to create a
+        sorted std::vector and locate matching seeded that are nearest
+        to each other quickly.
+    */
+    typedef std::pair<int, int> SeedInfo;
+
+    /** Comparison structure for SeedInfo
+        
+        The following structure essentially provides the comparison
+        operator needed for sorting and other operations that require
+        comparing values. The comparison is done using only the coded
+        n-mer value (while ignoring its index position).
+    */
+    struct LessSeedInfo {
+        inline bool operator() (const SeedInfo& si1,
+                                const SeedInfo& si2) const {
+            // Compare (and sort) based on n-mer values.
+            return si1.first < si2.first;
+        }
+    };
+    
 };
 
 #endif

@@ -35,6 +35,7 @@
 //---------------------------------------------------------------------
 
 #include "BatonAssemblerWorker.h"
+#include "ContigMaker.h"
 #include "MPIHelper.h"
 #include "MPIStats.h"
 
@@ -53,49 +54,34 @@ BatonAssemblerWorker::assemble() {
     // the sequence of operations in the manager process as well.
     // The reference EST index that is updated in the loops below.
     ASSERT( estList != NULL );
+    // Coordinate with manager to report initial set of ESTs already
+    // processed at this worker.
+    getESTsProcessed();
+    
     int refESTidx = -1;
     do {
         // First get the index of the reference sequence with which
         // the subset of ESTs assigned to this worker must be analyzed
-        // and assembled.
-        MPI_BCAST(&refESTidx, 1, MPI_INT, 0);
+        // and assembled. The following method call to the base class
+        // returns a suitable reference EST to be used by the manger
+        // and all the worker(s).
+        refESTidx = getReferenceEST();
         if (refESTidx == -1) {
-            // Manager says all fragments have been processed and the
-            // worker can now quit.
+            // All fragments have been processed and the worker can
+            // now quit.
             break;
         }
         // Mark reference EST as having been processed.
-        EST* const refEST = estList->get(refESTidx);
-        refEST->setProcessed(true);        
+        EST* const refEST = estList->get(refESTidx, true);
+        refEST->setProcessed(true);
+        // Create initial contig with reference EST as seed.
+        ContigMaker contig(refESTidx, estList, false);                
         // Do some of the alignment on the worker using the common
         // base class helper.
-        AlignmentInfoList alignmentList;
-        localAssembly(refEST, alignmentList);
-        // Add a dummy last entry to indicate end of list. This also
-        // helps in cases where we don't have any elements.
-        alignmentList.push_back(AlignmentInfo());
-        // Send the data we have computed with our local alignment to
-        // the manager.
-        sendAlignmentInfo(alignmentList);
+        localAssembly(contig, false);
     } while (refESTidx != -1);
     // All done. Return zero indicating success
     return 0;
-}
-
-void
-BatonAssemblerWorker::sendAlignmentInfo(const AlignmentInfoList& alignInfo) const {
-    MPI_CODE({
-            // Send alignment list to the manager as a flat list of
-            // characters.  This is a bit of a hack that we are
-            // exchanging structures as flat character arrays.
-            // However, it works fine as long as we have a SPMD model
-            // and we are running on a homogeneous cluster
-            const size_t dataSize = sizeof(AlignmentInfo) * alignInfo.size();
-            const char *buffer = reinterpret_cast<const char *>(&alignInfo[0]);
-            ASSERT ( buffer != NULL );
-            // Send the alignment info list as an array of bytes
-            MPI_SEND(buffer, dataSize, MPI_TYPE_CHAR, 0, ALIGN_INFO_LIST);
-        });
 }
 
 #endif

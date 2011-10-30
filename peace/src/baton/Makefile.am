@@ -57,8 +57,8 @@ BatonAssemblerWorker.h \
 BatonAssemblerWorker.cpp \
 ContigMaker.h \
 ContigMaker.cpp \
-AlignmentInfo.h \
-AlignmentInfo.cpp \
+BatonAlignmentInfo.h \
+BatonAlignmentInfo.cpp \
 WindowPair.h \
 WindowPair.cpp \
 BatonListCache.h \

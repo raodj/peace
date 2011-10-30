@@ -135,7 +135,23 @@ public:
         mutated in any manner as the data is cached.
     */
     BatonList* getBatonList(const EST* est, const bool getRC);
-    
+
+	/** method to clear out the baton list(s) for a given EST from
+		this cache.
+
+		This method is a convenience method that can be used to clear
+		out the baton lists(s) for a given EST from this cache.  The
+		baton assembler typically clears out entries that are no
+		longer needed in order to minimize the overall peak-memory
+		footprint.
+
+		\param[in] est The cDNA fragment whose baton lists can be
+		discarded from the cache.  If baton lists for this entry are
+		not present in the cache, then this method perform no
+		operations (and has no side effects).
+	*/
+	void unpopulate(const EST* est);
+	
 protected:
 	/** The local cache of Baton Lists.
 

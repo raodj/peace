@@ -39,7 +39,7 @@
 #include "BatonListCache.h"
 
 // Forward declarations to keep compiler fast and happy
-class AlignmentInfo;
+class BatonAlignmentInfo;
 
 /** \brief EST Analyzer that uses Baton approach to compute similarity
     between two ESTs.
@@ -236,7 +236,7 @@ public:
         determined to be unrelated), then this method returns \c
         false.
     */
-    virtual bool align(const EST* otherEST, AlignmentInfo& info);
+    virtual bool align(const EST* otherEST, BatonAlignmentInfo& info);
     
 protected:
     /** Helper method to align a given EST with the reference sequence.
