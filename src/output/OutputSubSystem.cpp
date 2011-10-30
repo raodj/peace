@@ -45,6 +45,8 @@ OutputSubSystem::OutputSubSystem() {
     stdOutput.setSubSystem(this);
     mstWriter.setSubSystem(this);
     clusterWriter.setSubSystem(this);
+    samWriter.setSubSystem(this);
+    aceWriter.setSubSystem(this);
 }
 
 OutputSubSystem::~OutputSubSystem() {
@@ -66,6 +68,8 @@ OutputSubSystem::addCommandLineArguments(ArgParser& argParser) {
     stdOutput.addCommandLineArguments(argParser);
     mstWriter.addCommandLineArguments(argParser);
     clusterWriter.addCommandLineArguments(argParser);
+    samWriter.addCommandLineArguments(argParser);
+    aceWriter.addCommandLineArguments(argParser);
 }
 
 int
@@ -73,6 +77,20 @@ OutputSubSystem::initializeSubSystem(ArgParser& UNREFERENCED_PARAMETER(argParser
     if (!stdOutput.initialize()) {
         // Error during standard output stream redirection.
         return 1;
+    }
+    // Everything went on well
+    return NO_ERROR;    
+}
+
+int
+OutputSubSystem::initializeSubComponents() {
+    if (!samWriter.initialize()) {
+        // Error during SAM file initialization.
+        return 2;
+    }
+    if (!aceWriter.initialize()) {
+        // Error during ACE file initialization.
+        return 3;
     }
     // Everything went on well
     return NO_ERROR;
@@ -92,6 +110,15 @@ OutputSubSystem::generateOutputs(const bool UNREFERENCED_PARAMETER(success)) {
         // Let the cluster writer do its thing.
         clusterWriter.write(runtimeContext);
     }
+    // The SAM file writing is performed by all the parallel
+    // processes.  It decides if it has necessary information to
+    // write the contigs out. So we don't do any extra checks here.
+    samWriter.write(runtimeContext);
+    // The ACE file writing is performed by all the parallel
+    // processes.  It decides if it has necessary information to write
+    // the contigs out. So we don't do any extra checks here.
+    aceWriter.write(runtimeContext);
+    
 }
 
 void 
