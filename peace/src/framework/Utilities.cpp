@@ -73,12 +73,8 @@ char* getTime(char *buffer, const time_t *encodedTime) {
         // Nothing more to do.
         return NULL;
     }
-    // Get instant system time.
-    time_t timeToConv = time(NULL);
-    if (encodedTime != NULL) {
-        // If we have a valid time supplied, then override system time.
-        timeToConv = *encodedTime;
-    }
+    // Use encodedTime or the system time.
+    const time_t timeToConv = (encodedTime != NULL) ? *encodedTime : time(NULL);
     // Convert the time.
     ctime_s(buffer, 128, &timeToConv);
     // Remove trailing new line (if one is present)

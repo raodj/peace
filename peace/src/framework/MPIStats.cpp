@@ -39,20 +39,23 @@
 // Define and initialize various static stats. counters in the
 // MPIStats class for use.
 
-double MPIStats::idleTime   = 0.0;
-int    MPIStats::sendCount  = 0;
-int    MPIStats::recvCount  = 0;
-int    MPIStats::bcastCount = 0;
-int    MPIStats::probeCount = 0;
+double MPIStats::idleTime    = 0.0;
+int    MPIStats::sendCount   = 0;
+int    MPIStats::recvCount   = 0;
+int    MPIStats::bcastCount  = 0;
+int    MPIStats::probeCount  = 0;
+int    MPIStats::reduceCount = 0;
 
 void
 MPIStats::displayStats(std::ostream& os, const std::string& indent) {
-    os << indent << "No. of calls to send     : " << sendCount  << "\n"
-       << indent << "No. of calls to recv     : " << recvCount  << "\n"
-       << indent << "No. of calls to bCast    : " << bcastCount << "\n"
-       << indent << "No. of calls to probe    : " << probeCount << "\n"
+    os << indent << "No. of calls to send     : " << sendCount   << "\n"
+       << indent << "No. of calls to recv     : " << recvCount   << "\n"
+       << indent << "No. of calls to bCast    : " << bcastCount  << "\n"
+       << indent << "No. of calls to probe    : " << probeCount  << "\n"
+       << indent << "No. of calls to reduce   : " << reduceCount << "\n"
        << indent << "Net amount of idle time  : " << idleTime
-       << " (sec)" << std::endl;
+       << " (sec)"
+       << std::endl;
 }
 
 #endif

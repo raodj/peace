@@ -423,7 +423,7 @@ private:
 
     \note This macro calls MPI::COMM_WORD.Reduce only if MPI is
     enabled. If MPI is not enabled (or is unavailable) then this macro
-    reduces to nothing and the actual broadcast call is never made.
+    reduces to nothing and the actual reduce call is never made.
 */
 #ifdef HAVE_LIBMPI
 #define MPI_REDUCE(srcBufr, destBufr, count, dataType, op, destRank)  { \
@@ -432,8 +432,45 @@ private:
         MPIStats::reduceCount++;                                        \
     }
 #else
-// If we don't have MPI then MPI_BCAST reduces to nothing.
+// If we don't have MPI then MPI_REDUCE reduces to nothing.
 #define MPI_REDUCE(srcBufr, destBufr, count, dataType, op, destRank)
+#endif
+
+/** \def MPI_ALL_REDUCE
+
+    \brief A simple, convenience macro to track number of calls to
+    MPI::COMM_WORLD.AllReduce() method.
+
+    This macro provides a convenient wrapper around MPI's All Reduce
+    method call to update MPIStats::reduceCount variable.  This macro
+    can be used as shown below:
+
+    \code
+
+    #include "MPIHelper.h"
+
+    void someMethod() {
+        // ... some code goes here ..
+        int localSuccess = 10, totalSuccess = 0;
+        MPI_ALL_REDUCE(&localSuccess, &totalSuccess, 1, MPI::INT, MPI::SUM, 0);
+        // ... more code goes here ..
+    }
+
+    \endcode
+
+    \note This macro calls MPI::COMM_WORD.AllReduce only if MPI is
+    enabled. If MPI is not enabled (or is unavailable) then this macro
+    reduces to nothing and the actual all reduce call is never made.
+*/
+#ifdef HAVE_LIBMPI
+#define MPI_ALL_REDUCE(srcBufr, destBufr, count, dataType, op)  {       \
+        MPI::COMM_WORLD.Allreduce(srcBufr, destBufr, count, dataType,   \
+                                  op);                                  \
+        MPIStats::reduceCount++;                                        \
+    }
+#else
+// If we don't have MPI then MPI_ALL_REDUCE reduces to nothing.
+#define MPI_ALL_REDUCE(srcBufr, destBufr, count, dataType, op)
 #endif
 
 #endif

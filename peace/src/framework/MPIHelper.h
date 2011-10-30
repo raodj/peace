@@ -53,9 +53,19 @@
 #ifdef HAVE_LIBMPI
 
 // We have MPI. In this case the standard/default operation of the
-// system is good to go.
+// system is good to go. Supress unused parameter warnings under GCC
+// just for this header.
+
+#ifdef __GNUC__
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#endif
+
 #include <mpi.h>
 
+#ifdef __GNUC__
+
+#endif
+#pragma GCC diagnostic warning "-Wunused-parameter"
 #endif
 
 /** \def MPI_GET_RANK
@@ -155,7 +165,7 @@
 
     void someMethod() {
         // ... some code goes here ..
-	MPI_STATUS msgInfo;
+		MPI_STATUS msgInfo;
         MPI_PROBE(sourceRank, REPOPULATE_REQUEST, msgInfo);
         // ... more code goes here ..
     }
@@ -236,6 +246,102 @@ public:
 #else
 // MPI is not available
 #define MPI_TYPE_CHAR 0
+#endif
+
+/** \def MPI_TYPE_2INT
+
+    \brief Macro to map MPI_TYPE_2INT to MPI::TWOINT (if MPI is
+    enabled) or 0 if MPI is unavailable.
+
+    <p>This macro provides a convenient, conditionally defined macro
+    to refer to MPI::TWOINT enumerated constant. If MPI is available,
+    then MPI_TYPE_2INT defaults to MPI::TWOINT.  On the other hand, if
+    MPI is disabled then this macro simply reduces to 0.</p>
+
+    This macro can be used as shown below:
+
+    \code
+
+    #include "MPIHelper.h"
+
+    void someMethod() {
+        // ... some code goes here ..
+	MPI_STATUS msgInfo;
+        MPI_PROBE(sourceRank, REPOPULATE_REQUEST, msgInfo);
+        const int dataSize = msgInfo.Get_count(MPI_TYPE_2INT);
+        // ... more code goes here ..
+    }
+    \endcode
+*/
+#ifdef HAVE_LIBMPI
+#define MPI_TYPE_2INT MPI::TWOINT
+#else
+// MPI is not available
+#define MPI_TYPE_2INT 0
+#endif
+
+/** \def MPI_OP_SUM
+
+    \brief Macro to map MPI_OP_SUM to MPI::SUM (if MPI is enabled)
+    or 0 if MPI is unavailable.
+
+    <p>This macro provides a convenient, conditionally defined macro
+    to refer to MPI::SUM enumerated constant. If MPI is available,
+    then MPI_OP_SUM defaults to MPI::SUM.  On the other hand, if
+    MPI is disabled then this macro simply reduces to 0.</p>
+
+    This macro can be used as shown below:
+
+    \code
+
+    #include "MPIHelper.h"
+
+    void someMethod() {
+	    // ... some code goes here ..
+		int localCount = smList.size();
+		int totalCount = 0;
+		MPI_ALL_REDUCE(&localCount, &totalCount, 1, MPI_TYPE_INT, MPI_OP_SUM);
+        // ... more code goes here ..
+    }
+    \endcode
+*/
+#ifdef HAVE_LIBMPI
+#define MPI_OP_SUM MPI::SUM
+#else
+// MPI is not available
+#define MPI_OP_SUM 0
+#endif
+
+/** \def MPI_OP_MAXLOC
+
+    \brief Macro to map MPI_OP_MAXLOC to MPI::MAXLOC (if MPI is enabled)
+    or 0 if MPI is unavailable.
+
+    <p>This macro provides a convenient, conditionally defined macro
+    to refer to MPI::MAXLOC enumerated constant. If MPI is available,
+    then MPI_OP_MAXLOC defaults to MPI::MAXLOC.  On the other hand, if
+    MPI is disabled then this macro simply reduces to 0.</p>
+
+    This macro can be used as shown below:
+
+    \code
+
+    #include "MPIHelper.h"
+
+    void someMethod() {
+	    // ... some code goes here ..
+		int localCount    = smList.size();
+		int totalCount[2] = {0, 0};
+		MPI_ALL_REDUCE(&localCount, &totalCount, 1, MPI_TYPE_2INT, MPI_OP_MAXLOC);
+        // ... more code goes here ..
+    }
+    \endcode
+*/
+#ifdef HAVE_LIBMPI
+#define MPI_OP_MAXLOC MPI::MAXLOC
+#else
+// MPI is not available
+#define MPI_OP_MAXLOC 0
 #endif
 
 /** \def MPI_INIT
