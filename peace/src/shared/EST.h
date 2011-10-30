@@ -40,7 +40,7 @@
 #include "ESTCustomData.h"
 #include "Utilities.h"
 
-/** \typedef std::vector<int> IntVector
+/** \typedef std::vector<int> QualityVector
 
     \brief Shortcut typedef for std::vector<int>
 
@@ -148,6 +148,19 @@ public:
     EST(const int id, const std::string& info,
         const std::string& sequence, const QualityVector& quality);
 
+    /** Copy constructor.
+
+        This method can be used to make a copy of an EST. This method
+        copies all the currently available information for the given
+        EST.  However, if some information has been unpopulated in the
+        source, that information will also be absent in the cloned
+        object returned by this method.
+
+        \param[in] src The source EST from where the information is to
+        be copied into this EST.
+    */    
+    EST(const EST& src);
+    
     /** Dump this EST information in FASTA format.
 
         This method can be used to dump the information associated
@@ -179,7 +192,7 @@ public:
 
     /** Obtain the actual sequence of base pairs for this EST.
 
-        Note that sequence ifnoramtion for an EST can be empty if it
+        Note that sequence information for an EST can be empty if it
         is only partially loaded from a file.  Entries are parially
         loaded to reduce memory foot print when processing large data
         sets.
@@ -189,6 +202,55 @@ public:
     */
     inline const char* getSequence() const { return sequence.c_str(); }
 
+	/** Obtain the reverse-complementary sequence for the base pairs
+		for this EST.
+
+        This is a convenience method that can be used to build the
+        reverse complementary representation of a given nucleotide
+        sequence.  In other words, given the sequence \c AATCGG this
+        method returns \c CCGATT.
+
+        \note This method computes the RC-sequence each time it is
+        called.  The time-complexity is O(n).
+        
+        \return The reverse complementary nucleotide sequence for this
+        EST.  The length of the returned sequence will be exactly the
+        same as the original nucleotide sequence.
+	*/
+	std::string getRCSequence() const;
+	
+	/** Convenience method to detect if this cDNA fragment has quality
+		values associated with each nucleotide.
+
+		This method can be used to detect if this cDNA fragment has
+		quality values associated with each nucleotide. 
+
+		\return This method returns \c true if the quality values are
+		present for this cDNA fragment. If quality values are not
+		available, then this method returns \c false.
+	*/
+	inline bool hasQuality() const { return !quality.empty(); }
+	
+	/** Obtain the quality vector associated with this EST entry.
+
+		This method can be used to obtain the quality values
+		associated with each nucleotide in the cDNA fragment. If
+		quality values are available, each entry in the vector
+		provides the quality value for the corresponding nucleotide
+		entry. That is, <code>getQuality[i]</code> (0 &le; i &lt
+		<code>getSequenceLength()</code>) provides the quality value
+		for the nucleotide at <code>getSequence[i]</code>.  The
+		quality values for each nucleotide is the phred-scaled base
+		error probability value which is calculated as
+		-10*log<sub>10</sub> Pr{base is wrong}.
+
+		\return A vector containing the phred-scaled base error
+		probability for each nucleotide in this cDNA fragment. If
+		quality values are not available (or are not currently
+		populated) then this method returns an empty vector.
+	*/
+	inline const QualityVector& getQuality() const { return quality; }
+	
     /** Obtain the similarity metric for this EST.
 
         The similarity metric is a quantitative representation of the
@@ -480,7 +542,7 @@ protected:
         been unpoulated (or cleared out) via a call to the
         unpopulate() method.  If so this flag is set to false. By
         default this flag is initialized to true.
-     */
+    */
     bool populated;
 
     /** Repopulate the information in this EST entry.

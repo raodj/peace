@@ -36,6 +36,8 @@
 
 #include "Component.h"
 #include "ArgParser.h"
+#include "Contig.h"
+#include "ContigListener.h"
 
 #include <fstream>
 
@@ -187,6 +189,44 @@ public:
         this base class.
     */
     virtual ~Assembler();
+
+    /** Obtain the list of contigs that have already been built by
+        this assembler.
+
+        <p>This method can be used to obtain a immutable reference to
+        the contigs that have been created by this
+        assembler. Typically this method is used to obtain the final
+        set of contigs that have been created at the end of
+        gnomic-assembly process.</p>
+
+        <p>It is important to note that, in parallel assembly
+        scenarios, the contig information in this list typically has
+        only the local information (pertaining to the process) and
+        does not have global information.  This contig information
+        remains distributed across the various parallel processes to
+        minimize memory overheads.  Consequently, to get full contig
+        information, the contig data from all the parallel processes
+        must be appropriately fused together.</p>
+
+        \return The list of contigs that have been created by this
+        assembler.
+    */
+    inline const ContigList& getContigs() const { return contigList; }
+
+    /** Add a contig listener to be notified whenever a new contig is
+        successfully created by this assembler.
+
+        This method can be used to register a contig listener with
+        this assembler.  The contig listener is notified (by this
+        assembler) whenever a new contig is successfully created by
+        this assembler.  The assembler maintains a pointer to the
+        contig listener until assembly operation is successfully
+        completed.
+
+        \param[in] cl The contig listener to be notified whenever this
+        assembler successfully creates a new contig.
+    */
+    void addContigListener(ContigListener* cl);
     
 protected:
     /** The default constructor.
@@ -218,7 +258,36 @@ protected:
 		progress.
     */
     void reportProgress(const int estsProcessed);
-	
+
+    /** Helper method that is used (by derived classes) to notify
+        contig listeners that a contig has been successfully created.
+
+        <p>This method must be invoked by the derived class methods to
+        notify all registered contig listeners that a contig has been
+        successfully formed. This method must be invoked from all
+        parallel-processes immaterial of whether the contig has full
+        or partial information.</p>
+
+        <p>This method iterates over the contig listeners in this
+        class and invokes the interface method on each one of the
+        registered contig listeners.</p>
+        
+        \param[in] contig The contig that has just been successfully
+        created by this assembler.
+        
+        \param[in] fullContig If this flag is \c true then the contig
+        has full information.  If this flag is \c false then this
+        contig has partial information and data from other
+        parallel-processes must be fused together to obtain full
+        contig information.
+
+        \return This method returns \c true if all the listeners
+        reported \c true (indicating the contig has been successfully
+        processed). Otherwise this method returns \c false.
+    */
+    bool notifyContigListeners(const Contig& contig, 
+                               const bool fullContig) const;
+    
     /** A shortcut reference to the shared list of cDNA fragments
         being analyzed.
 		
@@ -232,6 +301,27 @@ protected:
     */
     ESTList *estList;
 
+    /** The list of contigs that have been built by this assembler.
+
+        <p>This instance variable contains the set of contigs that
+        have been created by this assembler. Derived classes directly
+        add new contigs to this list whenever a contig has been
+        successfully created.</p>
+
+        <p>It is important to note that, in parallel assembly
+        scenarios, the contig information in this list typically has
+        only the local information (pertaining to the process) and
+        does not have global information.  This contig information
+        remains distributed across the various parallel processes to
+        minimize memory overheads.  Consequently, to get full contig
+        information, the contig data from all the parallel processes
+        must be appropriately fused together.</p>
+
+        \return The list of contigs that have been created by this
+        assembler.
+    */
+    ContigList contigList;
+    
     /** Name of file to report progress in during assembly.
 		
         This command line argument provides the name of the log file
@@ -242,7 +332,18 @@ protected:
 		Possibly this parameter must be moved down to the child class.
     */	
 	std::string progFileName;
-	
+
+    /** A list of liteners to be notified whenever a contig has been
+        successfully formed.
+
+        This list contains a set of classes to be notified whenever a
+        contig has been formed.  The listeners utlize the contig
+        information to perform suitable operations. 
+
+        @see SAMWriter
+    */
+    ContigListenerList contigListeners;
+    
 private:
     /** A dummy operator=
 

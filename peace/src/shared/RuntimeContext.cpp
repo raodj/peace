@@ -78,6 +78,15 @@ RuntimeContext::printConfig(std::ostream& os) const {
     }
 }
 
+const std::string
+RuntimeContext::getCommandLine() const {
+    StringStringMap::const_iterator entry = config.find("Command Line");
+    if (entry != config.end()) {
+        return entry->second;
+    }
+    return "";
+}
+
 void
 RuntimeContext::setESTList(ESTList* list) {
     if (estList != NULL) {
