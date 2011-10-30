@@ -35,6 +35,7 @@
 //---------------------------------------------------------------------
 
 #include "EST.h"
+#include "ESTCodec.h"
 #include <string>
 #include <algorithm>
 #include <iostream>
@@ -59,6 +60,17 @@ EST::EST(const int idValue, const std::string& information,
     similarity = 0;
     processed  = false;
     populated  = true;
+}
+
+EST::EST(const EST& src) :
+    id(src.id), sequenceLen(src.sequenceLen) {
+    info       = src.info;
+    sequence   = src.sequence;
+    quality    = src.quality;
+    similarity = src.similarity;
+    processed  = src.processed;
+    customData.reset(src.customData.get());
+    populated  = src.populated;
 }
 
 EST::~EST() {
@@ -147,6 +159,18 @@ EST::normalizeBases(const std::string& srcSequence,
     }
     // Return the normalized sequence back
     return sequence;
+}
+
+std::string
+EST::getRCSequence() const {
+    // Create a reversed-copy of the incoming string.
+    std::string rc(sequence.rbegin(), sequence.rend());
+    // Flip each nucleotide in the sequence to its complement.
+    for(size_t idx = 0; (idx < rc.size()); idx++) {
+        rc[idx] = ESTCodec::getComp(rc[idx]);
+    }
+    // Return the reverse complement version.
+    return rc;
 }
 
 #endif

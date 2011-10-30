@@ -64,6 +64,17 @@ libshared_la_SOURCES = \
 	Assembler.cpp \
 	ESTCodec.h \
 	ESTCodec.cpp \
-	ESTListListener.h
+	ESTListListener.h \
+	AlignmentInfo.h \
+	AlignmentInfo.cpp \
+	NtDistr.cpp \
+	NtDistr.h \
+	Contig.h \
+	Contig.cpp \
+	ContigListener.h \
+	ContigListener.cpp \
+	BaseSegmentInfo.h \
+	BaseSegmentInfo.cpp
+
 
 # end of Makefile.am

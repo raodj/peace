@@ -80,6 +80,17 @@ public:
         written.
     */
     void printConfig(std::ostream& os) const;
+
+    /** Convenience method to obtain the full command-line (along with
+        arguments) for the current run of PEACE.
+
+        This method is a helper method that can be used to obtain the
+        full command line (along with arguments) for the current
+        launch of PEACE.
+
+        \return The comamnd-line for the current launch of PEACE.
+    */
+    const std::string getCommandLine() const;
     
     /** Helper method to add/update a configuration entry.
 

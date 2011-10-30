@@ -116,4 +116,19 @@ Assembler::operator=(const Assembler&) {
     return *this;
 }
 
+void
+Assembler::addContigListener(ContigListener* cl) {
+    contigListeners.push_back(cl);
+}
+
+bool
+Assembler::notifyContigListeners(const Contig& contig,
+                                 const bool fullContig) const {
+    bool result = true;
+    for(size_t i = 0; (i < contigListeners.size()); i++) {
+        result |= contigListeners[i]->contigFormed(*this, contig, fullContig);
+    }
+    return result;
+}
+
 #endif

@@ -181,7 +181,7 @@ public:
     inline const EST* operator[](const int index) const
     { return get(index); }
 
-    /** Obtain a mmutable (non-constant object) pointer to an EST
+    /** Obtain a mutable (non-constant object) pointer to an EST
 		entry in this list.
 
         This is a convenience overload of operator[] that can be used
@@ -435,6 +435,30 @@ public:
     */
     virtual const EST* repopulate(int index) const;
 
+	/** Obtain the information associated with a given EST (load it if
+        not available).
+        
+        This method returns the name and other information associated
+        with the EST.  This information is typically the first header
+        line read from a FASTA file. If the information is not
+        available then just the information is loaded from
+
+        \param index The index of the entry for which a pointer is to
+        be returned by this method.  This index value must be in the
+        range 0 &le; ESTList::size().
+        
+        \note The base class implementation does not perform any
+        special task as it assumes that all the necessary information
+        is available in memory.  It simply returns the entry at the
+        given index.
+        
+        \return Any information available for this EST. Return the
+        information
+    */
+	virtual std::string getESTInfo(const int index) const {
+        return get(index)->getInfo();
+    }
+    
 protected:
     /** The list of EST's currently being used.
 
