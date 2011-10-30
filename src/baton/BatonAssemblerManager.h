@@ -137,77 +137,8 @@ public:
     virtual bool initialize();
 	
 protected:
-    /** Helper method to initialize the set of ESTs to be assembled.
-
-        This is a helper method that is invoked from the assemble
-        method once to setup the list of ESTs to be assembled.  This
-        method was introduced to streamline the code in the assemble
-        method.  This list adds the index of all unprocessed (some
-        ESTs are tagged as being processed by filters and other tools
-        to indicate that they must be ignored) ESTs to the
-        estsToProcess set.
-
-        \note This method assumes that it will be called only once.
-    */
-    void setupESTsToBeProcessed();
-
-	/** Helper method to add a list of alignment information to the
-		contig maker and update pending set of fragments to be
-		processed.
-
-		This is a helper method that is called from the main
-		assemble() method in this class after the manager has
-		performed its part of checks.  This method is also called from
-		the getWorkerAlignments() method when an alignment list is
-		received from a worker.  For each alignment entry in the
-		alignList parameter, this method adds the alignment to the
-		contig maker. In addition, it removes the fragments added to
-		the consensus from updates the estsToProcess set.
-
-		\param[out] contig The contig maker object to which the
-		alignment information in alignList must be added.
-
-		\param[in] alignList The list containing alignment information
-		to be added to the contig maker.  This parameter cannot be
-		NULL.
-
-		\param[in] listSize The number of elements in the alignList
-		that must be added to the contig maker.
-	*/
-	void addToContig(ContigMaker& contig,
-					 const AlignmentInfo* alignList,
-					 const int listSize);
-
-	/** Helper method to get alignment information from workers (if any).
-
-		This method is a helper method that is called from the main
-		align() method to obtain alignment information from the
-		workers.  This methods performs various tasks only when:
-
-		<ol>
-
-		<li>MPI-based compilation has been enabled \b and </li>
-
-		<li>There is at least one worker in the parallel run.</li>
-
-		</ol>
-
-		Each worker is expected to provide alignment information to
-		the manager.  For each alignment list obtained from a worker,
-		this method uses the addToContig() method to add the alignment
-		list (obtained from a worker) to the overall contig maker.
-
-		\note Every worker process always adds a dummy entry to the
-		alignment list at the end.  This last entry is ignored.
-		However, having this dummy entry guarantees that every worker
-		will always deliver an alignment list to the manager,
-		streamlining the logic of handling distributed workers.
-		
-		\param[out] contig The contig maker to which the alignment
-		information obtained from a worker is to be added.
-	*/
-    void getWorkerAlignments(ContigMaker& contig);
-    
+	// Currently this class does not have any protected members
+	
 private:
     /* The constructor for this class.
        

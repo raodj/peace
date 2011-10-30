@@ -86,12 +86,35 @@ BatonListCache::getBatonList(const EST* est, const bool getRC) {
         // Don't have a baton list here. So create one and save it for
         // further use.
         retVal = new BatonList(est, nMerSize, getRC, windowSize);
-        // Print the baton list we just built for testing...
-        // std::cout << "EST #" << estIdx << std::endl;
-        // std::cout << *blCache[cachePos] << std::endl;
+        // Put newly created entry into cache for future use
+        blCache[cachePos] = retVal;
+    } else {
+        // Use existing entry from the cache.
+        retVal = entry->second;
     }
-    // When control drops here we always have a valid entry in the cache
-    return blCache[cachePos];    
+    // When control drops here we always have a valid entry
+    return retVal;
+}
+
+void
+BatonListCache::unpopulate(const EST* est) {
+    ASSERT( est != NULL );
+    // Determine index position for the cached entry.  The normal and
+    // RC baton lists for an cDNA fragment with index k are stored in
+    // at position k*2 and k*2+1 respectively.
+    const int cachePos = est->getID() * 2;
+    // Check to see if we have regular entry
+    std::map<int, BatonList*>::iterator regEntry = blCache.find(cachePos);
+    if (regEntry != blCache.end()) {
+        delete regEntry->second;
+        blCache.erase(regEntry);
+    }
+    // Check and remove reverse-complementary (rc) entry
+    std::map<int, BatonList*>::iterator rcEntry = blCache.find(cachePos + 1);
+    if (rcEntry != blCache.end()) {
+        delete rcEntry->second;
+        blCache.erase(rcEntry);
+    }
 }
 
 #endif

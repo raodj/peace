@@ -38,7 +38,7 @@
 #include <cstdlib>
 
 // Forward declarations to keep compiler fast and happy
-class AlignmentInfo;
+class BatonAlignmentInfo;
 class BatonListCache;
 class EST;
 
@@ -164,7 +164,7 @@ public:
         determined to be unrelated), then this method returns \c
         false.
     */
-    virtual bool align(const EST* otherEST, AlignmentInfo& info) = 0;
+    virtual bool align(const EST* otherEST, BatonAlignmentInfo& info) = 0;
 
     /** Set the baton list cache to be used by this class.
 
@@ -177,7 +177,28 @@ public:
         the object must not be deleted.
     */
     void setBLCache(BatonListCache *cache);
-    
+
+	/** Obtain the window size being used by this sequence aligner.
+
+        This method can be used to obtain the window size to be used
+        when generating the BatonList objects.  The window size (in
+        number of nucleotides) indicates the logical sub-divisions
+        into which a cDNA fragment is be subdivided to search for
+        identical batons.  Note that this value is a suggested average
+        value.  Each baton list uses a slightly different value
+        (around this average) as its window size. The window size
+        plays an important role in effective identification of related
+        cDNA fragments for clustering and assmebly.  The default value
+        is 100.
+
+        \return The default average window size being used for
+        analysis. The return value is actually obtained from the
+        blCache (BatonListCache) object set for this sequence aligner.
+        If a valid blCache object is not set, then this method returns
+        -1.
+    */
+	int getWindowSize() const;
+	
 protected:
     /** The constructor.
         

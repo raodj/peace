@@ -113,29 +113,7 @@ public:
     virtual int assemble();
 
 protected:
-	/** Helper method to send alignment information to the manager.
-
-		This is a utility method that is used by the worker process to
-		send alignment information to the manager.  This method is
-		invoked once the worker has completed one round of checks
-		against the subset of fragments assigned to it.  There are
-		numerous calls to this method for each round of analysis
-		initated by the manager.
-
-		\note This method sends the alignment list to the manager as a
-		flat list of characters.  This is a bit of a hack that we are
-		exchanging structures as flat character arrays.  However, it
-		works fine as long as we have a Single Program Multiple Data
-		(SPMD) model and we are running on a homogeneous cluster
-
-		\param[in] alignInfo The list of alignment information to be
-		dispatched to the manager.  This list must always have a dummy
-		entry at the end.  This last entry is ignored by the manager.
-		However, having this dummy entry guarantees that every worker
-		will always deliver an alignment list to the manager,
-		streamlining the logic of handling distributed workers.
-	*/
-    void sendAlignmentInfo(const AlignmentInfoList& alignInfo) const;
+	// Currently this class does not have any protected members.
     
 private:
     /* The constructor for this class.

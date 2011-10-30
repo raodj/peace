@@ -36,6 +36,7 @@
 
 #include "SequenceAligner.h"
 #include "Utilities.h"
+#include "BatonListCache.h"
 
 SequenceAligner::SequenceAligner(const std::string& name) :
     Component(name) {
@@ -44,6 +45,11 @@ SequenceAligner::SequenceAligner(const std::string& name) :
 
 SequenceAligner::~SequenceAligner() {
     // Empty constructor begets an empty destructor?
+}
+
+int
+SequenceAligner::getWindowSize() const {
+    return (blCache != NULL ? blCache->getWindowSize() : -1);
 }
 
 void

@@ -67,6 +67,8 @@ BatonList::BatonList(const char *seq, const int nMers, const bool makeRC,
 
 void
 BatonList::getCodedNMers(IntVector& codedNMers) const {
+    // Clear out any existing data in the vector
+    codedNMers.clear();
     // First, setup the bit mask based on the number of
     // n-mers. Compute bit mask that will retain only the bits
     // corresponding to a given word size.  Each entry in a word takes
@@ -86,12 +88,13 @@ void
 BatonList::buildBatons(const int winSize) {
     // Ensure we have at least one window.
     const int seqLen = getSequenceLength() - nMerSize + 1;
-
+    // Initialize with suggested window size
+    windowSize = winSize;
+    
     // Below we compute an appropriate window size for the given cDNA
     // fragment such that window size does not exceed winSize and the
     // nucleotides are evenly distributed between windows.
-
-    if (seqLen <= winSize * 2 / 3) {
+    if (seqLen <= winSize * 3 / 2) {
         // The sequence is less than 1.5 times the maximum window
         // size. In this case we are going to have a single window to
         // accomodate the whole cDNA fragment.
@@ -134,15 +137,18 @@ BatonList::buildBatons(const int winSize) {
     for(int idx = 0; (idx < MerCount); idx++) {
         const int nMerCode     = codedNMers[idx];
         const int lastOccurIdx = lastOccurrence[nMerCode];
-        if (lastOccurIdx != -1) {
+        if (lastOccurIdx == -1)  {
+            // Track the first index where we noticed the current n-mer to
+            // aid baton during future iterations of this for-loop
+            lastOccurrence[nMerCode] = idx;
+        } else if ((idx - lastOccurIdx) >= nMerSize) {
             // Found a new baton whose head corresponds to the
             // nMerCode value.
-            batons[nMerCode].push_back(Baton(lastOccurIdx,
-                                             idx - lastOccurIdx + nMerSize));
+            batons[nMerCode].push_back(Baton(lastOccurIdx, idx - lastOccurIdx));
+            // Track the previous index where we noticed the current
+            // n-mer to aid baton during future iterations.
+            lastOccurrence[nMerCode] = idx;
         }
-        // Track the index where we noticed the curren n-mer to
-        // aid baton during future iterations of this for-loop
-        lastOccurrence[nMerCode] = idx;
     }
     // Now sort the list of batons in each entry in the batons list
     // based on the baton lengths to optimize baton-based comparisons
@@ -164,7 +170,9 @@ BatonList::getWindowPairs(const BatonList& other,
     getWindowPairs(other, identicalBatonCount, threshold);
     // Now process the entries in the 2-D array and create WindowPair
     // objects of entries that exceed the given threshold (threshold
-    // is aka criticalValue).
+    // is aka criticalValue). Track the window with the highest
+    // frequency as the best candiate for further processing.
+    int highestFreqIdx = 0;
     for(size_t win1 = 0; (win1 < identicalBatonCount.size()); win1++) {
         const IntVector& win1Entries = identicalBatonCount[win1];
         for(size_t win2 = 0; (win2 < win1Entries.size()); win2++) {
@@ -172,8 +180,17 @@ BatonList::getWindowPairs(const BatonList& other,
                 // Found a pair of windows that have a sufficient
                 // number of identical batons between them.
                 pairList.push_back(WindowPair(win1, win2, win1Entries[win2]));
+                // Track the highest frequency window thusfar.
+                if (pairList.back().getScore() >
+                    pairList[highestFreqIdx].getScore()) {
+                    highestFreqIdx = pairList.size() - 1;
+                }
             }
         }
+    }
+    // Put the highest-frequency entry first in the list.
+    if (highestFreqIdx > 0) {
+        // std::swap(pairList[0], pairList[highestFreqIdx]);
     }
 }
 
@@ -232,8 +249,7 @@ BatonList::getWindowPairs(const BatonList& other,
                (baton2 != other.batons[nMerCode].end())) {
             if (baton1->getLength() == baton2->getLength()) {
                 // Found matching batons! Update identical baton
-                // counts and add section pair to pairList if count
-                // exceeds the specified threshold value.
+                // counts.
                 tallyBatons(baton1->getStartIndex() / winSize1, windowCount,
                             baton2->getStartIndex() / winSize2,
                             other.windowCount, identicalBatonCount);

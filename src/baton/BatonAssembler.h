@@ -35,15 +35,16 @@
 //---------------------------------------------------------------------
 
 #include "Assembler.h"
-#include "AlignmentInfo.h"
 #include "BatonListCache.h"
 #include "DefaultSequenceAligner.h"
+#include "MPIHelper.h"
 
 #include <set>
 #include <fstream>
 
 // Forward declarations
 class BatonAnalyzer;
+class ContigMaker;
 
 /** \file BatonAssembler.h
     
@@ -79,15 +80,6 @@ class BatonAnalyzer;
 */
 class BatonAssembler : public Assembler {
 public:
-    /** The set of tags exchanged between manager and worker processes
-        
-        This enum provides meaningful names to the various tags
-        (integers) exchanged between the manager and worker processes
-        participating in baton-based assembly in a
-        parallel/distributed manner.
-    */
-    enum MessageTags{UNKNOWN_REQUEST, ALIGN_INFO_LIST};
-  
     /** The destructor.
         
         The destructor frees up any dynamic memory allocated by this
@@ -138,7 +130,30 @@ public:
 		method returns \c false.
     */
     virtual bool initialize();
-		
+
+    /** Wind-up the operations of this component.
+
+        This method is invoked when the SubSystem (that logically owns
+        this component) is being finalized.  This method currently
+        prints MPI statistics.
+    */
+    virtual void finalize();
+
+    
+    /** Common method to determine the cDNA fragment to be used as the
+        initial reference for contig generation.
+
+        This is a common method that is invoked by the manager and
+        worker(s) to determine the reference fragment to be used as
+        the initial seed for contig creation.  All the parallel
+        processes collaboratively compute the next available cDNA
+        fragment to be used as the initial seed.
+
+        \note Currently, this method selects the longest, un-processed
+        cDNA fragment as the candidate.
+    */
+    int getReferenceEST();
+    
 protected: 
     /* The constructor for this class.
        
@@ -158,16 +173,17 @@ protected:
     */
     DefaultSequenceAligner aligner;
 
-    /** Compute alignment between a given EST and the subset of ESTs
-        owned by this assembler process.
+    /** Compute alignment between a reference EST and the subset of
+        ESTs owned by this assembler process.
 
         This method is a common helper method that is shared by the
         manager and worker processes.  In this context the term
         'local' is used to refer to the local process on which this
         method is invoked.  This method is repeatedly invoked (with
         different reference fragments) to compute alignment between a
-        given reference sequence and the subset of entries owned by
-        this assembler process.
+        given reference sequence (that has already been set/computed
+        by the ContigMaker) and the subset of entries owned by this
+        assembler process.
         
         \note The subset of fragments owned by this process is
         computed via a call to the getOwnedESTidx() method.
@@ -175,18 +191,64 @@ protected:
         \note Fragments that were aligned are flagged as having been
         processed by this method.
         
-        \param[in] refEST A pointer to the reference EST to be used
-        for exploring and discovering similar fragments that can be
-        aligned together.
+        \param[out] contigMaker The contig maker object to be used by
+        this method to form the contig.
 
-        \param[out] alignList This vector is populated with the list
-        of alignments that were discovered in the subset of fragments
-        owned by this process.  Note that this vector is not cleared
-        by this method.  New alignment information is simply added to
-        this list.
+		\param[in] isManager This parameter must be set to true if
+		this method is being called by the manager process. The
+		workers must set this flag to false.
+
+		\return This method returns the number of ESTs that were
+		processed in this call across all parallel processes. This
+		information is typically used by the manager to report
+		progress information.
     */
-    void localAssembly(const EST* refEST, AlignmentInfoList& alignList);
+    int localAssembly(ContigMaker& contigMaker, const bool isManager);
 
+    /** Helper method to create a new Contig class and add it to the
+        list of contigs created by this assembler.
+
+        This is a common (used by both manager and worker) to create
+        and add a new contig. The contig object is created using the
+        information from supplied ContigMaker (parameter). The created
+        contig is added to the contigList member (defined in the base
+        class).  This method is created from the localAssembly()
+        method once the contig is ready.
+
+        \note All parallel processes must call this method to ensure
+        that contigs are consistently added all processes to preserve
+        all the necessary information about the contig.
+
+        \param[in] contigMaker The contig maker object (that has
+        finished building a contig) from which contig information is
+        to be obtained to create a new contig.
+
+        \param[in] isManager If this flag is \c true, then this method
+        also populates the consensus sequence and nucleotide
+        distribution data into the new contig created by this method.
+    */
+    void createAddContig(const ContigMaker& contigMaker, const bool isManager);
+
+    /** Helper method to obtain total number of ESTs processed <i>only
+        at the manager process</li> by all parallel-processes.
+        
+        This method is a helper method that can be used to obtain the
+        total number of ESTs have been marked has having been
+        processed.  This method is primarily used to collate data from
+        all the parallel processes involved in assembly.
+        Consequently, this method must be invoked in a
+        coordinated-manner on all the parallel-processes. This method
+        adds up the number of processed ESTs at each process and
+        returns the total at the given process ID. At all other
+        processes the local count is returned.
+
+        \return The sum of number of ESTs that have already been
+        processed at the process with MPI-rank == procID.  At all
+        other processes this method returns the local count of the
+        number of ESTs processed.
+    */
+    int getESTsProcessed(const int procID = MANAGER_RANK) const;
+    
 	/** A shared BatonList cache to cache baton lists.
 
 		This object is used to contain a shared list of BatonList
@@ -199,7 +261,25 @@ protected:
 	BatonListCache blCache;
 	
 private:
-    // Currently this class does not have any private members
+    /** Helper method to grow a given contig by matching unprocessed
+        ESTs with the contig's root cDNA fragment.
+
+        This method is a helper method that is invoked (one or more
+        times) from the localAssembly() method in this class. This
+        method uses batons to identify batons with sufficient
+        similarity and then constructs segments representing regions
+        of overlap. The segments are added to the supplied contig
+        maker.
+        
+        \param[out] contig The contig maker object to be used to
+        explore and build the contig. This contig can either be the
+        primary starting contig or a contig to its left or right.
+
+        \return This method returns the number of cDNA fragments that
+        were added to the contig maker.  If no ESTs were added to the
+        contig maker, then this method returns zero.        
+    */
+    int growContig(ContigMaker& contig);
 };
 
 #endif
