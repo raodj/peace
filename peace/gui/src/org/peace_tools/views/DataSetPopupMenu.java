@@ -42,7 +42,7 @@ import javax.swing.JPopupMenu;
 
 import org.peace_tools.core.DeleteDialog;
 import org.peace_tools.core.MainFrame;
-import org.peace_tools.core.job.JobWizard;
+import org.peace_tools.core.job.clustering.ClusteringJobWizard;
 import org.peace_tools.generic.Utilities;
 import org.peace_tools.workspace.DataSet;
 import org.peace_tools.workspace.FileEntry;
@@ -195,8 +195,8 @@ public class DataSetPopupMenu extends JPopupMenu implements ActionListener {
 			delDiag.setVisible(true);
 		} else if ("mst".equals(cmd)) {
 			 // Display the wizard to create a new data set
-			 JobWizard jobWizard = 
-				 new JobWizard("Create New MST", mainFrame);
+			 ClusteringJobWizard jobWizard = 
+				 new ClusteringJobWizard("Create New MST", mainFrame);
 			 Utilities.centerPanel(mainFrame, jobWizard);
 			 jobWizard.showWizard("http://www.peace-tools.org/");
 		}
