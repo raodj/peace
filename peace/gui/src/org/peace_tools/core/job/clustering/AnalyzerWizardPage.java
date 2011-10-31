@@ -31,7 +31,7 @@
 //
 //---------------------------------------------------------------------
 
-package org.peace_tools.core.job;
+package org.peace_tools.core.job.clustering;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -72,7 +72,7 @@ public class AnalyzerWizardPage extends GenericWizardPage implements ActionListe
 	 * 
 	 * @param wizard The wizard that logically owns this page.
 	 */
-	public AnalyzerWizardPage(JobWizard wizard) {
+	public AnalyzerWizardPage(ClusteringJobWizard wizard) {
 		this.wizard = wizard;
 		assert(this.wizard != null);
 		// Setup the title(s) for this page and border
@@ -253,7 +253,7 @@ public class AnalyzerWizardPage extends GenericWizardPage implements ActionListe
 	 * page. This reference is used to enable and disable 
 	 * buttons on this wizard appropriately.
 	 */
-	private final JobWizard wizard;
+	private final ClusteringJobWizard wizard;
 	
 	/**
 	 * A combo-box to select the type of frame/word algorithm to

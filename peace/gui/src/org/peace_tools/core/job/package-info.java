@@ -2,21 +2,16 @@
  * Contains the classes associated with the job wizard.
  * 
  * <p>
- * This package contains the classes associated with the job
- * wizard. The job wizard guides the user through the process of
- * launching a new job (to compute MST and clustering) on a server.
- * </p> 
- *
- * <p>This is a pretty involved wizard as a job can have many 
- * different options and parameters to configure the operations
- * performed by the PEACE's C++ clustering engine. This wizard
- * has been designed to be consistent with the core infrastructure
- * provided by {@link org.peace_tools.generic.WizardDialog}.
- * </p>
+ * This package contains generic classes that are used by two or
+ * more job wizards. These classes by themselves do not perform
+ * any specific operation. However, they provide generic 
+ * features that are used by different wizards.</p>
  * 
- * @see org.peace_tools.generic.WizardDialog
- * @see org.peace_tools.generic.WizardPage
+ * <p>Note that this package is not meant to have any wizard
+ * specific wizard. Instead this package is meant to contain
+ * only generic classes that are shared between two or more
+ * wizard that create jobs.</p>
  * 
- * @since 0.9
+ * @since 0.97
  */
 package org.peace_tools.core.job;

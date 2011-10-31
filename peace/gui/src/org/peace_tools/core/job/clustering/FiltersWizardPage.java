@@ -31,7 +31,7 @@
 //
 //---------------------------------------------------------------------
 
-package org.peace_tools.core.job;
+package org.peace_tools.core.job.clustering;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -90,7 +90,7 @@ implements ActionListener {
 	 * 
 	 * @param wizard The wizard that logically owns this page.
 	 */
-	public FiltersWizardPage(JobWizard wizard) {
+	public FiltersWizardPage(ClusteringJobWizard wizard) {
 		this.wizard = wizard;
 		assert(this.wizard != null);
 		// Setup the title(s) for this page and border
@@ -299,7 +299,7 @@ implements ActionListener {
 	 * page. This reference is used to enable and disable 
 	 * buttons on this wizard appropriately.
 	 */
-	private final JobWizard wizard;
+	private final ClusteringJobWizard wizard;
 
 	/**
 	 * Check box to indicate if the length filter must be enabled 

@@ -31,7 +31,7 @@
 //
 //---------------------------------------------------------------------
 
-package org.peace_tools.core.job;
+package org.peace_tools.core.job.clustering;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -76,7 +76,7 @@ implements ActionListener {
 	 * @param awp    The analyzer wizard page from where the frame size
 	 * for t/v heuristic is obtained.
 	 */
-	public HeuristicsWizardPage(JobWizard wizard, AnalyzerWizardPage awp) {
+	public HeuristicsWizardPage(ClusteringJobWizard wizard, AnalyzerWizardPage awp) {
 		this.wizard = wizard;
 		this.awp    = awp;
 		assert(this.wizard != null);
@@ -358,7 +358,7 @@ implements ActionListener {
 	 * page. This reference is used to enable and disable 
 	 * buttons on this wizard appropriately.
 	 */
-	private final JobWizard wizard;
+	private final ClusteringJobWizard wizard;
 
 	/**
 	 * A reference to the analyzer wizard page from where the the

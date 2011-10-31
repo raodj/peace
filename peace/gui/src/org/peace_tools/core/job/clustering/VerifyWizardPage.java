@@ -31,7 +31,7 @@
 //
 //---------------------------------------------------------------------
 
-package org.peace_tools.core.job;
+package org.peace_tools.core.job.clustering;
 
 import java.awt.BorderLayout;
 
@@ -61,7 +61,7 @@ public class VerifyWizardPage extends GenericWizardPage {
 	 * 
 	 * @param wizard The wizard that logically owns this page.
 	 */
-	public VerifyWizardPage(JobWizard wizard) {
+	public VerifyWizardPage(ClusteringJobWizard wizard) {
 		this.wizard = wizard;
 		assert(this.wizard != null);
 		// Setup the title(s) for this page and border
@@ -112,7 +112,7 @@ public class VerifyWizardPage extends GenericWizardPage {
 	 * page. This reference is used to enable and disable 
 	 * buttons on this wizard appropriately.
 	 */
-	private final JobWizard wizard;
+	private final ClusteringJobWizard wizard;
 
 	/**
 	 * Field to read and edit a brief description about the job.

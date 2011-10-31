@@ -31,7 +31,7 @@
 //
 //---------------------------------------------------------------------
 
-package org.peace_tools.core.job;
+package org.peace_tools.core.job.clustering;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -73,7 +73,7 @@ public class JobInfoWizardPage extends GenericWizardPage {
 	 * 
 	 * @param wizard The wizard that logically owns this page.
 	 */
-	public JobInfoWizardPage(JobWizard wizard) {
+	public JobInfoWizardPage(ClusteringJobWizard wizard) {
 		this.wizard = wizard;
 		assert(this.wizard != null);
 		// Setup the title(s) for this page and border
@@ -191,7 +191,7 @@ public class JobInfoWizardPage extends GenericWizardPage {
 	 * page. This reference is used to enable and disable 
 	 * buttons on this wizard appropriately.
 	 */
-	private final JobWizard wizard;
+	private final ClusteringJobWizard wizard;
 	
 	/**
 	 * A combo-box to select the data set to be used for this job.

@@ -57,9 +57,12 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
 
 import org.peace_tools.core.FileInfo;
+import org.peace_tools.core.session.RemoteFileSystemView;
+import org.peace_tools.core.session.RemoteServerSession;
 import org.peace_tools.core.session.ServerSession;
 import org.peace_tools.core.session.SessionFactory;
 import org.peace_tools.generic.GenericWizardPage;
+import org.peace_tools.generic.ProgrammerLog;
 import org.peace_tools.generic.Utilities;
 import org.peace_tools.generic.WizardDialog;
 import org.peace_tools.workspace.Server;
@@ -111,7 +114,7 @@ implements Runnable, ActionListener {
 		// Put the install path text file and browse button into a 
 		// single horizontal panel.
 		browse = Utilities.createButton(null, " Browse ", 
-				"Browse", this, "Browse local file system", false);
+				"Browse", this, "Browse local file system", true);
 		installPath = new JTextField(10);
 		JPanel horizBox = new JPanel(new BorderLayout(0, 10));
 		horizBox.add(installPath, BorderLayout.CENTER);
@@ -211,8 +214,6 @@ implements Runnable, ActionListener {
 			installPath.setText("/home/" + server.getUserID() + "/PEACE");
 		}
 		pollTime.setValue(new Integer((int) server.getPollTime()));
-		// Enable browse button only for local installs
-		browse.setEnabled(!server.isRemote());
 	}
 
 	@Override
@@ -616,14 +617,26 @@ implements Runnable, ActionListener {
 	 */
 	@Override
 	public void actionPerformed(ActionEvent arg0) {
-		JFileChooser jfc = new JFileChooser();
-		jfc.setDialogTitle("Choose install directory");
-		jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-		if (jfc.showDialog(this, "Install Here") == JFileChooser.APPROVE_OPTION) {
-			// Copy the chosen directory to the work space combo box.
-			String wsPath = jfc.getSelectedFile().getAbsolutePath();
-			// Set the selected item in this path.
-			installPath.setText(wsPath);
+		// For remote server we need to setup a suitable RemoteFileSystemView
+		// for the JFileChooser to use.
+		try {
+			RemoteFileSystemView rfsv = null;
+			if (server.isRemote()) {
+				RemoteServerSession rss = (RemoteServerSession) SessionFactory.createSession(this, server);
+				rfsv = new RemoteFileSystemView(rss);
+			}
+			// Setting file system view after constructor does not seem to work well..
+			final JFileChooser jfc = (rfsv == null ? new JFileChooser() : new JFileChooser(rfsv));
+			jfc.setDialogTitle("Choose install directory");
+			jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+			if (jfc.showDialog(this, "Install Here") == JFileChooser.APPROVE_OPTION) {
+				// Copy the chosen directory to the work space combo box.
+				String wsPath = jfc.getSelectedFile().getAbsolutePath();
+				// Set the selected item in this path.
+				installPath.setText(wsPath);
+			}
+		} catch (Exception e) {
+			ProgrammerLog.log(e);
 		}
 	}
 

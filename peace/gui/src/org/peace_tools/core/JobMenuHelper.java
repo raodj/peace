@@ -50,7 +50,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TreeSelectionListener;
 
-import org.peace_tools.core.job.JobWizard;
+import org.peace_tools.core.job.clustering.ClusteringJobWizard;
 import org.peace_tools.core.job.east.EASTJobWizard;
 import org.peace_tools.core.session.ServerSession;
 import org.peace_tools.core.session.SessionFactory;
@@ -150,8 +150,8 @@ public class JobMenuHelper extends AbstractMenuHelper
 		final String cmd = event.getActionCommand();
 		if ("NewMST".equals(cmd) || "NewCluster".equals(cmd)) {
 			 // Display the wizard to create a new data set
-			 JobWizard jobWizard = 
-				 new JobWizard("Create New Clustering", mainFrame);
+			 ClusteringJobWizard jobWizard = 
+				 new ClusteringJobWizard("Create New Clustering", mainFrame);
 			 Utilities.centerPanel(mainFrame, jobWizard);
 			 jobWizard.showWizard("http://www.peace-tools.org/downloads/manual.pdf#page=30");
 			 return;
