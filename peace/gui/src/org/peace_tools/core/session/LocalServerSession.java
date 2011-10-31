@@ -252,13 +252,13 @@ public class LocalServerSession extends ServerSession {
 	 * @param destFileName The name of the destination file to which
 	 * the data is to be copied.
 	 * 
-	 * @param mode The POSIX compliant mode string (such as: "0600"
-	 * or "0777" to be used as the mode for the target file.
+	 * @param mode The POSIX compatible mode number (such as: 0600
+	 * or 0777 to be used as the mode for the target file.
 	 * 
 	 * @throws IOException This method throws exceptions on errors.
 	 */
 	public void copy(InputStream srcData, String destDirectory, 
-			String destFileName, String mode) throws IOException {
+			String destFileName, int mode) throws IOException {
 		// Compute the final path and target file name.
 		if (destDirectory == null) {
 			destDirectory = ".";
@@ -276,7 +276,7 @@ public class LocalServerSession extends ServerSession {
 		// Close destination file
 		os.close();
 		// Update attributes
-		setPerms(destFile, mode.charAt(1), true);  // owner
+		setPerms(destFile, mode & 0700, true);  // owner
 		// setPerms(destFile, mode.charAt(3), false); // others
 	}
 	
@@ -417,13 +417,14 @@ public class LocalServerSession extends ServerSession {
 	 * file.
 	 * 
 	 * @param file The file whose permissions are to be set.
-	 * @param permDigit A POSIX compliant digit (0-7) that indicates the flags
+	 * 
+	 * @param perm A POSIX compatible digit (0-7) that indicates the flags
 	 * for read (4), write (2), and execute (1) values.
+	 * 
 	 * @param owner Flag to indicate if the status is for the owner (true) or 
 	 * others (false). 
 	 */
-	private void setPerms(File file, char permDigit, boolean owner) {
-		int perm = Integer.parseInt("" + permDigit);
+	private void setPerms(File file, int perm, boolean owner) {
 		file.setReadable((perm & 0x4) != 0, owner);
 		file.setWritable((perm & 0x2) != 0, owner);
 		file.setExecutable((perm & 0x1) != 0, owner);
