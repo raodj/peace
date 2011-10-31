@@ -1102,6 +1102,44 @@ public class Utilities {
 	 * details box with the details.
 	 */
 	public static JPanel collapsedMessage(String message, String details) {
+		return collapsedMessage(message, details, true);
+	}
+
+	/**
+	 * Helper method to create a collapsed pane with message.
+	 * 
+	 * <p>This is a convenience utility method that creates a panel that
+	 * contains two pieces of information. The first one is a "message"
+	 * that is placed within a JLabel to be displayed to the user.
+	 * This information is constantly visible. The second parameter
+	 * "details", is placed within a JTextArea (inside a scroll pane)
+	 * that is initially not visible. The text area is made visible
+	 * only when the user clicks on a "Details" button that is created
+	 * by this method. The complete JPanel can then be placed within
+	 * other dialogs (such as JOptionPane.showMessageDialog()) to
+	 * provide additional information to the user in a form that does
+	 * not overwhelm the user with information.</p> 
+	 * 
+	 * <p><b>Note:</b>Use this method sparingly and only in circumstances
+	 * in which you are absolutely sure that details are to be shown or
+	 * hidden. When in doubt, prefer to use the overloaded
+	 * {{@link #collapsedMessage(String, String)} method instead.</p>
+	 * 
+	 * @param message The message that is to be constantly displayed
+	 * to the user via a JLabel.
+	 * 
+	 * @param details The extra information that will be placed within
+	 * a JTextArea that is hidden (or shown) depending on the user's
+	 * choice (indicated by clicking on the details button)
+	 * 
+	 * @param showDetails If this flag is true then the details are
+	 * visible by default. If this flag is false, then the details are
+	 * not visible by default.
+	 * 
+	 * @return This method returns the JPanel containing a collapsed
+	 * details box with the details.
+	 */
+	public static JPanel collapsedMessage(String message, String details, boolean showDetails) {
 		JPanel container = new JPanel(new BorderLayout(5, 5));
 		JLabel info      = new JLabel(message);
 		Dimension maxSize= info.getPreferredSize();
@@ -1113,7 +1151,7 @@ public class Utilities {
 		// dimensions of the collapsible panel.
 		final JTextArea msg   = new JTextArea(details);
 		final JScrollPane jsp = new JScrollPane(msg);
-		jsp.setVisible(true);
+		jsp.setVisible(showDetails);
 		// Setup the maximum scroll pane size so that it looks good.
 		maxSize        = info.getPreferredSize();
 		maxSize.height = 100;
@@ -1150,7 +1188,7 @@ public class Utilities {
 		container.add(subBox, BorderLayout.SOUTH);
 		return container;
 	}
-
+	
 	/**
 	 * Helper method to determine the default working directory for
 	 * PEACE. This method returns a suitable working directory PATH
