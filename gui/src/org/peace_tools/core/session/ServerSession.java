@@ -219,14 +219,16 @@ public abstract class ServerSession {
 	 * @param destFileName The name of the destination file to which
 	 * the data is to be copied.
 	 * 
-	 * @param mode The POSIX compliant mode string (such as: "0600"
-	 * or "0777" to be used as the mode for the target file.
+	 * @param mode The POSIX compatible mode string (such as: 0600
+	 * or 0777 to be used as the mode for the target file. Note the leading
+	 * zero -- is is absolutely important and is needed to ensure that
+	 * the number is in octal representation.
 	 * 
 	 * @throws IOException This method throws exceptions on errors.
 	 */
 	public abstract void copy(InputStream srcData, 
 			String destDirectory, String destFileName, 
-			String mode) throws IOException;
+			int mode) throws IOException;
 	
 	/**
 	 * Copy file from a remote machine to a given output stream.

@@ -37,36 +37,39 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.GridLayout;
 import java.io.BufferedReader;
-import java.io.File;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.InetAddress;
 
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPasswordField;
 import javax.swing.JProgressBar;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.text.DefaultStyledDocument;
 
 import org.peace_tools.core.FileInfo;
+import org.peace_tools.generic.Log.LogLevel;
 import org.peace_tools.generic.ProgrammerLog;
 import org.peace_tools.generic.UserLog;
 import org.peace_tools.generic.Utilities;
 import org.peace_tools.workspace.Server;
 
-import ch.ethz.ssh2.Connection;
-import ch.ethz.ssh2.KnownHosts;
-import ch.ethz.ssh2.SFTPException;
-import ch.ethz.ssh2.SFTPv3Client;
-import ch.ethz.ssh2.SFTPv3FileAttributes;
-import ch.ethz.ssh2.SFTPv3FileHandle;
-import ch.ethz.ssh2.ServerHostKeyVerifier;
-import ch.ethz.ssh2.Session;
-import ch.ethz.ssh2.StreamGobbler;
+import com.jcraft.jsch.ChannelExec;
+import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.JSchException;
+import com.jcraft.jsch.Session;
+import com.jcraft.jsch.SftpATTRS;
+import com.jcraft.jsch.SftpException;
+import com.jcraft.jsch.UserInfo;
 
 /**
  * A remote server session based on the secure shell (SSH) protocol.
@@ -80,16 +83,20 @@ import ch.ethz.ssh2.StreamGobbler;
  * hosts and almost all super computing clusters mandate the use of
  * SSH for interactions. </p>
  * 
- * <p>This class uses the Ganymede SSH 
- * implementation for establishing SSH connections. Ganymede SSH
- * supports only ssh-2 protocol. Please refer to Genymede SSH website
- * for further details: <A HREF="http://www.ganymed.ethz.ch/ssh2/">
- * http://www.ganymed.ethz.ch/ssh2/</A>. PEACE distributes Ganymede
- * license file as per Ganymede licensing requirements.</p>
+ * <p>This class uses the JSch SSH 
+ * implementation for establishing SSH connections. JSch SSH
+ * supports the recent ssh-2 protocol. Please refer to JSch SSH website
+ * for further details: {@link http://www.jcraft.com/jsch/} </p>
+ *
+ * <p><b>Note:</b>The remote server session automatically turns-on
+ * maximum data compression automatically.</p>
+ *
+ * <p>PEACE redistributes JSch and includes their BSD style license file
+ * as per JSch licensing requirements. Here is a link to JSch license
+ * file: {@link http://www.jcraft.com/jsch/LICENSE.txt}</p></p>
  * 
  */
-public class RemoteServerSession extends ServerSession 
-implements ServerHostKeyVerifier {
+public class RemoteServerSession extends ServerSession implements UserInfo {
 	/**
 	 * The constructor merely passes parameters to the base class that
 	 * initializes the instance variables. No special operations are
@@ -97,15 +104,48 @@ implements ServerHostKeyVerifier {
 	 * 
 	 * @param server The server data entry that provides the necessary
 	 * information to connect to the server.
+	 *
 	 * @param parent The parent component that should be used to 
 	 * create GUI elements that may be needed for any interactive
 	 * operations.
 	 */
 	protected RemoteServerSession(Component parent, Server server) {
 		super(server, parent);
-		connection = null;
-		osType     = null;
-		purpose    = null;
+		session = null;
+		osType  = null;
+		purpose = null;
+	}
+
+	/**
+	 * A helper method to setup the known hosts file (and information).
+	 *
+	 * This is a refactored helper method that is used to setup the
+	 * known hosts file for use by JSch (SSH client library). The
+	 * known hosts file caches SSH key/signatures of servers with
+	 * which the user has established connections in previous
+	 * runs. This file is automatically managed by JSch. Here, we just
+	 * provide the file name for use (if we have not already done
+	 * so). This method is invoked from the connect() method.
+	 *
+	 * @see connect
+	 */
+	private void setKnownHosts() {
+		// Setup the known hosts repository if one is not already set
+		synchronized(sshClientLibrary) {
+			if (sshClientLibrary.getHostKeyRepository().getKnownHostsRepositoryID() == null) {
+				try {
+					sshClientLibrary.setKnownHosts(KnownHostPath);
+				} catch (JSchException exp) {
+					// Let user know that known hosts saving is disabled!
+					ProgrammerLog.log(exp);
+					JPanel msg = Utilities.collapsedMessage(KNOWN_HOSTS_ERROR, 
+							Utilities.toString(exp));
+					JOptionPane.showMessageDialog(parent, msg, 
+							"Unable to use Known Hosts File", JOptionPane.WARNING_MESSAGE);
+
+				}
+			}
+		}
 	}
 
 	/**
@@ -124,19 +164,20 @@ implements ServerHostKeyVerifier {
 	 * be resolved, thereby establishing its basic validity.</li>
 	 * 
 	 * <li>It connects to the remote server by creating a 
-	 * Ganymede connection object.</li>
-	 * 
-	 * <li>It then authenticates with the user by providing the
+	 * Jsch session object.  The process of creating a session
+	 * requires authentication by providing the
 	 * user name and password stored in the Server object supplied
-	 * when this class was instantiated.</li>
+	 * when this class was instantiated. If a valid password is not
+	 * available, then this method prompts the user to obtain the
+	 * password. It is important to set the purpose for this session
+	 * to inform the user about the need to connect.</li>
 	 * 
 	 * </ol>
 	 * 
 	 * <p><b>Note:</b>  The process of establishing a connection can be a 
 	 * time consuming task. In some cases incorrect host names can
 	 * cause long connection times (until the connection times out
-	 * which can be in minutes). Consequently, it is best to call
-	 * this method from a separate <b>daemon</b> thread.</p>
+	 * which can be in minutes).</p>
 	 * 
 	 * @throws IOException This method throws IO exceptions in 
 	 * the case of errors. If an error occurs, then a connection
@@ -145,66 +186,140 @@ implements ServerHostKeyVerifier {
 	 */
 	@Override
 	public void connect() throws IOException {
-		// Load known hosts information first.
-		loadKnownHosts();
+		// Setup the known hosts file as needed
+		setKnownHosts();
 		// Check and ensure that the host name is valid. The following
 		// call will generate an exception if host is invalid.
 		InetAddress.getByName(server.getName());
 		// Create connection to the remote host. Use a temporary 
 		// variable so that if exceptions are thrown our instance 
 		// variable continues to remain valid.
-		Connection connection = new Connection(server.getName(), server.getPort());
-		// Setup preferred key algorithms to be used for this host if the
-		// host is in the known hosts list.
-		String[] hostkeyAlgos = 
-			knownHosts.getPreferredServerHostkeyAlgorithmOrder(server.getName());
-		if (hostkeyAlgos != null) {
-			connection.setServerHostKeyAlgorithms(hostkeyAlgos);
-		}
-		// Establish the connection. The following call will call the
-		// verifyServerHostKey to check if the host key is present in the
-		// known host database.
-		connection.connect(this);
-		// Next authenticate the user using the supplied credentials
-		if (!connection.isAuthMethodAvailable(server.getUserID(), "password")) {
-			throw new IOException("Non-interactive authentication using " +
-					"password is not supported by remote server.\n" +
-					"That is rather strange. You need to contact the " +
-					"system adminstrator to enable support for\n" +
-			"non-interactive logins using password.");
-		}
+		Session connection = null;
+
 		int retryCount = 3;
 		do {
-			// If password is null get a new password.
-			getPassword();
-			// OK, try to connect to the remote server by authenticating
-			// using the user's ID and password
-			if (!connection.authenticateWithPassword(server.getUserID(), 
-					server.getPassword())) {
-				// Authentication failed. Either the username or password
-				// is incorrect. Generate exception.
-				if (retryCount == 0) {
-					throw new IOException("Authentication failed.\n" +
-						"The user name or password is incorrect.");
-				}
-				retryCount--;
-				server.setPassword(null); // reset password
-			} else {
-				break;
+			try {
+				// Try and establish a connection. If an exception occurs then
+				// we can't do anything further in this step.
+				connection = sshClientLibrary.getSession(server.getUserID(), 
+						server.getName(), server.getPort());
+				connection.setUserInfo(this);
+			} catch (JSchException exp) {
+				// This type of exception is not recoverable!
+				throw new IOException(exp);
 			}
-		}  while (retryCount > 0);
-		// OK, the connection was established successfully. Set our
-		// instance variable to the local value.
-		this.connection = connection;
+			try {
+				// Request server to enable level-9 compression for this session.
+				connection.setConfig("compression.s2c", "zlib@openssh.com,zlib,none");
+				connection.setConfig("compression.c2s", "zlib@openssh.com,zlib,none");
+				connection.setConfig("compression_level", "9");
+				// Establish the connection. The following call will prompt for
+				// adding entries to ".KnownHosts" file and for the user's password
+				// (if the server does not have a password already set).
+				connection.connect();
+				// When control drops here and the connection is not connected, that
+				// indicates a routine flow in which the user decided to cancel the connection
+				if (!connection.isConnected()) {
+					throw new IOException("User interrupted loggin to server");
+				}
+			} catch (JSchException exp) {
+				UserLog.log(LogLevel.NOTICE, "RemoteServerSession", exp.getMessage());
+				ProgrammerLog.log(exp);
+				// An exception occurred. If we are not out of retries, then
+				// we will prompt the user for the password again.
+				server.setPassword(null); // reset password
+				connection.disconnect();
+			} catch (RuntimeException rtExp) {
+				if (USER_INTERRUPTED_EXP_MSG.equals(rtExp.getMessage())) {
+					// This is an exception that we expect to get
+					throw new IOException(rtExp);
+				}
+				// This is not an exception we expect to get. Rethrow it.
+				throw rtExp;
+			} finally {
+				// Always decrement retry count to ensure we never get into an
+				// infinite loop.
+				retryCount--;
+			}
+		} while ((retryCount > 0) && (!connection.isConnected()));
+
+		if ((retryCount > 0) && (connection.isConnected())) {
+			// OK, the connection was established successfully. Set our
+			// instance variable to the local value.
+			this.session = connection;
+		} else {
+			// We could not connect even after 3-retries. Throw an exception
+			// and bail out from here.
+			throw new IOException("Authentication failed.\n" +
+			"The user name or password is incorrect.");
+		}
 	}
 
 	/**
-	 * Helper method to check and get password from the user.
+	 * Method to obtain the current secure-shell connection to the server.
+	 * 
+	 * This method can be used to obtain the current secure shell connection
+	 * being used by this server session. Note that the {@link #connect()}
+	 * method must be invoked to establish a valid session. If a valid
+	 * connection (AKA JSch session) is returned by this method then it
+	 * can be readily used to create a SSH-channel.
+	 * 
+	 * @return The current secure-shell connection to the server. If a 
+	 * connection has not been established then this method returns null.
 	 */
-	private void getPassword() throws IOException {
+	public Session getConnection() {
+		return session;
+	}
+
+	/**
+	 * Implementation for corresponding method in JSch's UserInfo class.
+	 * 
+	 *  This method provides a simple implementation for the corresponding method
+	 *  in the JSch's UserInfo class. This method checks to see if the server
+	 *  (to which the session is being established) already has a password setup.
+	 *  If a valid password is already available this method simply returns that
+	 *  password value. Otherwise this method calls the promptPassword() method
+	 *  to obtain a password from the user.
+	 *  
+	 *  @return This method returns the current password set for the server. 
+	 *  If a valid password is not set then this method returns null.
+	 */
+	public String getPassword() {
+		if (server.getPassword() == null) {
+			promptPassword(null);
+		}
+		return server.getPassword();
+	}
+
+	/**
+	 * Implementation for JSch's UserInfo interface to check and 
+	 * get password from the user.
+	 * 
+	 * This method implements the corresponding method in JSch's UnserInfo
+	 * interface. This method is invoked from within JSch to prompt the
+	 * user for a password if an SSH handshake requires a password to be
+	 * entered.  This method prompts the user for a password only if 
+	 * {@code server.getPassword()} returns null. This method displays
+	 * a properly layed-out modal dialog box to obtain the password.
+	 * The purpose (if set) is displayed when prompting for password.
+	 *
+	 * @param message The message to be displayed to the user. This
+	 * message is passed in by JSch. Currently, this value is ignored
+	 * by this method (and therefore it can be null) giving higher 
+	 * preference to the purpose set for the session.
+	 * 
+	 * @return This method returns true if the user clicks the "OK" 
+	 * button to proceed with SSH handshake. If the user clicks the "Cancel"
+	 * button, then this method returns false indicating that further 
+	 * SSH processing should not occur.
+	 * 
+	 * @see setPurpose
+	 */
+	@Override
+	public boolean promptPassword(String message) {
 		if (server.getPassword() != null) {
 			// We have valid password to work with.
-			return;
+			return true;
 		}
 		// Create text fields for user name and password.
 		JTextField userID = new JTextField(10);
@@ -232,26 +347,135 @@ implements ServerHostKeyVerifier {
 		// panel.
 		if (purpose != null) {
 			JLabel info = new JLabel(purpose, Utilities.getIcon("images/32x32/Information.png"), 
-									 JLabel.LEFT);
-			 JPanel outer = new JPanel(new BorderLayout(0, 10));
-			 outer.add(info, BorderLayout.CENTER);
-			 outer.add(msgPanel, BorderLayout.SOUTH);
-			 // Set message panel to be the outer most one now.
-			 msgPanel = outer;
+					JLabel.LEFT);
+			JPanel outer = new JPanel(new BorderLayout(0, 10));
+			outer.add(info, BorderLayout.CENTER);
+			outer.add(msgPanel, BorderLayout.SOUTH);
+			// Set message panel to be the outer most one now.
+			msgPanel = outer;
 		}
 		// Pack all the elements into an array
 		Object items[] = { msgPanel };
 		int result = 
-		JOptionPane.showConfirmDialog(null, items, "Enter Password", 
-                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+			JOptionPane.showConfirmDialog(null, items, "Enter Password", 
+					JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 		if (result == JOptionPane.OK_OPTION) {
 			server.setUserID(userID.getText());
 			server.setPassword(new String(password.getPassword()));
-		} else {
-			throw new IOException("User cancelled credential input");
+			return true;
 		}
+		// When control drops here that indicates that the user
+		// did not click the "OK" button. So stop SSH operations
+		return false;
 	}
-	
+
+	/** Dummy implementation for corresponding method in JSch's UserInfo class.
+	 * 
+	 * This method is expected to return  a pass phrase to be used
+	 * with SSH-digests. Currently, PEACE does not support this feature and
+	 * consequently, this method merely provides a dummy implementation.
+	 * 
+	 * @return Currently, this method always returns null as SSH digests are
+	 * not fully implemented.
+	 */
+	public String getPassphrase() { 
+		return null; 
+	}
+
+
+	/** Dummy implementation for corresponding method in JSch's UserInfo class.
+	 * 
+	 * This method is expected to prompt the user for a pass phrase to be used
+	 * with SSH-digests. Currently, PEACE does not support this feature and
+	 * consequently, this method merely provides a dummy implementation.
+	 * 
+	 * @return Currently, this method always returns false indicating that
+	 * further SSH handshake should not occur using pass phrases
+	 */
+	public boolean promptPassphrase(String message) { 
+		return false; 
+	}
+
+	/** Simple implementation for corresponding method in JSch's UserInfo class.
+	 * 
+	 * This method is expected to display messages to the user. The messages
+	 * are typically initial license or usage requirements that are sent by
+	 * the server as a part of the SSH-protocol hand shake. This method 
+	 * merely displays the information to the user.
+	 * 
+	 * @param message The message to be displayed to the user.
+	 */
+	public void showMessage(String message) {
+		// Create a text area to display the message and place it inside
+		// a scroll pane to permit display of large messages using a 
+		// decent sized GUI window.
+		JTextArea msgDisplay = new JTextArea(message, 60, 5);
+		JScrollPane jsp      = new JScrollPane(msgDisplay);
+		// Show the message to the user.
+		JOptionPane.showMessageDialog(parent, jsp, 
+				"Secure Shell (SSH) Message", JOptionPane.INFORMATION_MESSAGE);
+	}
+
+	/**
+	 * Implementation for corresponding method in JSch's UserInfo class.
+	 * 
+	 *  This method provides a simple implementation for the corresponding method
+	 *  in the JSch's UserInfo class. This method is typically invoked by JSch to
+	 *  check if a user would like to connect to a server whose SSH-signature is
+	 *  not in the ".KnownHosts" file. Essentially this method displays a dialog
+	 *  (with suitable message) and prompts the user for a Yes/No type answer.
+	 *  
+	 *  @param message The message to be displayed to the user. This message is
+	 *  provided by JSch and we don't have much control on it.
+	 *  
+	 *  @return This method returns true if the user clicks on the "Yes" button.
+	 *  If the user click the "No" button then this method returns false.
+	 */
+	public boolean promptYesNo(String message) {
+		// The message object to be filled in further below.
+		JComponent msgDisplay = null;
+		int msgType           = JOptionPane.INFORMATION_MESSAGE;
+		boolean expOnNo       = false; // Throw an exception on "No" choice
+		// JSch messages are OK for folks who are familiar with SSH and such.
+		// However, for a common user, here try and create a more meaningful 
+		// message in situations where the user is connecting to the server for
+		// the first time.
+		if (message.startsWith("The authenticity of host") && 
+			(message.indexOf("can't be established") > 0)) {
+			// This is a situation where the user is typically connecting for
+			// the first time. Display a custom message.
+			final String rsaTag = "RSA key fingerprint is ";
+			int rsaKeyPos = message.indexOf(rsaTag) + rsaTag.length() + 1;
+			String rsaKey = message.substring(rsaKeyPos, message.indexOf('.', rsaKeyPos));
+			// Format and display the message to the user.
+			final String custMsg = String.format(FIRST_SSH_CONNECTION_MSG, server.getName(), rsaKey);
+			msgDisplay = Utilities.collapsedMessage(custMsg, message, false);
+			expOnNo    = true;
+		} else if (message.startsWith("WARNING: ")) {
+			// This is a situation when the RSA key for the server has changed.
+			// Here we create a custom and more informative message than the one
+			// displayed by JSch.
+			msgDisplay = Utilities.collapsedMessage(SSH_HOST_CHANGE_MSG, message, false);
+			msgType    = JOptionPane.WARNING_MESSAGE;
+			expOnNo    = true;
+		} else {
+			// Create a text area to display the message from JSch in other cases
+			JTextArea jta = new JTextArea(message, 60, 5);
+			msgDisplay    = new JScrollPane(jta);
+		}
+		// Display message to user and get user's Yes/No choice
+		int choice = JOptionPane.showConfirmDialog(parent, msgDisplay, 
+				"Secure Shell (SSH) Protocol Interaction", JOptionPane.YES_NO_OPTION, msgType);
+		// If the user clicked "No" for a "Warning" message, we throw an exception here.
+		// to communicate a serious issue.
+		if ((choice == JOptionPane.NO_OPTION) && (expOnNo)) {
+			// A serious issue from which we should not retry connections etc.
+			throw new RuntimeException(USER_INTERRUPTED_EXP_MSG);
+		}
+		// Return true if the user clicked on the "Yes" button.
+		return (choice == JOptionPane.YES_OPTION);
+	}
+
 	/**
 	 * Method to disconnect from a remote server. 
 	 * 
@@ -260,9 +484,9 @@ implements ServerHostKeyVerifier {
 	 */
 	@Override
 	public void disconnect() {
-		if (connection != null) {
-			connection.close();
-			connection = null;
+		if (session != null) {
+			session.disconnect();
+			session = null;
 			osType = null;
 		}
 	}
@@ -291,6 +515,9 @@ implements ServerHostKeyVerifier {
 	 * 
 	 * @param outputs The buffered results from the standard
 	 * output and standard error streams of the remote process.
+	 * Specifically, outputs[0] will contain the standard output
+	 * data while outputs[1] will contain teh standard error
+	 * stream.
 	 * 
 	 * @return The exit code from the remote command that was
 	 * run.
@@ -300,33 +527,32 @@ implements ServerHostKeyVerifier {
 	 */
 	@Override
 	public int exec(final String command, String[] outputs) throws Exception {
-		// The following code was developed based on the API example
-		// from Ganymede SSH.
-		if (connection == null) {
+		if (session == null) {
 			throw new IOException("Not connected to remote server.");
 		}
-		// Create a session via the connection
-		Session session = connection.openSession();
+		// Create a channel via the session
+		ChannelExec channel = (ChannelExec) session.openChannel("exec");
 		// Setup the command for execution on remote machine.
-		session.execCommand(command);
-		// Process the output streams. Stream gobbler is used to 
-		// buffer the data from standard out (on a different thread)
-		// while we read standard error in this thread.
-		StreamGobbler stdout = new StreamGobbler(session.getStdout());
+		channel.setCommand(command);
+		// Process the output streams. A suitable stream is used to 
+		// buffer the data from standard out while we read standard
+		// error explicitly.
+		ByteArrayOutputStream stdout = new ByteArrayOutputStream(8192);
+		// Setup the standard output stream to which data is to be written
+		// when the the command runs.
+		channel.setOutputStream(stdout);
+		channel.setErrStream(null); // No buffers for error stream.
+		// Now run the command on the remote server
+		channel.connect();
+
 		// Read all the data into a single string from standard error
 		// stream into a single string.
-		outputs[1] = Utilities.readFullStream(session.getStderr());
+		outputs[1] = Utilities.readFullStream(channel.getErrStream());
 		// Convert the standard output to a string as well.
-		outputs[0] = Utilities.readFullStream(stdout);
+		outputs[0] = stdout.toString();
 		// Save exit status.
-		Integer exitStatus = session.getExitStatus();
-		session.close();
-		// Some times the exit status can be null! Don't know why but it is
-		// Have to file it with Ganymede SSH implementation. If exitStatus is
-		// not null then use it. Otherwise use the length of standard error
-		// as a measure of the exit status.
-		int exitCode = (exitStatus != null) ? exitStatus : 
-			outputs[1].length();
+		int exitCode = channel.getExitStatus();
+		channel.disconnect();
 		// Return the exit code from the remote process
 		return exitCode;
 	}
@@ -339,8 +565,8 @@ implements ServerHostKeyVerifier {
 	 * command on a remote server, stream the output, and
 	 * return the exit code from the remote command. The
 	 * outputs are streamed to a given StyledDocument. This
-	 * method uses styles named "stdout", "stderr", and 
-	 * "warning" (if available in the given output document)
+	 * method uses styles named {@code "stdout"}, {@code "stderr"}, and 
+	 * {@code "warning"} (if available in the given output document)
 	 * 
 	 * <p><b>Note:</b>  The connection to the remote server must have
 	 * been established successfully via a call to connect method.<p>
@@ -361,17 +587,20 @@ implements ServerHostKeyVerifier {
 	@Override
 	public int exec(final String command, DefaultStyledDocument output) throws Exception {
 		// Ensure we have a valid connection first.
-		if (connection == null) {
+		if (session == null) {
 			throw new IOException("Not connected to remote server.");
 		}
 		// Create a session via the connection
-		Session session = connection.openSession();
+		ChannelExec channel = (ChannelExec) session.openChannel("exec");
 		// Setup the command for execution on remote machine.
-		session.execCommand(command);
-		// Process the output streams. 
-		StreamGobbler stderr = new StreamGobbler(session.getStderr());
+		channel.setCommand(command);
+		// Process the output streams. The following output stream 
+		// buffers the data from standard error (on a different thread)
+		// while we read standard output in this thread.
+		ByteArrayOutputStream stderr = new ByteArrayOutputStream(8192);
+		channel.setErrStream(stderr);
 		// Read stdout one line at a time and add it to the output
-		BufferedReader stdin = new BufferedReader(new InputStreamReader(session.getStdout()));
+		BufferedReader stdin = new BufferedReader(new InputStreamReader(channel.getInputStream()));
 		String line = null;
 		while ((line = stdin.readLine()) != null) {
 			// Got another line of standard output. Display it.
@@ -379,192 +608,14 @@ implements ServerHostKeyVerifier {
 					output.getStyle("stdout"));
 		}
 		// Flush out any pending data on the standard error stream
-		String stdErrData = Utilities.readFullStream(stderr);
+		String stdErrData = stderr.toString();
 		output.insertString(output.getLength(), stdErrData, 
 				output.getStyle("stderr"));
 		// Save exit status.
-		Integer exitStatus = session.getExitStatus();
-		session.close();
-		// Some times the exit status can be null! Don't know why but it is
-		// Have to file it with Ganymede SSH implementation. If exitStatus is
-		// not null then use it. Otherwise use the length of standard error
-		// as a measure of the exit status.
-		int exitCode = (exitStatus != null) ? exitStatus : stdErrData.length();
+		int exitCode = channel.getExitStatus();
+		channel.disconnect();
 		// Return the exit code from the remote process
 		return exitCode;
-	}
-
-	/**
-	 * Interactive verifier for use with Ganymede SSH callback.
-	 * 
-	 * This method is called by the Ganymede SSH layer once it has
-	 * established initial communication with the remote server. This
-	 * method is invoked to verify if the SSH client should proceed
-	 * with the connection, given the server's credentials. This
-	 * method checks the credentials of the server against the values
-	 * in the KnownHosts file. If the value is present then this 
-	 * method proceeds with the connection. Otherwise it provides
-	 * the necessary information to the user to determine if the
-	 * user wants to proceed. If the user wants to proceed then this
-	 * method adds the host information to the KnownHosts file and
-	 * returns true.
-	 * 
-	 * @param hostname The host name to be added to the list.
-	 * @param port The port associated with the remote connection. 
-	 * Currently this is not used.
-	 * @param serverHostKeyAlgorithm The string name for the certificate
-	 * encryption algorithm (such as: ssh-rsa2 etc.) 
-	 * @param serverHostKey The host key (actual digest/figerprint) 
-	 * 
-	 *  @return This method returns true to indicate that the 
-	 *  connection should proceed further.
-	 */
-	public boolean verifyServerHostKey(String hostname, int port, 
-			String serverHostKeyAlgorithm, byte[] serverHostKey) throws Exception {
-		// Look up the knownHosts list to see if this host's keys match up with
-		// the values that we have seen before.
-		int result;
-		synchronized (knownHostsLock) {
-			result = knownHosts.verifyHostkey(hostname, 
-					serverHostKeyAlgorithm, serverHostKey);
-		}
-		if (result == KnownHosts.HOSTKEY_IS_OK) {
-			// This server is in the data base and checks out OK. 
-			// Go ahead and complete handshake with the server.
-			return true;
-		}
-
-		// This remote server is not know to us or its fingerprint has changed!
-		// The typicall norm here is to let the user know about it and check to
-		// ensure that the user want's to actually connect to the machine. Below
-		// we build a message to be displayed to the user.
-		String message;
-		if (result == KnownHosts.HOSTKEY_IS_NEW) {
-			// Possibly the first time connection but must verify with user.
-			message = "This is the first time PEACE is connecting to:\n";
-		} else {
-			// The host key has changed. This warrants a warning.
-			message = "The host key for the server has changed! <br>";
-		}
-		// Add additional information and finger prints to the message:
-		message += "     Host: " + hostname;
-		InetAddress serverAddress = InetAddress.getByName(hostname);
-		message += " (IP: " + serverAddress.getHostAddress() + ")\n";
-		// Obtain and add finger prints
-		String hexFingerprint = KnownHosts.createHexFingerprint(serverHostKeyAlgorithm, serverHostKey);
-		String babbleFingerprint = KnownHosts.createBubblebabbleFingerprint(serverHostKeyAlgorithm,
-				serverHostKey);
-		message += "     Server's " + serverHostKeyAlgorithm + " Fingerprint: " + 
-		hexFingerprint + "\n     Server's Babble Fingerprint: " + 
-		babbleFingerprint + "\n";
-		// Add the trailing question.
-		message += "Do you want to procceed with the connection?";
-
-		// Verify if the user wants to proceed
-		int choice = JOptionPane.showConfirmDialog(parent, message, 
-				"Connect?", JOptionPane.YES_NO_OPTION);
-		if (choice == JOptionPane.YES_OPTION) {
-			// Use helper method to add known host
-			addKnownHost(hostname, port, serverHostKeyAlgorithm, 
-					serverHostKey);
-			return true;
-		}
-		return false;
-	}
-
-	/**
-	 * Method to add a new host entry to the list of known hosts.
-	 * 
-	 * This method provides an MT-safe approach to add a new remote
-	 * server/host entry to the list of known hosts. This method adds
-	 * a new entry to both the in-memory knownHosts list and to the
-	 * persistent file containing the list of known hosts.
-	 * 
-	 * <p><b>Note:</b>  This method checks to ensure that the host being added
-	 * is indeed unique. This method consumes any exceptions generated
-	 * by Ganymede (but logs it in the programmer log).</p>
-	 * 
-	 * @param hostname The host name to be added to the list.
-	 * @param port The port associated with the remote connection. 
-	 * Currently this is not used.
-	 * @param serverHostKeyAlgorithm The string name for the certificate
-	 * encryption algorithm (such as: ssh-rsa2 etc.) 
-	 * @param serverHostKey The host key (actual digest/figerprint) 
-	 * as reported by the remote host.
-	 */
-	private void addKnownHost(String hostname, int port, 
-			String serverHostKeyAlgorithm, byte[] serverHostKey) {
-		// Ganymede SSH example suggests a hashed host name.
-		String hashedHostname = KnownHosts.createHashedHostname(hostname);
-		synchronized (knownHostsLock) {
-			try	{
-				if (knownHosts.verifyHostkey(hostname, serverHostKeyAlgorithm, 
-						serverHostKey) == KnownHosts.HOSTKEY_IS_OK) {
-					// This is a duplicate entry. Ignore it.
-					return;
-				}
-				// Add the host key to the in-memory database as indicated in
-				// Ganymede example.
-				knownHosts.addHostkey(new String[] { hashedHostname }, 
-						serverHostKeyAlgorithm, serverHostKey);
-				// Also try to add the key to a known host file
-				KnownHosts.addHostkeyToFile(new File(KnownHostPath), 
-						new String[] { hashedHostname },
-						serverHostKeyAlgorithm, serverHostKey);
-			} catch (IOException exp) {
-				// Log error in programmer log
-				ProgrammerLog.log(exp);
-			}
-		}
-	}
-
-	/**
-	 * This is a helper method that is invoked just before a remote session
-	 * establishes connection with a server. This method attempts to load the
-	 * list of known servers from the "KnownHosts" file. This file is stored in
-	 * the main PEACE folder in user's home directory.
-	 * 
-	 * <p>
-	 * <b>Note:</b> This method loads the known hosts file only once, the first
-	 * time it is called in the GUI process. Subsequent calls to this method
-	 * simply return. Therefore calling this method frequently is OK.
-	 * </p>
-	 */
-	private void loadKnownHosts() {
-		synchronized(knownHostsLock) {
-			if (knownHosts != null) {
-				// We have an known hosts database. Nothing else to be done.
-				return;
-			}
-			// Create the known hosts class for further use
-			knownHosts = new KnownHosts();
-			// Try and load the known hosts data base for use.
-			File knownHostFile   = new File(KnownHostPath);
-			if (knownHostFile.exists()) {
-				try	{
-					// Load the data from the known hosts file.
-					knownHosts.addHostkeys(knownHostFile);
-				} catch (IOException e)	{
-					// Log error in programmer log.
-					ProgrammerLog.log(e);
-					UserLog.log(UserLog.LogLevel.WARNING, "SSH", 
-					"Error loading data from Known Hosts file.");
-				}
-			} else {
-				// Try and create a default empty file so that we can
-				// append to it at a later date.
-				try {
-					knownHostFile.createNewFile();
-					// Cut a user log.
-					UserLog.log(UserLog.LogLevel.NOTICE, "SSH",
-					"Created initial empty known hosts file.");
-				} catch (IOException e) {
-					ProgrammerLog.log(e);
-					UserLog.log(UserLog.LogLevel.WARNING, "SSH", 
-					"Error creating initial empty Known Hosts file.");
-				}
-			}
-		}
 	}
 
 	/**
@@ -583,18 +634,18 @@ implements ServerHostKeyVerifier {
 	 */
 	@Override
 	public Server.OSType getOSType() throws Exception {
-		if (connection == null) {
-			throw new IOException("Remote session not connected.");
-		}
 		if (osType != null) {
 			// We already know the OS type os just return it.
 			return osType;
+		}
+		if (session == null) {
+			throw new IOException("Remote session not connected.");
 		}
 
 		// Now that the session is connected try to run uname -a to
 		// determine type of the remote operating system.
 		String streamsData[] = {"", ""};
-		if ((exec("uname", streamsData) != 0) ||
+		if ((exec("uname", streamsData) != 0)  ||
 				(streamsData[0].length() == 0) ||
 				(streamsData[1].length() != 0)) {
 			throw new Exception("Unable to determine the remote " + 
@@ -625,46 +676,57 @@ implements ServerHostKeyVerifier {
 	 * @param destFileName The name of the destination file to which
 	 * the data is to be copied.
 	 * 
-	 * @param mode The POSIX compliant mode string (such as: "0600"
-	 * or "0777" to be used as the mode for the target file.
+	 * @param mode The POSIX compatible mode string (such as: 0600
+	 * or 0777) to be used as the mode for the target file. Note the leading
+	 * zero! It is important to ensure that these numbers are Octal
+	 * values. 
 	 * 
 	 * @throws IOException This method throws exceptions on errors.
 	 */
 	public void copy(InputStream srcData, String destDirectory, 
-			String destFileName, String mode) throws IOException {
-		if (connection == null) {
+			String destFileName, int mode) throws IOException {
+		if (session == null) {
 			throw new IOException("Remote session not connected.");
 		}
-		// Create file attributes for passing to server
-		SFTPv3FileAttributes attr = new SFTPv3FileAttributes();
-		attr.permissions = Integer.parseInt(mode, 8);
 		// Compute the final path and target file name.
 		if (destDirectory == null) {
 			destDirectory = ".";
 		}
 		final String targetFile = destDirectory + "/" + destFileName; 
 		// Create an SFTP client.
-		SFTPv3Client sftp = null;
-		SFTPv3FileHandle destFile = null;
+		ChannelSftp sftp      = null;
+		OutputStream destFile = null;
 		// A try..finally block to ensure sftp and ftp connections
 		// get closed
 		try {
-			sftp = new SFTPv3Client(connection);
+			// Create a sftp channel and connect the channel.
+			sftp = (ChannelSftp) session.openChannel("sftp");
+			sftp.connect();
 			// Create a file for writing (truncate any existing files)
-			destFile = sftp.createFileTruncate(targetFile, attr);
+			destFile = sftp.put(targetFile, ChannelSftp.OVERWRITE);
 			// Read data from input stream and write data to the destFile
 			byte buffer[]  = new byte[8096];
-			int  bytesRead = 0; long destOffset = 0;
+			int  bytesRead = 0;
 			while ((bytesRead = srcData.read(buffer, 0, buffer.length)) != -1) {
-				sftp.write(destFile, destOffset, buffer, 0, bytesRead);
-				destOffset += bytesRead;
+				destFile.write(buffer, 0, bytesRead);
 			}
+			// Done writing data. Close stream and change permissions
+			destFile.close();
+			destFile = null;
+			// Get current status information about the file.
+			SftpATTRS attribs = sftp.stat(targetFile);
+			attribs.setPERMISSIONS(mode);
+			sftp.setStat(targetFile, attribs);
+		} catch (JSchException sshExp) {
+			throw new IOException(sshExp);
+		} catch (SftpException ftpExp) { 
+			throw new IOException(ftpExp);
 		} finally {
 			if (destFile != null) {
-				sftp.closeFile(destFile);
+				destFile.close();
 			}
 			if (sftp != null) {
-				sftp.close();
+				sftp.disconnect();
 			}
 		}
 	}
@@ -693,7 +755,7 @@ implements ServerHostKeyVerifier {
 	@Override
 	public void copy(OutputStream destData, String srcDirectory, 
 			String srcFileName, JProgressBar progBar) throws IOException {
-		if (connection == null) {
+		if (session == null) {
 			throw new IOException("Remote session not connected.");
 		}
 		// Compute the final path and target file name.
@@ -702,50 +764,60 @@ implements ServerHostKeyVerifier {
 		}
 		final String sourceFile = srcDirectory + "/" + srcFileName; 
 		// Create an SFTP client.
-		SFTPv3Client sftp        = null;
-		SFTPv3FileHandle srcFile = null;
-		// A try..finally block to ensure sftp and ftp connections
+		ChannelSftp sftp    = null;
+		InputStream srcFile = null;
+		// A try..finally block to ensure sftp channels
 		// get closed
 		try {
 			// Make the progress bar indeterminate for now.
 			if (progBar != null) {
 				progBar.setIndeterminate(true);
 			}
-			sftp = new SFTPv3Client(connection);
-			// Create a file for reading (or get exception)
-			srcFile = sftp.openFileRO(sourceFile);
-			// Now determine the file size and set progress bar size
+			// Open a sftp channel and connect to server to secure-FTP data
+			sftp = (ChannelSftp) session.openChannel("sftp");
+			sftp.connect();
+			// Obtain information about the source file to be copied
+			SftpATTRS attribs = sftp.stat(sourceFile);
+			if (attribs == null) {
+				throw new IOException("The source file " + sourceFile + " was not found.");
+			}
+			// Open source file for reading (or get exception)
+			srcFile = sftp.get(sourceFile);
+			// Now using the file size and set progress bar size
 			if (progBar != null) {
-				SFTPv3FileAttributes attribs = sftp.lstat(sourceFile);
-				progBar.setMaximum((int) attribs.size.intValue());
+				progBar.setMaximum((int) attribs.getSize());
 				progBar.setIndeterminate(false);
 			}
 			// Read data from input stream and write data to the destFile
 			byte buffer[]  = new byte[4096];
 			int  bytesRead = 0; 
 			long srcOffset = 0;
-			while ((bytesRead = sftp.read(srcFile, srcOffset, buffer, 0, buffer.length)) != -1) {
+			while ((bytesRead = srcFile.read(buffer, 0, buffer.length)) != -1) {
 				destData.write(buffer, 0, bytesRead);
 				srcOffset += bytesRead;
 				if (progBar != null) {
 					progBar.setValue((int) srcOffset);
 				}
 			}
+		} catch (JSchException sshExp) {
+			throw new IOException(sshExp);
+		} catch (SftpException ftpExp) { 
+			throw new IOException(ftpExp);
 		} finally {
 			// Ensure that the file is closed correctly
 			if (srcFile != null) {
-				sftp.closeFile(srcFile);
+				srcFile.close();
 			}
 			if (sftp != null) {
-				sftp.close();
+				sftp.disconnect();
 			}
 		}
 	}
-	
+
 	/**
 	 * Obtain information about a given path on the remote machine.
 	 * 
-	 * <p><b>Note:</b>  This method uses SFTP to copy the data. The 
+	 * <p><b>Note:</b>  This method uses SFTP to obtain the data. The 
 	 * connection to the remote host must have already been 
 	 * established before invoking this method.</p>
 	 * 
@@ -758,48 +830,42 @@ implements ServerHostKeyVerifier {
 	 * @throws IOException This method throws exceptions on errors.
 	 */
 	public FileInfo fstat(String path) throws IOException {
-		if (connection == null) {
+		if (session == null) {
 			throw new IOException("Remote session not connected.");
 		}
-		// Create an SFTP client.
-		SFTPv3Client sftp = null;
 		FileInfo info = null;
 		try {
-			sftp = new SFTPv3Client(connection);
-			SFTPv3FileAttributes attribs = sftp.lstat(path);
+			final RemoteFile rf     = new RemoteFile(path, session);
+			final SftpATTRS attribs = rf.getAttributes();
 			if (attribs != null) {
 				String logEntry = String.format("SFTP gave 0x%s as attributes for %s\n", 
-						Integer.toHexString(attribs.permissions), path);
+						Integer.toHexString(attribs.getPermissions()), path);
 				ProgrammerLog.log(logEntry);
 				// Translate SFTP file attributes to FileInfo style
 				// attributes.
 				int attributes = 0;
-				attributes |= (attribs.isDirectory()   ? FileInfo.DIR_ATTRIB  : 0);
-				attributes |= (attribs.isRegularFile() ? FileInfo.FILE_ATTRIB : 0);
-				attributes |= ((attribs.permissions & 00400) != 0) ? FileInfo.READ_ATTRIB  : 0;
-				attributes |= ((attribs.permissions & 00200) != 0) ? FileInfo.WRITE_ATTRIB : 0;
-				attributes |= ((attribs.permissions & 00100) != 0) ? FileInfo.EXEC_ATTRIB  : 0;
+				attributes |= (rf.isDirectory() ? FileInfo.DIR_ATTRIB   : 0);
+				attributes |= (rf.isFile()      ? FileInfo.FILE_ATTRIB  : 0);
+				attributes |= (rf.canRead()     ? FileInfo.READ_ATTRIB  : 0);
+				attributes |= (rf.canWrite()    ? FileInfo.WRITE_ATTRIB : 0);
+				attributes |= (rf.canExecute()  ? FileInfo.EXEC_ATTRIB  : 0);
 				// Now create the file info object.
-				info = new FileInfo(path, attribs.atime.longValue() * 1000L, 
-						attribs.size.longValue(), attributes);
+				info = new FileInfo(path, attribs.getATime() * 1000L, 
+						attribs.getSize(), attributes);
 			} else {
 				// The file does not exist? Create a dummy info.
 				ProgrammerLog.log("SFTP says " + path + 
-						" does not exit (but no exception).\n");
+				" does not exit (but no exception).\n");
 				info = new FileInfo(path, -1, -1, 0);
 			}
-		} catch (SFTPException exp) {
-			if (exp.getMessage().startsWith("No such file")) {
+		} catch (Exception exp) {
+			if (exp.getMessage().indexOf("No such file") != -1) {
 				// This is an expected exception if file does not exist
 				ProgrammerLog.log("SFTP says " + path + " does not exit.\n");
 				info = new FileInfo(path, -1, -1, 0);
 			} else {
 				// Unexpected exception
-				throw exp;
-			}
-		} finally {
-			if (sftp != null) {
-				sftp.close();
+				throw new IOException(exp);
 			}
 		}
 		// Log to track translation.
@@ -824,18 +890,19 @@ implements ServerHostKeyVerifier {
 	 * directory could not be created.
 	 */
 	public void mkdir(String directory) throws Exception {
-		if (connection == null) {
+		if (session == null) {
 			throw new IOException("Remote session not connected.");
 		}
 		// Now that the session is connected try to run mkdir to
 		// create the specified directory on the remote machine.
-		SFTPv3Client sftp = null;
+		ChannelSftp sftp = null;
 		try {
-			sftp = new SFTPv3Client(connection);
-			sftp.mkdir(directory, 0700);
+			sftp = (ChannelSftp) session.openChannel("sftp");
+			sftp.connect();
+			sftp.mkdir(directory);
 		} finally {
 			if (sftp != null) {
-				sftp.close();
+				sftp.disconnect();
 			}
 		}
 	}
@@ -856,22 +923,23 @@ implements ServerHostKeyVerifier {
 	 * directory could not be deleted.
 	 */
 	public void rmdir(String directory) throws Exception {
-		if (connection == null) {
+		if (session == null) {
 			throw new IOException("Remote session not connected.");
 		}
 		// Now that the session is connected try to run rmdir to
 		// delete the specified directory on the remote machine
-		SFTPv3Client sftp = null;
+		ChannelSftp sftp = null;
 		try {
-			sftp = new SFTPv3Client(connection);
+			sftp = (ChannelSftp) session.openChannel("sftp");
+			sftp.connect();
 			sftp.rmdir(directory);
 		} finally {
 			if (sftp != null) {
-				sftp.close();
+				sftp.disconnect();
 			}
 		}
 	}
-	
+
 	/**
 	 * A simple method to set a purpose message for this session.
 	 * 
@@ -889,45 +957,43 @@ implements ServerHostKeyVerifier {
 	public void setPurpose(String text) {
 		purpose = text;
 	}
-	
+
 	/**
-	 * The connection to the remote server via which the remote server can
+	 * The session to the remote server via which the remote server can
 	 * be accessed for performing various operations. The connection is
-	 * created via the connect()  method.
+	 * created via the connect()  method. A session consists of multiple,
+	 * independent channels. Each channel performs different types of 
+	 * tasks.
 	 */
-	private Connection connection;
+	private Session session;
 
 	/**
 	 * The last known OS type for the remote server. This value is
-	 * set after the getOSType() method is called. If a connection
+	 * set after the getOSType() method is called. If a session
 	 * is lost or closed, then this value is reset.
 	 */
 	private Server.OSType osType;
 
 	/**
-	 * This is a convenience class that is provided by Ganymede SSH to 
-	 * store information about servers/hosts that we have already
-	 * connected to. This data is loaded once initially and is shared
-	 * by all RemoteServerSession instances. This enables us to load the
-	 * data once and keep updating and using it rather than loading it
-	 * each time (which should save some CPU cycles).
-	 */
-	private static KnownHosts knownHosts = null;
-
-	/**
-	 * This object is merely used to arbitrate access to the knownHosts
-	 * object so that operations on knownHosts is MT-Safe.
-	 */
-	private static Object knownHostsLock = new Boolean(false);
-
-	/**
 	 * A simple textual information indicating the purpose for this
-	 * session. This string is more meanigful to the user and is 
+	 * session. This string is more meaningful to the user and is 
 	 * merely used to provide additional information when prompting
 	 * for inputs from the user.
 	 */
 	private String purpose;
-	
+
+	/** The top-level JSch object that is used to create sessions to 
+	 * multiple servers.
+	 * 
+	 * This is a top-level, shared JSch object that represents the 
+	 * top-level component in the JSch SSH-Client library. There is
+	 * only one instance of this class that is used to create 
+	 * multiple, independent sessions to a server. Each session can
+	 * have multiple, independent channels that are used to perform
+	 * various tasks.
+	 */
+	private static final JSch sshClientLibrary = new JSch();
+
 	/**
 	 * The OS-specific path where the list of known hosts (that is
 	 * the servers to which we have connected before) is stored. This
@@ -935,4 +1001,70 @@ implements ServerHostKeyVerifier {
 	 */
 	private static final String KnownHostPath = 
 		Utilities.getDefaultDirectory() + "/.KnownHosts";
+
+	/**
+	 * A generic informational message that is displayed to the user
+	 * when any error occurs when trying to set the known hosts file
+	 * to be used by JSch.
+	 */
+	private static final String KNOWN_HOSTS_ERROR = 
+		"<html>Error occured when attempting to use the known hosts<br>" +
+		"file: '" + KnownHostPath + "'.<br>" +
+		"Please rectify this issue appropriately. You can still continute<br>" + 
+		"to use PEACE.  But caching of known hosts for secure shell connection<br>" +
+		"will be disabled.";
+	
+	/**
+	 * A first-time connection message that is formatted and displayed to the user.
+	 * 
+	 * This string contains an HTML message that is suitably formatted
+	 * (to fill-in additional information) and displayed to the user. This
+	 * message is used when the user connects to an Server for the first time
+	 * and the server entry is not in the Known hosts file. 
+	 * 
+	 * @see KnownHostPath
+	 */
+	private static final String FIRST_SSH_CONNECTION_MSG = 
+		"<html>The authenticity of host %s<br/>" +
+		"cannot be verified as it is not a \"known host\".<br/>" +
+		"The RSA fingerprint key is: %s<br/><br/>" + 
+		"This is most likely because this is the first time you<br/>" +
+		"connecting to this host via PEACE and this message is<br/>" +
+		"normal when connecting via secure shell (SSH) protocol.<br/>" +
+		"<br/>" +
+		"<b>Would you like to add this server to the \"known hosts\"<br/>"+
+		"and proceed with the connection?</b>" +	
+		"</html>";
+	
+	/**
+	 * Message that is formatted and displayed to the user to warn about
+	 * change in RSA finger print.
+	 * 
+	 * This string contains an HTML message that is suitably formatted
+	 * (to fill-in additional information) and displayed to the user. This
+	 * message is used when the user connects to an Server but the server's
+	 * RSA finger print key has changed. 
+	 * 
+	 * @see KnownHostPath
+	 */
+	private static final String SSH_HOST_CHANGE_MSG = 
+		"<html><b>The server's identification has changed!</b><br/>" +
+		"<b>It is possible that someone is doing something nasty</b><br/>" +
+		"(someone could be eavesdropping via man-in-the-middle type attack).<br/>" +
+		"It is aslo possible that the RSA host key for the server has changed.<br/>" +
+		"<ul>" +
+		"<li>If this is a server maintained by your department or university<br/>" +
+		"it is normally safe to proceed with using the server.</li>" +
+		"<li>If not please contact your server administrators to verify that<br/>" +
+		"the change in finger print is expected prior to using the server.</li></ul>" +
+		"<b>Would you like to update the server's entry in \"known hosts\"<br/>"+
+		"and proceed with the connection?</b>" +	
+		"</html>";
+	
+	/**
+	 * A static message that is included as a part of the RuntimeException
+	 * generated by some of the methods in this class.
+	 */
+	private static final String USER_INTERRUPTED_EXP_MSG =
+		"User has interrupted SSH connection to server";
 }
