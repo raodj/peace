@@ -298,7 +298,7 @@ public class PEACEInstaller extends SwingWorker<Void, Void> implements DocumentL
 			addLog("Transferring install file: " + installFiles[idx] + 
 					"...");
 			InputStream is = Utilities.getStream(SrcPath + installFiles[idx]);
-			ss.copy(is, server.getInstallPath(), installFiles[idx], "0700");
+			ss.copy(is, server.getInstallPath(), installFiles[idx], 0700);
 			addLog("Done.\n");  
 		}
 		// Build the final command if supplied

@@ -370,7 +370,7 @@ implements Runnable {
 			String serverFileName = jobPath + File.separator + localFile.getName();
 			log.append("Copying file: " + localFile.getAbsolutePath() +
 					" to " + serverFileName + "\n");
-			server.copy(pmis, "", serverFileName, "0600");
+			server.copy(pmis, "", serverFileName, 0600);
 			// Done copying.
 			log.append("Done copying file" + localFileName + "\n");
 		}
@@ -485,7 +485,7 @@ implements Runnable {
 		// Create a string input stream to copy data.
 		byte[] bytes = runnerScript.getBytes("UTF-8");
 		ByteArrayInputStream is = new ByteArrayInputStream(bytes);
-		server.copy(is, job.getPath(), jobRunnerFile, "0700");
+		server.copy(is, job.getPath(), jobRunnerFile, 0700);
 		log.append("Done copying job runner script.\n");
 		setStepStatus(4, false);
 	}
@@ -559,7 +559,7 @@ implements Runnable {
 		// Let the server do the actual copying.
 		log.append("Copying file: " + localFile.getAbsolutePath() +
 				" to " + serverFileName + "\n");
-		server.copy(pmis, "", serverFileName, "0600");
+		server.copy(pmis, "", serverFileName, 0600);
 		// Done copying.
 		log.append("Done copying.\n");
 		setStepStatus(2, false);

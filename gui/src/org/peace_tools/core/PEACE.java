@@ -59,7 +59,7 @@ public class PEACE {
 	 * @param args The command line arguments are currently unused.
 	 */
 	public static void main(String[] args) {
-		 // Schedule a job for the event-dispatching thread:
+		// Schedule a job for the event-dispatching thread:
         // creating and showing this application's GUI.
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
@@ -150,11 +150,12 @@ public class PEACE {
 		// Turn off metal's use of bold fonts
 		UIManager.put("swing.boldMetal", Boolean.FALSE);
 		try {
-			// Ensure we prefer to use cross platform look & feel
-			UIManager.setLookAndFeel(UIManager.getCrossPlatformLookAndFeelClassName());
+			String lafName = UIManager.getCrossPlatformLookAndFeelClassName();
+			// String lafName = "com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel";
+			UIManager.setLookAndFeel(lafName);
 			// UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
 		} catch (Exception e) {}
-		
+
 		// Make tool tips show up faster than normal
 		ToolTipManager ttm = ToolTipManager.sharedInstance();
 		ttm.setInitialDelay(3 * ttm.getInitialDelay() / 4);

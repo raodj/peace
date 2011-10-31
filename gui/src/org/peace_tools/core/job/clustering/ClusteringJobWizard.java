@@ -31,7 +31,7 @@
 //
 //---------------------------------------------------------------------
 
-package org.peace_tools.core.job;
+package org.peace_tools.core.job.clustering;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -42,6 +42,7 @@ import javax.swing.JOptionPane;
 import javax.swing.border.EmptyBorder;
 
 import org.peace_tools.core.MainFrame;
+import org.peace_tools.core.job.ServerPanel;
 import org.peace_tools.generic.GenericWizardPage;
 import org.peace_tools.generic.Utilities;
 import org.peace_tools.generic.WizardDialog;
@@ -68,7 +69,7 @@ import org.peace_tools.workspace.Workspace;
  * <p><b>Note:</b> In order to create a job, there must be at least one
  * data set and one server entry in the work space.</p> 
  */
-public class JobWizard extends WizardDialog {
+public class ClusteringJobWizard extends WizardDialog {
 	/**
 	 * The constructor for the job wizard.
 	 * 
@@ -80,7 +81,7 @@ public class JobWizard extends WizardDialog {
 	 * @param title The title to be set for the main wizard frame.
 	 * @param parent The main frame that logically owns this wizard.
 	 */
-	public JobWizard(String title, MainFrame parent) {
+	public ClusteringJobWizard(String title, MainFrame parent) {
 		super(parent);
 		this.mainFrame = parent;
 		setTitle(title);

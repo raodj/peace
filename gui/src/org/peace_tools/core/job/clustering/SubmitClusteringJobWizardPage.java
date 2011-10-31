@@ -31,8 +31,9 @@
 //
 //---------------------------------------------------------------------
 
-package org.peace_tools.core.job;
+package org.peace_tools.core.job.clustering;
 
+import org.peace_tools.core.job.GenericSubmitJobWizardPage;
 import org.peace_tools.workspace.DataSet;
 import org.peace_tools.workspace.FileEntry;
 import org.peace_tools.workspace.GeneratedFileList;
@@ -61,7 +62,7 @@ public class SubmitClusteringJobWizardPage extends GenericSubmitJobWizardPage {
 	 * 
 	 * @param wizard The wizard that logically owns this page.
 	 */
-	public SubmitClusteringJobWizardPage(JobWizard wizard) {
+	public SubmitClusteringJobWizardPage(ClusteringJobWizard wizard) {
 		super(wizard, "Job Submission", 
 			  "Submitting job for running on a server", true);
 		this.wizard = wizard;
@@ -99,7 +100,7 @@ public class SubmitClusteringJobWizardPage extends GenericSubmitJobWizardPage {
 	 * page. This reference is used to enable and disable 
 	 * buttons on this wizard appropriately.
 	 */
-	private final JobWizard wizard;
+	private final ClusteringJobWizard wizard;
 	
 	/**
 	 * A serialization UID to keep the compiler happy.
