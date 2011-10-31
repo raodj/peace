@@ -63,7 +63,7 @@ libpeace_la_LIBADD = \
 
 peace_LDFLAGS = -L.
 peace_LDADD = $(STDCPP) libpeace.la
-#input/libinput.a output/liboutput.a filtering/libfiltering.a clustering/libclustering.a shared/libshared.a framework/libframework.a output/liboutput.a assembly/libassembly.a baton/libbaton.a shared/libshared.a
+#input/libinput.a output/liboutput.a filtering/libfiltering.a clustering/libclustering.a shared/libshared.a framework/libframework.a output/liboutput.a assembly/libassembly.a shared/libshared.a
 
 peace_SOURCES = \
 	main.cpp\
