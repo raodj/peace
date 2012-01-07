@@ -50,6 +50,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TreeSelectionListener;
 
+import org.peace_tools.core.job.baton.BatonJobWizard;
 import org.peace_tools.core.job.clustering.ClusteringJobWizard;
 import org.peace_tools.core.job.east.EASTJobWizard;
 import org.peace_tools.core.session.ServerSession;
@@ -114,7 +115,10 @@ public class JobMenuHelper extends AbstractMenuHelper
 		jobMenu.add(getMenuItem(AbstractMenuHelper.ActionType.EAST_ASSEMBLY, true));
 		jobMenu.add(getMenuItem(AbstractMenuHelper.ActionType.CLUSTER_AND_EAST_ASSEMBLY, true));
 		jobMenu.addSeparator();
-		
+		// Add menus for BATON related jobs
+		jobMenu.add(getMenuItem(AbstractMenuHelper.ActionType.BATON, true));
+		jobMenu.addSeparator();
+				
 		// Context sensitive job operation menu items.
 		jobMenu.add(getMenuItem(AbstractMenuHelper.ActionType.START_JOB_MONITOR, true));
 		jobMenu.add(getMenuItem(AbstractMenuHelper.ActionType.STOP_JOB_MONITOR, true));
@@ -138,6 +142,8 @@ public class JobMenuHelper extends AbstractMenuHelper
 			// EAST assembly tools
 			toolbar.add(getTool(AbstractMenuHelper.ActionType.EAST_ASSEMBLY, true));
 			toolbar.add(getTool(AbstractMenuHelper.ActionType.CLUSTER_AND_EAST_ASSEMBLY, true));
+			// BATON assembly tools
+			toolbar.add(getTool(AbstractMenuHelper.ActionType.BATON, true));
 		}
 		// Return the job menu to the caller.
 		return jobMenu;
@@ -162,6 +168,15 @@ public class JobMenuHelper extends AbstractMenuHelper
 			 if (ejw != null) {
 				 Utilities.centerPanel(mainFrame, ejw);
 				 ejw.showWizard("http://www.peace-tools.org/downloads/manual.pdf#page=30");
+			 }
+			 return;
+		}
+		if ("baton".equals(cmd)) {
+			 BatonJobWizard bjw = new BatonJobWizard("Run BATON", mainFrame);
+			 if (bjw != null) {
+				 Utilities.centerPanel(mainFrame, bjw);
+				 // TODO: add page for BATON feature
+				 bjw.showWizard("http://www.peace-tools.org/downloads/manual.pdf#TODO");
 			 }
 			 return;
 		}
@@ -369,6 +384,11 @@ public class JobMenuHelper extends AbstractMenuHelper
 					(mainMenu ? MenuSubTitles[3] : null),
 					"peace_east", this, IconPath + "PEACE_EAST.png", 
 					null, true, false);
+		} else if (ActionType.BATON.equals(actionType)) {
+			return Utilities.createMenuItem(Utilities.MENU_ITEM, "Job to Run BATON assembler",
+					(mainMenu ? MenuSubTitles[11] : null),
+					"baton", this, IconPath + "Baton.png", 
+					null, true, false);
 		} else if (ActionType.START_JOB_MONITOR.equals(actionType)) {
 			item = Utilities.createMenuItem(Utilities.MENU_ITEM, "Start Job Monitor",
 					(mainMenu ? MenuSubTitles[4] : null),
@@ -434,6 +454,9 @@ public class JobMenuHelper extends AbstractMenuHelper
 		} else if (ActionType.CLUSTER_AND_EAST_ASSEMBLY.equals(actionType)) {
 			return Utilities.createToolButton(IconPath + "PEACE_EAST.png", null,
 					"peace_east", this, MenuSubTitles[3], true);
+		} else if (ActionType.BATON.equals(actionType)) {
+			return Utilities.createToolButton(IconPath + "Baton.png", null,
+					"baton", this, MenuSubTitles[11], true);
 		} else if (ActionType.START_JOB_MONITOR.equals(actionType)) {
 			tool = Utilities.createToolButton(IconPath + "StartJobMonitor.png", null,					
 					"startMonitor", this, MenuSubTitles[4], false);
@@ -496,7 +519,8 @@ public class JobMenuHelper extends AbstractMenuHelper
 		"Try and abort the selected job",
 		"Remove currently selected job from work space",
 		"Show all jobs running on the same server",
-		"Show only my jobs running on the same server"
+		"Show only my jobs running on the same server",
+		"Create and submit a job to run BATON assembler"
 	};
 	
 	/**
