@@ -31,7 +31,7 @@
 //
 //---------------------------------------------------------------------
 
-package org.peace_tools.core.job.clustering;
+package org.peace_tools.core.job;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -48,6 +48,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.border.EmptyBorder;
 
+import org.peace_tools.core.job.clustering.ClusteringJobWizard;
 import org.peace_tools.generic.GenericWizardPage;
 import org.peace_tools.generic.Utilities;
 import org.peace_tools.generic.WizardDialog;
@@ -59,6 +60,8 @@ import org.peace_tools.workspace.Workspace;
  * This page permits the user to provide the basic information about
  * the data set to be used, provide a brief description of the job,
  * and decide if the job must perform clustering.
+ * 
+ * This is a shared class.
  * 
  * When the "Next >" button is clicked this wizard creates a blank
  * clustering data (at the job wizard level) for use by other pages
@@ -73,7 +76,7 @@ public class JobInfoWizardPage extends GenericWizardPage {
 	 * 
 	 * @param wizard The wizard that logically owns this page.
 	 */
-	public JobInfoWizardPage(ClusteringJobWizard wizard) {
+	public JobInfoWizardPage(WizardDialog wizard) {
 		this.wizard = wizard;
 		assert(this.wizard != null);
 		// Setup the title(s) for this page and border
@@ -175,7 +178,7 @@ public class JobInfoWizardPage extends GenericWizardPage {
 	 * @return The data set corresponding to the selection made by
 	 * the user.
 	 */
-	protected DataSet getDataSet() {
+	public DataSet getDataSet() {
 		return Workspace.get().getDataSets().get(dataSetList.getSelectedIndex());
 	}
 	
@@ -184,14 +187,14 @@ public class JobInfoWizardPage extends GenericWizardPage {
 	 * 
 	 * @return The description entered by the user for this job.
 	 */
-	protected String getDescription() { return description.getText(); }
+	public String getDescription() { return description.getText(); }
 	
 	/**
 	 * A reference to the wizard dialog that logically owns this
 	 * page. This reference is used to enable and disable 
 	 * buttons on this wizard appropriately.
 	 */
-	private final ClusteringJobWizard wizard;
+	private final WizardDialog wizard;
 	
 	/**
 	 * A combo-box to select the data set to be used for this job.

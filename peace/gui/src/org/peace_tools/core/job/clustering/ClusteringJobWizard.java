@@ -42,6 +42,7 @@ import javax.swing.JOptionPane;
 import javax.swing.border.EmptyBorder;
 
 import org.peace_tools.core.MainFrame;
+import org.peace_tools.core.job.JobInfoWizardPage;
 import org.peace_tools.core.job.ServerPanel;
 import org.peace_tools.generic.GenericWizardPage;
 import org.peace_tools.generic.Utilities;
