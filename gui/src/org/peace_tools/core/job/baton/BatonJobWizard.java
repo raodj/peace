@@ -41,9 +41,11 @@ import javax.swing.JOptionPane;
 import javax.swing.border.EmptyBorder;
 
 import org.peace_tools.core.MainFrame;
+import org.peace_tools.core.job.JobInfoWizardPage;
 import org.peace_tools.generic.GenericWizardPage;
 import org.peace_tools.generic.Utilities;
 import org.peace_tools.generic.WizardDialog;
+import org.peace_tools.workspace.DataSet;
 
 
 /**
@@ -80,6 +82,9 @@ public class BatonJobWizard extends WizardDialog {
 		setSequenceBackground("images/peace_wizard_column.png");
 		// First setup the overview page.
 		createOverview();
+		// Create page to permit the user to select data set
+		jiwp = new JobInfoWizardPage(this);
+		addPage(jiwp);
 		
 	}
 
@@ -138,6 +143,27 @@ public class BatonJobWizard extends WizardDialog {
 	}
 	
 	/**
+	 * Helper method to obtain the currently selected data set.
+	 * 
+	 * This is a helper method that is used by the MSTWizardPage
+	 * to determine the EST file specified by the user. The MST
+	 * wizard page uses this information to automatically provide a 
+	 * default MST file name to the user.
+	 * 
+	 * @return The full absolute path to the EST File specified by 
+	 * the user.
+	 */
+	protected DataSet getDataSet() {
+		return jiwp.getDataSet();
+	}
+	
+	/**
+	 * The job information wizard page that contains the description
+	 * of the job.
+	 */
+	private final JobInfoWizardPage jiwp;
+	
+	/**
 	 * Obtain the instance of the main frame class that owns this wizard.
 	 * 
 	 * This method is currently used by the submit job wizard page 
@@ -157,6 +183,7 @@ public class BatonJobWizard extends WizardDialog {
 	 */
 	private final MainFrame mainFrame;
 	
+		
 	/**
 	 * A static overview message that is displayed in the first
 	 * overview page displayed by this wizard to the user.
