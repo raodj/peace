@@ -220,7 +220,7 @@ Matcher::match() {
         // match the contig against all the reference genes and we
         // have tracked the best alignment we found. So print it.
         std::cout << contig->getID() << ", " << contig->getInfo()
-                  << ", " << bestGene->getInfo()
+                  << ", " << (bestGene != NULL ? bestGene->getInfo() : "n/a")
                   << ", " << contig->getSequenceLength()
                   << ", " << bestScore  << ", " << bestAScore
                   << ", " << bestContig << ", "
