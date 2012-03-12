@@ -213,15 +213,39 @@ protected:
         be used if a mismatching pair of bases are being aligned.
     */
     void computeScoreMatrix(const int match, const int mismatch);
-    
+
+	/** Convenience method to verify that the aScoreMatrix is
+		symmetric.
+
+		<p>There is a strong assumption that the aScoreMatrix (that is
+		used to compute the a-scores) is symmetric to facilitate
+		comparison. This method is invoked from the constructor to
+		ensure this is indeed the case. This check is useful because
+		the matrix is currently set by hand and this method ensures
+		that there are no unforeseen typographic errors if-and-when
+		the matrix is updated.</p>
+
+		<p>This method checks to ensure that the matrix is symmetric
+		and when asymmetry is detected it prints a suitable warning
+		message to help troubleshoot the problem.</p>
+		
+		\note This method is invoked only when the \c
+		DEVELOPER_ASSERTION compiler flag is enabled.
+
+		\return This method always returns \c true.
+	 */
+	static bool verifyAScoreMatrixIsSymmetric();
+	
 private:
 	/** The scoring matrix to make alignment go faster.
 
 		This is a scoring matrix that provides rapid lookup of scores
-		when comparing a pair of nucleotide bases during alignment.
-		The rows and the columns in the matrix are setup in the order:
-		A, C, G, T, N, P, Y, R, W, S, K, M, D, V, H, B, X.  This
-		matrix is set via call to the computeScoreMatrix() method.
+		when comparing a pair of potentially matching nucleotide bases
+		during alignment.  The rows and the columns in the matrix are
+		setup in the order: A, C, G, T, N, P, Y, R, W, S, K, M, D, V,
+		H, B, X.  This matrix is set via call to the
+		computeAScoreMatrix() method.
+
 
 		\note The order of values in this matrix must match the
 		encoding associated with the base pairs as setup in the
@@ -229,6 +253,20 @@ private:
 	*/
 	int scoreMatrix[17][17];
 
+	/** The scoring matrix to compute A-scores quickly
+
+		This is a scoring matrix that provides rapid lookup of scores
+		when comparing a pair of nucleotide bases during alignment.
+		The rows and the columns in the matrix are setup in the order:
+		A, C, G, T, N, P, Y, R, W, S, K, M, D, V, H, B, X.  This
+		matrix is a constant matrix that is statically initialized.
+
+		\note The order of values in this matrix must match the
+		encoding associated with the base pairs as setup in the
+		#baseCode array.
+	*/
+	static const int aScoreMatrix[17][17];
+    
     /** Array to quickly lookup base-pair encodings for various base
         pairs.
 
