@@ -143,6 +143,18 @@ public:
 	*/
     void match();
 
+	/** Computes the N50 score for the contigs.
+
+		This method is used to compute the N50 score and N50 length
+		for the contigs. The N50 score is defined as follows:
+
+		<i>N50 length is the length of the shortest contig such that
+		the sum of contigs of equal length or longer is at least 50%
+		of the total length of all contigs.  N50 refers to the ordinal
+		of the contig used to compute N50 score</i>
+	*/
+	void computeN50();
+	
 protected:
     /** The list of source genes/transcripts.
 

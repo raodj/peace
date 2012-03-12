@@ -40,6 +40,29 @@
 #include <cstring>
 #include <algorithm>
 
+// The static a-score matrix that contains fractional values to be
+// used.  Note this matrix should be symmetric
+const int AlignmentAlgorithm::aScoreMatrix[17][17] = {
+       //A, C, G, T, N, P, Y, R, W, S, K, M, D, V, H, B, X        
+        {1, 0, 0, 0, 1, 0, 0, 2, 2, 0, 0, 2, 3, 3, 3, 0, 1},  //A
+        {0, 1, 0, 0, 1, 0, 2, 0, 0, 2, 0, 2, 0, 3, 3, 3, 1},  //C
+        {0, 0, 1, 0, 1, 0, 0, 2, 0, 2, 2, 0, 3, 3, 0, 3, 1},  //G
+        {0, 0, 0, 1, 1, 0, 2, 0, 2, 0, 2, 0, 3, 0, 3, 3, 1},  //T
+        {1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},  //N
+        {0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},  //P: gap
+        {0, 2, 0, 2, 1, 0, 1, 0, 3, 3, 3, 3, 3, 3, 2, 2, 1},  //Y: C, T
+        {2, 0, 2, 0, 1, 0, 0, 1, 3, 3, 3, 3, 2, 2, 3, 3, 1},  //R: A, G
+        {2, 0, 0, 2, 1, 0, 3, 3, 1, 0, 3, 3, 2, 3, 2, 3, 1},  //W: A, T
+        {0, 2, 2, 0, 1, 0, 3, 3, 0, 1, 3, 3, 3, 2, 3, 2, 1},  //S: G, C
+        {0, 0, 2, 2, 1, 0, 3, 3, 3, 3, 1, 0, 2, 3, 3, 2, 1},  //K: T, G
+        {2, 2, 0, 0, 1, 0, 3, 3, 3, 3, 0, 1, 3, 2, 2, 3, 1},  //M: C, A
+        {3, 0, 3, 3, 1, 0, 3, 2, 2, 3, 2, 3, 1, 2, 2, 2, 1},  //D: not C
+        {3, 3, 3, 0, 1, 0, 3, 2, 3, 2, 3, 2, 2, 1, 2, 2, 1},  //V: not T
+        {3, 3, 0, 3, 1, 0, 2, 3, 2, 3, 3, 2, 2, 2, 1, 2, 1},  //H: not G
+        {0, 3, 3, 3, 1, 0, 2, 3, 3, 2, 2, 3, 2, 2, 2, 1, 1},  //B: not A
+        {1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}   //X: unknown
+    };
+
 AlignmentAlgorithm::AlignmentAlgorithm(const int match,
                                        const int mismatch,
                                        const int gap,
@@ -59,6 +82,31 @@ AlignmentAlgorithm::AlignmentAlgorithm(const int match,
     for(size_t idx = 0; (idx < BaseOrder.size()); idx++) {
         baseCode[(int) BaseOrder[idx]] = idx;
     }
+    // Verify that the aScoreMatrix is symmetric when developer
+    // assertions are enabled.
+    ASSERT( verifyAScoreMatrixIsSymmetric() );
+}
+
+bool
+AlignmentAlgorithm::verifyAScoreMatrixIsSymmetric() {
+    const std::string BaseOrder = "ACGTNPYRWSKMDVHBX";    
+    const int MatSize = 17;
+    for(int row = 0; (row < MatSize); row++) {
+        for(int col = row; (col < MatSize); col++) {
+            if (aScoreMatrix[row][col] != aScoreMatrix[col][row]) {
+                // Found a mismatch!
+                std::cerr << "Warning:: Asymmetry detected: "
+                          << "aScoreMatrix[" << BaseOrder[row] << ","
+                          << BaseOrder[col]  << "]="
+                          << aScoreMatrix[row][col] << " but "
+                          << "aScoreMatrix[" << BaseOrder[col] << ","
+                          << BaseOrder[row]  << "]="
+                          << aScoreMatrix[col][row] << std::endl;
+            }
+        }
+    }
+    // This method always returns true
+    return true;
 }
 
 void
@@ -129,8 +177,11 @@ AlignmentAlgorithm::getNWAlignment(const std::string& seq1,
 	int numOfRows = seq1.length();
 	int numOfCols = seq2.length();
     // Setup the alignment and trace matrices
-    int alignMatrix[numOfRows + 1][numOfCols + 1];
-	DIR trace[numOfRows + 1][numOfCols + 1];
+    const std::vector<int> dummyCol(numOfCols + 1);
+    std::vector< std::vector<int> > alignMatrix(numOfRows + 1, dummyCol);
+    // Setup direction matrices
+    const std::vector<DIR> dummyDirEntries(numOfCols + 1);
+    std::vector< std::vector<DIR> > trace(numOfRows + 1, dummyDirEntries);
 	trace[0][0]       = BAD_DIR;
     alignMatrix[0][0] = 0;
 	//initialize the first row and column of the score and trace

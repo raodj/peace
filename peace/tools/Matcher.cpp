@@ -40,6 +40,7 @@
 #include "HeuristicChain.h"
 #include "AlignmentAlgorithm.h"
 
+#include <iterator>
 #include <sstream>
 
 bool
@@ -120,8 +121,43 @@ Matcher::main(int argc, char *argv[]) {
     }
     // Do matching
     matcher.match();
+    // Print N50 score
+    matcher.computeN50();
     // Everything went well.
     return 0;
+}
+
+void
+Matcher::computeN50() {
+    // N50 is applicable only if we have at least 1 read.
+    if (contigList.size() < 1) {
+        // Nothing to compute here.
+        return;
+    }
+    // To compute N50 we need sizes of contigs sorted in descending order.
+    // For this first we gather the contig sizes in an vector and track
+    // total length.
+    std::vector<int> contigSizes(contigList.size());
+    long totalContigLen = 0;
+    for(int contigIdx = 0; (contigIdx < contigList.size()); contigIdx++) {
+        const int contigLen    = contigList.get(contigIdx)->getSequenceLength();
+        contigSizes[contigIdx] = contigLen;
+        totalContigLen        += contigLen;
+    }
+    // Now sort the vector in descending order.
+    std::sort(contigSizes.begin(), contigSizes.end(), std::greater<int>());
+    // Now find the entry in the sorted list such that sum up to that
+    // entry exceeds 50% of total contig length.
+    const long halfContLen = totalContigLen / 2;
+    long  sumLenSoFar      = 0;
+    size_t index           = 0;
+    while ((sumLenSoFar < halfContLen) && (index < contigSizes.size())) {
+        sumLenSoFar += contigSizes[index];
+        index++;
+    }
+    // Print the statistics out 
+    std::cout << "N50 length = "    << contigSizes[index - 1]
+              << ", N50  = " << index << std::endl;
 }
 
 void
@@ -175,14 +211,19 @@ Matcher::match() {
                 bestRefGene = geneAligned;
             }
         }
+        if (contigIdx == 0) {
+            // Print column header to make the output a bit more readable
+            std::cout << "Index, Contig ID, Gene ID, Cont.Len, NW Score, "
+                      << "A-Score, Cont. Seq, Gene Seq" << std::endl;
+        }
         // When control drops here we have done our best to try and
         // match the contig against all the reference genes and we
         // have tracked the best alignment we found. So print it.
-        std::cout << "Testing\n";
-        std::cout << contig->getID() << ". " << contig->getInfo()
+        std::cout << contig->getID() << ", " << contig->getInfo()
                   << ", " << bestGene->getInfo()
-                  << ", " << bestScore << ", " << bestAScore
-                  << "\n" << bestContig  << "\n"
+                  << ", " << contig->getSequenceLength()
+                  << ", " << bestScore  << ", " << bestAScore
+                  << ", " << bestContig << ", "
                   << bestRefGene << std::endl;
     }
 }
