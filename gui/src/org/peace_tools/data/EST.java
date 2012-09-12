@@ -57,7 +57,7 @@ public class EST {
      * @param sequence The actual sequence of base pairs associated with this
      * EST.  The sequence information can be null.
      */
-	EST(int id, String info, String sequence) {
+	public EST(int id, String info, String sequence) {
 		this.id           = id;
 		this.info         = info;
 		this.sequence     = sequence;
@@ -70,7 +70,7 @@ public class EST {
      * 
      * @param src The source EST from where the data is to be copied. The unqiue ID value to be set for this EST.
      */
-	EST(final EST src) {
+	public EST(final EST src) {
 		this.id           = src.id;
 		this.info         = src.info;
 		this.sequence     = src.sequence;
@@ -138,13 +138,14 @@ public class EST {
 	}
 	
 	/**
-	 * Method to read an EST from a given input stream.
+	 * Method to read an EST from a given FASTA-file input stream.
 	 * 
-	 * This method can be used to read an EST from a given input stream. This
-	 * method requires an push-back stream so that at least one character
-	 * can be undone. This one character push-back is needed to detect the
-	 * end of an EST sequence and the beginning of the other by checking to
-	 * see if the next character to be read is a ">" sign.
+	 * This method can be used to read an EST from a input stream tied
+	 * to a FAST file. This method requires an push-back stream so that
+	 * at least one character can be undone. This one character push-back 
+	 * is needed to detect the end of an EST sequence and the beginning 
+	 * of the other by checking to see if the next character to be read 
+	 * is a ">" sign.
 	 * 
 	 * <p><b>Note:</b>  This method updates only the info and sequence 
 	 * information associated with this EST and not its id value.</p>
@@ -190,7 +191,7 @@ public class EST {
 	 * @param is The input stream from where a line is to be read.
 	 * 
 	 * @return A string containing the line read. If the no data was available
-	 * then this method returns null. Otherwise it reaturns the next line read
+	 * then this method returns null. Otherwise it returns the next line read
 	 * without the trailing new line character. 
 	 * 
 	 * @throws IOException This method throws an exception one errors.
