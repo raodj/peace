@@ -308,7 +308,7 @@ public class Workspace {
 		// Marshall the xml data for server list to the print writer
 		serverList.marshall(out);
 		// Next serialize all the jobs in this workspace.
-		jobList.marshall(out);
+		jobList.marshall(out, "");
 		// Finally serialize all the data base classifiers
 		classifierList.marshall(out);
 		// Close the works pace element.
@@ -444,6 +444,33 @@ public class Workspace {
 	 */
 	public ArrayList<DataSet> getDataSets() { return dataSetList; }
 
+	/**
+	 * Find a data set entry given a ID.
+	 * 
+	 * This method can be used to find a data set with the given ID. This
+	 * method iterates over the entries in {@link #dataSetList} and
+	 * uses {@link DataSet#getID()} method to locate the desired entry. 
+	 * 
+	 * @param id The ID of the data set entry to be returned by this
+	 * method. If this parameter is null, then this method immediately
+	 * exits returning null.
+	 * 
+	 * @return This method returns the data set entry for the given ID.
+	 * If the data set was not found then this method returns null.
+	 */
+	public DataSet findDataSet(final String id) {
+		if (id == null) {
+			// Nothing to search for.
+			return null;
+		}
+		for(DataSet ds: dataSetList) {
+			if (id.equals(ds.getID())) {
+				return ds;
+			}
+		}
+		return null;
+	}
+	
 	/**
 	 * Obtain the GeneratedFileList (GFL) entry for a given job ID.
 	 * 

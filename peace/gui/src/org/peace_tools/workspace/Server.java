@@ -33,6 +33,7 @@
 
 package org.peace_tools.workspace;
 
+import java.io.File;
 import java.io.PrintWriter;
 import java.util.Calendar;
 
@@ -40,7 +41,9 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
 
+import org.peace_tools.core.SummaryWriter;
 import org.peace_tools.core.session.ServerSession;
+import org.peace_tools.generic.ProgrammerLog;
 import org.peace_tools.workspace.JobBase.JobType;
 import org.w3c.dom.Element;
 
@@ -119,7 +122,8 @@ public class Server {
 		EAST_EXE,
 		BATON_EXE,
 		WIN_LAUNCHER,
-		JOB_RUNNER
+		JOB_RUNNER,
+		DECAGON_ANALYZER
 	}
 	
 	/**
@@ -183,11 +187,11 @@ public class Server {
 			boolean hasEAST   = Boolean.parseBoolean(hasEASTStr);
 			srvr.setEASTInstalled(hasEAST);
 		}
-		// Setup flag to indicate if server has DECAF installed in it.
-		if (DOMHelper.hasElement(serverNode, "hasDECAF")) {
-			String hasDECAFStr = DOMHelper.getStringValue(serverNode, "hasDECAF");
-			boolean hasDECAF   = Boolean.parseBoolean(hasDECAFStr);
-			srvr.setDECAFInstalled(hasDECAF);
+		// Setup flag to indicate if server has DECAGON installed in it.
+		if (DOMHelper.hasElement(serverNode, "hasDECAGON")) {
+			String hasDECStr = DOMHelper.getStringValue(serverNode, "hasDECAGON");
+			boolean hasDEC   = Boolean.parseBoolean(hasDECStr);
+			srvr.setDECAGONInstalled(hasDEC);
 		}
 		// Setup flag to indicate if server has AMOS installed in it.
 		if (DOMHelper.hasElement(serverNode, "hasAMOSTools")) {
@@ -196,6 +200,30 @@ public class Server {
 			srvr.setHasAMOSTools(hasAMOS);
 		}
 		return srvr;
+	}
+	
+	/**
+	 * Convenience method to create a temporary server entry referring to
+	 * local host.
+	 * 
+	 * This is a convenience method that can be used to create a temporary
+	 * server entry to local host. This method is useful if a process
+	 * needs to be run on the local host and a session needs to be created
+	 * for that.
+	 * 
+	 * <p><b>NOTE</b>: This method is meant for internal PEACE use. This
+	 * method should not be used to create default entries for a user.</p>
+	 * 
+	 * @param ID The ID to be associated with the Server entry. This can
+	 * be any string.  
+	 * 
+	 * @return A server entry referring to the local host with various
+	 * defaults already set.
+	 */
+	public static Server createLocalServer(String ID) {
+		return new Server(ID, "localhost", 
+				"Local machine on which PEACE is currently running",
+				null, "", null, false, 22);
 	}
 	
 	/** 
@@ -244,7 +272,7 @@ public class Server {
 		this.remote      = remote;
 		this.status      = ServerStatusType.CONNECT_FAILED;
 		this.hasEAST     = false;
-		this.hasDECAF    = false;
+		this.hasDECAGON    = false;
 		this.hasAMOStools= false;
 		this.osType      = OSType.UNIDENTIFIED;
 		this.port        = port;
@@ -505,29 +533,29 @@ public class Server {
 	}
 
 	/**
-	 * <p>Method to determine if this server contains DECAF (a Distributed
-	 * Empirical Comparison and Analysis Framework) installed on this server. 
-	 * This flag is used to determine the list of servers on which empirical
-	 * comparative analysis can be run.</p>
+	 * <p>Method to determine if this server contains DECAGON (Distributed 
+	 * Environment for Comparative Analysis of Genomic-Assemblers) installed 
+	 * on this server.  This flag is used to determine the list of servers 
+	 * on which DECAGON analysis can be run.</p>
 	 * 
 	 * <b>Note:</b> that this flag is meaningful only if the status 
 	 * of the server is GOOD.
 	 * 
 	 * @return This method returns true if the Server object has
-	 * DECAF installed on it. Otherwise (and by default) it returns false.
+	 * DECAGON installed on it. Otherwise (and by default) it returns false.
 	 */
-	public boolean hasDECAFInstalled() { return hasDECAF; }
+	public boolean hasDECAGONInstalled() { return hasDECAGON; }
 	
 	/**
-	 * Method to set if this server has a valid install of DECAF. This
+	 * Method to set if this server has a valid install of DECAGON. This
 	 * flag is set when a new server entry is added to a Workspace 
-	 * to indicate if it has DECAF installed. 
+	 * to indicate if it has DECAGON installed. 
 	 * 
-	 * @param hasDECAF If this flag is set to true then it indicates that
-	 * this server entry has DECAF installed and ready to use.
+	 * @param hasDECAGON If this flag is set to true then it indicates that
+	 * this server entry has DECAGON installed and ready to use.
 	 */
-	public void setDECAFInstalled(boolean hasDECAF) {
-		this.hasDECAF = hasDECAF;
+	public void setDECAGONInstalled(boolean hasDECAGON) {
+		this.hasDECAGON = hasDECAGON;
 	}
 
 	/** Determine the type of OS on the server.
@@ -624,10 +652,10 @@ public class Server {
 		if (pollTime != null) {
 			DOMHelper.addElement(server, "PollTime", pollTime.toString());
 		}
-		DOMHelper.addElement(server, "Status",  status.toString().toLowerCase());
-		DOMHelper.addElement(server, "hasEAST", Boolean.toString(hasEAST));
-		DOMHelper.addElement(server, "hasDECAF", Boolean.toString(hasDECAF));
-		DOMHelper.addElement(server, "hasAMOSTools", Boolean.toString(hasAMOStools));
+		DOMHelper.addElement(server, "Status",      status.toString().toLowerCase());
+		DOMHelper.addElement(server, "hasEAST",     Boolean.toString(hasEAST));
+		DOMHelper.addElement(server, "hasDECAGON",  Boolean.toString(hasDECAGON));
+		DOMHelper.addElement(server, "hasAMOSTools",Boolean.toString(hasAMOStools));
 	}
 	
 	/**
@@ -664,8 +692,8 @@ public class Server {
 		out.printf(STR_ELEMENT, "Status", status.toString().toLowerCase());
 		// Include flag to indicate if EAST assembler is installed on this server
 		out.printf(STR_ELEMENT, "hasEAST", Boolean.toString(hasEAST));
-		// Include flag to indicate if DECAF evaluation framework is installed on this server
-		out.printf(STR_ELEMENT, "hasDECAF",     Boolean.toString(hasDECAF));
+		// Include flag to indicate if DECAGON evaluation framework is installed on this server
+		out.printf(STR_ELEMENT, "hasDECAGON",   Boolean.toString(hasDECAGON));
 		out.printf(STR_ELEMENT, "hasAMOSTools", Boolean.toString(hasAMOStools));
 		// Close the server tag
 		out.printf("%s</Server>\n", Indent);
@@ -690,6 +718,7 @@ public class Server {
 	public String getExecutable(EXEKind kind) {
 		String peacePath     = (osType.equals(OSType.WINDOWS) ? "/" : "/peace/src/");
 		String eastPath      = (osType.equals(OSType.WINDOWS) ? "/" : "/peace/EAST/C++/");
+		String decAnlyPath   = (osType.equals(OSType.WINDOWS) ? "/" : "/decagon/scoreCalc/scoreCalc");
 		String exeSuffix     = (osType.equals(OSType.WINDOWS) ? ".exe" : "");
 		String scriptSuffix  = (osType.equals(OSType.WINDOWS) ? ".bat" : ".sh");
 		String jobRunnerPath = "installFiles/";
@@ -699,11 +728,13 @@ public class Server {
 		case PEACE_CLUSTER_MAKER:
 			return installPath + peacePath + "peace" + exeSuffix;
 		case EAST_EXE:
-			return installPath + eastPath + "Main" + exeSuffix;
+			return installPath + eastPath + "east.sh" + exeSuffix;
 		case WIN_LAUNCHER:
 			return installPath + "\\launcher" + exeSuffix;
 		case JOB_RUNNER:
 			return installPath + jobRunnerPath + "jobRunner" + scriptSuffix;
+		case DECAGON_ANALYZER:
+			return installPath + decAnlyPath + exeSuffix;
 		default:
 			return null;	
 		}
@@ -736,6 +767,110 @@ public class Server {
 		}
 	}
 	
+	/**
+	 * Convenience method to translate a local cDNA file to full path on 
+	 * this server.
+	 * 
+	 * This method is a convenience method that can be used to determine
+	 * the full path to a given cDNA file on this server. The path to the
+	 * cDNA file on the local host is typically obtained via a call to
+	 * {@link DataSet#getPath()} method. This method essentially returns
+	 * the path to the file in the <code>estData</code> sub-folder in 
+	 * the installation path on the server.
+	 * 
+	 * @param localFile The local file object whose file name is to be
+	 * translated to the appropriate installation location in the server.
+	 * 
+	 * @return The full path to the file on the server.
+	 */
+	public String getServerPath(File localFile) {
+		return getInstallPath() + "/estData/" + localFile.getName();
+	}
+	
+	/**
+	 * Obtain the default poll duration for servers.
+	 * 
+	 * This is a convenience method that can be used to obtain a 30 second
+	 * poll duration for servers. Note that this class catches an internal
+	 * exception and if an exception is thrown (which is a rare case that
+	 * typically indicates something is wrong with Java setup) then this
+	 * method can return a null object.
+	 * 
+	 * @return This method returns a poll duration for 30 seconds.
+	 */
+	public static Duration getDefaultPollDuration() {
+		Duration pollTime = null;
+		try {
+			// The following call to DatatypeFactory.newInstance() can
+			// throw an Exception but it should not.
+			DatatypeFactory codec = DatatypeFactory.newInstance();
+			pollTime = codec.newDuration("P0Y0M0DT0H0M30.000S");
+		} catch (Exception e) {
+			ProgrammerLog.log(e);
+		}
+		return pollTime;
+	}
+
+	/**
+	 * Convenience method to obtain summary information about this server.
+	 * 
+	 * This method is a convenience method that can be used to obtain 
+	 * summary information about this server entry. This method creates
+	 * suitable summary information about the server using the 
+	 * given summary writer.
+	 * 
+	 * @param sw The summary writer object to be used to create a summary
+	 * for this server entry.
+	 */
+	public void summarize(SummaryWriter sw, final boolean addSection, 
+			final boolean subSection) {
+		// Create a section or sub-section as indicated by the caller.
+		if (addSection) {
+			if (subSection) {
+				sw.addSubSection("Server Summary Information", "", "");
+			} else {
+				sw.addSection("Server Summary Information");
+			}
+		}
+		// Create section or sub-section entries based on flag using helper method
+		summarize(sw, subSection, "Server Name", name, description);
+		summarize(sw, subSection, "OS Type", osType.toString(), "The operating system running on the server");
+		summarize(sw, subSection, "Connectivity", (isRemote() ? "Via SSH (Remote)" : "Local machine"), "");
+		summarize(sw, subSection, "Install Path", installPath, "");
+	}
+	
+	/**
+	 * Helper method to add a line of summary or sub-summary.
+	 * 
+	 * This is a helper method that is internally used (by
+	 * the {@link #summarize(SummaryWriter, boolean)} method) to
+	 * add an summary or sub-summary entry depending on a flag.
+	 * 
+	 * @param sw The summary writer object to be used to create
+	 * a summary or sub-summary entry.
+	 * 
+	 * @param subSection If this flag is true then the given 
+	 * information is used to create a sub-summary entry. Otherwise
+	 * the given information is used to add a summary entry.
+	 * 
+	 * @param name The name of the parameter or property for which a summary
+	 * line is being added. This parameter can be null.
+	 * 
+	 * @param value The value for the given parameter to be added.
+	 * This parameter can be null.
+	 * 
+	 * @param desc An optional description to be associated with the summary
+	 * line. This parameter can be null. 
+	 */
+	private void summarize(SummaryWriter sw, boolean subSection, 
+			final String name, final String value, final String desc) {
+		if (!subSection) {
+			sw.addSummary(name, value, desc);
+		} else {
+			sw.addSubSummary(name, value, desc);
+		}
+	}
+
 	/**
 	 * A unique identifier for this Server entry. For new Server entries 
 	 * this value is obtained via the ServerList.reserveServerID() method.
@@ -810,11 +945,11 @@ public class Server {
 	private boolean hasEAST;
 	
 	/**
-	 * Flag to indicate if this server entry has DECAF (PEACE's
-	 * Distributed Empirical Comparison and Analysis Framework)
+	 * Flag to indicate if this server entry has DECAGON (Distributed 
+	 * Environment for Comparative Analysis of Genomic-Assemblers)
 	 * installed on this server.
 	 */
-	private boolean hasDECAF;
+	private boolean hasDECAGON;
 	
 	/**
 	 * Flag to indicate if this server has AMOS tools installed on it.

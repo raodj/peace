@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import org.peace_tools.core.SummaryWriter;
 import org.peace_tools.generic.Utilities;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 /**
@@ -121,10 +122,16 @@ public class DataSet {
 				DataFileType.valueOf(type.toUpperCase()) : DataFileType.FASTA; 
 		// Create the data set entry.
 		DataSet dataSet= new DataSet(id, path, desc, fileType);
-		// Parse in any statistics element about this data set
-		Element estStats = DOMHelper.getElement(data, "Stats");
-		if (estStats != null) {
-			dataSet.stats = DataFileStats.create(path, estStats); 
+		// Parse in one or more statistics element about this data set
+		dataSet.statsList = createStats(path, estData);
+		// Parse in any source information element about this data set
+		if (DOMHelper.hasElement(estData, "SourceInfo")) {
+			Element sourceInfo = DOMHelper.getElement(estData, "SourceInfo");
+			dataSet.srcInfo = SourceInfo.create(sourceInfo);
+		}
+		// Parse in source ID cross reference if any
+		if (DOMHelper.hasElement(estData, "SourceID")) {
+			dataSet.sourceID = DOMHelper.getStringValue(estData, "SourceID");
 		}
 		// Now parse in any MSTData elements for this DataSet
 		NodeList mstNodes = data.getElementsByTagName("GeneratedFileList");
@@ -137,6 +144,42 @@ public class DataSet {
 		}
 		// All the data was parsed in successfully.
 		return dataSet;
+	}
+
+	/**
+	 * Helper method to parse-in zero or more statistics entries.
+	 * 
+	 * @param path The path to the data file to be associated with the 
+	 * statistics entries.
+	 * 
+	 * @param estData The ESTData DOM element from where zero or more statistics
+	 * entries are to be parsed.
+	 * 
+	 * @return The list of statistics entries parsed in from the given DOM
+	 * element. This method always returns an array list even if zero entries
+	 * were parsed.
+	 */
+	private static ArrayList<DataFileStats> createStats(final String path, Element estData) {
+		ArrayList<DataFileStats> statsList = new ArrayList<DataFileStats>();
+		NodeList nodes = estData.getElementsByTagName("Stats");
+		if ((nodes != null) && (nodes.getLength() > 0)) {
+			for(int i = 0; (i < nodes.getLength()); i++) {
+				// Get the first node off the list.
+				Node node = nodes.item(i);
+				// Ensure the node we are operating with is a valid element.
+				if ((node == null) || (node.getNodeName() == null) ||
+					(node.getNodeType() != Node.ELEMENT_NODE) || 
+					(!(node instanceof Element))) {
+					// This node does not look like the correct element.
+					continue;
+				}
+				// Create new stats object and add it to the list.
+				Element estStats = (Element) node;
+				statsList.add(DataFileStats.create(path, estStats)); 
+			}
+		}
+		// Return the list back to the caller.
+		return statsList;
 	}
 	
 	/**
@@ -163,7 +206,10 @@ public class DataSet {
 		this.description = description;
 		this.fileType    = fileType;
 		this.gflList     = new ArrayList<GeneratedFileList>();
-		this.stats       = null;
+		this.statsList   = new ArrayList<DataFileStats>();
+		this.aggrStats   = null;
+		this.sourceID    = null;
+		this.srcInfo     = null;
 	}
 	
 	/**
@@ -221,6 +267,37 @@ public class DataSet {
 	 */
 	public void setID(String id) {
 		this.id = id;
+	}
+
+	/**
+	 * Obtain the work space wide unique identifier set for the
+	 * source data set from which this data set was generated. 
+	 * The source ID refers to another DataSet entry in this workspace.
+	 * This value is set when a generated data set (typically generated
+	 * by the Synthetic DataSet Generator component of DECAGON) entry 
+	 * is added to the workspace. The source ID is persisted in the work 
+	 * space configuration file and loaded when a work space is opened 
+	 * in the GUI.
+	 * 
+	 * @return This method returns the unique identifier set for the
+	 * source data set. The returned value will be null if this file
+	 * does not have a source data set associated with it.
+	 */
+	public String getSourceID() { return sourceID; }
+	
+	/**
+	 * Set the source data set ID for this DataSet.
+	 * 
+	 * This method can be used to set/reset the source data set ID 
+	 * associated with this data  set. This method can be used as 
+	 * long as the data set has not been added to the workspace. 
+	 * After it has been added, it is unwise to change the ID.
+	 * 
+	 * @param id The new source ID to be set for this entry. No special
+	 * checks are made on this value an it can be null.
+	 */
+	public void setSourceID(String id) {
+		this.sourceID = id;
 	}
 	
 	/**
@@ -316,9 +393,17 @@ public class DataSet {
 		DOMHelper.addElement(estData, "ID", id);
 		DOMHelper.addElement(estData, "Path", path);
 		DOMHelper.addElement(estData, "Description", description);
-		// Add stats element if we have one.
-		if (stats != null) {
+		// Add stats elements we have.
+		for(DataFileStats stats: statsList) {
 			stats.marshall(estData);
+		}
+		// Add source information if set
+		if (srcInfo != null) {
+			srcInfo.marshall(estData);
+		}
+		// Add source ID value if set.
+		if (sourceID != null) {
+			DOMHelper.addElement(estData, "SourceID", sourceID);
 		}
 		// Add new sub-elements for each GFL entry.
 		for(GeneratedFileList gfl: gflList) {
@@ -345,9 +430,17 @@ public class DataSet {
 		out.printf(STR_ELEMENT, "ID", id);
 		out.printf(STR_ELEMENT, "Path", path);
 		out.printf(STR_ELEMENT, "Description", DOMHelper.xmlEncode(description));
-		// Marshal out any statistics object we may have
-		if (stats != null) {
+		// Marshal out all statistics objects we have
+		for(DataFileStats stats: statsList) {
 			stats.marshall(out);
+		}
+		// Marshal out the source information if set
+		if (srcInfo != null) {
+			srcInfo.marshall(out);
+		}
+		// Marshal out the sourceID if set.
+		if (sourceID != null) {
+			out.printf(STR_ELEMENT, "SourceID", sourceID);
 		}
 		out.printf("%s\t</ESTData>\n", Indent); 
 		// Add new sub-elements for each GeneratedFileList entries.
@@ -445,23 +538,63 @@ public class DataSet {
 		}
 	}
 
-
 	/**
-	 * Set aggregate statistics information about the cDNA data file.
+	 * Add aggregate statistics information about the cDNA data file.
 	 * 
-	 * This method can be used to setup the aggregate statistics about
+	 * This method can be used to add aggregate statistics about
 	 * the cDNA fragments associated with this data set. This information
 	 * is persisted in the workspace XML providing rapid access to the
 	 * aggregate statistics without having to recompute them.
 	 * 
-	 * @param stats The aggregate statistics about this data set.
+	 * <p><b>Note:</b> This method resets the {@link #aggrStats} instance
+	 * variable forcing its recalculation when the {@link #getAggregateStats()}
+	 * method is called.</p>
+	 * 
+	 * @param stats The aggregate statistics about a sub-set of reads
+	 * this data set to be added to existing entries. This parameter
+	 * cannot be null.
 	 */
-	public void setStats(DataFileStats stats) {
-		this.stats = stats;
+	public synchronized void addStats(DataFileStats stats) {
+		statsList.add(stats);
+		// Force recalculation of aggregate statistics
+		aggrStats = null;
 	}
 	
 	/**
-	 * Set aggregate statistics information about the cDNA data file.
+	 * Get additional information about the source data set for this
+	 * data set.
+	 * 
+	 * This method can be used to obtain additional information about
+	 * the source data set from where this data set was generated.
+	 * This information is typically set when the Synthetic
+	 * DataSet Generator (SDG) module of DECAGON generates a data set.
+	 * This information is used by various modules in DECAGON for
+	 * performing different types of analysis.
+	 * 
+	 * @return The source information object associated with this
+	 * data set. The return value will be null if no source information
+	 * has been set.
+	 */
+	SourceInfo getSourceInfo() {
+		return srcInfo;
+	}
+
+	/**
+	 * Set additional information about the source data set for this
+	 * data set.
+	 * 
+	 * This method can be used to set additional information about
+	 * the source data set from where this data set was generated.
+	 * 
+	 * @param srcInfo The source information object associated 
+	 * with this data set.
+	 */
+	public void setSourceInfo(SourceInfo srcInfo) {
+		this.srcInfo = srcInfo;
+	}
+	
+	/**
+	 * Get aggregate statistics information about the cDNA data file.
 	 * 
 	 * This method can be used to obtain the aggregate statistics about
 	 * the cDNA fragments associated with this data set. This information
@@ -469,10 +602,29 @@ public class DataSet {
 	 * providing rapid access to the aggregate statistics without having 
 	 * to recompute them.
 	 * 
-	 * @param stats The aggregate statistics about this data set.
+	 * @param statsList The aggregate statistics about this data set.
 	 */
-	DataFileStats getStats() {
-		return stats;
+	public synchronized DataFileStats getAggregateStats() {
+		if (aggrStats == null) {
+			// Create aggregate statistics object
+			aggrStats = new DataFileStats(path, -1, statsList);
+		}
+		return aggrStats;
+	}
+	
+	/**
+	 * Obtain all the statistics information associated with this data set.
+	 * 
+	 * This method returns a list of statistics object containing
+	 * information about the cDNA fragments in this file classified
+	 * based on type of genomic-sequencing technologies.
+	 * 
+	 * @return The list of statistics object. The return value is never
+	 * null but the array list may be null if statistics information is
+	 * not available.
+	 */
+	public ArrayList<DataFileStats> getStats() {
+		return statsList;
 	}
 	
 	/**
@@ -507,7 +659,7 @@ public class DataSet {
 		sw.addSummary("Path",      tempFile.getPath(), null);
 		sw.addSummary("File type", fileType.toString(), null);
 		// Add statistics about the data set if available.
-		if (stats != null) {
+		for(DataFileStats stats: statsList) {
 			stats.summarize(sw);
 		}
 	}
@@ -527,6 +679,43 @@ public class DataSet {
 	}
 	
 	/**
+	 * Helper method to list error information for different sequencing technologies.
+	 * 
+	 * This method is invoked from the {@link #getToolTipText()} method to
+	 * provide the user with additional information about the errors in
+	 * the data set based on the type of sequencing technologies involved.
+	 *  
+	 * @return A HTML table with the available error rates. If no information
+	 * is available then this method simply returns an empty string.
+	 */
+	private String getErrorRates() {
+		StringBuilder sb    = new StringBuilder();
+		boolean haveErrInfo = false;  // Changed below.
+		if (statsList.size() > 0) {
+			sb.append("<table cellpadding=0>"); 
+			sb.append("<tr><td><b>Error Rate(s): </b></td>");
+			for(int i = 0; (i < statsList.size()); i++) {
+				DataFileStats dfs = statsList.get(i);
+				if (dfs.getInsErrorRate() == -1) {
+					// The error information is not really available.
+					continue;
+				}
+				sb.append(String.format("%s%s (Ins: %.2f, Del: %.2f, Sub: %.2f)</td></tr>",
+						(i == 0) ? "<td>" : "<tr><td></td><td>",
+						dfs.techType.toString(), dfs.getInsErrorRate(),
+						dfs.getDelErrorRate(), dfs.getSubErrorRate()));
+				haveErrInfo = true;
+			}
+			sb.append("</table>");
+		}
+		if (!haveErrInfo) {
+			// Nothing to return.
+			return "";
+		}
+		return sb.toString();
+	}
+	
+	/**
 	 * Helper method to get a tool-tip text for GUI components to use.
 	 * 
 	 * This is a helper method that provides an HTML formatted tool-tip
@@ -541,12 +730,29 @@ public class DataSet {
 		final File   tempFile = new File(path);
 		final String shortPath= Utilities.trim(tempFile.getPath(), 50);
 		final String htmlDesc = Utilities.wrapStringToHTML(description, 45);
-		final String formatStr= ((stats != null) ? TOOL_TIP_WITH_STATS_TEMPLATE :
-			                                          TOOL_TIP_NO_STATS_TEMPLATE);
-		final String toolTip  =
-			String.format(formatStr, shortPath, fileType.toString(), 
-					htmlDesc, stats.getCount(), stats.getAvgLength(), 
-					stats.getLengthSD());
+		// Setup the source gene file name (if any)
+		String srcFile = "n/a";
+		if (sourceID != null) {
+			final DataSet srcDS = Workspace.get().findDataSet(sourceID);
+			if (srcDS != null) {
+				srcFile = Utilities.trim(srcDS.getPath(), 50);
+			} else {
+				srcFile = "Not found (ID: " + sourceID + ")";
+			}
+		}
+		// Create the tool tip string with necessary information.
+		String toolTip = null;
+		if (statsList.size() > 0) {
+			final String errorRates       = getErrorRates();
+			final DataFileStats aggrStats = getAggregateStats();
+			toolTip  = String.format(TOOL_TIP_WITH_STATS_TEMPLATE, shortPath, 
+						fileType.toString(), htmlDesc, aggrStats.getCount(), 
+						aggrStats.getAvgLength(), aggrStats.getLengthSD(), 
+						errorRates, srcFile);
+		} else {
+			toolTip  = String.format(TOOL_TIP_NO_STATS_TEMPLATE, shortPath, 
+						fileType.toString(), htmlDesc);
+		}
 		return toolTip;
 	}
 	
@@ -581,6 +787,16 @@ public class DataSet {
 	private String id;
 
 	/**
+	 * The unique generated data set ID value for the source file from 
+	 * which this data set was generated. This ID is used when a 
+	 * synthetic data set is generated by DECAGON. This value is set
+	 * when when a new synthetic data set is added. This value is 
+	 * persisted in the work space configuration. It is needed by
+	 * DECAGON modules for various analysis.
+	 */
+	private String sourceID;
+	
+	/**
 	 * Enumeration to indicate the physical file format of the data file
 	 * associated with this data set. This value is persisted in the
 	 * work space configuration. It enables loading the necessary
@@ -593,7 +809,26 @@ public class DataSet {
 	 * associated with this data set. This element is an optional element
 	 * and may not be present in older data set entries created by PEACE.
 	 */
-	private DataFileStats stats;
+	private ArrayList<DataFileStats> statsList;
+	
+	/**
+	 * Aggregate statistics object that contains aggregate values of
+	 * all entries in the {@link #statsList}.
+	 * 
+	 * This object is computed in a lazy manner when the 
+	 * {@link #getAggregateStats()} method is invoked. This value is
+	 * initialized to null. It is reset to null by the
+	 * {@link #addStats(DataFileStats)} method to ensure it is 
+	 * recomputed whenever new statistics entries are added.
+	 */
+	private DataFileStats aggrStats;
+	
+	/**
+	 * Optional source information associated with this data set. This
+	 * value is typically set for Synthetic data sets generated by
+	 * the Synthetic DataSet Generator (SDG) module of DECAGON.
+	 */
+	private SourceInfo srcInfo;
 	
 	/**
 	 * A fixed string constant to ease generation of tool tip text
@@ -606,7 +841,9 @@ public class DataSet {
 		"<b>File Type:</b> %s<br/>" +
 		"<b>Description:</b> %s<br/>" + 
 		"<b>cDNA/EST Entries:</b> %d<br/>" +
-		"<b>Avg. Size per Entry:</b> %.2f (SD: %.2f)" +
+		"<b>Avg. Size per Entry:</b> %.2f (SD: %.2f)<br/>" +
+		"%s" + // Optional error rates are added here if available
+		"<b>Source Genes:</b> %s" +
 		"</html>";
 	
 	/**
