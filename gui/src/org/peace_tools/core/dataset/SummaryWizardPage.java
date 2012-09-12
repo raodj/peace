@@ -117,7 +117,7 @@ public class SummaryWizardPage extends GenericWizardPage {
 		// Set it up for display.
 		infoFields[1].setText(statistics);
 		// Setup stats in the data set
-		dataSet.setStats(stats);
+		dataSet.addStats(stats);
 	}
 
 	/**
