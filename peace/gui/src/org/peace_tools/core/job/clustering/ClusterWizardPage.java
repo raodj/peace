@@ -308,7 +308,7 @@ implements ActionListener {
 	protected FileEntry getClusterFileEntry(String id) {
 		FileEntry fe = new FileEntry(id, FileEntry.FileEntryType.CLS, 
 				DataFileType.TXT, clusterFile.getText(), 
-				description.getText());
+				description.getText(), null);
 		return fe;
 	}
 

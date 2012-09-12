@@ -263,7 +263,7 @@ implements ActionListener {
 	protected FileEntry getMSTFileEntry(String id, String description) {
 		FileEntry fe = new FileEntry(id, FileEntry.FileEntryType.MST, 
 				DataFileType.TXT, mstFile.getText(), 
-				description);
+				description, null);
 		return fe;
 	}
 	
