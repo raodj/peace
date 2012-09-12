@@ -36,20 +36,16 @@ package org.peace_tools.core.job.east;
 import java.awt.Color;
 import java.util.ArrayList;
 
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JPanel;
 
 import org.peace_tools.core.MainFrame;
 import org.peace_tools.core.SummaryWriter;
-import org.peace_tools.core.job.ServerPanel;
-import org.peace_tools.generic.Utilities;
+import org.peace_tools.core.job.DataSetSelectionPage;
+import org.peace_tools.core.job.ServerComboBox;
 import org.peace_tools.generic.WizardDialog;
 import org.peace_tools.workspace.ClusteringJob;
+import org.peace_tools.workspace.DOMHelper;
 import org.peace_tools.workspace.DataSet;
 import org.peace_tools.workspace.DataSet.DataFileType;
 import org.peace_tools.workspace.EASTJob;
@@ -57,7 +53,6 @@ import org.peace_tools.workspace.FWAnalyzer;
 import org.peace_tools.workspace.FWAnalyzer.FWAnalyzerType;
 import org.peace_tools.workspace.FileEntry;
 import org.peace_tools.workspace.FileEntry.FileEntryType;
-import org.peace_tools.workspace.DOMHelper;
 import org.peace_tools.workspace.Filter;
 import org.peace_tools.workspace.GeneratedFileList;
 import org.peace_tools.workspace.Heuristic;
@@ -170,61 +165,17 @@ public class EASTJobWizard extends WizardDialog {
 		// Next check to ensure that we have a server that
 		// can do clustering and/or assembly.
 		if ((msg == null) && 
-			(ServerPanel.getServerList(alsoCluster, true, new JComboBox()) == 0)) {
+			(ServerComboBox.getServerList(alsoCluster, true, new JComboBox()) == 0)) {
 			// We have valid data set/mst but no valid server
 			msg = EASTJobWizard.NO_SERVER_MSG;
 		}
 		// Display error message is set
 		if (msg != null) {
-			showMessage(parent, msg);
+			WizardDialog.showMessage(parent, msg);
 			return null;
 		}
 		// Return new wizard only if msg is null indicating no errors.
 		return new EASTJobWizard(title, parent, alsoCluster);
-	}
-	
-	/**
-	 * Helper method to show a formatted message to the user.
-	 * 
-	 * This method is invoked from the the {@link EASTJobWizard#create(String, MainFrame, boolean)}
-	 * to display a properly formatted message to the user.
-	 * 
-	 * @param parent The parent window to be used for displaying the 
-	 * message in a modal dialog box.
-	 * 
-	 * @param messages This method is always invoked with an array of three
-	 * entries. The entries are in the following order:
-	 * <ol>
-	 *   <li>First entry is a informational message</li>
-	 *   <li>The second entry reports an issue to the user.</li>
-	 *   <li>The last entry provides suggestions to resolve the issue</li>
-	 * </ol>
-	 */
-	private static void showMessage(MainFrame parent, String[] messages) {
-		// The icon names corresponding to the three entries in messages 
-		final String[] IconNames = {null, "Warning", "Help"};
-		// The main panel that contains the labels being created in the
-		// for-loop below
-		JPanel msgPanel = new JPanel();
-		msgPanel.setLayout(new BoxLayout(msgPanel, BoxLayout.PAGE_AXIS));
-		// Create the labels to be displayed.
-		for(int i = 0; (i < IconNames.length); i++) {
-			// Create a icon if an image/fileName has been specified.
-			ImageIcon icon = null;
-			if (IconNames[i] != null) {
-				icon = Utilities.getIcon("images/32x32/" + IconNames[i] + ".png");
-			}
-			// Create label with the part of the message
-			final String htmlMsg = "<html>" + messages[i] + "</html>";
-			JLabel infoMsg = new JLabel(htmlMsg, icon, JLabel.LEFT);
-			// Add it to the main message panel.
-			msgPanel.add(infoMsg);
-			// Add a spacer to make things look decent.
-			msgPanel.add(Box.createVerticalStrut(8));
-		}
-		// Display the message.
-		JOptionPane.showMessageDialog(parent, msgPanel, 
-				"Cannot launch wizard now", JOptionPane.INFORMATION_MESSAGE);
 	}
 	
 	/**
@@ -435,7 +386,7 @@ public class EASTJobWizard extends WizardDialog {
 			if (mstFE == null) {
 				// This is a clustering+assembly job.
 				mstFE = new FileEntry("TBD", FileEntryType.MST, 
-						DataFileType.TXT, ofwp.getFilePath(1), DEFAULT_DESCRIPTION);
+						DataFileType.TXT, ofwp.getFilePath(1), DEFAULT_DESCRIPTION, null);
 			}
 			GeneratedFileList gfl = createGFL(true, reserveJobID, eastJob);
 			eastJob.addParameters(getDataSet(), mstFE, null, gfl);
@@ -479,12 +430,12 @@ public class EASTJobWizard extends WizardDialog {
 		if (!assemblyJob) {
 			final String mstID = (reserveID ? workspace.reserveID() : "TBD");
 			FileEntry mstFE = new FileEntry(mstID, FileEntryType.MST, 
-					DataFileType.TXT, ofwp.getFilePath(1), DEFAULT_DESCRIPTION);
+					DataFileType.TXT, ofwp.getFilePath(1), DEFAULT_DESCRIPTION, null);
 			// Append information about cluster file by creating a 
 			// temporary dummy entry.
 			final String clsID = (reserveID ? workspace.reserveID() : "TBD");
 			FileEntry clsFE = new FileEntry(clsID, FileEntryType.CLS,
-					DataFileType.TXT, ofwp.getFilePath(2), DEFAULT_DESCRIPTION);
+					DataFileType.TXT, ofwp.getFilePath(2), DEFAULT_DESCRIPTION, null);
 			// Add jobs to the generated file list
 			gfl.add(mstFE);
 			gfl.add(clsFE);
@@ -492,15 +443,15 @@ public class EASTJobWizard extends WizardDialog {
 			final String description = owp.getDescription();
 			final String contigID = (reserveID ? workspace.reserveID() : "TBD");
 			FileEntry contigFE = new FileEntry(contigID, FileEntryType.ASM, 
-					ebpwp.getContigOutputFormat(), ofwp.getFilePath(3), description);
+					ebpwp.getContigOutputFormat(), ofwp.getFilePath(3), description, null);
 			
 			final String singID = (reserveID ? workspace.reserveID() : "TBD");
 			FileEntry singFE = new FileEntry(singID, FileEntryType.SINGLETONS, 
-					DataFileType.FASTA, ofwp.getFilePath(4), description);
+					DataFileType.FASTA, ofwp.getFilePath(4), description, null);
 			
 			final String statsID = (reserveID ? workspace.reserveID() : "TBD");
 			FileEntry statsFE = new FileEntry(statsID, FileEntryType.STATS, 
-					DataFileType.TXT, ofwp.getFilePath(5), description);
+					DataFileType.TXT, ofwp.getFilePath(5), description, null);
 			
 			// Add jobs to the generated file list
 			gfl.add(contigFE);

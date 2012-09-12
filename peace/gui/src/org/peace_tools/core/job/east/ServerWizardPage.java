@@ -44,7 +44,14 @@ public class ServerWizardPage extends GenericWizardPage {
 	 * @param cluster If this flag is true that indicates that the
 	 * server page must be configured and not for assembly. On the
 	 * other hand, if this flag is false, then this page is configured
-	 * for assembly. 
+	 * for assembly.
+	 * 
+	 * @param mainSrvrPage An server wizard page that serves as the
+	 * source of the server to be used for this page as well. If this
+	 * parameter is not null, then the server option is locked based
+	 * on the entry selected in this server page. If the parameter is
+	 * null, then the user is permitted to select any  valid server
+	 * from the set. 
 	 */
 	public ServerWizardPage(EASTJobWizard wizard, boolean clustering, 
 			                ServerWizardPage mainSrvrPage) {
