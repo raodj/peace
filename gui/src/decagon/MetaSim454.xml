@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<!--
+	
+	This DECAGON file is part of PEACE.
+	
+	PEACE is free software: you can redistribute it and/or modify it
+	under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+	
+	PEACE is distributed in the hope that it will be useful, but
+	WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+	General Public License for more details.
+ 
+	You should have received a copy of the GNU General Public License
+	along with PEACE.  If not, see <http://www.gnu.org/licenses/>.
+	
+	Miami University makes no representations or warranties about the
+	suitability of the software, either express or implied, including
+	but not limited to the implied warranties of merchantability,
+	fitness for a particular purpose, or non-infringement.  Miami
+	University shall not be liable for any damages suffered by
+	licensee as a result of using, result of using, modifying or
+	distributing this software or its derivatives.
+
+	By using or copying this Software, Licensee agrees to abide by the
+	intellectual property laws, and all other applicable laws of the
+	U.S., and the terms of GNU General Public License (version 3).
+	
+	Authors:   Dhananjai M. Rao              raodm@muohio.edu
+
+-->
+
+<parameterSet xmlns:decagon="http://www.peace-tools.org/decagon/"
+	xmlns="http://www.peace-tools.org/decagon/"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.peace-tools.org/decagon/ ParameterSet.xsd">
+	<description>
+		MetaSim parameters used for generating 454-type
+		reads in synthetic data sets.
+	</description>
+	
+	<parameter name="454Fixed">
+		<kind>BOOLEAN</kind>
+		<cmdLine>cmd -s -c</cmdLine>
+		<cmdLineKind>IMPLICIT_VALUE</cmdLineKind>
+		<value>true</value>
+		<mutable>false</mutable>
+		<hidden>true</hidden>
+		<description>Fixed parameters used to run MetaSim</description>
+		<summary>Fixed parameters used to run MetaSim</summary>
+	</parameter>
+	
+	<!-- The following parameter is a "controller" that enables or
+		 disables other parameters in this file. 
+	-->
+	<parameter name="Enable454" controller="true">
+		<kind>BOOLEAN</kind>
+		<cmdLine>--454</cmdLine>
+		<cmdLineKind>IMPLICIT_VALUE</cmdLineKind>
+		<value>true</value>
+		<mutable>true</mutable>
+		<hidden>false</hidden>
+		<description>
+			<![CDATA[Generate 454 sequences?]]>
+		</description>
+		<summary></summary>
+	</parameter>
+	
+	<parameter name="454Count">
+		<kind>INTEGER</kind>
+		<cmdLine>--reads</cmdLine>
+		<cmdLineKind>EXPLICIT_VALUE</cmdLineKind>
+		<value>1000</value>
+		<mutable>true</mutable>
+		<hidden>false</hidden>
+		<description>
+			<![CDATA[<b>Number of reads to generate</b><br>
+			<font size="-2">For each source fragment the given number of<br>
+			reads will be generated]]>
+		</description>
+		<summary>Number of 454-type reads</summary>
+	</parameter>
+	
+	<parameter name="454AvgLen">
+		<kind>INTEGER</kind>
+		<cmdLine>--454-cycles</cmdLine>
+		<cmdLineKind>EXPLICIT_VALUE</cmdLineKind>
+		<value>99</value>
+		<mutable>true</mutable>
+		<hidden>false</hidden>
+		<description>
+			<![CDATA[<b>Average length of 454-type reads</b><br/>
+			<font size="-2">The actual number of nucleotides in each read<br/>
+			will be about 2.06 times the value specified.]]>
+		</description>
+		<summary>Average read length</summary>
+	</parameter>
+	
+	<parameter name="454MatePairProb">
+		<kind>DOUBLE</kind>
+		<cmdLine>--454-mate-probability</cmdLine>
+		<cmdLineKind>EXPLICIT_VALUE</cmdLineKind>
+		<value>0.0</value>
+		<min>0.0</min>
+		<max>1.0</max>
+		<mutable>true</mutable>
+		<hidden>false</hidden>
+		<description>
+			<![CDATA[<b>Sanger mate-pair probability</b><br>
+			<font size="-2">Valid range is 0.0 (no paired reads) to 1.0 <br>
+			(all reads have mate-pairs) but have no<br>
+			impact to number of reads.</font>
+			]]>
+		</description>
+		<summary>Mate pair probability</summary>
+	</parameter>
+	
+	<parameter name="454PairedReadLen">
+		<kind>INTEGER</kind>
+		<cmdLine>--454-paired-read-length</cmdLine>
+		<cmdLineKind>EXPLICIT_VALUE</cmdLineKind>
+		<value>20</value>
+		<mutable>true</mutable>
+		<hidden>false</hidden>
+		<description>
+			<![CDATA[<b>Read length for paried reads</b>]]>
+		</description>
+		<summary>Length for paired reads</summary>
+	</parameter>
+
+	<parameter name="454RemoveLinker">
+		<kind>BOOLEAN</kind>
+		<cmdLine>--454-remove-linker</cmdLine>
+		<cmdLineKind>IMPLICIT_VALUE</cmdLineKind>
+		<value>false</value>
+		<mutable>true</mutable>
+		<hidden>false</hidden>
+		<description>
+			<![CDATA[<b>Remove linker sequence from<br/>paired reads?</b>]]>
+		</description>
+		<summary>Remove linker sequence from paired reads</summary>
+	</parameter>
+ 
+</parameterSet>
