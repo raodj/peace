@@ -35,8 +35,6 @@ package org.peace_tools.core;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
-import java.awt.Rectangle;
 import java.io.InputStream;
 
 import javax.swing.Box;
@@ -45,26 +43,19 @@ import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
-import javax.swing.JTextPane;
-import javax.swing.SwingUtilities;
 import javax.swing.SwingWorker;
 import javax.swing.border.EtchedBorder;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.plaf.ComponentUI;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultStyledDocument;
-import javax.swing.text.Style;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyleContext;
 
 import org.peace_tools.core.session.ServerSession;
 import org.peace_tools.core.session.SessionFactory;
+import org.peace_tools.generic.ProcessOutputDisplay;
 import org.peace_tools.generic.ProgrammerLog;
 import org.peace_tools.generic.Utilities;
 import org.peace_tools.workspace.Server;
 
-public class PEACEInstaller extends SwingWorker<Void, Void> implements DocumentListener {
+public class PEACEInstaller extends SwingWorker<Void, Void> {
 	/**
 	 * The constructor lays out the main components in this tab.
 	 * 
@@ -73,6 +64,9 @@ public class PEACEInstaller extends SwingWorker<Void, Void> implements DocumentL
 	public PEACEInstaller(Server server) {
 		// Save the server reference.
 		this.server = server;
+		// Create the styled document used to display output
+		// from the installer process.
+		pod = new ProcessOutputDisplay();
 		// Create the panel associated with the output for this
 		// worker.
 		
@@ -102,33 +96,8 @@ public class PEACEInstaller extends SwingWorker<Void, Void> implements DocumentL
 	 * This method is called only once from the constructor. 
 	 */	
 	private void createOutputPane() {
-		// Create our document with a suitable style context.
-		StyleContext sc = new StyleContext();
-		output = new DefaultStyledDocument(sc);
-		output.addDocumentListener(this);
-		// Setup some standard styles we are going to use.
-		Style style = sc.addStyle("stdout", null);
-		style.addAttribute(StyleConstants.Foreground, Color.black);
-		style = sc.addStyle("stderr", null);
-		style.addAttribute(StyleConstants.Foreground, Color.red);
-		style = sc.addStyle("warning", null);
-		style.addAttribute(StyleConstants.Foreground, Color.orange);
-		style = sc.addStyle("info", null);
-		style.addAttribute(StyleConstants.Foreground, Color.blue);
-		
-		// Create the text pane to display output logs
-		textPane = new JTextPane(output) {
-			private static final long serialVersionUID = -2728430057905161506L;
-			@Override
-			public boolean getScrollableTracksViewportWidth() {
-			    Component parent = getParent();
-			    ComponentUI ui = getUI();
-			    return parent != null ? (ui.getPreferredSize(this).width <= parent
-			        .getSize().width) : true;
-			  }
-		};
 		// Add the text pane to a scroll pane to handle large outputs
-		JScrollPane jsp = new JScrollPane(textPane);
+		JScrollPane jsp = new JScrollPane(pod.getTextPane());
 		// Add the scroll pane to this tab as well.
 		container.add(jsp, BorderLayout.CENTER);
 	}
@@ -197,12 +166,12 @@ public class PEACEInstaller extends SwingWorker<Void, Void> implements DocumentL
 	 */
 	protected void addLog(String entry, String style) {
 		try {
+			DefaultStyledDocument output = pod.getDoc();
 			// Add the output in given style
 			output.insertString(output.getLength(), entry, 
 					output.getStyle(style));
-			// Scroll the output to the bottom.
-			textPane.scrollRectToVisible(new Rectangle(0,
-					textPane.getHeight()-2, 1, 1));
+			// Scroll the output to the bottom is automatically
+			// done by the ProcessOutputDisplay class.
 		} catch (BadLocationException e) {
 			ProgrammerLog.log(e);
 		}
@@ -235,7 +204,7 @@ public class PEACEInstaller extends SwingWorker<Void, Void> implements DocumentL
 			if (instCmd != null) {
 				// Run the install command and display outputs.
 				addLog("\nRunning install command: " + instCmd + "\n");
-				exitCode = rss.exec(instCmd, output);
+				exitCode = rss.exec(instCmd, pod.getDoc());
 			}
 			// Create working directory on the server for storing job and
 			// est data files.
@@ -312,61 +281,11 @@ public class PEACEInstaller extends SwingWorker<Void, Void> implements DocumentL
 	}
 	
 	/**
-	 * Implementation for method in DocumentListener to scroll to
-	 * end of the document. This is not the best of implementation
-	 * for this method but is sufficient for this class.
-	 * 
-	 * @param arg0 The document associated with the call. Currently,
-	 * this event is not used.
+	 * Helper class to display styled output from the installation
+	 * process. This class contains an styled document along with
+	 * a text pane to display the styled document.
 	 */
-	@Override
-	public void changedUpdate(DocumentEvent arg0) {
-		insertUpdate(arg0);
-	}
-
-	/**
-	 * Implementation for method in DocumentListener to scroll to
-	 * end of the document. This is not the best of implementation
-	 * for this method but is sufficient for this class.
-	 * 
-	 * @param arg0 The document associated with the call. Currently,
-	 * this event is not used.
-	 */
-	@Override
-	public void insertUpdate(DocumentEvent arg0) {
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				textPane.scrollRectToVisible(new Rectangle(0,
-						textPane.getHeight()-2, 1, 1));	
-			}
-		});
-	}
-
-	/**
-	 * Implementation for method in DocumentListener to scroll to
-	 * end of the document. This is not the best of implementation
-	 * for this method but is sufficient for this class.
-	 * 
-	 * @param arg0 The document associated with the call. Currently,
-	 * this event is not used.
-	 */
-	@Override
-	public void removeUpdate(DocumentEvent arg0) {
-		insertUpdate(arg0);
-	}
-	
-	/**
-	 * The styled document that is used to display the output from
-	 * the installation process is different colors.
-	 */
-	private DefaultStyledDocument output;
-	
-	/**
-	 * The text pane where the output from the installation 
-	 * process is displayed.
-	 */
-	private JTextPane textPane;
+	private final ProcessOutputDisplay pod;
 	
 	/**
 	 * A roving progress bar to show the user we are doing 

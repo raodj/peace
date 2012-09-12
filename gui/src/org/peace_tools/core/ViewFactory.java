@@ -74,7 +74,7 @@ import org.peace_tools.views.DataSetTreeView;
 import org.peace_tools.views.ESTTableView;
 import org.peace_tools.views.GenericHTMLView;
 import org.peace_tools.views.JobDetailsView;
-import org.peace_tools.views.JobListView;
+import org.peace_tools.views.JobTreeTableView;
 import org.peace_tools.views.MSTFileView;
 import org.peace_tools.views.ProgrammerLogPane;
 import org.peace_tools.views.ServerJobsView;
@@ -86,6 +86,7 @@ import org.peace_tools.workspace.DataSet.DataFileType;
 import org.peace_tools.workspace.FileEntry;
 import org.peace_tools.workspace.Job;
 import org.peace_tools.workspace.Server;
+import org.peace_tools.workspace.Workspace;
 
 /**
  * A factory to help with creation of views.
@@ -216,7 +217,8 @@ public abstract class ViewFactory implements DnDTabListener {
 		dstv.setTableView(dsflv);
 		dsflv.setDataSetTreeView(dstv);
 		// Create and add job list to the bottom of the hierarchy
-		JobListView jlv = new JobListView(mainFrame);
+		JobTreeTableView jlv = new JobTreeTableView(mainFrame, 
+				Workspace.get().getJobList());
 		DnDTabbedPane leftBotPane = 
 			leftPane.createSplitPane("Jobs", 
 					Utilities.getIcon("images/16x16/Job.png"), 
@@ -293,7 +295,7 @@ public abstract class ViewFactory implements DnDTabListener {
 			view = new ESTTableView(model, mainFrame);
 		} else if (ViewType.HTML_VIEW.equals(viewType)) {
 			// Create an HTML view of the specified data file.
-			view = new GenericHTMLView(dataFileName, mainFrame);
+			view = new GenericHTMLView(dataFileName, false, mainFrame);
 		} else if (ViewType.TEXT_VEIW.equals(viewType)) {
 			// Create a simple text view of the file
 			view = createTextView(dataFileName); 

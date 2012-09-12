@@ -33,16 +33,22 @@
 
 package org.peace_tools.core;
 
+import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 
 import javax.swing.AbstractButton;
+import javax.swing.Box;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
 import javax.swing.ProgressMonitor;
@@ -50,6 +56,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.event.TreeSelectionListener;
 
+import org.netbeans.swing.outline.DefaultOutlineModel;
 import org.peace_tools.core.job.baton.BatonJobWizard;
 import org.peace_tools.core.job.clustering.ClusteringJobWizard;
 import org.peace_tools.core.job.east.EASTJobWizard;
@@ -60,6 +67,8 @@ import org.peace_tools.generic.ProgrammerLog;
 import org.peace_tools.generic.Utilities;
 import org.peace_tools.workspace.Job;
 import org.peace_tools.workspace.JobBase;
+import org.peace_tools.workspace.JobList;
+import org.peace_tools.workspace.JobList.JobOrListWrapper;
 import org.peace_tools.workspace.Server;
 import org.peace_tools.workspace.Workspace;
 
@@ -87,6 +96,9 @@ public class JobMenuHelper extends AbstractMenuHelper
 	 */
 	public JobMenuHelper(MainFrame mainFrame) {
 		super(AbstractMenuHelper.HelperType.JOB_MENU, mainFrame);
+		// Initialize instance variables
+		job     = null;
+		subList = null;
 	}
 	
 	/**
@@ -129,6 +141,11 @@ public class JobMenuHelper extends AbstractMenuHelper
 		jobMenu.add(getMenuItem(AbstractMenuHelper.ActionType.REMOVE_JOB, true));
 		jobMenu.addSeparator();
 		
+		// Add options to create and delete job sublists.
+		jobMenu.add(getMenuItem(AbstractMenuHelper.ActionType.CREATE_SUBLIST, true));
+		jobMenu.add(getMenuItem(AbstractMenuHelper.ActionType.DELETE_SUBLIST, true));
+		jobMenu.addSeparator();
+
 		// Finally create the server entries in the menu.
 		jobMenu.add(getMenuItem(AbstractMenuHelper.ActionType.SHOW_JOBS_ON_SERVER, true));
 		jobMenu.add(getMenuItem(AbstractMenuHelper.ActionType.SHOW_MY_JOBS_ON_SERVER, true));
@@ -181,12 +198,12 @@ public class JobMenuHelper extends AbstractMenuHelper
 			 return;
 		}
 		// Rest of the menu options are context sensitive.
-		if (job == null) {
+		if ((job == null) || (job.getJob() == null)) {
 			// Huh! no job is really selected. can't perform action
 			return;
 		}
 		if ("startMonitor".equals(cmd)) {
-			boolean result = JobMonitor.create(job, mainFrame);
+			boolean result = JobMonitor.create(job.getJob(), mainFrame);
 			String msg = "Job monitoring thread was " + 
 						 (result ? "" : "not ") + "started.";
 			JOptionPane.showMessageDialog(mainFrame, msg, "Job Monitor", 
@@ -194,27 +211,33 @@ public class JobMenuHelper extends AbstractMenuHelper
 		} else if ("stopMonitor".equals(cmd)) {
 			// Try and interrupt the job monitor thread. But no guarantee
 			// that the thread is in a position to actually stop.
-			JobMonitor.interrupt(job);
+			JobMonitor.interrupt(job.getJob());
 		} else if ("deleteJob".equals(cmd)) {
 			// Use the delete dialog to delete the job entry and 
 			// remove associated files.
-			DeleteDialog delDiag = new DeleteDialog(mainFrame, job);
+			DeleteDialog delDiag = new DeleteDialog(mainFrame, job.getJob());
 			delDiag.setVisible(true);
 		} else if ("viewJob".equals(cmd)) {
-			Server server = Workspace.get().getServerList().getServer(job.getServerID());
-			mainFrame.getViewFactory().createView(job, server);
+			Server server = Workspace.get().getServerList().getServer(job.getJob().getServerID());
+			mainFrame.getViewFactory().createView(job.getJob(), server);
 		} else if ("abortJob".equals(cmd)) {
 			// Use helper method to keep this method streamlined
-			abortJob(job);
+			abortJob(job.getJob());
 		} else if ("showJobsOnServer".equals(cmd)) {
-			Server server = Workspace.get().getServerList().getServer(job.getServerID());
+			Server server = Workspace.get().getServerList().getServer(job.getJob().getServerID());
 			mainFrame.getViewFactory().createView(server, null);
 		} else if ("showMyJobsOnServer".equals(cmd)) {
-			Server server = Workspace.get().getServerList().getServer(job.getServerID());
+			Server server = Workspace.get().getServerList().getServer(job.getJob().getServerID());
 			mainFrame.getViewFactory().createView(server, server.getUserID());
+		} else if ("createSubList".equals(cmd)) {
+			this.addNewJobList((job != null) ? job : subList);
 		}
 	}
 
+	public void addJobSubList() {
+		
+	}
+	
 	/**
 	 * Method to abort a job running on a server.
 	 * 
@@ -321,7 +344,11 @@ public class JobMenuHelper extends AbstractMenuHelper
      * method essentially enables/disables various tool bar buttons
      * and menu items based on the current job selection.
      * 
-     * <p><b>Note:</b>  Currently we only handle JTable and not JList.</p>
+     * <p><b>Note:</b>  Currently we only handle a JTable based on a 
+     * JobListTableModel or a JobTreeTable with a TreeTableModel 
+     * only. Maybe this can be made more generic using an interface
+     * that returns the currently selected job rather than operating
+     * on a specific set of classes.</p>
      * 
      * @param event The selection event associated with this method.
      * This event is not really used for any major information. So
@@ -332,28 +359,52 @@ public class JobMenuHelper extends AbstractMenuHelper
 		if ((event != null) && (event.getValueIsAdjusting())) {
 			return;
 		}
+		// The event does not seem to reliably give a single selected
+		// row for us to work. So we use the model to get the currently
+		// selected job. However, we need to deal with two different types
+		// of models below. So there is a if-else blow.
 		assert ( table != null );
-		if (!(table.getModel() instanceof JobListTableModel)) {
-			// The table model is not really compatible.
+		String serverName = "<n/a>";
+		if (table.getModel() instanceof JobListTableModel) {
+			JobListTableModel model = (JobListTableModel) table.getModel();
+			final int row           = table.getSelectedRow();
+			// Extract necessary information from the model
+			job = model.getEntry(row);
+			serverName = (String) model.getValueAt(row, 3);
+		} else if (table.getModel() instanceof DefaultOutlineModel) {
+			DefaultOutlineModel model = (DefaultOutlineModel) table.getModel();
+			final int row             = table.getSelectedRow();
+			// Extract necessary information from the model
+			JobOrListWrapper wrapper = (JobOrListWrapper) model.getValueAt(row, -1);
+			if ((wrapper != null) && (!wrapper.isSubList())) {
+				job       = wrapper;
+				subList   = null;
+				serverName = (String) model.getValueAt(row, 3);
+			} else {
+				job     = null;
+				subList = wrapper;
+			}
+		} else {
+			// This table model is not really compatible.
 			return;
 		}
-		JobListTableModel model = (JobListTableModel) table.getModel();
-		final int row           = table.getSelectedRow();
 		// A couple of flags to help make checks below easier
-		job = model.getJob(row);
-
-		final boolean haveMonitor = ((job != null) && (job.getMonitor() != null));
-        final boolean haveServer  = !"<n/a>".equals(model.getValueAt(row, 3));
+		final boolean haveMonitor = ((job != null) && (job.getJob().getMonitor() != null));
+        final boolean haveServer  = !"<n/a>".equals(serverName);
 		// Enable / disable tools and menus based on the job status.
-		setEnabled("startMonitor", (job != null) && (!haveMonitor) && !job.isDone() && !job.isWaiting());
+		setEnabled("startMonitor", (job != null) && (!haveMonitor) && !job.getJob().isDone() && !job.getJob().isWaiting());
 		setEnabled("stopMonitor",  (job != null) && (haveMonitor));
 		setEnabled("viewJob",      (job != null));
-		setEnabled("abortJob",     (job != null) && !job.isDone() && !job.isWaiting());
-		setEnabled("deleteJob",    (job != null) && job.isDone());
+		setEnabled("abortJob",     (job != null) && !job.getJob().isDone() && !job.getJob().isWaiting());
+		setEnabled("deleteJob",    (job != null) && job.getJob().isDone());
 		
 		// If we have a server enabled then enable job view options
 		setEnabled("showJobsOnServer",   haveServer);
 		setEnabled("showMyJobsOnServer", haveServer);
+		
+		// Enable creation and deletion of sub-lists.
+		setEnabled("createSubList", ((subList != null) || (job != null)));
+		setEnabled("deleteSubList",  (subList != null));
 	}
 
 	@Override
@@ -365,64 +416,74 @@ public class JobMenuHelper extends AbstractMenuHelper
 		// sensitive.
 		JMenuItem item = null;
 		if (ActionType.COMPUTE_MST.equals(actionType)) {
-			return Utilities.createMenuItem(Utilities.MENU_ITEM, "Create Job to Compute MST",
+			return Utilities.createMenuItem(Utilities.MenuItemKind.MENU_ITEM, "Create Job to Compute MST",
 					(mainMenu ? MenuSubTitles[0] : null), 
 					"NewMST", this, IconPath + "NewMST.png", 
 					null, false, false);
 		} else if (ActionType.COMPUTE_CLUSTERS.equals(actionType)) {
-			return Utilities.createMenuItem(Utilities.MENU_ITEM, "Job to Compute Clusters",
+			return Utilities.createMenuItem(Utilities.MenuItemKind.MENU_ITEM, "Job to Compute Clusters",
 					(mainMenu ? MenuSubTitles[1] : null),
 					"NewCluster", this, IconPath + "NewCluster.png", 
 					null, true, false);
 		} else if (ActionType.EAST_ASSEMBLY.equals(actionType)) {
-			return Utilities.createMenuItem(Utilities.MENU_ITEM, "Job to Assemble via EAST",
+			return Utilities.createMenuItem(Utilities.MenuItemKind.MENU_ITEM, "Job to Assemble via EAST",
 					(mainMenu ? MenuSubTitles[2] : null),
 					"east", this, IconPath + "EAST.png", 
 					null, true, false);
 		} else if (ActionType.CLUSTER_AND_EAST_ASSEMBLY.equals(actionType)) {
-			return Utilities.createMenuItem(Utilities.MENU_ITEM, "Job to Cluster & Assemble via EAST",
+			return Utilities.createMenuItem(Utilities.MenuItemKind.MENU_ITEM, "Job to Cluster & Assemble via EAST",
 					(mainMenu ? MenuSubTitles[3] : null),
 					"peace_east", this, IconPath + "PEACE_EAST.png", 
 					null, true, false);
 		} else if (ActionType.BATON.equals(actionType)) {
-			return Utilities.createMenuItem(Utilities.MENU_ITEM, "Job to Run BATON assembler",
+			return Utilities.createMenuItem(Utilities.MenuItemKind.MENU_ITEM, "Job to Run BATON assembler",
 					(mainMenu ? MenuSubTitles[11] : null),
 					"baton", this, IconPath + "Baton.png", 
 					null, true, false);
 		} else if (ActionType.START_JOB_MONITOR.equals(actionType)) {
-			item = Utilities.createMenuItem(Utilities.MENU_ITEM, "Start Job Monitor",
+			item = Utilities.createMenuItem(Utilities.MenuItemKind.MENU_ITEM, "Start Job Monitor",
 					(mainMenu ? MenuSubTitles[4] : null),
 					"startMonitor", this, IconPath + "StartJobMonitor.png", 
 					null, false, false);
 		} else if (ActionType.STOP_JOB_MONITOR.equals(actionType)) {
-			item = Utilities.createMenuItem(Utilities.MENU_ITEM, "Stop Job Monitor",
+			item = Utilities.createMenuItem(Utilities.MenuItemKind.MENU_ITEM, "Stop Job Monitor",
 					(mainMenu ? MenuSubTitles[5] : null),
 					"stopMonitor", this, IconPath + "StopJobMonitor.png", 
 					null, false, false);
 		} else if(ActionType.SHOW_JOB_DETAILS.equals(actionType)) {
-			item = Utilities.createMenuItem(Utilities.MENU_ITEM, "View Job Details",
+			item = Utilities.createMenuItem(Utilities.MenuItemKind.MENU_ITEM, "View Job Details",
 					(mainMenu ? MenuSubTitles[6] : null),
 					"viewJob", this, IconPath + "ViewJob.png", 
 					null, false, false);
 		} else if (ActionType.ABORT_JOB.equals(actionType)) {
-			item = Utilities.createMenuItem(Utilities.MENU_ITEM, "Abort Job",
+			item = Utilities.createMenuItem(Utilities.MenuItemKind.MENU_ITEM, "Abort Job",
 					(mainMenu ? MenuSubTitles[7] : null),
 					"abortJob", this, IconPath + "AbortJob.png", 
 					null, false, false);
 		} else if (ActionType.REMOVE_JOB.equals(actionType)) {
-			item = Utilities.createMenuItem(Utilities.MENU_ITEM, "Remove Job",
+			item = Utilities.createMenuItem(Utilities.MenuItemKind.MENU_ITEM, "Remove Job",
 					(mainMenu ? MenuSubTitles[8] : null),
 					"deleteJob", this, IconPath + "Delete.png", 
 					null, false, false);
 		} else if (ActionType.SHOW_JOBS_ON_SERVER.equals(actionType)) {
-			item = Utilities.createMenuItem(Utilities.MENU_ITEM, "Show all Jobs on Server",
+			item = Utilities.createMenuItem(Utilities.MenuItemKind.MENU_ITEM, "Show all Jobs on Server",
 					(mainMenu ? MenuSubTitles[9] : null),
 					"showJobsOnServer", this, IconPath + "ServerInfo.png", 
 					null, false, false);
 		} else if (ActionType.SHOW_MY_JOBS_ON_SERVER.equals(actionType)) {
-			item = Utilities.createMenuItem(Utilities.MENU_ITEM, "Show my jobs on Server",
+			item = Utilities.createMenuItem(Utilities.MenuItemKind.MENU_ITEM, "Show my jobs on Server",
 					(mainMenu ? MenuSubTitles[10] : null),
 					"showMyJobsOnServer", this, IconPath + "ServerMyJobs.png", 
+					null, false, false);
+		} else if (ActionType.CREATE_SUBLIST.equals(actionType)) {
+			item = Utilities.createMenuItem(Utilities.MenuItemKind.MENU_ITEM, "Create Job Sublist",
+					(mainMenu ? MenuSubTitles[12] : null),
+					"createSubList", this, IconPath + "AddJobSet.png", 
+					null, false, false);
+		} else if (ActionType.DELETE_SUBLIST.equals(actionType)) {
+			item = Utilities.createMenuItem(Utilities.MenuItemKind.MENU_ITEM, "Delete Job Sublist",
+					(mainMenu ? MenuSubTitles[13] : null),
+					"deleteSubList", this, IconPath + "DeleteJobSet.png", 
 					null, false, false);
 		}
 		// When control drops here that means the menu item is
@@ -478,6 +539,9 @@ public class JobMenuHelper extends AbstractMenuHelper
 		} else if (ActionType.SHOW_MY_JOBS_ON_SERVER.equals(actionType)) {
 			tool = Utilities.createToolButton(IconPath + "ShowMyJobs.png", null,
 					"showMyJobsOnServer", this, MenuSubTitles[10], false);
+		} else if (ActionType.CREATE_SUBLIST.equals(actionType)) {
+			tool = Utilities.createToolButton(IconPath + "AddJobSet.png", null,
+					"createSubList", this, MenuSubTitles[12], false);
 		}
 		// When control drops here that means the menu item is
 		// context sensitive. So track these menu items.
@@ -489,6 +553,34 @@ public class JobMenuHelper extends AbstractMenuHelper
 		return tool;
 	}
 
+	public void addNewJobList(JobOrListWrapper insertPointer) {
+		// Create the input fields
+		JTextField jlName = new JTextField(30);   // Name for job list
+		JTextArea  jlDesc = new JTextArea(3, 30); // Description
+		JPanel inputPanel = Utilities.createLabeledComponents("Title for Sublist:", null, 
+				4, false, jlName, Box.createVerticalStrut(7), 
+				Utilities.createLabeledComponents("Description:", 
+				"(This is for your future reference)", 0, false, 
+				new JScrollPane(jlDesc)));
+		// Create an informational message
+		JLabel info = new JLabel(ADD_JOBLIST_INFO, Utilities.getIcon("images/32x32/JobSet.png"), JLabel.LEFT);
+		// Place all the information into a JPanel for passing to JOptionPane
+		JPanel subPanel = new JPanel(new BorderLayout(5, 5));
+		subPanel.add(info, BorderLayout.NORTH);
+		subPanel.add(inputPanel, BorderLayout.CENTER);
+		// Create the JOptionPane with appropriate parameters.
+		int choice = JOptionPane.showConfirmDialog(mainFrame, subPanel, 
+				"Add new Job Sublist", JOptionPane.OK_CANCEL_OPTION, 
+				JOptionPane.PLAIN_MESSAGE, null);
+		if (choice == JOptionPane.YES_OPTION) {
+			// Create new job sublist.
+			JobList subList = new JobList(jlName.getText(), jlDesc.getText());
+			JobList jobList = Workspace.get().getJobList().find(insertPointer);
+			int insertPos   = jobList.getJobs().indexOf(insertPointer);
+			jobList.insert(subList, insertPos);
+		}
+	}
+	
 	@Override
 	public TreeSelectionListener getTreeSelectionListener(JTree tree) {
 		return null;
@@ -500,7 +592,18 @@ public class JobMenuHelper extends AbstractMenuHelper
 	 * job entry is selected. If a valid job entry is not selected
 	 * then this entry is set to null.
 	 */
-	private Job job;
+	private JobOrListWrapper job;
+
+	/**
+	 * The currently selected job sublist entry (if any). This value is
+	 * updated by the list selection listener whenever a valid
+	 * job sublist entry is selected. If a valid sublist entry is not selected
+	 * then this entry is set to null. Note that at any given time,
+	 * either {@link #job} or {@link #subList} is used and the one
+	 * unused is set to null (both cannot be non-null at the same time
+	 * given the current system design). 
+	 */
+	private JobOrListWrapper subList;
 	
 	/**
 	 * The various sub menu titles that are used in the main menu. The
@@ -520,7 +623,9 @@ public class JobMenuHelper extends AbstractMenuHelper
 		"Remove currently selected job from work space",
 		"Show all jobs running on the same server",
 		"Show only my jobs running on the same server",
-		"Create and submit a job to run BATON assembler"
+		"Create and submit a job to run BATON assembler",
+		"Create a new Job sublist (helps to organize jobs)",
+		"Delete currently selected job list (if it is empty)"
 	};
 	
 	/**
@@ -578,5 +683,15 @@ public class JobMenuHelper extends AbstractMenuHelper
 	private static final String SUCCESS_MSG = "<html>" +
 		"The job with job ID %s that was running on<br>" +
 		"server %s has been aborted." +
+		"</html>";
+	
+	/**
+	 * A simple ifnormational message that is included in the dialog
+	 * displayed to the user when creating a new job set.
+	 */
+	private static final String ADD_JOBLIST_INFO = "<html>" +
+		"Job sublists provide a conveient mechanism to organize jobs<br/>" +
+		"in the workspace. Once a job list has been created existing jobs<br/>" +
+		"and sublists can be dragged into the newly created job list." +
 		"</html>";
 }

@@ -183,7 +183,7 @@ implements ActionListener {
 		final String IconPath = "images/" + (mainMenu ? "24x24/" : "16x16/") 
 			+ IconNames[index] + ".png";
 		// Create and return the main menu item
-		return Utilities.createMenuItem(Utilities.MENU_ITEM, MenuTitles[index],
+		return Utilities.createMenuItem(Utilities.MenuItemKind.MENU_ITEM, MenuTitles[index],
 				(mainMenu ? MenuSubTitles[index] : null),
 				ActionCmds[index], this, IconPath, 
 				null, true, false);
@@ -206,7 +206,6 @@ implements ActionListener {
 
 	@Override
 	public TreeSelectionListener getTreeSelectionListener(JTree tree) {
-		// TODO Auto-generated method stub
 		return null;
 	}
 	
