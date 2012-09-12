@@ -179,7 +179,8 @@ UVSampleHeuristic::computeHash(const EST* est) {
     ASSERT ( est  != NULL );
     const char *sq2  = est->getSequence();
     ASSERT ( sq2 != NULL );
-    const int End    = (int) est->getSequenceLength() - v;
+    const int End    = std::max(est->getSequenceLength(),
+                                (int) est->getSequenceLength() - v);
     ASSERT ( End > 0 );
     
     // Get the codec for encoding/decoding operations
