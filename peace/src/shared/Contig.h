@@ -164,6 +164,36 @@ public:
 		   const std::vector<int>& qualities,
            NtDistrList::const_iterator start, NtDistrList::const_iterator end);
 
+    /** Convenience constructor to create a (partially-filled) contig
+        with just an ID and consensus sequence.
+
+        This is a convenience constructor that can be used to
+        instantiate a contig with some information already filled.
+        The following information is left un-filled:
+
+        <ul>
+
+        <li>The quality information is left unfilled. Consequently the
+        getQuality() method on this object will return an empty
+        quality vector.</li>
+
+        <li>The nucleotide distribution information is left unfilled
+        (consequently, the occurrence frequency for each position on
+        the consensus sequence will not be available)</li>
+        
+        </ul>
+
+        \param[in] contigId The unique contig ID to be associated with
+        this contig. In parallel assembly situations, each parallel
+        process typically has a contig with the same ID in it (for
+        convenient processing and distributing memory load across
+        multiple machines).
+
+        \param[in] consensus The consensus sequence to be associated
+        with this contig.  If a consensus sequence is not available,
+        then this string can be an empty string (\c "").
+    */
+    Contig(const std::string& contigId, const std::string& consensus);
     
     /** Obtain the contig ID associated with this contig.
 

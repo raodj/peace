@@ -140,8 +140,8 @@ public:
         number of bases from the leftmost mapped base to the rightmost
         mapped base. The leftmost segment has a plus sign and the
         rightmost has a minus sign. The sign of segments in the middle
-        is undened. It is set as 0 for single-segment template or when
-        read-pair information is unavailable.
+        is undefined. It is set as 0 for single-segment template or
+        when read-pair information is unavailable.
         
         \param[in] alignScore An optional alignment score (if any) for
         this alignment.  The alignment score is completely dependent
