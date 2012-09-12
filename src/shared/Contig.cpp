@@ -45,6 +45,11 @@ Contig::Contig(const std::string& id, const std::string& consensusSeq,
     // Nothing else to be done for now.
 }
 
+Contig::Contig(const std::string& id, const std::string& consensusSeq) :
+    consensus(consensusSeq), contigId(id) {
+    // Nothing else to be done for now.
+}
+
 void
 Contig::addAlignmentInfo(const AlignmentInfo& ai) {
     alignments.push_back(ai);
@@ -58,6 +63,11 @@ Contig::setId(const std::string& id) {
 void
 Contig::setConsensus(const std::string& consensusStr) {
     consensus = consensusStr;
+}
+
+void
+Contig::setQuality(const std::vector<int>& qualValues) {
+    quality = qualValues;
 }
 
 void
