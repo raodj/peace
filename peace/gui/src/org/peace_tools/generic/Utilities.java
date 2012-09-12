@@ -49,6 +49,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -57,6 +58,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.List;
 
 import javax.swing.AbstractButton;
 import javax.swing.Box;
@@ -66,6 +68,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JRadioButtonMenuItem;
@@ -92,22 +95,43 @@ public class Utilities {
 	 */
 	public static final String PATH_PREFIX = "../../../";
 
-	/** Constant that can be supplied to the createMenuItem method */
-	public static final int MENU_ITEM = 1;
-
-	/** Constant that can be supplied to the createMenuItem method */
-	public static final int CHECK_BOX_ITEM = 2;
-
-	/** Constant that can be supplied to the createMenuItem method */
-	public static final int RADIO_BUTTON_ITEM = 3;
-
+	/**
+	 * A simple string that has 4 HTML spaces. This string is typically used
+	 * to indent HTML content a bit to organize them better.
+	 */
+	public static final String HTML_4SPACES = "&nbsp; &nbsp; &nbsp; &nbsp;";
+	
+	/** Constants that can be supplied to the createMenuItem method 
+	 * to create different types of menu items to be added to a menu
+	 */
+	public enum MenuItemKind {
+		/** Creates a routine menu item with an icon, main text, and sub-text */
+		MENU_ITEM, 
+		/** Create a check-box type menu item that contains a small check-box
+		 * that the user can select/unselect.
+		 */
+		CHECK_BOX_ITEM, 
+		/**
+		 * Create a radio button item that can be used to select one of 
+		 * several options. Refer to the standard Javadoc on 
+		 * {@link JMenuItem} for details on how to use radio button item.
+		 */
+		RADIO_BUTTON_ITEM, 
+		/**
+		 * This is a sub-menu item that can contain other sub-menus and
+		 * menu items. It looks similar to a menu-item except it can 
+		 * contain sub-items.
+		 */
+		SUB_MENU_ITEM
+	};
+	
 	/**
 	 * This method is a convenience method that provides a simple mechanism for
 	 * creating a JMenuItem, given the parameters.
 	 * 
 	 * @param itemKind
 	 *            This is a enumeration value which can be MENU_ITEM,
-	 *            CHECK_BOX_ITEM, or RADIO_BUTTON_ITEM
+	 *            CHECK_BOX_ITEM, RADIO_BUTTON_ITEM, or SUB_MENU_ITEM
 	 * 
 	 * @param itemTitle
 	 *            String representing the menu option. Note: The string may
@@ -144,7 +168,7 @@ public class Utilities {
 	 * 
 	 * @return The newly created JMenuItem or NULL on error!
 	 */
-	public static JMenuItem createMenuItem(int itemKind, String itemTitle,
+	public static JMenuItem createMenuItem(MenuItemKind itemKind, String itemTitle,
 			String command, ActionListener al, String iconFileName,
 			KeyStroke shortCut, boolean enable, boolean auxFlag) {
 
@@ -196,6 +220,11 @@ public class Utilities {
 			menuItem = new JRadioButtonMenuItem(itemTitle, icon, auxFlag);
 			break;
 
+		case SUB_MENU_ITEM:
+			menuItem = new JMenu(itemTitle);
+			menuItem.setIcon(icon);
+			break;
+			
 		case MENU_ITEM:
 		default:
 			menuItem = new JMenuItem(itemTitle, icon);
@@ -275,6 +304,9 @@ public class Utilities {
 	 * This method is a convenience method that provides a simple mechanism for
 	 * creating a JMenuItem, given the parameters.
 	 * 
+	 * <p><b>Note</b>: For created sub-menu's the return value can be 
+	 * safely type cast to a JMenu object.</p>
+	 * 
 	 * @param itemKind
 	 *            This is a enumeration value which can be MENU_ITEM,
 	 *            CHECK_BOX_ITEM, or RADIO_BUTTON_ITEM
@@ -318,7 +350,7 @@ public class Utilities {
 	 * 
 	 * @return The newly created JMenuItem or NULL on error!
 	 */
-	public static JMenuItem createMenuItem(int itemKind, String itemTitle,
+	public static JMenuItem createMenuItem(MenuItemKind itemKind, String itemTitle,
 			String subTitle, String command, ActionListener al, 
 			String iconFileName, KeyStroke shortCut, boolean enable, 
 			boolean auxFlag) {
@@ -369,9 +401,9 @@ public class Utilities {
 		}
 		// Fold the subTitle message so that it does not exceed 45 
 		// characters and fold at word boundaries.
-		String wrappedTitle = wrapStringToHTML(subTitle, 45);
+		final String wrappedTitle = wrapStringToHTML(subTitle, 45);
 		// Construct a full HTML item text.
-		String fullItem = "<html><b>" + itemTitle + "</b><br>" +
+		final String fullItem = "<html><b>" + itemTitle + "</b><br>" +
 		"<font size=\"-2\">" + wrappedTitle + "</font></html>";
 		// Create suitable menu item.
 		switch (itemKind) {
@@ -383,6 +415,10 @@ public class Utilities {
 			menuItem = new JRadioButtonMenuItem(fullItem, icon, auxFlag);
 			break;
 
+		case SUB_MENU_ITEM:
+			menuItem = new JMenu(fullItem);
+			menuItem.setIcon(icon);
+			break;
 		case MENU_ITEM:
 		default:
 			menuItem = new JMenuItem(fullItem, icon);
@@ -748,6 +784,13 @@ public class Utilities {
 			if (uri == null) {
 				uri = Utilities.class.getResource(PATH_PREFIX + path);
 			}
+			// Finally simply try the path
+			if (uri == null) {
+				File tempFile = new File(path);
+				if (tempFile.exists() && tempFile.canRead()) {
+					uri = tempFile.toURI().toURL();
+				}
+			}
 			if (uri == null) {
 				throw new IOException("The image '" + path + "' was not found."); 
 			}
@@ -916,6 +959,9 @@ public class Utilities {
 	 * <li>If the above step fails, it attempts to obtain the resource by prepending the
 	 * PATH_PREFIX constant defined in this class to the resource name.</li>
 	 * 
+	 * <li>If the above step fails, it assumes the path is an external absolute
+	 * path and attempts to open the file.</li>
+	 * 
 	 * </ul>
 	 * 
 	 * @param resourceName The relative path/name of the resource to which an input stream
@@ -923,13 +969,19 @@ public class Utilities {
 	 * 
 	 * @return A valid input stream to the requested resource.
 	 * 
-	 * @throws Exception This method throws an exception if a valid input stream could not
+	 * @throws IOException This method throws an exception if a valid input stream could not
 	 * be created to the specified resource.
 	 */
-	public static InputStream getStream(String resourceName) throws Exception {
+	public static InputStream getStream(String resourceName) throws IOException {
 		InputStream is = Utilities.class.getResourceAsStream("/" + resourceName);
 		if (is == null) {
 			is = Utilities.class.getResourceAsStream(PATH_PREFIX + resourceName);
+		}
+		if (is == null) {
+			File tmpFile = new File(resourceName);
+			if (tmpFile.exists() && tmpFile.canRead()) {
+				is = new FileInputStream(resourceName);
+			}
 		}
 		if (is == null) {
 			throw new IOException("Requested resource '" + resourceName + "' was not found.");
@@ -1039,12 +1091,35 @@ public class Utilities {
 	 * disabled.
 	 */
 	public static void setEnabled(Container parent, boolean status) {
+		setEnabled(parent, status, null);
+	}
+
+	/**
+	 * Helper method to recursively enable/disable a component and its children.
+	 * 
+	 * This is a helper method that can be used to recursively enable or disable
+	 * a component and its children. This is a feature that is not provided
+	 * by swing. In addition, this method appropriately adds color decorations
+	 * to JLabel's that have HTML text in them.
+	 * 
+	 * @param parent The parent component whose status is to be changed.
+	 * @param status If true, the components are enabled otherwise the component is
+	 * disabled.
+	 * @param ignore This component is ignored and it is not enabled or disabled.
+	 * This is helpful in cases where a child component toggles other controls
+	 * to be enabled or disabled.
+	 */
+	public static void setEnabled(Container parent, boolean status, final Component ignore) {
 		parent.setEnabled(status);
 		final int ChildCount = parent.getComponentCount();
 		for(int childIdx = 0; (childIdx < ChildCount); childIdx++) {
 			Component child = parent.getComponent(childIdx);
+			if (child == ignore) {
+				// This is component to ignore
+				continue;
+			}
 			if (child instanceof Container) {
-				setEnabled((Container) child, status);
+				setEnabled((Container) child, status, ignore);
 			} else {
 				child.setEnabled(status);
 			}
@@ -1059,7 +1134,7 @@ public class Utilities {
 			}
 		}
 	}
-
+	
 	/**
 	 * Helper method to convert the stack trace in an exception to a 
 	 * string.
@@ -1076,6 +1151,43 @@ public class Utilities {
 		return strStream.getBuffer().toString();
 	}
 
+	/**
+	 * Helper method to convert a given list to a string.
+	 * 
+	 * This is a convenience method that can be used to convert a given
+	 * list to a string. This method converts each element in the list
+	 * to a string by calling the {@link #toString()} method on each
+	 * entry if the entry is not null. If the list has some null objects
+	 * then the literal string "<null>" is used to represent the entry.
+	 * There is no way to tell the difference between a null object and
+	 * an object whose {@link #toString()} method returned the literal
+	 * string "<null>".
+	 * 
+	 * @param list The list to be converted to a string. This parameter
+	 * cannot be null but can be an empty list.
+	 * 
+	 * @param delimiter The delimiter to be placed between successive
+	 * entries in the list. If this delimiter is an empty string then
+	 * no delimiter will be present between elements. Note that the 
+	 * delimiter cannot be null.
+	 * 
+	 * @return A string containing the objects in the list separated
+	 * by the given delimiter string.
+	 */
+	public static String toString(final List<? extends Object> list, 
+			final String delimiter) {
+		StringBuilder sb = new StringBuilder();
+		String delim     = ""; // Changed below after first iteration.
+		for(int i = 0; (i < list.size()); i++) {
+			final Object o   = list.get(i);
+			final String val = (o != null) ? o.toString() : "<null>";
+			sb.append(delim);
+			delim = delimiter; // Change for subsequent entries.
+			sb.append(val);
+		}
+		return sb.toString();
+	}
+	
 	/**
 	 * Helper method to create a collapsed pane with message.
 	 * 
@@ -1212,7 +1324,7 @@ public class Utilities {
 	 * is to be centered.
 	 * @param child The child component to be centered.
 	 */
-	public static void centerPanel(Window parent, Window child) {
+	public static void centerPanel(Component parent, Window child) {
 		// Get Java to put the top-left corner in center.
 		child.setLocationRelativeTo(parent); 
 		if (parent != null) {
@@ -1247,5 +1359,95 @@ public class Utilities {
 			return src.substring(0, maxLen - 2) + "...";
 		} 
 		return src;
+	}
+	
+	/**
+	 * Helper method to try and generate a unique file name.
+	 * 
+	 * This method is a convenience method that can be used to generate
+	 * a unique file name such that a file with the same name does not 
+	 * exist in the given directory. This method essentially generates
+	 * file names using monotonically increasing sequence of numbers 
+	 * (starting with 1) and checks to see if a file with the given name
+	 * exists. For example, given a directory <code>/home/raodm</code>
+	 * and fileNamePrefix <code>test</code> and extension <code>.fasta</code>
+	 * this method generates temporary file name in the form 
+	 * <code>/home/raodm/test_1.fasta</code> and checks to see if the 
+	 * file with this name exists. If it does it tries the file with
+	 * the next higher number until a non-existent file is encountered.
+	 *   
+	 * @param directory The directory in which a unique file name is
+	 * desired. This directory must exist. If the directory does not
+	 * exist then the effectiveness of this method is unspecified and
+	 * will be platform dependent.
+	 * 
+	 * @param fileNamePrefix The prefix to be used to generate the file name.
+	 * This value cannot be null.
+	 * 
+	 * @param extension The file extension to be used. This value cannot be
+	 * null.
+	 * 
+	 * @return The full path to the unique file within the given directory.
+	 */
+	public static String getUniqueFileName(final String directory, 
+			final String fileNamePrefix, final String extension) {
+		String uniqueFileName = null;
+		int trial = 1;
+		while (uniqueFileName == null) {
+			final String trialFileName = directory + 
+				File.separator + fileNamePrefix + "_" + trial + extension;
+			final File trialFile = new File(trialFileName);
+			if (!trialFile.exists()) {
+				uniqueFileName = trialFile.getAbsolutePath();
+			}
+			// Try next file name
+			trial++;
+		}
+		return uniqueFileName;
+	}
+	
+	/**
+	 * Convenience method to extract a word that occurs after a given phrase in
+	 * a string.
+	 * 
+	 * This is a helper method can be used to extract a word that occurs
+	 * after a given phrase in a string. For example given
+	 * a string <code>"Generated 201035 Base Pairs\nInsertions: 6009"</code>
+	 * and the phrase <code>"Insertions: "</code>, this method returns 
+	 * the string <code>"6009"</code>. 
+	 * 
+	 * @param source The source string in which to search for the given
+	 * phrase and return the word that occurs after the phrase.
+	 * 
+	 * @param phrase The phrase to search for. The word to be extracted is 
+	 * assumed to start right after this phrase. Initial white spaces right
+	 * after the phrase are skipped over. The word ends when the
+	 * next white space (a space, tab, or newline) is encountered in the
+	 * string or the end of string is hit.
+	 * 
+	 * @return If the word was found an extracted successfully, then this
+	 * method returns the word. Otherwise this method returns null. If the
+	 * phrase was at end-of-string then this method returns an empty string.
+	 */
+	public static String getWordAfter(final String source, final String phrase) {
+		String retVal = null;
+		final int phrasePos = source.indexOf(phrase); // find phrase.
+		if (phrasePos != -1) {
+			// Phrase found. Extract next word after the phrase.
+			int wordPos = phrasePos + phrase.length();
+			// Skip over white spaces until a non-white-space character
+			while ((wordPos < source.length()) && Character.isWhitespace(source.charAt(wordPos))) {
+				wordPos++;
+			}
+			// Gather characters after the phrase until a white space
+			// is encountered.
+			StringBuilder word = new StringBuilder(32);
+			while ((wordPos < source.length()) && !Character.isWhitespace(source.charAt(wordPos))) {
+				word.append(source.charAt(wordPos++));
+			} 
+			// Extract the word to be returned to the user
+			retVal = word.toString();
+		}
+		return retVal;
 	}
 }
