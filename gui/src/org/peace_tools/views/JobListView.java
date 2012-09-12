@@ -61,6 +61,7 @@ import org.peace_tools.data.JobListTableModel;
 import org.peace_tools.generic.Utilities;
 import org.peace_tools.workspace.Job;
 import org.peace_tools.workspace.JobBase;
+import org.peace_tools.workspace.JobList;
 
 /**
  * This class provides a tabular view of the list of jobs that are
@@ -77,14 +78,17 @@ public class JobListView extends JPanel {
 	 * 
 	 * @param mainFrame The main frame that logically owns this job list
 	 * view. The main frame is primarily used as the job listener which
-	 * receives notifications on job completion. 
+	 * receives notifications on job completion.
+	 * 
+	 *  @param root The top-level job list whose job information is
+	 *  to be displayed by this view.
 	 */
-	public JobListView(MainFrame mainFrame) {
+	public JobListView(MainFrame mainFrame, JobList root) {
 		super(new BorderLayout(0, 0));
 		// Set reference to main frame
 		this.mainFrame = mainFrame;
 		// First create the model and the table.
-		model = new JobListTableModel();
+		model = new JobListTableModel(root);
 		jobTable = new JTable(model) {
 			private static final long serialVersionUID = 1430052270991586572L;
 			@Override

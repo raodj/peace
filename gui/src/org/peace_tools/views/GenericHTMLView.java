@@ -72,9 +72,13 @@ public class GenericHTMLView extends JPanel implements HyperlinkListener {
 	 * out the welcome screen. This includes loading the welcome
 	 * HTML file.
 	 * 
-	 * @param fileOrURL The file name (which is assumed to be in PEACE
-	 * source hierarchy/jar) or the HTTP URL to be displayed. Note that it
-	 * is assumed that URLs are prefixed with http:// while files are not.
+	 * @param fileURLorText The file name (which is assumed to be in PEACE
+	 * source hierarchy/jar), the HTTP URL to be displayed, or the HTML text
+	 * straight-up. Note that it is assumed that URLs are prefixed with 
+	 * http:// while files are not.
+	 * 
+	 * @param isText If this flag is set to true, then it is assumed that the
+	 * fileURLorText contains a piece of HTML text that is ready to be displayed. 
 	 * 
 	 * @param mainFrame A reference to the main frame that owns this view.
 	 * This reference is used to launch default browser when links are clicked.
@@ -82,27 +86,36 @@ public class GenericHTMLView extends JPanel implements HyperlinkListener {
 	 * @exception This method throws an exception when the HTML view
 	 * could not be successfully created.
 	 */
-	public GenericHTMLView(String fileOrURL, MainFrame mainFrame) throws Exception {
+	public GenericHTMLView(final String fileURLorText, final boolean isText, 
+			final MainFrame mainFrame) throws Exception {
 		super(new BorderLayout(0, 0));
-		// Save reference to the main frame to launch urls
+		// Save reference to the main frame to launch URLs
 		this.mainFrame = mainFrame;
+		// Create the editor pane to be populated below
+		htmlPane = createHTMLPane();
+
 		// Check to see if the specified fileOrURL and handle it 
 		URL url = null;
-		if (fileOrURL.startsWith("http")) {
-			url = new URL(fileOrURL);
-		} else {
-			// We need to check two different paths to handle difference between
-			// running via a Jar file and running in development environment (Eclipse).
-			// Try the Jar file choice first so that regular runs go faster.
-			url = Utilities.class.getResource("/" + fileOrURL);
-			if (url == null) {
-				url = Utilities.class.getResource(Utilities.PATH_PREFIX + fileOrURL);
+		if (!isText) {
+			// The parameter is a file or a URL (and not HTML text)
+			if (fileURLorText.startsWith("http")) {
+				url = new URL(fileURLorText);
+			} else {
+				// We need to check two different paths to handle difference between
+				// running via a Jar file and running in development environment (Eclipse).
+				// Try the Jar file choice first so that regular runs go faster.
+				url = Utilities.class.getResource("/" + fileURLorText);
+				if (url == null) {
+					url = Utilities.class.getResource(Utilities.PATH_PREFIX + fileURLorText);
+				}
+				ProgrammerLog.log("HTML editor is loading: " + url);
 			}
-			ProgrammerLog.log("HTML editor is loading: " + url);
+			// Force loading HTML page synchronously to work around Java bug
+			htmlPane.setPage(url);
+		} else {
+			// Set the text to be rendered
+			htmlPane.setText(fileURLorText);
 		}
-		// Force loading HTML page synchronously to work around Java bug
-		JEditorPane htmlPane = createHTMLPane();
-		htmlPane.setPage(url);
 		htmlPane.addHyperlinkListener(this);
 		// Wrap the editor pane in a scroll pane.
 		JScrollPane jsp = new JScrollPane(htmlPane);
@@ -110,6 +123,18 @@ public class GenericHTMLView extends JPanel implements HyperlinkListener {
 		add(jsp, BorderLayout.CENTER);
 	}
 
+	/**
+	 * Obtain the actual GUI component that displays the HTML text.
+	 * 
+	 * This method can be used to obtain the actual GUI component used
+	 * by this class to render HTML.
+	 * 
+	 * @return The JEditorPane that is used to render HTML content.
+	 */
+	public JEditorPane getHTMLPane() {
+		return htmlPane;
+	}
+	
 	/**
 	 * Helper method to create a read-only panel to display HTML data.
 	 * 
@@ -214,6 +239,16 @@ public class GenericHTMLView extends JPanel implements HyperlinkListener {
 			}
 		}
 	}
+	
+	/**
+	 * The GUI component that displays the rendered HTML text.
+	 * 
+	 *  This component is created in the constructor and is never changed
+	 *  during the lifetime of this object. This component is the one
+	 *  that actually displays the rendered HTML text.
+	 */
+	private final JEditorPane htmlPane;
+	
 	/**
 	 * Convenient reference to the main frame class that logically owns
 	 * this menu in its JMenuBar. This value is set in the constructor
