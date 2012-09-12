@@ -49,9 +49,13 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
+
+import org.peace_tools.core.MainFrame;
+import org.peace_tools.core.job.east.EASTJobWizard;
 
 /**
  * A extended wizard dialog class.
@@ -356,6 +360,53 @@ public class WizardDialog extends JDialog implements ActionListener {
 		return pages.get(index); 
 	}
 
+	/**
+	 * Helper method to show a formatted message to the user to report
+	 * problems even before a wizard dialog can be created.
+	 * 
+	 * This method is invoked from the the {@link EASTJobWizard#create(String, MainFrame, boolean)}
+	 * to display a properly formatted message to the user. Other wizards
+	 * also use this method to display error messages to inform the user
+	 * about errors that occur when attempting to create a wizard.
+	 * 
+	 * @param parent The parent window to be used for displaying the 
+	 * message in a modal dialog box.
+	 * 
+	 * @param messages This method is always invoked with an array of three
+	 * entries. The entries are in the following order:
+	 * <ol>
+	 *   <li>First entry is a informational message</li>
+	 *   <li>The second entry reports an issue to the user.</li>
+	 *   <li>The last entry provides suggestions to resolve the issue</li>
+	 * </ol>
+	 */
+	public static void showMessage(MainFrame parent, String[] messages) {
+		// The icon names corresponding to the three entries in messages 
+		final String[] IconNames = {null, "Warning", "Help"};
+		// The main panel that contains the labels being created in the
+		// for-loop below
+		JPanel msgPanel = new JPanel();
+		msgPanel.setLayout(new BoxLayout(msgPanel, BoxLayout.PAGE_AXIS));
+		// Create the labels to be displayed.
+		for(int i = 0; (i < IconNames.length); i++) {
+			// Create a icon if an image/fileName has been specified.
+			ImageIcon icon = null;
+			if (IconNames[i] != null) {
+				icon = Utilities.getIcon("images/32x32/" + IconNames[i] + ".png");
+			}
+			// Create label with the part of the message
+			final String htmlMsg = "<html>" + messages[i] + "</html>";
+			JLabel infoMsg = new JLabel(htmlMsg, icon, JLabel.LEFT);
+			// Add it to the main message panel.
+			msgPanel.add(infoMsg);
+			// Add a spacer to make things look decent.
+			msgPanel.add(Box.createVerticalStrut(8));
+		}
+		// Display the message.
+		JOptionPane.showMessageDialog(parent, msgPanel, 
+				"Cannot launch wizard now", JOptionPane.INFORMATION_MESSAGE);
+	}
+	
 	/**
 	 * This method is called from the showWizard method just before the
 	 * wizard is made visible. This method organizes the various components
