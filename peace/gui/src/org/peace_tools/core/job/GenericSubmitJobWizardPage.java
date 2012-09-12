@@ -579,8 +579,7 @@ implements Runnable {
 		Job job = getJob();
 		Server srvr = Workspace.get().getServerList().getServer(job.getServerID());
 		// Construct server-specific EST file location.
-		String serverESTFileName = srvr.getInstallPath() + 
-		"/estData/" + localFile.getName();
+		String serverESTFileName = srvr.getServerPath(localFile);
 		return serverESTFileName;
 	}
 

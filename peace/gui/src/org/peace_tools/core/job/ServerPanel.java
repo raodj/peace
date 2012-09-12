@@ -35,31 +35,24 @@ package org.peace_tools.core.job;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Component;
 import java.awt.GridLayout;
 import java.io.File;
-import java.util.ArrayList;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.ImageIcon;
-import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
-import javax.swing.ListCellRenderer;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import org.peace_tools.core.SummaryWriter;
 import org.peace_tools.generic.Utilities;
 import org.peace_tools.generic.WizardDialog;
 import org.peace_tools.generic.WizardPage;
 import org.peace_tools.workspace.DataSet;
 import org.peace_tools.workspace.Server;
-import org.peace_tools.workspace.ServerList;
-import org.peace_tools.workspace.Workspace;
 
 /**
  * A GUI sub-component used in wizards to permit user to select an
@@ -75,7 +68,7 @@ import org.peace_tools.workspace.Workspace;
  * panel is created. Various wizards use this component (as part of
  * their wizard pages) to display choice of servers.
  */
-public class ServerPanel implements ChangeListener, ListCellRenderer {
+public class ServerPanel implements ChangeListener {
 	/** The default and only constructor.
 	 * 
 	 * This constructor is very straightforward and sets various instance
@@ -84,12 +77,11 @@ public class ServerPanel implements ChangeListener, ListCellRenderer {
 	public ServerPanel() {
 		dataSet      = null;
 		serverList   = null;
-		cellRenderer = new JLabel();
 	}
 	
 	/**
 	 * Helper method to create the server information entry components
-	 * in this wizard page. This includes a combo-box to select a
+	 * in this wizard page. This includes a ServerComboBox to select a
 	 * server and spinners for nodes and cpus/node.
 	 * 
 	 * This method is invoked only once from the constructor. This 
@@ -114,7 +106,7 @@ public class ServerPanel implements ChangeListener, ListCellRenderer {
 		// Create spinners for job configuration.
 		JPanel configPanel = new JPanel(new BorderLayout(0, 5));
 		configPanel.add(createClusterConfigOptions(parallelJob), BorderLayout.NORTH);
-		configPanel.add(new JLabel(CPU_INFO_MSG, 
+		configPanel.add(new JLabel(parallelJob ? PARALLEL_CPU_INFO_MSG : SERIAL_CPU_INFO_MSG, 
 						Utilities.getIcon("images/32x32/Information.png"), JLabel.LEFT),
 						BorderLayout.SOUTH);
 		// Setup a sub-title if required
@@ -124,13 +116,16 @@ public class ServerPanel implements ChangeListener, ListCellRenderer {
 					BorderFactory.createEmptyBorder(1, 5, 2, 5)));
 		}
 		// Now put all the information into a nice panel.
-		JPanel bigBox = Utilities.createLabeledComponents(null, null, 0, true,
+		JPanel bigBox = new JPanel(new BorderLayout(0, 7));
+		bigBox.add(createServerList(), BorderLayout.NORTH);
+		bigBox.add(configPanel, BorderLayout.SOUTH);
+		/*JPanel bigBox = Utilities.createLabeledComponents(null, null, 0, true,
 			// First add server selection combo-box.
 			createServerList(),
 			// Second add the cpu, nodes/cpu spinners
 			Box.createVerticalStrut(5),
 			configPanel
-		);
+		);*/
 		
 		if (setTitle) {
 			// Set border to to make things look good.
@@ -201,9 +196,7 @@ public class ServerPanel implements ChangeListener, ListCellRenderer {
 	 */
 	private JPanel createServerList() {
 		// Create and setup visual properties of the combo-box
-		serverList = new JComboBox();
-		serverList.setBackground(Color.white);
-		serverList.setRenderer(this);
+		serverList = new ServerComboBox();
 		// A label to be displayed only in case where we don't have any
 		// servers to operate with.
 		emptyServerListLabel = new JLabel(EMPTY_SERVER_LIST, 
@@ -211,67 +204,21 @@ public class ServerPanel implements ChangeListener, ListCellRenderer {
 		emptyServerListLabel.setVisible(false);
 		emptyServerListLabel.setBackground(new Color(0xe0, 0xe0, 0xff)); // pale blue
 		emptyServerListLabel.setOpaque(true);
-		emptyServerListLabel.setBorder(BorderFactory.createEtchedBorder());
-		
+		emptyServerListLabel.setBorder(BorderFactory.createCompoundBorder(
+				BorderFactory.createEtchedBorder(), BorderFactory.createEmptyBorder(1, 5, 1, 5)));
+		// A label to display with the server entry when the server
+		// entry to be used is locked.
+		lockedServerLabel = new JLabel();
+		lockedServerLabel.setBorder(BorderFactory.createEtchedBorder());
+		lockedServerLabel.setVisible(false);
 		// Pack the server list with a suitable label
+		serverTitle = new JLabel("Select the server to use for the job:");
 		return 
-			Utilities.createLabeledComponents("Select Server to Use for Job:",
-					"(A serial or parallel job will be run on the server)", 0, 
-					false, serverList, emptyServerListLabel);
+			Utilities.createLabeledComponents(null, null, 0, 
+					false, serverTitle, serverList, emptyServerListLabel, 
+					lockedServerLabel);
 	}
-	
-	/**
-	 * Helper method to build list of valid servers for use by GUI elements.
-	 * 
-	 * This method is typically invoked from the wizard page (that logically
-	 * owns this ServerPanel object) from the 
-	 * {@link WizardPage#pageChanged(WizardDialog, int, int)} method.
-	 * In addition, this method is also used by wizard to ensure that
-	 * the workspace contains the necessary entries for their correct 
-	 * operation (that this why this method is static).
-	 *   
-	 * This page essentially updates the list of server entries
-	 * in the supplied combo-box that meet the given requirements 
-	 * (based on the values of the parameters). 
-	 * 
-	 * @param needPEACE If this flag is set to true, then only server entries
-	 * that have a usable PEACE install are presented to the user as valid choices.
-	 * 
-	 * @param needEAST If this flag is set to true, then only server entries
-	 * that have a usable EAST install are presented to the user as valid choices.
-	 * 
-	 * @return This method returns the number of entries that are finally present
-	 * in the supplied server list.
-	 */
-	public static int getServerList(final boolean needPEACE, final boolean needEAST,
-			JComboBox serverList) {
-		final int srvrChoiceType = (needPEACE ? 0 : 1) + (needEAST ? 2 : 0); 
-		// Clear any previous entries
-		serverList.removeAllItems();
-		// Populate the combo-box with server entries from work space.
-		ServerList list = Workspace.get().getServerList();
-		ArrayList<Server> servers = list.getServers();
-		// On add servers that are a successful PEACE install.
-		for(Server srvr: servers) {
-			boolean validServer = false;
-			switch (srvrChoiceType) {			
-			case 2: 
-			case 3: validServer = srvr.hasEASTInstalled();
-			break;
-			default: validServer = true;
-			}
-			if ((!Server.ServerStatusType.GOOD.equals(srvr.getStatus()) && 
-					!Server.ServerStatusType.CONNECT_FAILED.equals(srvr.getStatus())) ||
-					!validServer) {
-				// Server is not usable as its status is not good or we are
-				// currently unable to connect to it.
-				continue;
-			}			
-			serverList.addItem(srvr);
-		}
-		return serverList.getItemCount();
-	}
-	
+		
 	/**
 	 * This method is called just before the panel is to be displayed to
 	 * update the list of valid servers to be presented to the user.
@@ -298,7 +245,7 @@ public class ServerPanel implements ChangeListener, ListCellRenderer {
 	public void updateServerList(final boolean needPEACE, final boolean needEAST,
 			DataSet dataSet) {
 		// Get list of valid servers
-		getServerList(needPEACE, needEAST, serverList);
+		ServerComboBox.getServerList(needPEACE, needEAST, serverList);
 		// Update GUI elements appropriately
 		checkServerListAndUpdateGUI();
 		// Initialize the default memory requirement for running
@@ -337,8 +284,21 @@ public class ServerPanel implements ChangeListener, ListCellRenderer {
 		serverList.removeAllItems();
 		serverList.addItem(srvr);
 		serverList.setSelectedItem(srvr);
+		// Change the server title suitably.
+		this.serverTitle.setText("The following pre-selected server will be used for this job:");
 		// Update GUI elements appropriately
 		checkServerListAndUpdateGUI();
+		// Hide the job list and show the label.
+		serverList.setVisible(false);
+		lockedServerLabel.setVisible(true);
+		// Copy the necessary information.
+		final JLabel infoLabel = (JLabel) serverList.getListCellRendererComponent(new JList(), 
+				srvr, 0, false, false);
+		// Copy the necessary information to locked-server-label
+		lockedServerLabel.setIcon(infoLabel.getIcon());
+		lockedServerLabel.setText(infoLabel.getText());
+		lockedServerLabel.setBackground(infoLabel.getBackground());
+		lockedServerLabel.setForeground(infoLabel.getForeground());
 		// Initialize the default memory requirement for running
 		// this job via the listener method with a null event.
 		stateChanged(null); // event can be null as it is not used.
@@ -364,46 +324,7 @@ public class ServerPanel implements ChangeListener, ListCellRenderer {
 		Server entry = (Server) serverList.getSelectedItem();
 		return entry;
 	}
-	
-	/**
-	 * This method is called by core Java GUI system whenever it
-	 * needs to render a data set or MST entry for the user to
-	 * choose from the {@link #dataSetList} combo box. This
-	 * method appropriately updates the {@link #cellRenderer}
-	 * label (created in the constructor) and return the
-	 * label back. See JavaDoc on this method for additional
-	 * details.
-	 */
-	@Override
-	public Component getListCellRendererComponent(JList list, Object value,
-			int index, boolean isSelected, boolean cellHasFocus) {
-		// Set the default background color depending on selection
-		cellRenderer.setOpaque(true);
-        if (isSelected) {
-            cellRenderer.setBackground(list.getSelectionBackground());
-            cellRenderer.setForeground(list.getSelectionForeground());
-        } else {
-        	cellRenderer.setBackground(Color.white);
-        	cellRenderer.setForeground(list.getForeground());
-        }
-        if (value != null) {
-        	// Set the text to be rendered based on the current server.
-        	Server srvr = (Server) value;
-        	String srvrInfo = "<html><b>" + srvr.getName() + "</b><br/>" +
-        	"<font size=\"-2\">" + Utilities.trim(srvr.getDescription(), 50) + 
-        	"</font></html>";
-        	cellRenderer.setText(srvrInfo);
-        	//Set the icon to make things look pretty and meaningful
-        	int iconIndex = 0 + (srvr.hasEASTInstalled() ? 1 : 0) + (srvr.hasDECAFInstalled() ? 1 : 0);
-        	cellRenderer.setIcon(ServerIcons[iconIndex]);
-        } else {
-        	// We don't have a valid list item to render
-        	cellRenderer.setText("");
-        	cellRenderer.setIcon(null);
-        }
-        return cellRenderer;
-	}
-	
+
 	/**
 	 * Obtain platform-specific job configuration information.
 	 * 
@@ -465,10 +386,77 @@ public class ServerPanel implements ChangeListener, ListCellRenderer {
 	}
 	
 	/**
+	 * Convenience method to summarize information about the
+	 * information entered in this server panel.
+	 * 
+	 * This method is typically used to display summary information
+	 * about the data entered by the user in this panel.
+	 * 
+	 * @param sw The summary writer object to be used for writing
+	 * summary information.
+	 * 
+	 * @param subSection If this flag is true then this method creates
+	 * summary information as a sub-section. Otherwise the summary
+	 * information is created as a section.
+	 */
+	public void summarize(SummaryWriter sw, boolean subSection) {
+		if (subSection) {
+			sw.addSubSection("Job Configuration", "", "");	
+		} else {
+			sw.addSection("Job Configuration");
+		}
+		// Add server information from this server panel.
+		final Server srvr = getSelectedServer();
+		srvr.summarize(sw, false, true);
+		// Add information about the memory and other information.
+		final int jobConfig[] = getPlatformConfiguration();
+		summarize(sw, subSection, "Nodes", "" + jobConfig[0], 
+				  "Number of nodes in cluster to reserve for the job");
+		summarize(sw, subSection, "CPUs/Nodes", "" + jobConfig[1], 
+				"Number of CPUs per node to reserve for the job");
+		summarize(sw, subSection, "Max Memory", "" + jobConfig[3] + " MB", 
+				 "Peak memory (in Megabytes) to request for the job");
+		summarize(sw, subSection, "Run time", "" + jobConfig[1] + " hours", 
+				  "Maximum runtime to request for the job");
+	}
+	
+	/**
+	 * Helper method to add a line of summary or sub-summary.
+	 * 
+	 * This is a helper method that is internally used (by
+	 * the {@link #summarize(SummaryWriter, boolean)} method) to
+	 * add an summary or sub-summary entry depending on a flag.
+	 * 
+	 * @param sw The summary writer object to be used to create
+	 * a summary or sub-summary entry.
+	 * 
+	 * @param subSection If this flag is true then the given 
+	 * information is used to create a sub-summary entry. Otherwise
+	 * the given information is used to add a summary entry.
+	 * 
+	 * @param name The name of the parameter or property for which a summary
+	 * line is being added. This parameter can be null.
+	 * 
+	 * @param value The value for the given parameter to be added.
+	 * This parameter can be null.
+	 * 
+	 * @param desc An optional description to be associated with the summary
+	 * line. This parameter can be null. 
+	 */
+	private void summarize(SummaryWriter sw, boolean subSection, 
+			final String name, final String value, final String desc) {
+		if (!subSection) {
+			sw.addSummary(name, value, desc);
+		} else {
+			sw.addSubSummary(name, value, desc);
+		}
+	}
+	
+	/**
 	 * The combo box that permits the user to select the server
 	 * to be used for running the job.
 	 */
-	private JComboBox serverList;
+	private ServerComboBox serverList;
 	
 	/**
 	 * The array of two configuration parameter values for the CPUs
@@ -495,37 +483,25 @@ public class ServerPanel implements ChangeListener, ListCellRenderer {
 	private DataSet dataSet;
 	
 	/**
-	 * This label is used by this class to render the Choice objects
-	 * presented by this class to the user. This cell renderer is created
-	 * once (in the constructor) and reused each time the 
-	 * {@link #getListCellRendererComponent(JList, Object, int, boolean, boolean)}
-	 * method is called (by JComboBox)
+	 * A generic informational message that is displayed to the user for
+	 * parallel jobs. This information is displayed only for parallel
+	 * and not for sequential jobs.
 	 */
-	private JLabel cellRenderer;
-	
-	/**
-	 * The list of icons that are displayed along with various servers listed
-	 * by this class. The icons are primarily used to provide some quick
-	 * additional information to the user in a pretty way.
-	 */
-	private static final ImageIcon ServerIcons[] = {
-		Utilities.getIcon("images/24x24/Server.png"), // PEACE only server
-		Utilities.getIcon("images/24x24/Server.png"), // PEACE + EAST server
-		Utilities.getIcon("images/24x24/Server.png")  // PEACE + EAST + DECAF server
-	};
-	
-	/**
-	 * A generic informational message that is displayed to the user
-	 * to provide information about the u/v heuristic.
-	 */
-	private static final String CPU_INFO_MSG = 
+	private static final String PARALLEL_CPU_INFO_MSG = 
 		"<html><font size=\"-2\">" + 
 		"The nodes selected and CPUs-per-node must match the server<br>" +
 		"configuration. Refer to user manual for setting up hostfile<br>" +
-		"for jobs using openmpi/mpich. These two options are disabled<br>"+
-		"for serial (aka non-parallel) jobs.</font></html>";
+		"for jobs using openmpi/mpich.</font></html>";
 	
-	
+	/**
+	 * A generic informational message that is displayed to the user for
+	 * sequential jobs (at the bottom of the panel).
+	 */
+	private static final String SERIAL_CPU_INFO_MSG = 
+		"<html><font size=\"-2\">" + 
+		"This is a serial job. Consequenlty setting nodes and CPUs-per-node<br/>" +
+		"is disabled (they are enabled only for parallel jobs).</font></html>";
+
 	/**
 	 * This is a convenience label that is used to display a message (instead
 	 * of the server selection list) when a suitable server was not found.
@@ -536,15 +512,30 @@ public class ServerPanel implements ChangeListener, ListCellRenderer {
 	private JLabel emptyServerListLabel;
 	
 	/**
+	 * Label displayed on top of the server selection ({@link #serverList}) 
+	 * combo-box. This label is changed if the server selection is locked
+	 * to a specific entry via call to {@link #lockSelectedServer(Server)}
+	 * method. The label is changed to provide the user with more
+	 * meaningful message.
+	 */
+	private JLabel serverTitle;
+	
+	/**
+	 * A simple label that is created to display the server information 
+	 * when the server entry for this panel is locked.
+	 */
+	private JLabel lockedServerLabel;
+	
+	/**
 	 * A simple informational message that is displayed (instead of the server
 	 * selection list) when a suitable server (in good operating condition that
 	 * has not had a connection issue recently) with the necessary software
-	 * components (PEACE, EAST, or DECAF) installed on it. This string is
+	 * components (PEACE, EAST, or DECAGON) installed on it. This string is
 	 * used in the {@link #updateServerList(boolean, boolean, DataSet)} method.
 	 */
 	private static final String EMPTY_SERVER_LIST =
 		"<html>" +
 		"Could not find a server in good operating status with the required<br/>" +
 		"software components installed. Please create a suitable server entry.<br/>" +
-		"</html>";
+		"</html>";	
 }
