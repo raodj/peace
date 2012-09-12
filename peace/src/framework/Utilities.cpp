@@ -86,5 +86,21 @@ char* getTime(char *buffer, const time_t *encodedTime) {
     return buffer;
 }
 
+void trim(std::string& str) {
+    const std::string WhiteSpaceChars = " \t\r\n";
+    std::string::size_type pos = str.find_last_not_of(WhiteSpaceChars);
+    if (pos != std::string::npos) {
+        str.erase(pos + 1);
+        pos = str.find_first_not_of(WhiteSpaceChars);
+        if(pos != std::string::npos) {
+            str.erase(0, pos);
+        }
+    }
+    else {
+        // The whole string is nothing by white spaces!
+        str.erase(str.begin(), str.end());
+    }
+}
+
 #endif
 
