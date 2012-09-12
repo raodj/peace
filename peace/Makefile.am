@@ -38,7 +38,7 @@ include $(top_srcdir)/Makefile.common.am
 AM_CPPFLAGS=$(GLOBALCPPFLAGS) 
 AM_CXXFLAGS=$(GLOBALCXXFLAGS)
 
-SUBDIRS = src tools examples
+SUBDIRS = src tools examples decagon
 
 EXTRA_DIST = 
 	Makefile.am\

@@ -1,6 +1,8 @@
 #include "ProcessRC.h"
 #include <map>
 #include <cstdlib>
+#include <algorithm>
+
 using namespace std;
 
 
@@ -85,7 +87,7 @@ void ProcessRC::readEstFile(const string& inFileName) {
 	in.close();
 
 	//generate a graph from the input file
-	int i=0;
+	size_t i=0;
 	cout << "number of ests: " << ests.size()/3 << endl;
 	while (i<ests.size()) {
 		//the sequence is upper-case
@@ -135,7 +137,7 @@ void ProcessRC::readMST(const string& inFileName) {
 
 	// Make a undirected MST.
 	mst = DefGraph(nOfNodes);
-	for (int j=0; j<nodes.size(); j++) {
+	for (size_t j=0; j<nodes.size(); j++) {
 		addEdge(mst, int(nodes[j][0]), int(nodes[j][1]), nodes[j][2], int(nodes[j][3]), false);
 	}
 }
@@ -148,7 +150,7 @@ void ProcessRC::ProcessEachCluster() {
 	while (true) {
 		int first = -1;
 		bool exit = 1;
-		for (int i=0; i<allNodes.size(); i++) {
+		for (size_t i=0; i<allNodes.size(); i++) {
 			if (allNodes[i] == 0) { //find the first node which has not been processed
 				first = i;
 				allNodes[first] = 1;
@@ -212,7 +214,7 @@ vector<stack<int> > ProcessRC::getNodesFromMST(vector<stack<int> > nodes) {
 						string str = graphNodes[index2].sequence;
 						//cout << "ori str: " << str << endl;
 						string newStr = "";
-						for (int i=0; i<str.size(); i++) {
+						for (size_t i=0; i<str.size(); i++) {
 							switch (str.at(i)) {
 								case 'A':
 									newStr += "T";
@@ -256,7 +258,7 @@ vector<string> ProcessRC::split(const string& str, char delimit) {
 
 string ProcessRC::toUpperCase(const string& str) {
 	string retStr;
-	for (int i=0; i<str.size(); i++) {
+	for (size_t i=0; i<str.size(); i++) {
 		retStr.push_back(toupper(str[i]));
 	}
 	return retStr;
@@ -266,7 +268,7 @@ void ProcessRC::writeEstFile() {
 	ofstream outFile;
 	outFile.open(newEstFileName.c_str(), ios::trunc);
 
-	for (int i=0; i<graphNodes.size(); i++) {
+	for (size_t i=0; i<graphNodes.size(); i++) {
 		outFile << ">" << graphNodes[i].comment << endl;
 		outFile << graphNodes[i].sequence << endl;
 	}
@@ -299,7 +301,7 @@ void ProcessRC::separateCluster(int idx, const std::string& newEstFile) {
 	ofstream outFile;
 	outFile.open(newEstFile.c_str(), ios::trunc);
 
-	for (int i=0; i<nodesInCluster.size(); i++) {
+	for (size_t i=0; i<nodesInCluster.size(); i++) {
 		outFile << ">" << graphNodes[nodesInCluster[i]].comment << endl;
 		outFile << graphNodes[nodesInCluster[i]].sequence << endl;
 	}

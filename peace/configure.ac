@@ -405,7 +405,9 @@ AC_CONFIG_FILES([Makefile
 		 src/baton/Makefile
 		 src/assembly/Makefile
  		 tools/Makefile
- 		 examples/Makefile])
+ 		 examples/Makefile
+ 		 decagon/Makefile
+ 		 decagon/scoreCalc/Makefile])
 
 AC_OUTPUT
 
