@@ -33,9 +33,7 @@
 
 package org.peace_tools.core.session;
 
-import java.awt.BorderLayout;
 import java.awt.Component;
-import java.awt.GridLayout;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -43,20 +41,19 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.InetAddress;
+import java.net.ServerSocket;
 
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JPasswordField;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
 import javax.swing.text.DefaultStyledDocument;
 
 import org.peace_tools.core.FileInfo;
 import org.peace_tools.generic.Log.LogLevel;
+import org.peace_tools.generic.PasswordDialog;
 import org.peace_tools.generic.ProgrammerLog;
 import org.peace_tools.generic.UserLog;
 import org.peace_tools.generic.Utilities;
@@ -157,6 +154,9 @@ public class RemoteServerSession extends ServerSession implements UserInfo {
 	 * 
 	 * <ol>
 	 * 
+	 * <li>If a connection has already been established then this
+	 * method returns immediately.</li>
+	 * 
 	 * <li>It first initializes the list of known hosts (servers
 	 * we have connected to before) from the ".KnownHosts" file.</li>
 	 * 
@@ -186,6 +186,11 @@ public class RemoteServerSession extends ServerSession implements UserInfo {
 	 */
 	@Override
 	public void connect() throws IOException {
+		// If connection is already set, then do nothing.
+		if (session != null) {
+			// Connection already exists.
+			return;
+		}
 		// Setup the known hosts file as needed
 		setKnownHosts();
 		// Check and ensure that the host name is valid. The following
@@ -223,7 +228,7 @@ public class RemoteServerSession extends ServerSession implements UserInfo {
 					throw new IOException("User interrupted loggin to server");
 				}
 			} catch (JSchException exp) {
-				UserLog.log(LogLevel.NOTICE, "RemoteServerSession", exp.getMessage());
+				//				UserLog.log(LogLevel.NOTICE, "RemoteServerSession", exp.getMessage());
 				ProgrammerLog.log(exp);
 				// An exception occurred. If we are not out of retries, then
 				// we will prompt the user for the password again.
@@ -321,47 +326,11 @@ public class RemoteServerSession extends ServerSession implements UserInfo {
 			// We have valid password to work with.
 			return true;
 		}
-		// Create text fields for user name and password.
-		JTextField userID = new JTextField(10);
-		userID.setEditable(false);
-		userID.setText(server.getUserID());
-		JPasswordField password = new JPasswordField(10);
-
-		// Create components by laying them out appropriately
-		JPanel credPanel = new JPanel(new GridLayout(2, 2, 0, 3));
-		credPanel.add(new JLabel("User id:"));
-		credPanel.add(userID);
-		Utilities.adjustDimension(userID, 0, 6);
-		credPanel.add(new JLabel("Password:"));
-		Utilities.adjustDimension(password, 0, 6);
-		credPanel.add(password);
-		// Another panel to control the size o the grid layout 
-		// to ensure it looks decent
-		JPanel msgPanel = new JPanel(new BorderLayout(0, 5));
-		msgPanel.add(credPanel, BorderLayout.SOUTH);
-		// Add a label indicating server information.
-		JLabel subInfo = new JLabel("<html>Enter login credentials for <b>" + 
-				server.getName() + "</b></html>");
-		msgPanel.add(subInfo, BorderLayout.NORTH);
-		// If purpose has been given add purpose information into another
-		// panel.
-		if (purpose != null) {
-			JLabel info = new JLabel(purpose, Utilities.getIcon("images/32x32/Information.png"), 
-					JLabel.LEFT);
-			JPanel outer = new JPanel(new BorderLayout(0, 10));
-			outer.add(info, BorderLayout.CENTER);
-			outer.add(msgPanel, BorderLayout.SOUTH);
-			// Set message panel to be the outer most one now.
-			msgPanel = outer;
-		}
-		// Pack all the elements into an array
-		Object items[] = { msgPanel };
-		int result = 
-			JOptionPane.showConfirmDialog(null, items, "Enter Password", 
-					JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-		if (result == JOptionPane.OK_OPTION) {
-			server.setUserID(userID.getText());
-			server.setPassword(new String(password.getPassword()));
+		PasswordDialog pwdDialog = new PasswordDialog(server.getUserID(), false, 
+				server.getName(), purpose);
+		if (pwdDialog.prompt(parent)) {
+			server.setUserID(pwdDialog.getUserID());
+			server.setPassword(pwdDialog.getPassword());
 			return true;
 		}
 		// When control drops here that indicates that the user
@@ -441,7 +410,7 @@ public class RemoteServerSession extends ServerSession implements UserInfo {
 		// message in situations where the user is connecting to the server for
 		// the first time.
 		if (message.startsWith("The authenticity of host") && 
-			(message.indexOf("can't be established") > 0)) {
+				(message.indexOf("can't be established") > 0)) {
 			// This is a situation where the user is typically connecting for
 			// the first time. Display a custom message.
 			final String rsaTag = "RSA key fingerprint is ";
@@ -556,7 +525,7 @@ public class RemoteServerSession extends ServerSession implements UserInfo {
 		// Return the exit code from the remote process
 		return exitCode;
 	}
-
+	
 	/**
 	 * This method can be used to run a long running command that 
 	 * may produce verbose output.
@@ -618,6 +587,7 @@ public class RemoteServerSession extends ServerSession implements UserInfo {
 		return exitCode;
 	}
 
+	
 	/**
 	 * Determine the type of OS that this session is connected to.
 	 * 
@@ -959,6 +929,45 @@ public class RemoteServerSession extends ServerSession implements UserInfo {
 	}
 
 	/**
+	 * Method to forward a local port to a remote host and port number.
+	 * 
+	 * <p>This method is a convenience method that is meaningful only for
+	 * remote server sessions. This method  uses SSH port forwarding 
+	 * support in JSch to forward connections from a local port to a 
+	 * given remote host and port.</p>  
+	 * 
+	 * @param localPort The local port on the local machine to be forwarded
+	 * to a given remote host. If this value is -1, then a free port is
+	 * detected by this method and used.
+	 * 
+	 * @param remoteHost The host or IP address of the remote machine to
+	 * which a connection is to be forwarded.
+	 * 
+	 * @param remotePort The remote port number to which the connection
+	 * is to be forwarded.
+	 * 
+	 * @return This method returns the local port that has been forwarded.
+	 * @throws IOException 
+	 */
+	public int forwardPort(int localPort, String remoteHost, 
+			int remotePort) throws IOException {
+		try {
+			if (localPort == -1) {
+				// Find out a local socket that is free.
+				ServerSocket tempSocket = new ServerSocket(0);
+				localPort = tempSocket.getLocalPort();
+				tempSocket.close();
+			}
+			// Get JSch to forward the port for us.
+			return session.setPortForwardingL(localPort, remoteHost, remotePort);
+		} catch (Exception e) {
+			ProgrammerLog.log(e);
+			UserLog.log(LogLevel.WARNING, "RemoteServerSession", e.getMessage());
+			throw new IOException(e);
+		}
+	}
+
+	/**
 	 * The session to the remote server via which the remote server can
 	 * be accessed for performing various operations. The connection is
 	 * created via the connect()  method. A session consists of multiple,
@@ -1013,7 +1022,7 @@ public class RemoteServerSession extends ServerSession implements UserInfo {
 		"Please rectify this issue appropriately. You can still continute<br>" + 
 		"to use PEACE.  But caching of known hosts for secure shell connection<br>" +
 		"will be disabled.";
-	
+
 	/**
 	 * A first-time connection message that is formatted and displayed to the user.
 	 * 
@@ -1035,7 +1044,7 @@ public class RemoteServerSession extends ServerSession implements UserInfo {
 		"<b>Would you like to add this server to the \"known hosts\"<br/>"+
 		"and proceed with the connection?</b>" +	
 		"</html>";
-	
+
 	/**
 	 * Message that is formatted and displayed to the user to warn about
 	 * change in RSA finger print.
@@ -1060,7 +1069,7 @@ public class RemoteServerSession extends ServerSession implements UserInfo {
 		"<b>Would you like to update the server's entry in \"known hosts\"<br/>"+
 		"and proceed with the connection?</b>" +	
 		"</html>";
-	
+
 	/**
 	 * A static message that is included as a part of the RuntimeException
 	 * generated by some of the methods in this class.
