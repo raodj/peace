@@ -621,19 +621,14 @@ AlignResult AlignmentAlgorithm::getSWAlignment(const std::string& s1,
 	int numOfRows = s1.length();
 	int numOfCols = s2.length();
 
-#ifdef OSX
 	intMatrix trace = createIntMatrix(numOfRows + 1, numOfCols + 1);
 	intMatrix alignMatrix = createIntMatrix(numOfRows + 1, numOfCols + 1);
-#else
-	int trace[numOfRows + 1][numOfCols + 1];
-	int alignMatrix[numOfRows + 1][numOfCols + 1];
-#endif
 
 	trace[0][0] = 0;
 	alignMatrix[0][0] = 0;
-
+    
 	//int* encodedBases2 = new int[numOfCols];
-	int encodedBases2[numOfCols];
+    std::vector<int> encodedBases2(numOfCols);
 	for (int i = 1; i <= numOfCols; i++) {
 		alignMatrix[0][i] = 0;
 		trace[0][i] = 0; //start point
@@ -722,10 +717,9 @@ AlignResult AlignmentAlgorithm::getSWAlignment(const std::string& s1,
 	result.str1 = tStr1;
 	result.str2 = tStr2;
 
-#ifdef OSX
 	deleteIntMatrix(trace, numOfRows+1);
 	deleteIntMatrix(alignMatrix, numOfRows+1);
-#endif
+
 	//delete [] encodedBases2;
 
 	return result;

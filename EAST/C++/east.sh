@@ -47,7 +47,18 @@
 # this script. In addition, we assume that AMOS tools are
 # available on the path.
 
-# First detect if we need to do ACE-to-SAM conversion by searching
+# First detect if -VERSION command-line argument has been
+# specified. If so, we just display VERSION information and exit
+showVersion=`echo $* | grep -c -w "\-VERSION"`
+if [ $showVersion -ne 0 ]; then
+	echo "Expression fragment Assembly from Spanning Trees (EAST)"
+	echo "EAST is a cDNA assembler."
+	echo "Version 0.1. Released (under GPLv3) on December 12 2010"
+	echo "Copyright (C) Miami University, Oxford, OH, USA (2009-)"
+	exit 0
+fi
+		
+# Ddetect if we need to do ACE-to-SAM conversion by searching
 # for '-CONVERT_TO_SAM' command-line parameter.
 convertToSAM=`echo $* | grep -c -w "\-CONVERT_TO_SAM"`
 

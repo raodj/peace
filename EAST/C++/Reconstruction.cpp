@@ -723,6 +723,8 @@ vector<string> Reconstruction::reconstructSeq(vector<StartPos>& a) {
         COStr += replace(tConsensus, "P", "*") + "\n";
         idxOfContig++;
 
+        int minusOneCount = 0;
+        
         for (size_t i=0; i<bases.size(); i++) {
             int phredScore = bases[i]->getQualScore();
             if (phredScore != -1) {
@@ -730,10 +732,13 @@ vector<string> Reconstruction::reconstructSeq(vector<StartPos>& a) {
                 BQStr += " " + ss.str();
                 ss.str("");
                 ss.clear();
+            } else {
+                minusOneCount++;
             }
         }
         BQStr += "\n";
-
+        std::cout << "Number of -1 entries skipped in BQ entries: "
+                  << minusOneCount << std::endl;
         //write to the temporary ACE file
         string tmpFileName = "tmp_" + consensusFileName;
         ofstream outFile;
