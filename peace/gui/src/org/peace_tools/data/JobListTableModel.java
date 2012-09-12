@@ -33,6 +33,8 @@
 
 package org.peace_tools.data;
 
+import java.util.ArrayList;
+
 import javax.swing.table.AbstractTableModel;
 
 import org.peace_tools.workspace.Job;
@@ -42,37 +44,80 @@ import org.peace_tools.workspace.Server;
 import org.peace_tools.workspace.Workspace;
 import org.peace_tools.workspace.WorkspaceEvent;
 import org.peace_tools.workspace.WorkspaceListener;
+import org.peace_tools.workspace.JobList.JobOrListWrapper;
 
 /**
  * A bridge class between Job entries in a workspace and a JTable.
  * 
  * This class serves as a bridge between the in-memory representation of
  * jobs in a Workspace (represented by the set of classes in the 
- * <code>workspace</code> package). This class enables reusing the data
- * set hierarchy maintained by the Workspace object to display it in a
- * JTable. In addition, this class also acts to monitor and update data
- * set views.
+ * <code>workspace</code> package). This class enables reusing the jobs
+ * hierarchy maintained by the Workspace object to display it in a
+ * JTable.
  * 
  * <p><b>Note:</b>  This table model currently provides the following information
  * for each job: JobID, Server, Monitor, CPUs, Status. The monitor column
  * indicates the status of the background job monitoring thread.</p>
  */
-public class JobListTableModel extends AbstractTableModel implements WorkspaceListener {
+public class JobListTableModel extends AbstractTableModel 
+implements WorkspaceListener {
 	/**
-	 * The default constructor.
-	 * 
-	 * The constructor registers this JobListTableModel with the workspace
-	 * to receive notifications on Job status updates.
+	 * The top-level wrapper that contains the top-level job list that 
+	 * this table model is meant to operate on. This value is set when 
+	 * the view associated with this model is created.
 	 */
-	public JobListTableModel() {
+	private final JobOrListWrapper root;
+
+	/**
+	 * This array maintains a flattened list of job entries.
+	 * This list is dynamically built (on demand) whenever
+	 * this model is used in a table and quick responses
+	 * to individual row entries are required. Whenever the
+	 * tree-model changes this array list is reset to null,
+	 * forcing list to be rebuilt.
+	 */
+	private ArrayList<JobOrListWrapper> jobEntries = null; 
+
+	/**
+	 * The only constructor for this class.
+	 * 
+	 * The constructor merely initializes the instance variables
+	 * to their default initial values.
+	 * 
+	 * @param root The top-level job list from where this model must
+	 * obtain the necessary information.
+	 */
+	public JobListTableModel(final JobList root) {
+		this.root = root.new JobOrListWrapper(root);
 		Workspace.get().addWorkspaceListener(this);
 	}
-	
+
 	/**
-	 * Method to obtain the columns that are to be displayed by in a
-	 * Job table.
+	 * Obtain the class that describes the data type of a given 
+	 * column.
 	 * 
-	 * @return This method currently always returns 5.
+	 * This method overrides the API method in RowModel.
+	 * 
+	 * @param column The zero-based index of the column whose
+	 * Class type is to be returned.
+	 */
+	@Override
+	public Class<?> getColumnClass(int column) {
+		if (column == 1) {
+			return JobBase.JobStatusType.class;
+		}
+		return String.class;
+	}
+
+	/**
+	 * This method overrides the interface method in RowModel to 
+	 * return the number of columns in the TreeTable.
+	 * 
+	 * This method overrides the API method in AbstractTableModel (and
+	 * also satisfies the RowModel API).
+	 *  
+	 * @return The number of columns to be displayed in this table. There
+	 * are always 5 columns to be displayed.
 	 */
 	@Override
 	public int getColumnCount() {
@@ -80,46 +125,122 @@ public class JobListTableModel extends AbstractTableModel implements WorkspaceLi
 	}
 
 	/**
-	 * Method to return the number of rows to be displayed in the 
-	 * Job table.
+	 * Override the default names that are set for the columns 
+	 * displayed in the job table.
+	 * 
+	 * @param col The zero-based column index whose title is to 
+	 * be returned.
+	 * 
+	 * @return The title associated with the column.
 	 */
 	@Override
-	public int getRowCount() {
-		Workspace ws = Workspace.get();
-		return ws.getJobList().getJobs().size();
+	public String getColumnName(int col) {
+		String titles[] = {"Job ID", "Status", "Monitor", "Server", "CPUs"};
+		return titles[col];
 	}
 
 	/**
-	 * This is a convenience method to obtain the job data.
+	 * Interface method to determine if an entry in the model is 
+	 * mutable.
 	 * 
-	 * @param row The row id whose Job entry is to be returned.
-	 * @return The job entry corresponding to a given row. If the
-	 * entry is unavailable, this method returns null.
+	 * @return This method always returns false to indicate that
+	 * the data cannot be modified.
 	 */
-	public Job getJob(int row) {
-		Workspace ws = Workspace.get();
-		if ((row < 0) || (ws.getJobList().getJobs().size() <= row)) {
-			return null;
-		}
-		// Obtain the job object whose data is to be returned
-		return ws.getJobList().getJobs().get(row);
+	@Override
+	public boolean isCellEditable(int row, int column) {
+		return false;
 	}
-	
+
+	/**
+	 * Helper method to recursively populate all the job entries in a
+	 * given job list.
+	 * 
+	 * This method is used to add the job entries contained within 
+	 * a given job list. This method recursively descends into a job
+	 * list and adds job entries to the job list.
+	 * 
+	 * @param jobList The job list whose entries are to be recursively
+	 * processed.
+	 * 
+	 * @param targetList The array list to which job wrapper's are to
+	 * be added.
+	 */
+	private void addJobEntries(JobOrListWrapper jlw, 
+			ArrayList<JobOrListWrapper> targetList) {
+		if (jlw.isSubList()) {
+			for(JobOrListWrapper wrapper: jlw.getSubList().getJobs()) {
+				addJobEntries(wrapper, targetList);
+			} 
+		} else {
+			targetList.add(jlw);
+		}
+	}
+
+	/**
+	 * Helper method to populate the {@link #jobEntries} list with jobs
+	 * for rapid access to entries to display in a tabular view.
+	 * 
+	 * This method was primarily introduced to streamline building
+	 * the {@link #jobEntries}. This essential aspect of this method
+	 * is that is synchronized and consequently multi-threading safe.
+	 * Note that
+	 */
+	private synchronized void buildJobEntries() {
+		if (jobEntries == null) {
+			ArrayList<JobOrListWrapper> jobEntryList = 
+				new ArrayList<JobOrListWrapper>();
+			addJobEntries(root, jobEntryList);
+			jobEntries = jobEntryList;
+		}
+	}
+
+	/**
+	 * This method implements the abstract method defined
+	 * in {@link AbstractTableModel#getRowCount()}.
+	 * 
+	 * This method ensures that the {@link #jobEntries} list is
+	 * populated by invoking the {@link #buildJobEntries()}.
+	 * 
+	 * @return This method return the number of job entries in the
+	 * model.
+	 */
+	@Override
+	public int getRowCount() {
+		buildJobEntries();
+		return jobEntries.size();
+	}
+
 	/**
 	 * Obtain the value to be displayed at a given row and column.
 	 * 
+	 * <p><b>NOTE</b>: There is a difference in the values returned
+	 * by this method and the {@link #getValueAt(int, int)} method
+	 * for different columns.</p> 
+	 * 
+	 * This method implements the abstract method defined in 
+	 * {@link AbstractTableModel#getValueAt(int, int)} method.
+	 * 
+	 * This method ensures that the {@link #jobEntries} list is
+	 * populated by invoking the {@link #buildJobEntries()}.
+	 *
+	 * @param row The row in the list of jobs for which a value
+	 * is to be returned.
+	 * 
+	 * @param column The column in the jobs table for 
 	 * @return The object to be displayed at a given row and column.
 	 * The value depends on the column being displayed.
 	 */
 	@Override
 	public Object getValueAt(int row, int column) {
-		Workspace ws = Workspace.get();
-		if ((row < 0) || (ws.getJobList().getJobs().size() <= row)) {
+		// Ensure our job information is populated.
+		buildJobEntries();
+		if ((row < 0) || (row > jobEntries.size())) {
+			// Invalid row index. Nothing can be returned.
 			return null;
 		}
 		// Obtain the job object whose data is to be returned
-		Job job = ws.getJobList().getJobs().get(row);
-		Server srvr = ws.getServerList().getServer(job.getServerID());
+		final Job job = jobEntries.get(row).getJob();
+		assert(job != null);
 		switch (column) {
 		case 0: // The job ID
 			return job.getJobID();
@@ -133,36 +254,14 @@ public class JobListTableModel extends AbstractTableModel implements WorkspaceLi
 			}
 			return "Not Needed";
 		case 3: // return the server on which job is running.
+			final Workspace ws = Workspace.get();
+			final Server srvr  = ws.getServerList().getServer(job.getServerID());
 			return (srvr != null) ? srvr.getName() : "<n/a>";
 		case 4: // return number of CPUs 
 			return "" + (job.getCPUsPerNode() * job.getNodes());
 		}
 		// A invalid column!
 		return null;
-	}
-	
-	/**
-	 * Obtain the class that describes the data type of a given 
-	 * column.
-	 */
-	@Override
-	public Class<?> getColumnClass(int column) { 
-		if (column == 1) {
-			return JobBase.JobStatusType.class;
-		}
-		return String.class;
-	}
-	
-	/**
-	 * Interface method to determine if an entry in the JTable is 
-	 * editable.
-	 * 
-	 * @return This method always returns false to indicate that
-	 * the data in the Job table is not editable.
-	 */
-	@Override
-	public boolean isCellEditable(int row, int column) {
-		return false;
 	}
 
 	@Override
@@ -176,6 +275,8 @@ public class JobListTableModel extends AbstractTableModel implements WorkspaceLi
 			firstRow = 0;
 			lastRow  = jl.getJobs().size();
 		}
+		// Clear out our cached entries so that they are rebuilt
+		jobEntries = null;
 		// Translate workspace event to a model event.
 		switch (event.getOperation().ordinal()) {
 		case 0: // INSERT
@@ -191,18 +292,44 @@ public class JobListTableModel extends AbstractTableModel implements WorkspaceLi
 	}
 	
 	/**
-	 * Override the default names that are set for the columns 
-	 * displayed in the job table.
+	 * Convenience method to obtain the job at a given row.
 	 * 
-	 * @param col The zero-based column index whose title is to 
-	 * be returned.
+	 * This is a convenience method that is used by different parts of
+	 * the GUI to obtain the Job information from a given row.
+	 *  
+	 * @param row The row in the model whose associated job object
+	 * is to be returned.
 	 * 
-	 * @return The title associated with the column.
+	 * @return The job object associated with the row, assuming
+	 * the row is valid. If not, this method returns null.
 	 */
-	@Override
-	public String getColumnName(int col) {
-		String titles[] = {"Job ID", "Status", "Monitor", "Server", "CPUs"};
-		return titles[col];
+	public Job getJob(final int row) {
+		buildJobEntries();
+		if ((row >= 0) && (row < jobEntries.size())) {
+			return jobEntries.get(row).getJob();
+		}
+		return null;
+	}
+
+	/**
+	 * Convenience method to obtain the entry at a given row.
+	 * 
+	 * This is a convenience method that is used by different parts of
+	 * the GUI to obtain the entry (which can contain a Job or a
+	 * JobList) information from a given row.
+	 *  
+	 * @param row The row in the model whose associated entry
+	 * is to be returned.
+	 * 
+	 * @return The entry associated with the row, assuming
+	 * the row is valid. If not, this method returns null.
+	 */
+	public JobOrListWrapper getEntry(final int row) {
+		buildJobEntries();
+		if ((row >= 0) && (row < jobEntries.size())) {
+			return jobEntries.get(row);
+		}
+		return null;
 	}
 	
 	/**
