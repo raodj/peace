@@ -116,11 +116,16 @@ public class FileEntry {
 		String mimeStr = DOMHelper.getStringValue(entryData, "MimeType");
 		String path    = DOMHelper.getStringValue(entryData, "Path");
 		String desc    = DOMHelper.getStringValue(entryData, "Description", true);
+		// Read in optional source path with-respect-to job directory if set
+		String jobSrcPath = null;
+		if (DOMHelper.hasElement(entryData, "JobSrcPath")) {
+			jobSrcPath = DOMHelper.getStringValue(entryData, "JobSrcPath");
+		}
 		// Convert strings to enumeration objects.
 		FileEntryType type = FileEntryType.valueOf(typeStr.toUpperCase());
 		DataFileType  mimeType = DataFileType.valueOf(mimeStr.toUpperCase());
 		// Now that we have all the information create the actual entry
-		return new FileEntry(id, type, mimeType, path, desc);
+		return new FileEntry(id, type, mimeType, path, desc, jobSrcPath);
 	}
 	
 	/**
@@ -139,14 +144,21 @@ public class FileEntry {
 	 * that is referred by this entry.
 	 * 
 	 * @param description A user defined description for this file.
+	 * 
+	 * @param jobSrcPath The Path (with respect to the job directory obtained
+	 * via {@link Job#getJobSrcPath()}) to the location from where the data 
+	 * for this file was or is-to-be obtained. If the source file is present
+	 * with the same name in the job directory then this value can be null. 
 	 */
 	public FileEntry(String id, FileEntryType type, 
-			DataSet.DataFileType mimeType, String path, String description) {
+			DataSet.DataFileType mimeType, String path, 
+			String description, String jobSrcPath) {
 		this.id          = id;
 		this.type        = type;
 		this.mimeType    = mimeType;
 		this.path        = path;
 		this.description = description;
+		this.jobSrcPath  = jobSrcPath;
 	}
 	
 	/**
@@ -194,6 +206,23 @@ public class FileEntry {
 	public String getPath() { return path; }
 	
 	/**
+	 * Obtain Path (with respect to the job directory) to the source 
+	 * file from where the data for this file was or is-to-be obtained. 
+	 * 
+	 * This value is optional and is set only in cases where the source 
+	 * file may be present at a different location (with respect to the
+	 * job directory) on the server or has a different name. If the 
+	 * source file is present with the same name in the job directory 
+	 * then this value will be null.
+	 *   
+	 * @return The relative (with respect to job directory returned
+	 * by {@link Job#getJobSrcPath()}) path to the source file on the
+	 * server (see {@link Job#getServerID()}) on which the job is/was
+	 * run. This value is optional and the return value can be null.
+	 */
+	public String getJobSrcPath() { return jobSrcPath; }
+	
+	/**
 	 * Obtain just the name of the file (without path) for this file entry.
 	 * 
 	 * This is a helper method that can be used to obtain just the
@@ -230,13 +259,16 @@ public class FileEntry {
 	 */
 	public final void marshall(Element fileList) {
 		// Create a top-level entry for this "Job"
-		Element mstData = DOMHelper.addElement(fileList, "FileEntry", null);
+		Element fileEntry = DOMHelper.addElement(fileList, "FileEntry", null);
 		// Add new sub-elements for each sub-element
-		DOMHelper.addElement(mstData, "ID", id);
-		DOMHelper.addElement(mstData, "EntryType", type.toString().toLowerCase());
-		DOMHelper.addElement(mstData, "MimeType", mimeType.toString().toLowerCase());
-		DOMHelper.addElement(mstData, "Path", path);
-		DOMHelper.addElement(mstData, "Description", 
+		DOMHelper.addElement(fileEntry, "ID", id);
+		DOMHelper.addElement(fileEntry, "EntryType", type.toString().toLowerCase());
+		DOMHelper.addElement(fileEntry, "MimeType", mimeType.toString().toLowerCase());
+		DOMHelper.addElement(fileEntry, "Path", path);
+		if (jobSrcPath != null) {
+			DOMHelper.addElement(fileEntry, "JobSrcPath", jobSrcPath);
+		}
+		DOMHelper.addElement(fileEntry, "Description", 
 				(description != null) ? description : "");
 	}
 	
@@ -258,6 +290,9 @@ public class FileEntry {
 		out.printf(STR_ELEMENT, "EntryType", type.toString().toLowerCase());
 		out.printf(STR_ELEMENT, "MimeType", mimeType.toString().toLowerCase());
 		out.printf(STR_ELEMENT, "Path", path);
+		if (jobSrcPath != null) {
+			out.printf(STR_ELEMENT, "JobSrcPath", jobSrcPath);
+		}
 		out.printf(STR_ELEMENT, "Description", 
 				(description != null) ? DOMHelper.xmlEncode(description) : "");
 		// Close the MSTData tag
@@ -282,6 +317,9 @@ public class FileEntry {
 		sb.append(indent + "Type: " + type.toString() + "\n");
 		sb.append(indent + "Mime Type: " + mimeType.toString() + "\n");
 		sb.append(indent + "Path: " + path + "\n");
+		if (jobSrcPath != null) {
+			sb.append(indent + "Job Source Path: " + jobSrcPath + "\n");
+		}
 		sb.append(indent + "Description: " + description + "\n");
 		return sb.toString();
 	}
@@ -391,6 +429,16 @@ public class FileEntry {
 	 */
 	private final String path;
 
+	/**
+	 * Path (with respect to the job directory) to the source location from
+	 * where the data for this file was or is-to-be obtained. This value is
+	 * optional and is set only in cases where the source file may be 
+	 * present at a different location (with respect to the job directory)
+	 * on the server or has a different name. If the source file is present
+	 * with the same name in the job directory then this value will be null.  
+	 */
+	private final String jobSrcPath;
+	
 	/**
 	 * The type of generated/output file that is logically represented
 	 * by this object. 

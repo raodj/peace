@@ -152,6 +152,12 @@ public abstract class Job extends JobBase {
 		ArrayList<Param> parameters = new ArrayList<Param>(); 
 		for(int idx = 0; (idx < paramList.getLength()); idx++) {
 			Element paramNode = (Element) paramList.item(idx);
+			// Skip Param nodes that are not direct children of the jobNode
+			if (paramNode.getParentNode() != jobNode) {
+				// This is not a direct parameter node for this job. This could
+				// be parameter element present inside filter chain or some other element.
+				continue;
+			}
 			Param   entry     = Param.create(paramNode);
 			// Add the parameter information to the parameters list.
 			parameters.add(entry);
@@ -210,7 +216,8 @@ public abstract class Job extends JobBase {
 	 * @param description A user-supplied description for this job entry. This
 	 * maybe an empty string (but cannot be null).
 	 * 
-	 * @param path The directory on the server where the data for this job is stored.
+	 * @param path The directory on the server where the data for this job 
+	 * is stored on the local machine on which PEACE is running.
 	 * 
 	 * @param nodes The number of compute nodes that were requested on a cluster for
 	 * running this job. This value must be at least 1.
@@ -489,9 +496,13 @@ public abstract class Job extends JobBase {
 	 * with the PEACE work space configuration data. 
 	 * 
 	 * @param out The stream to which the XML must be serialized.
+	 * 
+	 * @param indentPrefix The extra indentation to be done to make the
+	 * output look nice. If no additional indentation is needed then
+	 * an empty string ("") must be passed in.
 	 */
-	public void marshall(PrintWriter out) {
-		final String Indent = "\t\t";
+	public void marshall(PrintWriter out, final String indentPrefix) {
+		final String Indent = indentPrefix + "\t\t";
 		final String STR_ELEMENT = Indent + "\t" + "<%1$s>%2$s</%1$s>\n";
 		final String NUM_ELEMENT = Indent + "\t" + "<%1$s>%2$d</%1$s>\n";
 		final String xmlDesc     = DOMHelper.xmlEncode(description);
@@ -730,8 +741,7 @@ public abstract class Job extends JobBase {
         File localFile = new File(localFileName);
         Server srvr = Workspace.get().getServerList().getServer(getServerID());
         // Construct server-specific EST file location.
-        String serverESTFileName = srvr.getInstallPath() +
-        "/estData/" + localFile.getName();
+        String serverESTFileName = srvr.getServerPath(localFile);
         return serverESTFileName;
 	}
 

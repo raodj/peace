@@ -35,6 +35,7 @@ package org.peace_tools.workspace;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.util.List;
 
 import org.peace_tools.core.SummaryWriter;
 import org.w3c.dom.Element;
@@ -80,15 +81,88 @@ public class DataFileStats {
 		this.maxLength  = maxLength;
 	}
 	
+	public DataFileStats(final String filePath, long lastUpdate, 
+			final List<DataFileStats> statsList) {
+		this.filePath   = filePath;
+		if (lastUpdate == -1) {
+			File temp = new File(filePath);
+			lastUpdate = temp.lastModified();
+		}
+		this.lastUpdate = lastUpdate;
+		// Build aggregate statistics from the list of values supplied.
+		int count       = 0;
+		float avgLen    = 0, avgLenSD   = 0;
+		int minLen      = 0, maxLen     = 0;
+		float insErrSum = 0, delErrSum  = 0, subErrSum = 0;
+		if ((statsList != null) && (statsList.size() > 0)) {
+			minLen = statsList.get(0).getMinLength();
+			maxLen = statsList.get(0).getMaxLength();
+			for(DataFileStats dfs: statsList) {
+				count      += dfs.getCount();
+				avgLen     += dfs.getAvgLength();
+				avgLenSD   += dfs.getLengthSD();
+				minLen      = Math.min(minLen, dfs.getMinLength());
+				maxLen      = Math.max(maxLen, dfs.getMaxLength());
+				insErrSum  += dfs.getInsErrorRate();
+				delErrSum  += dfs.getDelErrorRate();
+				subErrSum  += dfs.getSubErrorRate();
+			}
+		}
+		// Compute aggregate averages while handling case when no stats 
+		// were passed in.
+		final int statsCount = ((statsList == null) || (statsList.size() == 0) ? 1 : statsList.size());
+		this.count        = count;
+		this.avgLength    = avgLen   / statsCount;
+		this.lengthSD     = avgLenSD / statsCount;
+		this.minLength    = minLen;
+		this.maxLength    = maxLen;
+		this.techType     = SeqTechType.UNKNOWN;
+		this.insErrorRate = insErrSum / statsCount;
+		this.delErrorRate = delErrSum / statsCount;
+		this.subErrorRate = subErrSum / statsCount;
+	}
+	
+	/**
+	 * Set sequencing information for this statistics object.
+	 * 
+	 * This method is used to setup additional technology and associated
+	 * information in this object.
+	 * 
+	 * @param techType The technology type associated with this object.
+	 * 
+	 * @param insErrorRate The insertion rate associated with this
+	 * statistics object. If the rate is not known then this value 
+	 * must be -1. The valid range of values is 0 to 1.0 (inclusive).
+	 * 
+	 * @param delErrorRate The deletion rate associated with this
+	 * statistics object. If the rate is not known then this value 
+	 * must be -1. The valid range of values is 0 to 1.0 (inclusive).
+	 * 
+	 * @param subErrorRate The substitution error rates associated with 
+	 * the given technology type. If the rate is not known then this 
+	 * value must be -1. The valid range of values is 0 to 1.0 (inclusive).
+	 */
+	public void setSeqInfo(final SeqTechType techType, 
+			final float insErrorRate, final float delErrorRate,
+			final float subErrorRate) {
+		this.techType     = techType;
+		this.insErrorRate = insErrorRate;
+		this.delErrorRate = delErrorRate;
+		this.subErrorRate = subErrorRate;
+	}
+	
 	/**
 	 * Convenience constructor to load data from a DOM Tree
 	 * 
 	 * This constructor is typically used when loading data from an XML
 	 * file. This constructor extracts the necessary information from a
-	 * given root DOM element. This element is typically generated
-	 * via a call to the 
-	 * @param fileName
-	 * @param statsData
+	 * given root DOM element. 
+	 * 
+	 * @param fileName The path to the cDNA data file about which this
+	 * object contains statistics information. 
+	 * 
+	 * @param statsData The DOM element corresponding to the "Stats"
+	 * object from where the data is to be extracted by this method.
 	 */
 	public static DataFileStats create(final String fileName, final Element statsData) {
 		assert( statsData != null );
@@ -99,22 +173,62 @@ public class DataFileStats {
 		int minLength     = DOMHelper.getIntValue(statsData, "MinLength");
 		int maxLength     = DOMHelper.getIntValue(statsData, "MaxLength");
 		long lastModified = DOMHelper.getLongValue(statsData,"LastUpdate");
-		// Create a new object and return it back to the caller
-		return new DataFileStats(fileName, lastModified, count, avgLength, 
+		// Create a new object to be returned to the caller.
+		DataFileStats dfs = 
+			new DataFileStats(fileName, lastModified, count, avgLength, 
 				lengthSD, minLength, maxLength);
+		// Set additional sequencing technology information and
+		// error rates (if available).
+		String techType   = statsData.getAttribute("seqTech");
+		techType          = ((techType == null) || (techType.length() == 0) ? null : techType);
+		SeqTechType seqTechType = (techType != null ? SeqTechType.valueOf(techType) : 
+			SeqTechType.UNKNOWN);
+		dfs.setSeqInfo(seqTechType, getErrorRate(statsData, "InsErrRate"), 
+				getErrorRate(statsData, "DelErrRate"), 
+				getErrorRate(statsData, "SubErrRate"));
+		// Return the newly created object for further use
+		return dfs;
 	}
 
+	/**
+	 * Helper method to get a specific error rate.
+	 * 
+	 * This is a a helper method that is called from the 
+	 * {@link #create(String, Element)} method to obtain the 
+	 * error rate value associated with the statistics object.
+	 * 
+	 * @param statsData The DOM element from where the error rate
+	 * is to be extracted.
+	 * 
+	 * @param elementName The name of the child element from where
+	 * the error rate is to be extracted.
+	 * 
+	 * @return The error rate associated with the given child element.
+	 * If the child element was not found in the statsData then this
+	 * method returns -1.
+	 */
+	private static float getErrorRate(final Element statsData, 
+			final String elementName) {
+		float retVal = -1;
+		if (DOMHelper.hasElement(statsData, elementName)) {
+			retVal = (float) DOMHelper.getDoubleValue(statsData, elementName);
+		}
+		return retVal;
+	}
+	
 	/**
 	 * Method to marshall the data stored in this object to become part of
 	 * a DOM tree element passed in. This method assumes that the element
 	 * passed in corresponds to the parent Workspace node in the DOM tree.
 	 * 
-	 * @param workspace The DOM element corresponding to the "Workspace"
+	 * @param workspace The DOM element corresponding to the "DataSet"
 	 * node that contains this entry.
 	 */
 	public final void marshall(Element dataSet) {
 		// Create a top-level entry for this "DataSet"
 		Element stats = DOMHelper.addElement(dataSet, "Stats", null);
+		// Setup technology attribute value
+		stats.setAttribute("seqTech", techType.name());
 		// Add new sub-element for the stats node
 		DOMHelper.addElement(stats, "Count",      count);
 		DOMHelper.addElement(stats, "AvgLength",  avgLength);
@@ -122,6 +236,10 @@ public class DataFileStats {
 		DOMHelper.addElement(stats, "MinLength",  minLength);
 		DOMHelper.addElement(stats, "MaxLength",  maxLength);
 		DOMHelper.addElement(stats, "LastUpdate", lastUpdate);
+		// Add error rate information.
+		DOMHelper.addElement(stats, "InsErrRate", insErrorRate);
+		DOMHelper.addElement(stats, "DelErrRate", delErrorRate);
+		DOMHelper.addElement(stats, "SubErrRate", subErrorRate);
 	}
 	
 	/**
@@ -132,19 +250,24 @@ public class DataFileStats {
 	 * @param out The stream to which the XML must be serialized.
 	 */
 	public final void marshall(PrintWriter out) {
-		final String Indent        = "\t\t";
-		final String INT_ELEMENT   = Indent + "<%1$s>%2$d</%1$s>\n";
-		final String FLOAT_ELEMENT = Indent + "<%1$s>%2$f</%1$s>\n";
+		final String Indent        = "\t\t\t";
+		final String INT_ELEMENT   = Indent + "\t<%1$s>%2$d</%1$s>\n";
+		final String FLOAT_ELEMENT = Indent + "\t<%1$s>%2$f</%1$s>\n";
 		
 		// Create a top-level server entry for this server
-		out.printf("%s<Stats>\n", Indent); 
+		out.printf("%s<Stats seqTech=\"%s\">\n", Indent, techType.name()); 
 		// Add new sub-elements for the ESTData element
-		out.printf(INT_ELEMENT, "Count",        count);
+		out.printf(INT_ELEMENT,   "Count",      count);
 		out.printf(FLOAT_ELEMENT, "AvgLength",  avgLength);
 		out.printf(FLOAT_ELEMENT, "LengthSD",   lengthSD);
 		out.printf(INT_ELEMENT,   "MinLength",  minLength);
 		out.printf(INT_ELEMENT,   "MaxLength",  maxLength);
 		out.printf(INT_ELEMENT,   "LastUpdate", lastUpdate);
+		// Add error rates to the XML file
+		out.printf(FLOAT_ELEMENT, "InsErrRate", insErrorRate);
+		out.printf(FLOAT_ELEMENT, "DelErrRate", delErrorRate);
+		out.printf(FLOAT_ELEMENT, "SubErrRate", subErrorRate);
+		// End the stats object
 		out.printf("%s</Stats>\n", Indent); 
 	}
 	
@@ -229,6 +352,64 @@ public class DataFileStats {
 	}
 	
 	/**
+	 * The sequencing technology associated with this statistics object.
+	 * 
+	 * This method returns the technology type associated with this
+	 * statistics object. 
+	 *  
+	 * @return The genomic sequencing technology type associated with
+	 * this object (if any).
+	 */
+	public SeqTechType getTechType() {
+		return techType;
+	}
+
+	/**
+	 * The insertion error rate associated with this statistics object.
+	 *  
+	 * @return This method returns the insertion rate (in the range 0.0
+	 * to 1.0) set for this statistics object. If a value is not know
+	 * then this method returns -1. Zero indicates no insertion error.
+	 */
+	public float getInsErrorRate() {
+		return insErrorRate;
+	}
+
+	/**
+	 * The deletion error rate associated with this statistics object.
+	 *  
+	 * @return This method returns the deletion rate (in the range 0.0
+	 * to 1.0) set for this statistics object. If a value is not know
+	 * then this method returns -1. Zero indicates no deletion error.
+	 */
+	public float getDelErrorRate() {
+		return delErrorRate;
+	}
+
+	/**
+	 * The substitution error rates associated with this 
+	 * statistics object.
+	 *  
+	 * @return This method returns the substitution error rate 
+	 * (in the range 0.0 to 1.0) set for this statistics object. 
+	 * If a value is not know then this method returns -1. Zero 
+	 * indicates no substitution error.
+	 */
+	public float getSubErrorRate() {
+		return subErrorRate;
+	}
+
+	/**
+	 * Obtain the total error rates associated with this statistics object.
+	 * 
+	 * @return This method returns the total error rate which is the
+	 * sum of insertion, deletion, and substitution error rates.
+	 */
+	public float getTotErrorRate() {
+		return insErrorRate + delErrorRate + subErrorRate;
+	}
+	
+	/**
 	 * Method to write summary information using the data in this
 	 * object.
 	 * 
@@ -297,4 +478,32 @@ public class DataFileStats {
 	 * to determine if the statistics are up to date with the file.
 	 */
 	public final long lastUpdate;
+	
+	/**
+	 * The sequencing technology value associated with this entry.
+	 * This value is optional and by default it is initialized
+	 * to {@link SeqTechType#UNKNOWN}.
+	 */
+	public SeqTechType techType = SeqTechType.UNKNOWN;
+	
+	/**
+	 * The insertion error rate (if known) associated with this
+	 * data file. If the error rate is not known then this value
+	 * is set to -1.
+	 */
+	public float insErrorRate = -1;
+	
+	/**
+	 * The deletion error rate (if known) associated with this
+	 * data file. If the error rate is not known then this value
+	 * is set to -1.
+	 */
+	public float delErrorRate = -1;
+	
+	/**
+	 * The substitution type error rate (if known) associated with this
+	 * data file. If the error rate is not known then this value
+	 * is set to -1.
+	 */
+	public float subErrorRate = -1;
 }

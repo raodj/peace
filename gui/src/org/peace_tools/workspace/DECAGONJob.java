@@ -37,13 +37,13 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 
 import org.peace_tools.core.SummaryWriter;
-import org.peace_tools.workspace.FileEntry.FileEntryType;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 /**
- * <p>This class corresponds to a "EASTJob" element in a 
+ * <p>This class corresponds to a "DECAGONJob" element in a 
  * PEACE work space XML data. This class encapsulates the core 
- * information associated with an assembly job performed via EAST.
+ * information associated with an assembly job performed via DECAGON.
  * This class serves merely as a read-only type class that is 
  * created when a new job is run. The data is persisted in the
  * XML work space for future reference so that users can determine
@@ -55,7 +55,7 @@ import org.w3c.dom.Element;
  * convenient interfaces for marshaling and un-marshaling XML data compatible
  * with the PEACE GUI configuration XML file format. </p>
  */
-public class EASTJob extends Job {
+public class DECAGONJob extends Job {
 	/**
 	 * Helper method to utilize data from a DOM tree to create a suitable
 	 * job entry. This method is typically  used to create a suitable
@@ -63,22 +63,22 @@ public class EASTJob extends Job {
 	 * 
 	 * @param jobNode The DOM element to be used for creating the job
 	 * entry and populating with the needed data. This node must
-	 * correspond to "EASTJob" element.
+	 * correspond to "DECAGONJob" element.
 	 * 
 	 * @return The newly created job entry based on the DOM data.
 	 * 
 	 * @throws Exception This method throws an exception when errors occur
 	 * during reading and processing elements from the DOM node.
 	 */
-	public static EASTJob create(Element jobNode) throws Exception {
+	public static DECAGONJob create(Element jobNode) throws Exception {
 		// First extract the necessary information to create a minimally
 		// populated clustering job object from the DOM tree.
 		String jobID    = DOMHelper.getStringValue(jobNode, "JobID");
 		String srvrID   = DOMHelper.getStringValue(jobNode, "ServerID");
 		
-		// Now we have the information to create a minimal east
+		// Now we have the information to create a minimal DECAGON
 		// job class. So do it and use it for further operations.
-		EASTJob job = new EASTJob(jobID, srvrID);
+		DECAGONJob job = new DECAGONJob(jobID, srvrID);
 		
 		// Now let the job class of job marshal the non-final values.
 		job.unmarshal(jobNode);
@@ -90,12 +90,24 @@ public class EASTJob extends Job {
 	protected void unmarshal(Element jobNode) throws Exception {
 		// Let base class un-marshal common elements
 		super.unmarshal(jobNode);
-		// Extract the parameters using helper method
-		parameters = parseParameters(jobNode);
+		// Extract the DECAGON variables using helper method
+		decVars = parseParameters(jobNode);
+		// Extract the processes for this DECAGON job
+		// Parse out the parameters (if any) for this job.
+		process = new ArrayList<DECAGONProcess>();
+		NodeList procList = jobNode.getElementsByTagName("Process");
+		if ((procList != null) && (procList.getLength() > 0)) {
+			for(int idx = 0; (idx < procList.getLength()); idx++) {
+				Element procNode    = (Element) procList.item(idx);
+				DECAGONProcess proc = DECAGONProcess.create(procNode);
+				// Add the parameter information to the parameters list.
+				process.add(proc);
+			}
+		}
 	}
 
 	/**
-	 * Constructor to create a minimally populated clustering job
+	 * Constructor to create a minimally populated DECAGON job
 	 * object with just the fixed value fields initialized to 
 	 * specific values.
 	 * 
@@ -110,12 +122,12 @@ public class EASTJob extends Job {
 	 * 
 	 * @param serverID The ID of the server on which this job is running.
 	 * This is a cross reference ID of a Server configured in this workspace.
-	 * 
 	 */
-	private EASTJob(String jobID, String serverID) {
-		super(JobType.EAST, jobID, serverID);
+	private DECAGONJob(String jobID, String serverID) {
+		super(JobType.DECAGON, jobID, serverID);
 		// Save information about heuristics and filters
-		this.parameters = null;
+		this.decVars = new ArrayList<Param>();
+		this.process = new ArrayList<DECAGONProcess>();
 	}
 	
 	/**
@@ -133,107 +145,87 @@ public class EASTJob extends Job {
 	 * This is a cross reference ID of a Server configured in this workspace.
 	 * 
 	 * @param path The directory on the server where the data for this job is stored.
+	 *
+	 * @param nodes The number of compute nodes that were requested on a cluster for
+	 * running this job. This value must be at least 1.
 	 * 
+	 * @param cpusPerNode The number of CPUs on each node that were requested for this
+	 * job. This value must be at least 1.
+
 	 * @param memory The total memory (sum of all memory used by all processes, 
 	 * (in MB) that was allocated for this job.
 	 * 
 	 * @param maxRunTime The maximum runtime (in hours) that was assigned for 
 	 * this job.
 	 * 
-	 * @param parameters The list of parameters that were used to customize
-	 * operation of EAST. This list cannot be null (but can be empty). 
+	 * @param dadxFile Path to the DADX file from where the information has been
+	 * used to create this job.
+	 * 
+	 * @param parameters The list of DECAGON variables that were used to customize
+	 * operation of DECAGON job. This list cannot be null (but can be empty).
+	 * 
+	 * @param processes The list of DECAGON processes that constitute this
+	 * job. This list must contain at least one valid entry. 
 	 */
-	public EASTJob(String jobID, String description, String serverID,
-			String path, int memory, int maxRunTime, ArrayList<Param> parameters) {
-		super(JobType.EAST, jobID, serverID, description, path,
-			1, 1, memory, maxRunTime);
+	public DECAGONJob(String jobID, String description, String serverID,
+			String path, int nodes, int cpusPerNode, int memory, 
+			int maxRunTime, String dadxFile, ArrayList<Param> parameters, 
+			ArrayList<DECAGONProcess> processes) {
+		super(JobType.DECAGON, jobID, serverID, description, path,
+			nodes, cpusPerNode, memory, maxRunTime);
 		// Save information about parameters
-		this.parameters = parameters;
+		this.dadxFile = dadxFile;
+		this.decVars  = parameters;
+		this.process  = processes;
 	}
 	
 	/**
-	 * Command line arguments for EAST.
+	 * Return the information in the form of a several semicolon separated
+	 * command-lines for each process.
 	 * 
-	 * This method can be used to obtain the parameter information
-	 * in the form of command line parameters that can be readily 
-	 * passed to PEACE/EAST.  The command line parameters are used
-	 * to configure the filters used by the clustering engine to 
-	 * mirror the configuration setup by the user for this job.
+	 * This method can be used to obtain the information needed to run the
+	 * job based on the supplied information in the form of a command line. 
 	 * 
-	 * @return The command line parameters to be passed to the PEACE/EAST. 
-	 * If no parameters are defined then this method returns an empty
-	 * string 
-	 */
-	@Override
-	public String getParametersCmdLine() {
-		return toCmdLine(parameters);
-	}
-	
-	/**
-	 * Return the information in the form of a partial PEACE command line 
-	 * parameter.
-	 * 
-	 * This method can be used to obtain the information needed to
-	 * generate the MST and clusters based on the supplied information in the form
-	 * of a command line parameter. 
-	 * 
-	 * @return Return the information as a command line to be passed to the
-	 * PEACE clustering engine.
+	 * @return Return the command-line for all the processes in this job
+	 * separated by a semicolon.
 	 */
 	public String toCmdLine() {
-		// Use helper method to build the command line.
-		return " " + getParametersCmdLine();
+		StringBuilder sb     = new StringBuilder();
+		boolean addSemiColon = false;
+		for(DECAGONProcess proc: process) {
+			if (addSemiColon) {
+				sb.append(';');
+			}
+			sb.append(proc.getCmdLine());
+			addSemiColon = true;
+		}
+		return sb.toString();
 	}
 	
 	@Override
 	public String toString() {
 		return jobID;
 	}
-
-	/**
-	/**
-	 * Helper method to add input and output files as parameters to this job.
-	 * 
-	 * EAST requires the input and output file to be specified as command-line
-	 * arguments in a specific order. This method is used by the 
-	 * EastJobWizard to add additional input/output files as parameters to
-	 * this job.
-	 * 
-	 * @param ds The data set that contains the source FASTA file to be assembled. 
-	 * This parameter cannot be null.
-	 * 
-	 * @param mstFile The file that contains the MST data to be used for assembly.
-	 * This parameter cannot be null.
-	 *  
-	 * @param qualityFile An optional quality file (in FASTAQ format) to be used
-	 * during assembly. This parameter can be null.
-	 *  
-	 * @param gfl The list of generated output files to be specified as target
-	 * output files to EAST.
-	 */
-	public void addParameters(DataSet ds, FileEntry mstFile, FileEntry qualityFile, 
-			GeneratedFileList gfl) {
-		parameters.add(new Param(getServerESTFile(ds), null));
-		parameters.add(new Param(mstFile.getName(), null));
-		
-		parameters.add(new Param(gfl.findEntry(FileEntryType.ASM).getName(), null));
-		parameters.add(new Param(gfl.findEntry(FileEntryType.SINGLETONS).getName(), null));
-		parameters.add(new Param(gfl.findEntry(FileEntryType.STATS).getName(), null));
-		
-		if (qualityFile != null) {
-			parameters.add(new Param(qualityFile.getName(), null));
-		}
-	}
 	
 	/**
-	 * Obtain the list of parameters that were used to customize this
-	 * job. These command line parameters were passed to the final
-	 * executable to customize its operations for this job.
+	 * Obtain the list of DECAGON variables that were used to create 
+	 * this job. The list of variables is comprehensive and includes both 
+	 * Parameters (values entered by the user) and automatic DECAGON 
+	 * variables. In addition, the list includes all variables 
+	 * immaterial of whether they were actually used by this job.
 	 * 
-	 * @return The list of parameters associated with this job. This 
-	 * value cannot be null (but can be an empty list)
+	 * @return The list of DECAGON variables parameters associated with this job. 
+	 * The return value cannot be null (but can be an empty list)
 	 */
-	public ArrayList<Param> getParameters() { return parameters; }
+	public ArrayList<Param> getDECAGONVariables() { return decVars; }
+	
+	/**
+	 * Obtain the list of processes constituting this DECAGON job.
+	 * 
+	 * @return The list of process constituting this DECAGON job. The list
+	 * always has one valid processes.
+	 */
+	public ArrayList<DECAGONProcess> getProcesses() { return process; }
 	
 	/**
 	 * Method to marshal the data stored in this object to become part of
@@ -245,11 +237,17 @@ public class EASTJob extends Job {
 	 */
 	public final void marshall(Element jobList) {
 		// Create a top-level entry for this "Job"
-		Element job = DOMHelper.addElement(jobList, "EASTJob", null);
+		Element job = DOMHelper.addElement(jobList, "DECAGONJob", null);
 		// Let base class add common sub-elements
 		super.marshall(job);
-		// Now marshal the information regarding parameters.
-		marshallParameters(parameters, job);
+		// Marshal out information about the DADX file for this job.
+		DOMHelper.addElement(job, "DADXFile", dadxFile);
+		// Now marshal the information regarding variables.
+		marshallParameters(decVars, job);
+		// Now marshal information about processes
+		for(DECAGONProcess proc: process) {
+			proc.marshall(job);
+		}
 	}
 	
 	/**
@@ -266,13 +264,19 @@ public class EASTJob extends Job {
 	public final void marshall(PrintWriter out, final String indentPrefix) {
 		final String Indent = indentPrefix + "\t";
 		// Create a top-level server entry for this server
-		out.printf("%s<EASTJob>\n", Indent);
+		out.printf("%s<DECAGONJob>\n", Indent);
 		// Let base class write out common elements first
 		super.marshall(out, Indent);
+		// Marshal out the DADX file information
+		out.printf("%s<DADXFile>%s</DADXFile>", Indent, dadxFile);
 		// Now marshal the information regarding parameters.
-		marshallParameters(parameters, out);
+		marshallParameters(decVars, out);
+		// Now marshal the information about processes
+		for(DECAGONProcess proc: process) {
+			proc.marshall(out, Indent);
+		}
 		// Close the job tag
-		out.printf("%s</EASTJob>\n", Indent);
+		out.printf("%s</DECAGONJob>\n", Indent);
 	}
 
 	/**
@@ -288,22 +292,44 @@ public class EASTJob extends Job {
 	 */
 	@Override
 	public void summarize(SummaryWriter sw) {
+		// Let the base class summarize common information
+		super.summarize(sw);
 		// Cut summary information about parameters
-		if (parameters != null) {
+		if (decVars != null) {
 			// Display list of parameters
-			sw.addSection("Command line parameter list");
-			for(Param p: parameters) {
+			sw.addSection("DECAGON variables");
+			for(Param p: decVars) {
 				sw.addSummary(p.getName(), p.getValue(), null);
 			}
 		}
-		// Let the base class summarize common information
-		super.summarize(sw);
+		// Add summary information about processes
+		sw.addSection("DECAGON Processes");
+		for(DECAGONProcess proc: process) {
+			sw.addSummary("Process Command-line", 
+					proc.getCmdLine(), "");
+		}
 	}
-		
+
 	/**
-	 * The list of parameters configured by the user for this job. These
-	 * parameters are passed to corresponding assembly tools.
-	 * This array list cannot be null (but can be empty).
+	 * The DADX file that served as the template for creating this job.
+	 * This information is used to provide the user with additional
+	 * information about this job (without having to carry that
+	 * information).
 	 */
-	private ArrayList<Param> parameters;
+	private String dadxFile;
+	
+	/**
+	 * The list of DECAGON variables used for running the specified
+	 * job. The list of variables is comprehensive and includes both 
+	 * Parameters (values entered by the user) and automatic DECAGON 
+	 * variables. In addition, the list includes all variables 
+	 * immaterial of whether they were actually used by this job.
+	 */
+	private ArrayList<Param> decVars;
+	
+	/**
+	 * The list of DECAGON processes constituting this job. There is
+	 * at least one entry in this list of a valid DECAGON job. 
+	 */
+	private ArrayList<DECAGONProcess> process;	
 }

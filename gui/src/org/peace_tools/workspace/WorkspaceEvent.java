@@ -56,8 +56,8 @@ public class WorkspaceEvent extends EventObject {
 		 * data file. The source object in the event is a MSTClusterData object.
 		 */
 		MST_CLUSTER_DATA,
-		/** Enumeration used to report information regarding a job entry.
-		 * The source object in the event is a Job object.
+		/** Enumeration used to report information regarding a job or job-list entry.
+		 * The source object in the event is a JobOrListWrapper object.
 		 */
 		JOB,
 		/** Enumeration used to report information regarding a Server entry.
@@ -79,7 +79,14 @@ public class WorkspaceEvent extends EventObject {
 		 * Enumeration used to report that a single file entry with a 
 		 * generated file list (within a data set) has changed.
 		 */
-		FILE_ENTRY
+		FILE_ENTRY,
+		/**
+		 * Enumeration used to report that a sublist or an entry
+		 * in the sublist has changed. The object in this case
+		 * is a JobList (for top-level entry) or a 
+		 * JobOrListWrapper (for sublist).
+		 */
+		JOB_LIST
 	};
 	
 	/**
@@ -110,12 +117,14 @@ public class WorkspaceEvent extends EventObject {
 	 * @param ds The data set that has been inserted, deleted, or updated.
 	 *  
 	 * @param operation The type of operation (insert, delete, or update) that
-	 * has already occured to the data set.
+	 * has already occurred to the data set.
 	 */
 	public WorkspaceEvent(DataSet ds, WorkspaceEvent.Operation operation) {
 		super(ds);
-		this.entryType = EntryType.DATA_SET;
-		this.operation = operation;
+		this.entryType    = EntryType.DATA_SET;
+		this.operation    = operation;
+		this.indexPos     = -1;
+		this.deletedEntry = null;
 	}
 
 	/**
@@ -127,11 +136,40 @@ public class WorkspaceEvent extends EventObject {
 	 *  
 	 * @param operation The type of operation (insert, delete, or update) that
 	 * has already occurred to the job.
+	 * 
+	 * @param container The top-level job list or JobOrListWrapper for sublist
+	 * that contains the job entry that was modified.
 	 */
 	public WorkspaceEvent(Job job, WorkspaceEvent.Operation operation) {
 		super(job);
-		this.entryType = EntryType.JOB;
-		this.operation = operation;
+		this.entryType    = EntryType.JOB;
+		this.operation    = operation;
+		this.indexPos     = -1;
+		this.deletedEntry = null;
+	}
+
+	/**
+	 * Constructor to create an event that can be used to report change in the
+	 * entries contained by a job-list.
+	 * 
+	 * @param jobList The job list entry whose contents have been modified.
+	 *  
+	 * @param operation The type of operation (insert, delete, or update) that
+	 * has already occurred to the job list.
+	 * 
+	 * @param indexPos The index position within the job list where the 
+	 * change occurred.
+	 * 
+	 * @param entry The object at the given index position that is being
+	 * inserted, updated, or removed.
+	 */
+	public WorkspaceEvent(JobList jList, WorkspaceEvent.Operation operation, 
+			int indexPos, Object entry) {
+		super(jList);
+		this.entryType    = EntryType.JOB_LIST;
+		this.operation    = operation;
+		this.indexPos     = indexPos;
+		this.deletedEntry = entry;
 	}
 
 	/**
@@ -146,8 +184,10 @@ public class WorkspaceEvent extends EventObject {
 	 */
 	public WorkspaceEvent(Server server, WorkspaceEvent.Operation operation) {
 		super(server);
-		this.entryType = EntryType.SERVER;
-		this.operation = operation;
+		this.entryType    = EntryType.SERVER;
+		this.operation    = operation;
+		this.indexPos     = -1;
+		this.deletedEntry = null;
 	}
 	
 	/**
@@ -160,8 +200,10 @@ public class WorkspaceEvent extends EventObject {
 	 */
 	public WorkspaceEvent(ClassifierList list) {
 		super(list);
-		this.entryType = EntryType.CLASSIFIER_LIST;
-		this.operation = Operation.UPDATE;
+		this.entryType    = EntryType.CLASSIFIER_LIST;
+		this.operation    = Operation.UPDATE;
+		this.indexPos     = -1;
+		this.deletedEntry = null;
 	}
 
 	/**
@@ -176,8 +218,10 @@ public class WorkspaceEvent extends EventObject {
 	 */
 	public WorkspaceEvent(GeneratedFileList gfl, WorkspaceEvent.Operation operation) {
 		super(gfl);
-		this.entryType = EntryType.GENERATED_FILE_LIST;
-		this.operation = operation;
+		this.entryType    = EntryType.GENERATED_FILE_LIST;
+		this.operation    = operation;
+		this.indexPos     = -1;
+		this.deletedEntry = null;
 	}
 	
 	/**
@@ -192,9 +236,36 @@ public class WorkspaceEvent extends EventObject {
 	 */
 	public WorkspaceEvent(FileEntry fe, WorkspaceEvent.Operation operation) {
 		super(fe);
-		this.entryType = EntryType.FILE_ENTRY;
-		this.operation = operation;
+		this.entryType    = EntryType.FILE_ENTRY;
+		this.operation    = operation;
+		this.indexPos     = -1;
+		this.deletedEntry = null;
 	}
+	
+	/**
+	 * Obtain the index position within a job list where a change occurred.
+	 * 
+	 * The return value from this method is meaningful only when the
+	 * {@link #getEntryType()} method returns {@link EntryType#JOB_LIST}.
+	 * 
+	 * @return The index position within the job list where a change 
+	 * occurred.
+	 */
+	public int getIndexPos() { return indexPos; }
+	
+	/**
+	 * Obtain the entry that has been removed from a list.
+	 * 
+	 * This method can be used to obtain the entry that has been removed
+	 * from a list. A valid non-null object is returned by this method 
+	 * when the {@link #getEntryType()} method returns {@link EntryType#JOB_LIST}.
+	 * In other cases this method returns null.
+	 * 
+	 * @return This method returns the object that has been removed from a
+	 * list. The index position from where this object was removed can be
+	 * obtained from {@link #getIndexPos()} method.
+	 */
+	public Object getDeletedEntry() { return deletedEntry; }
 	
 	/**
 	 * Determine the type of entry regarding which a status change is being
@@ -227,6 +298,22 @@ public class WorkspaceEvent extends EventObject {
 	 * being reported via this event.
 	 */
 	private final Operation operation;
+
+	/**
+	 * The index position within the {@link #getSource()} source where an entry
+	 * was added, removed, or updated. If the index position is not
+	 * applicable, then it is set to -1.
+	 */
+	private final int indexPos;
+	
+	/**
+	 * This instance variable is used to hold the object that has been
+	 * removed from a list. The list can be obtained via call to 
+	 * {@link #getSource()} method. This object is currently used
+	 * only when {@link #entryType} is set to {@link EntryType#JOB_LIST}.
+	 * In other cases it is set to NULL. 
+	 */
+	private final Object deletedEntry;
 	
 	/**
 	 * A generated serialization UID (required as the base class is defined 

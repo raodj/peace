@@ -69,7 +69,12 @@ public abstract class JobBase {
 		 * This type of job entry corresponds to a baton job that is
 		 * used for clustering and assembly. 
 		 */
-		BATON
+		BATON,
+		/**
+		 * This type of job entry corresponds to a DECAGON job that
+		 * is used for empirical evaluation of genomic-assemblers.
+		 */
+		DECAGON
 	};
 	
 	/**

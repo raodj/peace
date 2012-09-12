@@ -276,7 +276,7 @@ public class ClusteringJob extends Job {
 			int memory, int maxRunTime, FWAnalyzer analyzer, 
 			int threshold, ArrayList<Heuristic> heuristics, 
 			ArrayList<Filter> filters, ArrayList<Param> parameters) {
-		super(JobType.CLUSTERING, jobID, serverID, description, path, 
+		super(JobType.CLUSTERING, jobID, serverID, description, path,
 			nodes, cpusPerNode, memory, maxRunTime);
 		// Save information about analyzer and clustering parameters
 		this.analyzer   = analyzer;
@@ -508,15 +508,19 @@ public class ClusteringJob extends Job {
 	 * with the PEACE work space configuration data. 
 	 * 
 	 * @param out The stream to which the XML must be serialized.
+	 * 
+	 * @param indentPrefix The extra indentation to be done to make the
+	 * output look nice. If no additional indentation is needed then
+	 * an empty string ("") must be passed in.
 	 */
-	public final void marshall(PrintWriter out) {
-		final String Indent = "\t\t";
+	public final void marshall(PrintWriter out, final String indentPrefix) {
+		final String Indent = indentPrefix + "\t\t";
 		final String NUM_ELEMENT = Indent + "\t" + "<%1$s>%2$d</%1$s>\n";
 		
 		// Create a top-level server entry for this server
 		out.printf("%s<ClusteringJob>\n", Indent);
 		// Let base class write out common elements first
-		super.marshall(out);
+		super.marshall(out, indentPrefix);
 		// Marshal out the analyzer information
 		analyzer.marshall(out);
 		// Marshal out the clustering threshold
