@@ -307,6 +307,30 @@ public abstract class ServerSession {
 	abstract public FileInfo fstat(String path) throws IOException;
 	
 	/**
+	 * Method to forward a local port to a remote host and port number.
+	 * 
+	 * <p>This method is a convenience method that is meaningful only for
+	 * remote server sessions. This method  uses SSH port forwarding 
+	 * support in JSch to forward connections from a local port to a 
+	 * given remote host and port.</p>  
+	 * 
+	 * @param localPort The local port on the local machine to be forwarded
+	 * to a given remote host. If this value is -1, then a free port is
+	 * detected by this method and used.
+	 * 
+	 * @param remoteHost The host or IP address of the remote machine to
+	 * which a connection is to be forwarded.
+	 * 
+	 * @param remotePort The remote port number to which the connection
+	 * is to be forwarded.
+	 * 
+	 * @return This method returns the local port that has been forwarded.
+	 * @throws IOException 
+	 */
+	public abstract int forwardPort(int localPort, String remoteHost, 
+			int remotePort) throws IOException;
+	
+	/**
 	 * A simple method to set a purpose message for this session.
 	 * 
 	 * This method can be used to set up a purpose message for a

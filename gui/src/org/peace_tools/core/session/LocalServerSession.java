@@ -42,6 +42,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.util.List;
 
 import javax.swing.JProgressBar;
 import javax.swing.text.DefaultStyledDocument;
@@ -131,6 +132,10 @@ public class LocalServerSession extends ServerSession {
 	 * 
 	 * @throws Exception If the execution produces an error then
 	 * this method throws an exception.
+	 * 
+	 * <p><b>NOTE</b>:This method does not handle spaces in command-line
+	 * arguments correctly. The preferred method is 
+	 * {@link #exec(List, String[])}.</p>
 	 */
 	@Override
 	public int exec(final String command, String[] outputs) throws Exception {
@@ -165,6 +170,31 @@ public class LocalServerSession extends ServerSession {
 	}
 	
 	/**
+	 * Helper method to start process to execute command via OS-specific
+	 * command processor.
+	 * 
+	 * @param command The command-line arguments for the process to be run.
+	 * 
+	 * @return The process object created by running the command via 
+	 * OS-specific command processor.
+	 */
+	@SuppressWarnings("unused")
+	private Process startProcess(List<String> command) throws Exception {
+		// Start up the process via OS-specific command processor
+		String cmdHandler = "/bin/bash";
+		String parameter  = "-c";
+		if (Server.OSType.WINDOWS.equals(getOSType())) {
+			cmdHandler = "cmd.exe";
+			parameter  = "/c";
+		}
+		// Insert new entries to the command-line arguments
+		command.add(0, parameter);
+		command.add(0, cmdHandler);
+		Process process = new ProcessBuilder(command).start();
+		return process;
+	}
+	
+	/**
 	 * This method can be used to run a long running command that 
 	 * may produce verbose output.
 	 * 
@@ -191,11 +221,34 @@ public class LocalServerSession extends ServerSession {
 	 * 
 	 * @throws Exception If the execution produces an error then
 	 * this method throws an exception.
+	 * 
+	 * <p><b>NOTE</b>: This method does not handle spaces in command-line
+	 * arguments correctly. The preferred method is 
+	 * {@link #exec(List, DefaultStyledDocument)}.</p>
 	 */
 	@Override
 	public int exec(final String command, DefaultStyledDocument output) throws Exception {
 		// Start up the process.
 		Process process = startProcess(command);
+		// Process the output stream (assuming standard error does not fill up)
+		return exec(process, output);
+	}
+	
+	/**
+	 * Helper method to read outputs from a process and add it to a log/document.
+	 * 
+	 * This is a helper method that has been introduced to streamline the code
+	 * in the {@link #exec(List, DefaultStyledDocument)} and {@link #exec(String, DefaultStyledDocument)}
+	 * methods in this class.
+	 * 
+	 * @param process The process whose output is to be read and logged.
+	 * 
+	 * @param output The styled document to which the outputs are to be written.
+	 * 
+	 * @return The exit code from the process.
+	 * @throws Exception
+	 */
+	private int exec(Process process, DefaultStyledDocument output) throws Exception {
 		// Process the output stream (assuming standard error does not fill up)
 		// Read stdout one line at a time and add it to the output
 		BufferedReader stdin = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -425,9 +478,9 @@ public class LocalServerSession extends ServerSession {
 	 * others (false). 
 	 */
 	private void setPerms(File file, int perm, boolean owner) {
-		file.setReadable((perm & 0x4) != 0, owner);
-		file.setWritable((perm & 0x2) != 0, owner);
-		file.setExecutable((perm & 0x1) != 0, owner);
+		file.setReadable  ((perm & 0400) != 0, owner);
+		file.setWritable  ((perm & 0200) != 0, owner);
+		file.setExecutable((perm & 0100) != 0, owner);
 	}
 	
 	/**
@@ -457,8 +510,35 @@ public class LocalServerSession extends ServerSession {
 	}
 	
 	/**
+	 * Method to forward a local port to a remote host and port number.
+	 * 
+	 * <p>This method is a convenience method that is meaningful only for
+	 * remote server sessions. For local sessions this method does not
+	 * perform any operations.</p>  
+	 * 
+	 * <p>NOTE: For a local session, then this method  performs no 
+	 * operations and simply returns -1.</p>
+	 * 
+	 * @param localPort The local port on the local machine to be forwarded
+	 * to a given remote host. This parameter is ignored by this method.
+	 * 
+	 * @param remoteHost The host or IP address of the remote machine to
+	 * which a connection is to be forwarded. This parameter is not used
+	 * by this method.
+	 * 
+	 * @param remotePort The remote port number to which the connection
+	 * is to be forwarded. This parameter is unused.
+	 * 
+	 * @return As per the API contract, this method always returns -1.
+	 */
+	public int forwardPort(int localPort, String remoteHost, 
+			int remotePort) {
+		return -1;
+	}
+	
+	/**
 	 * A simple textual information indicating the purpose for this
-	 * session. This string is more meanigful to the user and is 
+	 * session. This string is more meaningful to the user and is 
 	 * merely used to provide additional information when prompting
 	 * for inputs from the user.
 	 */
