@@ -1,0 +1,34 @@
+<html>
+<font size="-1">
+<p>MetaSim is used to generate synthetic data sets for testing assemblers. 
+Set the path (type it in or use the <tt>Browse</tt> button and select) to
+the MetaSim executable for your computer for DECAGON to use it. You need 
+to have MetaSim installed on your machine (separately from PEACE) in order
+to use it.</p>
+
+<p>Metasim is not distributed with PEACE because it is a closed source, non-GPL code.
+It can be downloaded from <a href="http://ab.inf.uni-tuebingen.de/software/metasim/">
+http://ab.inf.uni-tuebingen.de/software/metasim/.</a> It is free for 
+academic use.</p>
+</font>
+</html>
+
+<html>
+Testing 123
+</html>
+
+<html>
+Testing 123
+</html>
+
+<html>
+Testing 123
+</html>
+
+<html>
+Testing 123
+</html>
+
+<html>
+Testing 123
+</html>

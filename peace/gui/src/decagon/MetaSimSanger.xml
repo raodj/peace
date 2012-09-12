@@ -1,0 +1,214 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<!--
+	
+	This DECAGON file is part of PEACE.
+	
+	PEACE is free software: you can redistribute it and/or modify it
+	under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+	
+	PEACE is distributed in the hope that it will be useful, but
+	WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+	General Public License for more details.
+ 
+	You should have received a copy of the GNU General Public License
+	along with PEACE.  If not, see <http://www.gnu.org/licenses/>.
+	
+	Miami University makes no representations or warranties about the
+	suitability of the software, either express or implied, including
+	but not limited to the implied warranties of merchantability,
+	fitness for a particular purpose, or non-infringement.  Miami
+	University shall not be liable for any damages suffered by
+	licensee as a result of using, result of using, modifying or
+	distributing this software or its derivatives.
+
+	By using or copying this Software, Licensee agrees to abide by the
+	intellectual property laws, and all other applicable laws of the
+	U.S., and the terms of GNU General Public License (version 3).
+	
+	Authors:   Dhananjai M. Rao              raodm@muohio.edu
+
+-->
+
+<parameterSet xmlns:decagon="http://www.peace-tools.org/decagon/"
+	xmlns="http://www.peace-tools.org/decagon/"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.peace-tools.org/decagon/ ParameterSet.xsd">
+	<description>
+		MetaSim parameters used for generating Sanger-type
+		reads in synthetic data sets.
+	</description>
+	
+	<parameter name="SangerFixed">
+		<kind>BOOLEAN</kind>
+		<cmdLine>cmd -s -c</cmdLine>
+		<cmdLineKind>IMPLICIT_VALUE</cmdLineKind>
+		<value>true</value>
+		<mutable>false</mutable>
+		<hidden>true</hidden>
+		<description>Fixed parameters used to run MetaSim</description>
+		<summary>Fixed parameters used to run MetaSim</summary>
+	</parameter>
+	
+	<!-- The following parameter is a "controller" that enables or
+		 disables other parameters in this file. 
+	-->
+	<parameter name="EnableSanger" controller="true">
+		<kind>BOOLEAN</kind>
+		<cmdLine>--sanger</cmdLine>
+		<cmdLineKind>IMPLICIT_VALUE</cmdLineKind>
+		<value>true</value>
+		<mutable>true</mutable>
+		<hidden>false</hidden>
+		<description>
+			<![CDATA[Generate Sanger sequences?]]>
+		</description>
+		<summary></summary>
+	</parameter>
+
+	<parameter name="SangerCount">
+		<kind>INTEGER</kind>
+		<cmdLine>--reads</cmdLine>
+		<cmdLineKind>EXPLICIT_VALUE</cmdLineKind>
+		<value>1000</value>
+		<mutable>true</mutable>
+		<hidden>false</hidden>
+		<description>
+			<![CDATA[<b>Number of reads to generate</b><br>
+			<font size="-2">The total number of reads is this valueww<br/>
+			multiplied by the mate pair probability value]]>
+		</description>
+		<summary>Number of Sanger-type reads</summary>
+	</parameter>
+
+	<parameter name="SangerAvgLen">
+		<kind>INTEGER</kind>
+		<cmdLine>--sanger-mean</cmdLine>
+		<cmdLineKind>EXPLICIT_VALUE</cmdLineKind>
+		<value>1000</value>
+		<mutable>true</mutable>
+		<hidden>false</hidden>
+		<description>
+			<![CDATA[<b>Average length of Sanger-type reads</b>]]>
+		</description>
+		<summary>Average read length (in Nt)</summary>
+	</parameter>
+	
+	<parameter name="SangerLenSD">
+		<kind>INTEGER</kind>
+		<cmdLine>--sanger-param2</cmdLine>
+		<cmdLineKind>EXPLICIT_VALUE</cmdLineKind>
+		<value>100</value>
+		<mutable>true</mutable>
+		<hidden>false</hidden>
+		<description>
+			<![CDATA[<b>Variance in length of Sanger reads</b><br>
+			<font size="-2">Sets the std/max deviation of sanger reads.</font>
+			]]>
+		</description>
+		<summary>Variance in read length</summary>
+	</parameter>
+
+	<parameter name="SangerMatePairProb">
+		<kind>DOUBLE</kind>
+		<cmdLine>--sanger-mate-probability</cmdLine>
+		<cmdLineKind>EXPLICIT_VALUE</cmdLineKind>
+		<value>1.0</value>
+		<min>0.0</min>
+		<max>1.0</max>
+		<mutable>true</mutable>
+		<hidden>false</hidden>
+		<description>
+			<![CDATA[<b>Sanger mate-pair probability</b><br>
+			<font size="-2">Valid range is 0.0 (no paired reads) to 1.0 <br>
+			(all reads have mate-pairs and there are twice<br>
+			the number of reads)</font>
+			]]>
+		</description>
+		<summary>Mate-pair probability</summary>
+	</parameter>
+	
+	<parameter name="SangerStartError">
+		<kind>DOUBLE</kind>
+		<cmdLine>--sanger-err-start</cmdLine>
+		<cmdLineKind>EXPLICIT_VALUE</cmdLineKind>
+		<value>0.01</value>
+		<min>0.0</min>
+		<max>1.0</max>
+		<mutable>true</mutable>
+		<hidden>false</hidden>
+		<description>
+			<![CDATA[<b>Minimum error rate/generated read</b><br>
+			<font size="-2">Probability of error (valid range: 0.0 to 1.0)</font>
+			]]>
+		</description>
+		<summary>Error rate at start of reads</summary>
+	</parameter>
+
+	<parameter name="SangerEndError">
+		<kind>DOUBLE</kind>
+		<cmdLine>--sanger-err-end</cmdLine>
+		<cmdLineKind>EXPLICIT_VALUE</cmdLineKind>
+		<value>0.02</value>
+		<min>0.0</min>
+		<max>1.0</max>
+		<mutable>true</mutable>
+		<hidden>false</hidden>
+		<description>
+			<![CDATA[<b>Maximum error rate/generated read</b><br>
+			<font size="-2">Probability of error (valid range: 0.0 to 1.0)</font>
+			]]>
+		</description>
+		<summary>Error rate at end of reads</summary>
+	</parameter>
+	
+	<parameter name="SangerDeletions">
+		<kind>DOUBLE</kind>
+		<cmdLine>--sanger-deletions</cmdLine>
+		<cmdLineKind>EXPLICIT_VALUE</cmdLineKind>
+		<value>0.2</value>
+		<min>0.0</min>
+		<max>1.0</max>
+		<mutable>true</mutable>
+		<hidden>false</hidden>
+		<description>
+			<![CDATA[<b>Proportion of deletion-type errors</b><br>
+			<font size="-2">Valid range is 0.0 (no deletes) to 1.0 (only deletes)</font>
+			]]>
+		</description>
+		<summary>Deletion error rate</summary>
+	</parameter>
+	
+	<parameter name="SangerInsertions">
+		<kind>DOUBLE</kind>
+		<cmdLine>--sanger-insertions</cmdLine>
+		<cmdLineKind>EXPLICIT_VALUE</cmdLineKind>
+		<value>0.2</value>
+		<min>0.0</min>
+		<max>1.0</max>
+		<mutable>true</mutable>
+		<hidden>false</hidden>
+		<description>
+			<![CDATA[<b>Proportion of insertion-type errors</b><br>
+			<font size="-2">Valid range is 0.0 (no errors) to 1.0 (only inserts)</font>
+			]]>
+		</description>
+		<summary>Insertion error rate</summary>
+	</parameter>
+
+	<parameter name="SangerSubstitutions">
+		<kind>DUMMY</kind>
+		<cmdLine></cmdLine>
+		<cmdLineKind>IGNORE</cmdLineKind>
+		<mutable>false</mutable>
+		<hidden>false</hidden>
+		<description>
+			<![CDATA[<font size="-2"><b>Note:</b>Subsitution error rate 
+			is automatically computed by<br/>
+			 MetaSim as: <i>1.0-(Deletion_Rate + Insertion_Rate)</font>]]>
+		</description>
+	</parameter>
+</parameterSet>

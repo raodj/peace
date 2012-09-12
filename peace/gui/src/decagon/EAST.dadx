@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<!-- This DECAGON file is part of PEACE. PEACE is free software: you can 
+	redistribute it and/or modify it under the terms of the GNU General Public 
+	License as published by the Free Software Foundation, either version 3 of 
+	the License, or (at your option) any later version. PEACE is distributed 
+	in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even 
+	the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. 
+	See the GNU General Public License for more details. You should have received 
+	a copy of the GNU General Public License along with PEACE. If not, see <http://www.gnu.org/licenses/>. 
+	Miami University makes no representations or warranties about the suitability 
+	of the software, either express or implied, including but not limited to 
+	the implied warranties of merchantability, fitness for a particular purpose, 
+	or non-infringement. Miami University shall not be liable for any damages 
+	suffered by licensee as a result of using, result of using, modifying or 
+	distributing this software or its derivatives. By using or copying this Software, 
+	Licensee agrees to abide by the intellectual property laws, and all other 
+	applicable laws of the U.S., and the terms of GNU General Public License 
+	(version 3). Authors: Dhananjai M. Rao raodm@muohio.edu -->
+
+<!-- A DECAGON Assembler Details XML (DADX) description for EAST. -->
+<assemblerDetails xmlns:decagon="http://www.peace-tools.org/decagon/"
+	xmlns="http://www.peace-tools.org/decagon/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.peace-tools.org/decagon/ Assembler.xsd">
+
+	<name>EAST-0.1</name>
+	<description>This is PEACE-Clustering + EAST-assembly setup</description>
+	<icon>images/24x24/EAST.png</icon>
+
+	<executable name="peace_clustering">
+		<internal>peace_clustering</internal>
+		<description>PEACE clustering engine</description>
+		<detectArgsList>
+			<argument>
+				<cmdLineArg>--help</cmdLineArg>
+			</argument>
+		</detectArgsList>
+		<detectOutputCheck stdout="true" stderr="false">Version 0.96-Alpha\.</detectOutputCheck>
+		<detectExitCode>3</detectExitCode>
+	</executable>
+
+	<executable name="east">
+		<internal>east</internal>
+		<description>EAST assembler</description>
+		<detectArgsList>
+			<argument>
+				<cmdLineArg>-VERSION</cmdLineArg>
+			</argument>
+		</detectArgsList>
+		<detectOutputCheck stdout="true" stderr="false">Version 0.1.</detectOutputCheck>
+		<detectExitCode>0</detectExitCode>
+	</executable>
+
+	<assemblyParams>
+		<description>
+			Parameters for assembly that the user needs to input. The
+			default clustering approach used by PEACE clustering engine
+			is "adaptive" and automatically computes appropriate
+			threshold. This DADX file does not expose additional parameters
+			that can be supplied to PEACE clustering engine to further
+			fine tune its operations.
+		</description>
+
+		<parameter name="NumLevels">
+			<kind>INTEGER</kind>
+			<cmdLine>-NUMOFLEVELS</cmdLine>
+			<cmdLineKind>EXPLICIT_VALUE</cmdLineKind>
+			<value>0</value>
+			<mutable>true</mutable>
+			<hidden>false</hidden>
+			<description>
+				<![CDATA[
+				Set the depth to which Minimum-Spanning-Tree (MST)<br/> 
+				should be analyzed to determine fragments for a contig.<br/>
+				If this value is set to zero (preferred value) the full MST<br/> 
+			 	is analyzed.]]>
+			 </description>
+			<summary>Depth of MST to be analyzed for each contig</summary>
+		</parameter>
+		
+		<parameter name="UseNW">
+			<kind>BOOLEAN</kind>
+			<cmdLine>-USE_BOUNDED_NW</cmdLine>
+			<cmdLineKind>IMPLICIT_VALUE</cmdLineKind>
+			<value>true</value>
+			<mutable>true</mutable>
+			<hidden>false</hidden>
+			<description>
+				<![CDATA[
+				Set this parameter to "true" to enable bounded <br/>
+				Needleman-Wunsch approach (rather than ubounded) <br/>
+				that will improve performance during alignment.]]>
+			</description>
+			<summary>Use bounded Needleman-Wunsch</summary>
+		</parameter>
+
+		<parameter name="BandWidthNW">
+			<kind>INTEGER</kind>
+			<cmdLine>-BAND_WIDTH_NW</cmdLine>
+			<cmdLineKind>EXPLICIT_VALUE</cmdLineKind>
+			<value>20</value>
+			<mutable>true</mutable>
+			<hidden>false</hidden>
+			<description>
+				<![CDATA[When bounded Needleman-Wunsch approach is used,<br/>
+				this value determines the size of the bound (in number<br/>
+				of Nucleotides around the diagonal).]]>
+			</description>
+			<summary>Size of Needleman-Wunsch bound</summary>
+		</parameter>
+	</assemblyParams>
+
+	<job type="parallel">
+		<resourceFactors>
+			<ntMemScale>2</ntMemScale>
+			<cntMemScale>2</cntMemScale>
+			<ntTimeScale>2</ntTimeScale>
+			<cntTimeScale>2</cntTimeScale>
+		</resourceFactors>
+		<name>Clustering</name>
+		<description>A clustering job to generate Minimum Spanning Tree (MST) for assembly phase.
+			The clustering engine of PEACE runs in parallel if multiple compute nodes
+			or more than one CPU is configured for the job. In order to run using multiple
+			nodes, the server must have an install of PEACE that is based on the 
+			Message Passing Interface (MPI). 
+		</description>
+		<process executable="peace_clustering">
+			<cmdLineArgs>
+				<argument>
+					<cmdLineArg>--clusterMaker mst --fastaFile %INPUT_FILE_PATH%</cmdLineArg>
+				</argument>
+				<argument>
+					<cmdLineArg>--output-mst-file %INPUT_FILE_NAME%.mst --output-cls-file %JOB_ID%.cls --progress progress.dat</cmdLineArg>
+				</argument>
+			</cmdLineArgs>
+			<outputCheck stdout="false" stderr="true">
+				Number of u/v successes:
+			</outputCheck>			
+			<exitCode>0</exitCode>
+		</process>
+		<outputFile isContigFile="false">
+			<path>%INPUT_FILE_NAME%.mst</path>
+			<fileType>txt</fileType>
+			<description>The MST file from clustering</description>
+		</outputFile>
+	</job>
+
+	<job type="serial">
+		<resourceFactors>
+			<ntMemScale>2</ntMemScale>
+			<cntMemScale>2</cntMemScale>
+			<ntTimeScale>2</ntTimeScale>
+			<cntTimeScale>2</cntTimeScale>
+		</resourceFactors>
+		<name>Assembly</name>
+		<description>An assembly job to use the MST generated by the
+		clustering job to perform final assembly via EAST. EAST
+		currently runs only serially (one thread on one node).  
+		</description>
+		<process executable="east">
+			<cmdLineArgs>
+				<argument>
+					<parameterRef>NumLevels</parameterRef>
+				</argument>
+				<argument>
+					<parameterRef>UseNW</parameterRef>
+				</argument>
+				<argument>
+					<parameterRef>BandWidthNW</parameterRef>
+				</argument>
+				<argument>
+					<cmdLineArg>--progress progress.dat %INPUT_FILE_PATH% %INPUT_FILE_NAME%.mst %INPUT_FILE_NAME%_contigs.fasta %INPUT_FILE_NAME%_singletons.fasta %INPUT_FILE_NAME%_stats.txt</cmdLineArg>
+				</argument>				
+			</cmdLineArgs>
+			<exitCode>0</exitCode>
+		</process>
+		<outputFile isContigFile="true">
+			<path>%INPUT_FILE_NAME%_contigs.fasta</path>
+			<fileType>fasta</fileType>
+			<description>The contig file generated by EAST assembler</description>
+		</outputFile>
+		<outputFile isContigFile="false">
+			<path>%INPUT_FILE_NAME%_singletons.fasta</path>
+			<fileType>fasta</fileType>
+			<description>File with cDNA fragments that are not part of any contig</description>
+		</outputFile>
+		<outputFile isContigFile="false">
+			<path>%INPUT_FILE_NAME%_stats.txt</path>
+			<fileType>txt</fileType>
+			<description>The runtime statistics generated by EAST</description>
+		</outputFile>
+		
+	</job>
+
+</assemblerDetails>

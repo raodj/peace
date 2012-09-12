@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<!--
+	
+	This DECAGON file is part of PEACE.
+	
+	PEACE is free software: you can redistribute it and/or modify it
+	under the terms of the GNU General Public License as published by
+	the Free Software Foundation, either version 3 of the License, or
+	(at your option) any later version.
+	
+	PEACE is distributed in the hope that it will be useful, but
+	WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+	General Public License for more details.
+ 
+	You should have received a copy of the GNU General Public License
+	along with PEACE.  If not, see <http://www.gnu.org/licenses/>.
+	
+	Miami University makes no representations or warranties about the
+	suitability of the software, either express or implied, including
+	but not limited to the implied warranties of merchantability,
+	fitness for a particular purpose, or non-infringement.  Miami
+	University shall not be liable for any damages suffered by
+	licensee as a result of using, result of using, modifying or
+	distributing this software or its derivatives.
+
+	By using or copying this Software, Licensee agrees to abide by the
+	intellectual property laws, and all other applicable laws of the
+	U.S., and the terms of GNU General Public License (version 3).
+	
+	Authors:   Dhananjai M. Rao              raodm@muohio.edu
+
+-->
+
+<parameterSet xmlns:decagon="http://www.peace-tools.org/decagon/"
+	xmlns="http://www.peace-tools.org/decagon/"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.peace-tools.org/decagon/ ParameterSet.xsd">
+	<description>
+		MetaSim parameters used for generating illumina-type
+		reads in synthetic data sets using MetaSim's empirical error model.
+	</description>
+
+	<parameter name="IlluminaFixed">
+		<kind>BOOLEAN</kind>
+		<cmdLine>cmd -s -c</cmdLine>
+		<cmdLineKind>IMPLICIT_VALUE</cmdLineKind>
+		<value>true</value>
+		<mutable>false</mutable>
+		<hidden>true</hidden>
+		<description>Fixed parameters used to run MetaSim</description>
+		<summary>Fixed parameters used to run MetaSim</summary>
+	</parameter>
+	
+	<!-- The following parameter is a "controller" that enables or
+		 disables other parameters in this file. 
+	-->
+	<parameter name="EnableIllumina" controller="true">
+		<kind>BOOLEAN</kind>
+		<cmdLine>--empirical</cmdLine>
+		<cmdLineKind>IMPLICIT_VALUE</cmdLineKind>
+		<value>true</value>
+		<mutable>true</mutable>
+		<hidden>false</hidden>
+		<description>
+			<![CDATA[Generate Illumina sequences?]]>
+		</description>
+		<summary></summary>
+	</parameter>
+	
+	<parameter name="IlluminaCount">
+		<kind>INTEGER</kind>
+		<cmdLine>--reads</cmdLine>
+		<cmdLineKind>EXPLICIT_VALUE</cmdLineKind>
+		<value>1000</value>
+		<mutable>true</mutable>
+		<hidden>false</hidden>
+		<description>
+			<![CDATA[<b>Number of reads to generate</b><br>]]>
+		</description>
+		<summary>Number of illumina-type reads</summary>
+	</parameter>
+	
+	<parameter name="IlluminaAvgLen">
+		<kind>CHOICE</kind>
+		<cmdLine>--empirical-cfg</cmdLine>
+		<!-- This value is ignored on purpose. The Java code maps
+		     the number of bases to a suitable empirical error model
+		     data file needed by MetaSim. -->
+		<cmdLineKind>IGNORE</cmdLineKind>
+		<value>36 bases:36,80 bases:80</value>
+		<mutable>true</mutable>
+		<hidden>false</hidden>
+		<description>
+			<![CDATA[<b>Length of illumina-type reads</b><br>
+			<font size="-2">MetaSim's empirical error model used to generate<br>
+			these reads provides only a limited number of fixed<br>
+			size reads based on empirical data files.]]>
+		</description>
+		<summary>Read length (in Nt)</summary>
+	</parameter>
+	
+	<parameter name="IlluminaPEprob">
+		<kind>DOUBLE</kind>
+		<cmdLine>--empirical-pe-probability</cmdLine>
+		<cmdLineKind>EXPLICIT_VALUE</cmdLineKind>
+		<value>0.0</value>
+		<min>0.0</min>
+		<max>1.0</max>
+		<mutable>true</mutable>
+		<hidden>false</hidden>
+		<description>
+			<![CDATA[<b>Paired end probability</b><br>
+			<font size="-2">Valid range is 0.0 (no paired ends) to 1.0 <br>
+			(all reads have paired-ends)</font>]]>
+		</description>
+		<summary>Paired end probability</summary>
+	</parameter>
+	
+	<parameter name="Dummuy">
+		<condition var="IlluminaCount" comp="gt" numValue="500"/>
+		<kind>STRING</kind>
+		<cmdLine>--%PEACE_GUI_VERSION%%%</cmdLine>
+		<cmdLineKind>EXPLICIT_VALUE</cmdLineKind>
+		<value>%IlluminaCount%</value>
+		<mutable>true</mutable>
+		<hidden>false</hidden>
+		<description>
+			<![CDATA[<b>Dummy parameter</b><br>
+			<font size="-2">A dummy parameter for testing</font>]]>
+		</description>
+		<summary>Dummy Parameter</summary>
+	</parameter>
+
+</parameterSet>	 
