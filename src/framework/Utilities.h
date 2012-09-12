@@ -331,4 +331,14 @@ char* getTimeStamp(const char *fileName, char *buffer);
 */
 char* getTime(char *buffer, const time_t *codedTime = NULL);
 
+/** Convenience method to remove leading and trailing white-spaces.
+
+	This method may be used to trim whitespace (space, tab,
+	carriage returns, and line feeds) from the beginning and end
+	of a string.
+	
+    \param[in,out] str The string to be trimmed.
+*/
+void trim(std::string& str);
+
 #endif
