@@ -33,6 +33,8 @@
 
 package org.peace_tools.core;
 
+import java.io.File;
+
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
@@ -44,12 +46,21 @@ import org.peace_tools.generic.Utilities;
 import org.peace_tools.workspace.Workspace;
 
 /**
- * The top-level class for the PEACE GUI application.
+ * The top-level, singleton class for the PEACE GUI application.
  * 
  * This class merely contains the main method that jump starts the various
  * operations including creation of the top-level frame for normal use.
  */
 public class PEACE {
+	/**
+	 * The singleton instance of PEACE.
+	 * 
+	 * This instance variable maintains the process-wide unique instance
+	 * of the PEACE class. This object is created only once and is used
+	 * in the {@link #main(String[])} method.
+	 */
+	private static final PEACE peace = new PEACE();
+	
 	/**
 	 * The main method launches the core dialogs in the system to start
 	 * up on the swing thread. Starting the GUI on the swing thread is
@@ -63,7 +74,7 @@ public class PEACE {
         // creating and showing this application's GUI.
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                new PEACE();
+                peace.run();
             }
         });
 	}
@@ -131,9 +142,29 @@ public class PEACE {
 	}
 	
 	/**
-	 * The constructor. This is the main PEACE application method 
-	 * that launches the core dialogs in the system. Specifically it
-	 * performs the following tasks:
+	 * The constructor.
+	 * 
+ 	 & This class is implemented as a singleton class. 
+	 * Consequently, the constructor is called only once. The constructor
+	 * does not perform any specific task other than loading the 
+	 * singleton properties. The {@link #run()} method in this class
+	 * performs the GUI related tasks. 
+	 * 
+	 */
+	private PEACE() {
+		// Load the properties file if present. Don't show any error
+		// messages if this could be the first launch.
+		File defDir = new File(Utilities.getDefaultDirectory());
+		boolean firstLaunch = !(defDir.isDirectory() && defDir.exists() &&
+				defDir.canRead());
+		PEACEProperties.get().load(null, !firstLaunch);
+	}
+	
+	/**
+	 * The method that launches the GUI and performs all the GUI-related tasks.
+	 * 
+	 * This is the main PEACE application method that launches the core
+	 * dialogs in the system. Specifically it performs the following tasks:
 	 * 
 	 * <ol>
 	 * 
@@ -144,9 +175,9 @@ public class PEACE {
 	 * <li>If the user chooses a valid work space this method launches the main
 	 * frame that does rest of the normal operational tasks.</li>
 	 * 
-	 * </ol>
+	 * </ol>	 
 	 */
-	private PEACE() {
+	private void run() {
 		// Turn off metal's use of bold fonts
 		UIManager.put("swing.boldMetal", Boolean.FALSE);
 		try {

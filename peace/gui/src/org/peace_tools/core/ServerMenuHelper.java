@@ -171,7 +171,7 @@ implements ActionListener, ListSelectionListener {
 			+ IconNames[index] + ".png";
 		// Create and return the main menu item
 		JMenuItem item =
-			Utilities.createMenuItem(Utilities.MENU_ITEM, MenuTitles[index],
+			Utilities.createMenuItem(Utilities.MenuItemKind.MENU_ITEM, MenuTitles[index],
 				(mainMenu ? MenuSubTitles[index] : null),
 				ActionCmds[index], this, IconPath, 
 				null, true, false);

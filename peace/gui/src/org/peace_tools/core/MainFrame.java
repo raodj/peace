@@ -34,39 +34,46 @@
 package org.peace_tools.core;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.Frame;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.HashMap;
 
+import javax.swing.JComponent;
 import javax.swing.JDialog;
+import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenuBar;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 
 import org.peace_tools.core.AbstractMenuHelper.HelperType;
+import org.peace_tools.decagon.DecagonMenuHelper;
 import org.peace_tools.generic.CustomBorder;
 import org.peace_tools.generic.FindDialog;
 import org.peace_tools.generic.ProgrammerLog;
 import org.peace_tools.generic.UserLog;
 import org.peace_tools.generic.Utilities;
 import org.peace_tools.generic.dndTabs.DnDTabbedPane;
+import org.peace_tools.views.GenericHTMLView;
 import org.peace_tools.workspace.Job;
 import org.peace_tools.workspace.JobBase;
+import org.peace_tools.workspace.JobBase.JobStatusType;
 import org.peace_tools.workspace.JobList;
 import org.peace_tools.workspace.Server;
 import org.peace_tools.workspace.ServerList;
 import org.peace_tools.workspace.Workspace;
-import org.peace_tools.workspace.JobBase.JobStatusType;
 
 public class MainFrame extends JFrame implements ActionListener {
 	/**
@@ -132,12 +139,14 @@ public class MainFrame extends JFrame implements ActionListener {
 		JobMenuHelper    jmh = new JobMenuHelper(this);
 		ServerMenuHelper smh = new ServerMenuHelper(this);
 		ViewMenuHelper   vm  = new ViewMenuHelper(this);
+		DecagonMenuHelper dm = new DecagonMenuHelper(this);
 		HelpMenuHelper   hm  = new HelpMenuHelper(this);
 		// Save references for quick look up.
 		menuHelpers.put(HelperType.FILE_MENU, fm);
 		menuHelpers.put(HelperType.JOB_MENU, jmh);
 		menuHelpers.put(HelperType.SERVER_MENU, smh);
 		menuHelpers.put(HelperType.VIEW_MENU, vm);
+		menuHelpers.put(HelperType.DECAGON_MENU, dm);
 		menuHelpers.put(HelperType.HELP_MENU, hm);
 		
 		// Next create tool bar and the main menu using various
@@ -155,6 +164,8 @@ public class MainFrame extends JFrame implements ActionListener {
 		mainmenu.add(jmh.createJobMenu(toolbar, vm));
 		// Create view menu next
 		mainmenu.add(vm.createViewMenu(toolbar, hm));
+		// Create the Decagon menu next
+		mainmenu.add(dm.createDecagonMenu(toolbar));
 		// Create the help menu and set it up
 		mainmenu.add(hm.createHelpMenu(toolbar));
 		// Setup the main menu and tool bar appropriately
@@ -251,8 +262,10 @@ public class MainFrame extends JFrame implements ActionListener {
 		}
 		// Get the ID of the job that has just updated its status
 		final String parentJobID = parentJob.getJobID();
-		// Search for all jobs that are dependent/waiting on this job
-		for(Job job: Workspace.get().getJobList().getJobs()) {
+		// Obtain for all jobs that are dependent/waiting on this job
+		ArrayList<Job> dependentJobs = new ArrayList<Job>();
+		Workspace.get().getJobList().getDependentJobs(parentJobID, dependentJobs);
+		for(Job job: dependentJobs) {
 			final String prevJobID = job.getPreviousJobID();
 			if ((prevJobID != null) && (prevJobID.equals(parentJobID) && job.isWaiting())) {
 				// OK, current job is dependent/waiting on parentJob. So
@@ -268,6 +281,8 @@ public class MainFrame extends JFrame implements ActionListener {
 					// The previous job failed. Update status of this current
 					// job to reflect that it has failed.
 					job.setStatus(JobStatusType.WAIT_FAILED);
+					// Update status of jobs dependent on this one.
+					updateDependentJob(job);
 				}
 			}
 		}
@@ -369,19 +384,14 @@ public class MainFrame extends JFrame implements ActionListener {
 	 * This method is typically invoked from PEACE.launchMainFrame() method
 	 * after the main frame is created. This method performs the task of 
 	 * checking job status and creating a job thread if a job needs to be
-	 * monitored.
+	 * monitored. This method essentially delegates the task of 
 	 * 
 	 * <p><b>Note:</b>  Invoking this method twice will cause unnecessary
 	 * monitoring threads to start up. So avoid duplicate calls.</p>
 	 */
 	public void createJobThreads() {
 		JobList jobList = Workspace.get().getJobList();
-		for(Job job: jobList.getJobs()) {
-			if (!job.isDone() && !job.isWaiting()) {
-				// This job requires some monitoring. Start thread for this job.
-				JobMonitor.create(job, this);
-			}
-		}
+		jobList.createJobThreads(this);
 	}
 
 	/**
@@ -415,6 +425,60 @@ public class MainFrame extends JFrame implements ActionListener {
 					Server.ServerStatusType.UNINSTALL_FAILED);
 			}
 		}
+	}
+	
+	
+	/**
+	 * Helper method to wrap in-line HTML information into a GUI component.
+	 * 
+	 * This is a generic helper method that can be used to present a 
+	 * long HTML-type information to the user in a scroll pane.
+	 * The help information to be presented to the user is passed-in as
+	 * the parameter. This method wraps the help text in a GenericHTMLView
+	 * component (that handles HTML hyper links, scrolling etc.) and returns
+	 * the GUI component for use by various wizard pages.
+	 * 
+	 * @param helpInfo The help information to be wrapped in a suitable
+	 * GUI component for presentation to the user.
+	 * 
+	 * @param bgColor An optional background color to be set for the component.
+	 * If this parameter is null, then the default background for the 
+	 * component will be used.
+	 * 
+	 * @return This method returns a scroll pane containing the HTML 
+	 * rendering of the helpInfo. If creation of HTML pane fails then
+	 * this method uses a JLabel to present the HTML information (and
+	 * the label is wrapped in a scroll pane).
+	 */
+	public JComponent createHTMLComponent(final String helpInfo,
+			final Color bgColor) {
+		JComponent helpView = null;
+		try {
+			GenericHTMLView ghv = new GenericHTMLView(helpInfo, true, this);
+			// Change background color to make this area look un-editable
+			if (bgColor != null) {
+				ghv.getHTMLPane().setBackground(bgColor);
+			}
+			helpView = ghv;
+			// Ensure the HTML display uses same font as other parts to make
+			// the display look good.
+			ghv.getHTMLPane().putClientProperty(JEditorPane.HONOR_DISPLAY_PROPERTIES, Boolean.TRUE);
+			ghv.setFont(getFont());
+			ghv.getHTMLPane().setCaretPosition(0);
+		} catch (Exception e) {
+			// Could not create a generic HTML view. Log the error.
+			ProgrammerLog.log(e);
+			// Instead create a simple scrolling label as fall back.
+			helpView = new JScrollPane(new JLabel(helpInfo));
+			if (bgColor != null) {
+				helpView.setBackground(bgColor);
+			}
+		}
+		// Set preferred size on the helpInfo so that is not too big
+		// making the component look ugly.
+		helpView.setPreferredSize(new Dimension(400, 100));
+		// Return the help view back to the caller
+		return helpView;
 	}
 	
 	/**

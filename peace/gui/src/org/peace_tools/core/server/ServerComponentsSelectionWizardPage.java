@@ -68,10 +68,9 @@ import org.peace_tools.workspace.Server;
  *   existing copy of EAST, similar to PEACE). This available only
  *   on Linux boxes right now.</ol>
  *   
- *   <ol>An install of DECAF (a Distributed Empirical Comparison
- *   and Analysis Framework) for comparing various clustering
- *   software and assemblers. This is a future enhancement. Only
- *   available on Linux boxes.</ol>
+ *   <ol>An install of DECAGON (Distributed Environment for Comparative
+ *    Analysis of Genomic-Assemblers) for comparing various assemblers. 
+ *    This is available on Linux machines.</ol>
  *    
  * </ul>
  * 
@@ -121,7 +120,7 @@ implements ItemListener {
 		// Create component for EAST selection (if server has 
 		guiSoftComps[1] = createCompSelPanel(1, "NewMST", 
 				softCompSelections[1], false, true);
-		// Create component for DECAF selection.
+		// Create component for DECAGON selection.
 		guiSoftComps[2] = createCompSelPanel(2, "Jobs", 
 				softCompSelections[2], false, false);
 				
@@ -234,7 +233,7 @@ implements ItemListener {
 		// The name was set in the this.createCompSelPanel() method
 		String indexStr = ((JComponent) event.getSource()).getName();
 		int compIndex   = Integer.parseInt(indexStr);
-		// Now compIndex is 0 for PEACE, 1 for EAST, and 2 for DECAF
+		// Now compIndex is 0 for PEACE, 1 for EAST, and 2 for DECAGON
 		this.softCompSelections[compIndex] = (event.getStateChange() == ItemEvent.SELECTED);
 	}
 	
@@ -267,7 +266,7 @@ implements ItemListener {
 	 * <ol>
 	 * 	<li>PEACE enabled/disabled (always true to indicate enabled)</li>
 	 *  <li>EAST enabled/disabled (set for non-Windows server)</li>
-	 *  <li>DECAF enabled/disabled (always false to indicate disabled)</li>
+	 *  <li>DECAGON enabled/disabled (always false to indicate disabled)</li>
 	 *  </ol>
 	 *   
 	 * The texts for these check boxes are listed in the static array below.
@@ -294,9 +293,9 @@ implements ItemListener {
 		"EAST Gene Assembler",
 		"Assembles ESTs into Genes using the clustering results.\n"  +
 		"This component is available only on Linux servers.",
-		"DECAF evaluation environment",
-		"A Distributed Empirical Comparison and Analysis\n"  +
-		"Environment (DECAF) used to compare/contrast PEACE\n" +
+		"DECAGON assembler evaluation environment",
+		"ADistributed Environment for Comparative Analysis\n"  +
+		"of Genomic-Assemblers (DECAGON) used to compare/contrast PEACE\n" +
 		"with other software using various statistical metrics."
 	};
 	

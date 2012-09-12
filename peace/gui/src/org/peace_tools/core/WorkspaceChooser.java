@@ -34,6 +34,7 @@
 package org.peace_tools.core;
 
 import java.awt.BorderLayout;
+import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -42,10 +43,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.PrintWriter;
+import java.util.List;
 import java.util.Scanner;
+
 import javax.swing.Box;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -56,15 +56,22 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
+import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.SwingWorker;
 import javax.swing.UIManager;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.EtchedBorder;
 
+import org.peace_tools.decagon.helpers.DADXHelper;
 import org.peace_tools.generic.CustomPanel;
+import org.peace_tools.generic.Log.LogLevel;
+import org.peace_tools.generic.UserLog;
 import org.peace_tools.generic.Utilities;
 import org.peace_tools.workspace.Workspace;
 
@@ -86,12 +93,24 @@ import org.peace_tools.workspace.Workspace;
  * ensures that the user accepts the license agreement, creates the
  * default working directory for PEACE.</li>
  * 
- * <li>When a user selects a valid work space this method sets up
- * the work space instance variable and the dialog winds up.</li>
+ * <li>When a user selects a valid work space this class performs
+ * the following tasks:
+ * <ol>
+ * <li>It hides the "OK" and "Cancel" buttons and displays a progress
+ * bar to indicate progress of loading the necessary files. The actual
+ * loading of files is performed using a SwingWorker thread that is
+ * implemented by the BackgroundLoader inner class.</li>
  * 
- * <li>The main method uses the work space directory for further
- * use to create the main frame.</li>
+ * <li>It interfaces with the DECAGON modules (DADXHelper) to load the
+ * necessary assembler description files used by DECAGON for further
+ * processing. As the DADX files are loaded the progress bar is
+ * suitably updated.</li> 
  * 
+ * <li>The work space instance variable, launches the MainFrame
+ * and the dialog winds up.</li>
+ * </ol>
+ * </li>
+ *  
  * </ol>
  *
  */
@@ -126,6 +145,110 @@ public class WorkspaceChooser extends JDialog implements ActionListener {
 	 * chooses a work space.
 	 */
 	private String workspace = null;
+	
+	/**
+	 * This is a progress bar that is displayed instead of the "OK" and "Cancel"
+	 * buttons after the user presses the OK button in this dialog. The 
+	 * progress bar is used display the progress of loading various DECAGON
+	 * data files and finally the actual workspace file. These operations
+	 * can take several seconds and the visual indication to the user is
+	 * critical in this situation. The actual object is created in 
+	 * the {@link #createButtonProgBarPanel()}.
+	 */
+	private JProgressBar progBar = null;
+	
+	/**
+	 * A simple label that is used to display some short additional information
+	 * to the user. This label is displayed just above the {@link #progBarInfo}.
+	 * The actual object is created in the {@link #createButtonProgBarPanel()}
+	 * method.
+	 */
+	private JLabel progBarInfo = null;
+	
+	/**
+	 * This panel manager is used to display either buttons or the progress
+	 * bar. This panel and its layout manager is created in the 
+	 * {@link #createButtonProgBarPanel()}
+	 * and is used to switch from buttons to progress bar in the
+	 * {@link #okAction()} method.
+	 * 
+	 */
+	private JPanel btnProgPanel = null;
+	
+	/**
+	 * An internal helper class to load various files in the background.
+	 * 
+	 * This helper class has been introduced to enable loading various
+	 * DECAGON and PEACE workspace XML files in the background. The files
+	 * are loaded in the background to ensure that the GUI is responsive
+	 * and does not appear to have locked up during this slightly longer
+	 * operation. This class is created from the {@link WorkspaceChooser#okAction()}
+	 * method.
+	 */
+	private class BackgroundLoader extends SwingWorker<String, String> {
+		/**
+		 * The workspace directory path from where the workspace data is to
+		 * be loaded.
+		 */
+		private final File wsPath;
+		/**
+		 * Flag to indicate if the directory path is empty and a default
+		 * PEACE workspace file is to be created.
+		 */
+		private final boolean createDefWorkspace;
+		
+		/**
+		 * The constructor for this inner class.
+		 * 
+		 * The constructor merely saves the parameters in instance variables
+		 * to be used in various methods in this class.
+		 * 
+		 * @param wsPath The workspace directory path from where the workspace data is to
+		 * be loaded.
+		 * @param createDefWorkspace Flag to indicate if the directory path is empty and a default
+		 * PEACE workspace file is to be created.
+		 */
+		public BackgroundLoader(final File wsPath, final boolean createDefWorkspace) {
+			this.wsPath = wsPath;
+			this.createDefWorkspace = createDefWorkspace;
+		}
+		@Override
+		protected String doInBackground() throws Exception {
+			return useWorkspace(this, createDefWorkspace, wsPath);
+		}
+		@Override
+		protected void process(List<String> entries) {
+			WorkspaceChooser.this.updateProgress(entries);
+		}
+		@Override
+		protected void done() {
+			String result = null;
+			try {
+				// Get overall status from background thread.
+				result = get();
+			} catch (Exception exp) {
+				// If we have trouble getting status, then assume
+				// the status failed.
+				result = Utilities.toString(exp);
+			}
+			// Let helper method in main class to do some more 
+			// work to keep this inner class small and streamlined.
+			WorkspaceChooser.this.done(result, wsPath, createDefWorkspace);
+		}
+		/**
+		 * Convenience method to report initial step count or progress.
+		 * 
+		 * This method provides a convenient public method to report
+		 * progress via the protected {@link #publish(String...)} method
+		 * in this class.
+		 * 
+		 * @param entry The progress to be reported via the main Swing GUI
+		 * thread. This parameter cannot be null.
+		 */
+		public void updateProgress(String entry) {
+			this.publish(entry);
+		}
+	}
 	
 	/** The constructor.
 	 * 
@@ -240,6 +363,61 @@ public class WorkspaceChooser extends JDialog implements ActionListener {
 	}
 	
 	/**
+	 * Helper method to streamline code in {@link #createChooserDialog(boolean)} method.
+	 * 
+	 * This method is a helper method that is used to create a compound panel that
+	 * can display one of the following two pieces of information:
+	 * <ul>
+	 * <li>A panel containing "OK" and "Cancel" buttons which is initially displayed</li>
+	 * <li>A panel containing a progress bar to indicate progress in loading files. 
+	 * This panel is displayed only after the user clicks on the "OK" button.</li>
+	 * </ul>
+	 *  
+	 * This method is invoked only once from the createChooserDialog button.
+	 * 
+	 * @return A compound panel with two sub-panels to ease switching their display.
+	 */
+	private JPanel createButtonProgBarPanel() {
+		// Create the ok and cancel buttons at the bottom.
+		JButton okButton = Utilities.createButton(null, "    OK    ", "ok", 
+				this, "Use sepecified workspace to launch main window", true);
+		// Cancel button.
+		JButton cancelButton = Utilities.createButton(null, " Cancel ", "cancel", 
+				this, "Exit without performing any further operations", true);
+		// Put ok and cancel button into a horizontal layout with		
+		Box buttonPanel = Box.createHorizontalBox();
+		buttonPanel.add(Box.createHorizontalGlue()); // right align
+		buttonPanel.add(okButton);
+		buttonPanel.add(Box.createHorizontalStrut(10));
+		buttonPanel.add(cancelButton);
+		buttonPanel.add(Box.createHorizontalStrut(10));
+		
+		// Next create a panel with an empty title label and a progress bar.
+		// The range of the progress bar and the titles are set later on.
+		progBar     = new JProgressBar(SwingConstants.HORIZONTAL);
+		progBar.setIndeterminate(true);
+		progBar.setStringPainted(true);
+		progBar.setString("Please wait...");
+		progBarInfo = new JLabel("Loading ...", null, JLabel.HORIZONTAL);
+		// Place progress bar below label.
+		Box progPanel = Box.createVerticalBox();
+		progPanel.add(Box.createVerticalGlue()); // center align along with trailing glue
+		progPanel.add(progBarInfo);
+		progBarInfo.setAlignmentX(0);
+		progPanel.add(Box.createVerticalStrut(5));
+		progPanel.add(progBar);
+		progBar.setAlignmentX(0);
+		progPanel.add(Box.createVerticalStrut(5));
+		progPanel.add(Box.createVerticalGlue()); // needed for center vertical alignment
+		
+		// Finally pack the button and progress panels into a main panel.
+		btnProgPanel = new JPanel(new CardLayout());
+		btnProgPanel.add(buttonPanel, "buttonPanel");
+		btnProgPanel.add(progPanel,   "progressPanel");
+		return btnProgPanel;
+	}
+	
+	/**
 	 * This is a helper method that creates the work space chooser 
 	 * dialog that prompts the user to choose a work space for this
 	 * session of the GUI. This method places all the components into
@@ -293,27 +471,19 @@ public class WorkspaceChooser extends JDialog implements ActionListener {
 		horizPanel.add(Box.createHorizontalStrut(10));
 		horizPanel.add(browse);
 		horizPanel.add(Box.createHorizontalStrut(10));
-		// Create the ok and cancel buttons at the bottom.
-		JButton okButton = new JButton("    OK    ");
-		okButton.addActionListener(this);
-		okButton.setActionCommand("ok");
-		// Cancel button.
-		JButton cancelButton = new JButton(" Cancel ");
-		cancelButton.addActionListener(this);
-		cancelButton.setActionCommand("cancel");
 		// Put ok and cancel button into a horizontal layout with
 		// some version information to the left.
 		String version = "<html>" + Version.GUI_VERSION + "</html>";
 		version = version.replaceAll("\n", "<br>"); // Convert newline to HTML <br>
 		JLabel versionInfo = new JLabel(version, 
 				Utilities.getIcon("images/24x24/PEACE.png"), JLabel.LEFT);
+		JPanel buttonProgPanel = createButtonProgBarPanel();
+		// Put ok and cancel button into a horizontal layout with
+		// some version information to the left.
 		Box buttonPanel = Box.createHorizontalBox();
 		buttonPanel.add(versionInfo);
-		buttonPanel.add(Box.createHorizontalGlue()); // right align
-		buttonPanel.add(okButton);
-		buttonPanel.add(Box.createHorizontalStrut(10));
-		buttonPanel.add(cancelButton);
-		buttonPanel.add(Box.createHorizontalStrut(10));
+		buttonPanel.add(buttonProgPanel);
+		
 		// Put the above components into a suitable
 		// panel with vertical layout.
 		Box vertPanel = Box.createVerticalBox();
@@ -380,9 +550,11 @@ public class WorkspaceChooser extends JDialog implements ActionListener {
 
 	/**
 	 * This is a helper method that is used to load the list of previously
-	 * used work space paths from the default ".workspace_list" file in the
-	 * default working directory. If no previous work spaces were found, then
-	 * this method adds a suggested default work space for the user.
+	 * used work space paths from the global property named 
+	 * "WorkspaceChooser.WorkspaceList". The properties are already
+	 * loaded from the properties file in the default working directory. 
+	 * If no previous work spaces were found, then this method adds a 
+	 * suggested default work space for the user.
 	 * 
 	 * @param firstTime If this flag is true then it indicates that the
 	 * PEACE program is being launched for the first time.
@@ -392,51 +564,48 @@ public class WorkspaceChooser extends JDialog implements ActionListener {
 	 */
 	private void loadWorkspaceList(boolean firstTime, JComboBox list) {
 		// If this is not the first time running, load data from the
-		// ".workspace_list" file.
-		try {
-			String wsFileName  = Utilities.getDefaultDirectory() + "/.workspace_list";
-			Scanner wsFile     = new Scanner(new FileReader(wsFileName));
-			// Read line-by-line from file and add it to combo box
-			while (wsFile.hasNext()) {
-				String wsPath = wsFile.nextLine().trim();
-				if (wsPath.length() < 1) {
-					// Ignore empty lines.
-					continue;
-				}
-				// Add items.
-				wsList.addItem(wsPath);
+		// "WorkspaceChooser.WorkspaceList" property. Otherwise we use
+		// a default.
+		final String defWSPath = Utilities.getDefaultDirectory() + 
+			File.separator + "workspace1";
+		final String workspaceList = PEACEProperties.get().getProperty(WSLIST_PROPERTY_NAME, defWSPath);
+		Scanner wsFile     = new Scanner(workspaceList);
+		// Read line-by-line from file and add it to combo box
+		while (wsFile.hasNext()) {
+			String wsPath = wsFile.nextLine().trim();
+			if (wsPath.length() < 1) {
+				// Ignore empty lines.
+				continue;
 			}
-			wsFile.close();
-		} catch (Exception e) {
-			// Do nothing if the work space file could not be read.
-		}
-		// Add a default work space entry to the list.
-		if (wsList.getItemCount() == 0) {
-			String wsPath = Utilities.getDefaultDirectory() + 
-				File.separator + "workspace1";
+			// Add items.
 			wsList.addItem(wsPath);
 		}
+		// We will never have an empty list.
+		assert(wsList.getItemCount() > 0 );
 		// Select the first item in the list as the default work space
 		wsList.setSelectedIndex(0);
 	}
 
 	/**
 	 * This is a helper method that is used to save the current list of
-	 * work space paths to the work space list file. 
+	 * work space paths into the global properties.
 	 * 
-	 * @param list The combo box whose data is to be saved.
+	 * This method updates the list of files in the global properties and
+	 * saves the properties to disk. 
+	 * 
+	 * @param list The combo box whose data is to be saved as the list of
+	 * workspaces.
 	 */
 	private void saveWorkspaceList(JComboBox list) {
-		try {
-			String wsFileName  = Utilities.getDefaultDirectory() + "/.workspace_list";
-			PrintWriter printer = new PrintWriter(new FileWriter(wsFileName));
-			for(int idx = 0; (idx < list.getItemCount()); idx++) {
-				printer.println(list.getItemAt(idx));
-			}
-			printer.close();
-		} catch (Exception e) {
-			// Ignore errors on saving work space list
+		StringBuilder sb = new StringBuilder(1024);
+		for(int idx = 0; (idx < list.getItemCount()); idx++) {
+			sb.append(list.getItemAt(idx));
+			sb.append('\n');
 		}
+		final String workspaceList = sb.toString();
+		// Update properties and save the list.
+		PEACEProperties.get().setProperty(WSLIST_PROPERTY_NAME, workspaceList);
+		PEACEProperties.get().save(list, true);
 	}
 
 	/**
@@ -571,11 +740,11 @@ public class WorkspaceChooser extends JDialog implements ActionListener {
 	 * 	 
 	 */
 	private void okAction() {
-		// Flag to indicate if user selected path is new or not
-		boolean makeDefWS = false;
+		// Flag to indicate if user selected path is new or not 
+		boolean createDefWorkSpace = false;
 		// The user must have chosen a work space. Check if it exists
 		// or create it otherwise.
-		File wsPath = new File((String) wsList.getSelectedItem());
+		final File wsPath = new File((String) wsList.getSelectedItem());
 		if (!wsPath.exists()) {
 			// Try and create the working directory
 			if (!wsPath.mkdir()) {
@@ -588,7 +757,7 @@ public class WorkspaceChooser extends JDialog implements ActionListener {
 				return;
 			}
 			// Flag to indicate path is new to create default workspace below.
-			makeDefWS = true;
+			createDefWorkSpace = true;
 		} else {
 			// The path exists. Ensure it is usable.
 			if (!wsPath.isDirectory() || !wsPath.canRead()) {
@@ -618,68 +787,149 @@ public class WorkspaceChooser extends JDialog implements ActionListener {
 					return;
 				}
 				// Make a default work space in the directory.
-				makeDefWS = true;
-			} else {
-				// A work space file exists.
-				try {
-					// Load and check to ensure it is valid.
-					Workspace.useWorkspace(wsPath.getAbsolutePath());
-				} catch (Exception e) {
-					// Workspace metadata is invalid. User must chose a
-					// different directory.
-					JPanel msg = Utilities.collapsedMessage("<html>" +
-							"The chosen directory has invalid PEACE workspace " +
-							"metadata:<br>" +
-							"Directory: " + wsPath.getAbsolutePath() + "<br><br>" + 
-							"PEACE cannot use the above directory and operate correctly.<br>" +
-							"Pleace choose a different workspace folder.</html>", 
-							Utilities.toString(e));
-					JOptionPane.showMessageDialog(this, msg,
-						"Invalid workspace directory", JOptionPane.ERROR_MESSAGE);
-					// Bail out.
-					return;
-				}
-			}
+				createDefWorkSpace = true;
+			} 
 		}
-		// If a new work space needs to be created do it now.
-		if (makeDefWS) {
+		// The loading of the workspace is not a short process.
+		// This is done in a background thread to ensure GUI remains
+		// response and we are able to show progress information.
+		CardLayout cl = (CardLayout) btnProgPanel.getLayout();
+		cl.show(btnProgPanel, "progressPanel");
+		// call useWorkspace() method from a separate background thread.
+		BackgroundLoader bl = new BackgroundLoader(wsPath, createDefWorkSpace);
+		bl.execute();
+	}
+	
+	private void updateProgress(List<String> entries) {
+		if ((entries == null) || (entries.isEmpty())) {
+			// No entries to process. Nothing further to be done.
+			return;
+		}
+		// Check and handle initialization situation first.
+		int startEntry = 0;
+		if (progBar.isIndeterminate()) {
+			// This is the first update entry from our background thread.
+			// This value is an integer that indicates the number of
+			// operations to be performed. This is used to set the 
+			// range for the progress bar that displays progress.
+			int numOperations = Integer.parseInt(entries.get(0));
+			progBar.setIndeterminate(false);
+			progBar.setMaximum(numOperations);
+			progBar.setMinimum(0);
+			progBar.setValue(0);
+			startEntry++; // Skip over first entry in for-loop below.
+		}
+		// Check and process any additional entries in the list by
+		// setting current status to the last entry
+		if (startEntry < entries.size()) {
+			final int lastEntry = entries.size() - 1;
+			progBarInfo.setText(entries.get(lastEntry));
+			progBar.setValue(progBar.getValue() + lastEntry + 1 - startEntry);
+		} 
+	}
+	
+	private void done(final String result, 
+			final File wsPath, final boolean createDefWorkSpace) {
+		// First get overall result from the background worker thread.
+		boolean success = Boolean.TRUE.toString().equals(result);
+		// If data was successfully loaded then move forward with
+		// launching the main frame
+		if (success) {
+			// Dispose this dialog returning control to main.
+			setVisible(false);
+			dispose();
+		} else {
+			// Error loading workspace information.
+			// Re-enable OK/Cancel button and bail out
+			CardLayout cl = (CardLayout) btnProgPanel.getLayout();
+			cl.show(btnProgPanel, "buttonPanel");
+			progBar.setIndeterminate(true);
+			// Error creating/using workspace. Report error.
+			final String subMsg = (createDefWorkSpace ?
+				"Error creating initial work space in directory" :
+				"The chosen directory has invalid PEACE workspace metadata");
+			JPanel msg = Utilities.collapsedMessage("<html>" + subMsg +
+					"<br/>(Directory: " + wsPath.getAbsolutePath() + ")<br/>" +
+					" or there was an error loading DECAGON assembler description.<br/><br/>" +					
+					"PEACE cannot use the above directory and operate correctly.<br/>" +
+					"Pleace choose a different workspace folder.</html>", 
+					result);
+			JOptionPane.showMessageDialog(this, msg,
+					"Cannot use workspace", JOptionPane.ERROR_MESSAGE);
+		}
+	}
+	
+	private String useWorkspace(BackgroundLoader loader,
+			final boolean createDefWorkSpace, final File wsPath) {
+		// Set standard set of DECAGON Assembler Description XML (DADX) files 
+		// to be loaded.
+		final List<String> dadxList = DADXHelper.getDADXFilesToLoad();
+		// Let the GUI know this background method has done some work.
+		loader.updateProgress("" + (dadxList.size() + 3));
+		// Now load each DADX file one at a time from the list and report progress
+		for(int i = 0; (i < dadxList.size()); i++) {
 			try {
-				Workspace.createDefault(wsPath.getAbsolutePath());
-			} catch (Exception e) {
-				// O!o! error creating default work space. Report error
-				// and let user chose another directory.
-				JPanel msg = Utilities.collapsedMessage("<html>" +
-						"Error creating initial work space in directory.<br>" +
-						"Directory: " + wsPath.getAbsolutePath() + "<br><br>" +
-						"PEACE cannot use the above directory and operate correctly.<br>" +
-						"Pleace choose a different workspace folder.</html>", 
-						Utilities.toString(e));
-				JOptionPane.showMessageDialog(this, msg,
-						"Cannot create workspace", JOptionPane.ERROR_MESSAGE);
-				// bail out
-				return;
+				// Create helper and get it to load DADX file and register
+				// it with DADXSummary class.
+				UserLog.log(LogLevel.INFO, "WorkspaceChooser", "Loading DADX file " + dadxList.get(i));
+				// Extract just the file name from the full path to the file for progress bar status
+				File tmpFile = new File(dadxList.get(i));
+				loader.updateProgress("Loading: " + tmpFile.getName());
+				DADXHelper helper = new DADXHelper();
+				helper.unmarshal(dadxList.get(i), true, false);
+			} catch (Exception exp) {
+				// Error loading DADX file. Bail out from background processing
+				// with an exception message.
+				return "Error loading DADX file: " + dadxList.get(i) + "\n" + 
+					Utilities.toString(exp);
 			}
 		}
-		
+		// Now load the actual PEACE workspace file.
+		try {
+			// Update progress
+			loader.updateProgress("Loading workspace...");
+			// The value for the createDefWorkSpace flag is set in
+			// the okAction() method.
+			if (createDefWorkSpace) {
+				// Create default workspace in the given path.
+				Workspace.createDefault(wsPath.getAbsolutePath());
+			} else {
+				// Load the existing workspace definition from the given
+				// directory.
+				Workspace.useWorkspace(wsPath.getAbsolutePath());
+			}
+		} catch (Exception exp) {
+			// Error creating/using workspace. Report error.
+			return Utilities.toString(exp);
+		}
 		// The work space is good and is usable. First save the
 		// recently used work space information.
 		if (wsList.getSelectedIndex() != -1) {
 			// Remove existing item to avoid duplicates below.
 			wsList.removeItemAt(wsList.getSelectedIndex());
 		}
+		// Workspace is successfully read for further use.
 		// Make the selected item the first item in the list
 		// for the next launch.
 		wsList.insertItemAt(wsPath.getAbsolutePath(), 0);
-		// save the list for future use
-		saveWorkspaceList(wsList);
+		wsList.setSelectedIndex(0);
 		// Now set the workspace instance variable.
 		workspace = wsPath.getAbsolutePath();
 		// Let the main PEACE class know it can now launch the main frame.
+		loader.updateProgress("Launching Mainframe...");
 		peace.launchMainFrame(workspace, firstLaunch);
-		// Dispose this dialog returning control to main.
-		setVisible(false);
+		// save the list for future use at a later time.
+		SwingUtilities.invokeLater(new Runnable() {
+			@Override
+			public void run() {
+				saveWorkspaceList(wsList);
+			}
+		});
+		// Everything went well.
+		loader.updateProgress("Done.");
+		return Boolean.TRUE.toString();
 	}
-
+	
 	/**
 	 * Reference to the main PEACE class. The reference is used to
 	 * create the main frame after the user has selected a valid
@@ -705,7 +955,7 @@ public class WorkspaceChooser extends JDialog implements ActionListener {
 	 * when PEACE is launched for the first time to provide the user
 	 * with some additional information.
 	 */
-	private static String FirstTimeMsg = 
+	private static final String FirstTimeMsg = 
 		"It appears that this is the first time you are running PEACE GUI.\n" +
 		"Thank you for trying out PEACE. Prior to using PEACE you need to:\n" +
 		"    1. Read and accept the license below.\n" +
@@ -714,6 +964,15 @@ public class WorkspaceChooser extends JDialog implements ActionListener {
 	/**
 	 * A simple separator to make the license text look pretty.
 	 */
-	private static String Separator = 
+	private static final String Separator = 
 		"\n\n---------------------------[ License ]----------------------------\n\n";
+	
+	/**
+	 * The name of the property that is used to save the workspace list.
+	 * 
+	 * This string indicate the name of the property (in the global list of
+	 * properties) that is used to save the newline delimited list of
+	 * workspaces that have been used by the user. 
+	 */
+	private static final String WSLIST_PROPERTY_NAME = "WorkspaceChooser.WorkspaceList";
 }
