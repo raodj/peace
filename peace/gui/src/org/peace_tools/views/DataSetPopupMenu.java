@@ -74,37 +74,37 @@ public class DataSetPopupMenu extends JPopupMenu implements ActionListener {
 	public DataSetPopupMenu(MainFrame mainFrame, boolean treeView) {
 		this.mainFrame  = mainFrame;
 		this.isTreeView = treeView;
-		add(Utilities.createMenuItem(Utilities.MENU_ITEM, 
+		add(Utilities.createMenuItem(Utilities.MenuItemKind.MENU_ITEM, 
 				"Generate MST & Clustering", "mst", this, 
 				"images/16x16/MST.png", null, false, false));
-		add(Utilities.createMenuItem(Utilities.MENU_ITEM, 
+		add(Utilities.createMenuItem(Utilities.MenuItemKind.MENU_ITEM, 
 				"Generate MST & Clustering", "mst", this, 
 				"images/16x16/Cluster.png", null, true, false));
 		addSeparator();
 		//--------------------------------------------------
-		add(Utilities.createMenuItem(Utilities.MENU_ITEM, 
+		add(Utilities.createMenuItem(Utilities.MenuItemKind.MENU_ITEM, 
 				"Show with default viewer", "view", this, 
 				"images/16x16/DefaultView.png", null, true, false));
-		add(Utilities.createMenuItem(Utilities.MENU_ITEM, 
+		add(Utilities.createMenuItem(Utilities.MenuItemKind.MENU_ITEM, 
 				"Clustering summary graph", "summary", this, 
 				"images/16x16/ClusterSummary.png", null, true, false));
-		add(Utilities.createMenuItem(Utilities.MENU_ITEM, 
+		add(Utilities.createMenuItem(Utilities.MenuItemKind.MENU_ITEM, 
 				"Overlap analysis graph", "overlap", this, 
 				"images/16x16/OverlapView.png", null, true, false));
-		add(Utilities.createMenuItem(Utilities.MENU_ITEM, 
+		add(Utilities.createMenuItem(Utilities.MenuItemKind.MENU_ITEM, 
 				"Show with text editor", "text", this, 
 				"images/16x16/TextView.png", null, true, false));
 		addSeparator();
 		//--------------------------------------------------
-		add(Utilities.createMenuItem(Utilities.MENU_ITEM, 
+		add(Utilities.createMenuItem(Utilities.MenuItemKind.MENU_ITEM, 
 				"Remove entry from Workspace", "delete", this, 
 				"images/16x16/Delete.png", null, true, false));
 
 		if (treeView) {
-			add(Utilities.createMenuItem(Utilities.MENU_ITEM, 
+			add(Utilities.createMenuItem(Utilities.MenuItemKind.MENU_ITEM, 
 					"Collapse entries in sub-tree", "collapse", this, 
 					null, null, true, false));
-			add(Utilities.createMenuItem(Utilities.MENU_ITEM, 
+			add(Utilities.createMenuItem(Utilities.MenuItemKind.MENU_ITEM, 
 					"Expand entries in sub-tree", "expand", this, 
 					null, null, true, false));
 		}
