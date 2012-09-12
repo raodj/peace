@@ -186,7 +186,7 @@ Matcher::match() {
         // genes/transcripts in the loop below.
         const EST* bestGene = NULL; // Best reference gene/transcript entry
         int bestScore       = -1;   // Best alignment score
-        int bestAScore    = -1;     // Best a-score.
+        int bestAScore      = -1;   // Best a-score.
         std::string bestContig;     // Aligned assembler-generated contig
         std::string bestRefGene;    // The reference gene/transcript
         
@@ -201,8 +201,9 @@ Matcher::match() {
             int score = 0;
             int aScore = 0;
             std::string contigAligned, geneAligned;
-            if (aa.getNWAlignment(gene->getSequence(), contigSeq, score, aScore,
-                                  geneAligned, contigAligned) > bestScore) {
+            if (aa.getNWAlignment(gene->getSequence(), contigSeq, 5,
+                                  score, aScore, geneAligned,
+                                  contigAligned) > bestScore) {
                 // Found a good/better matching source contig. Track it.
                 bestGene    = gene;
                 bestScore   = score;
