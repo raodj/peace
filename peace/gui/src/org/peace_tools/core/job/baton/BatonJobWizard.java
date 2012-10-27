@@ -35,6 +35,7 @@ package org.peace_tools.core.job.baton;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.util.ArrayList;
 
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
@@ -42,10 +43,19 @@ import javax.swing.border.EmptyBorder;
 
 import org.peace_tools.core.MainFrame;
 import org.peace_tools.core.job.JobInfoWizardPage;
+import org.peace_tools.core.job.ServerPanel;
 import org.peace_tools.generic.GenericWizardPage;
 import org.peace_tools.generic.Utilities;
 import org.peace_tools.generic.WizardDialog;
+import org.peace_tools.workspace.BatonJob;
 import org.peace_tools.workspace.DataSet;
+import org.peace_tools.workspace.FileEntry;
+import org.peace_tools.workspace.GeneratedFileList;
+import org.peace_tools.workspace.JobList;
+import org.peace_tools.workspace.JobSummary;
+import org.peace_tools.workspace.Param;
+import org.peace_tools.workspace.Server;
+import org.peace_tools.workspace.Workspace;
 
 
 /**
@@ -85,9 +95,103 @@ public class BatonJobWizard extends WizardDialog {
 		// Create page to permit the user to select data set
 		jiwp = new JobInfoWizardPage(this);
 		addPage(jiwp);
+		// Create the MST file information file.
+		mwp = new MSTBatonWizardPage(this);
+		addPage(mwp);
+		// Create page for k-mer selection
+		bhwp = new BatonHeadWizardPage(this);
+		addPage(bhwp);
+		// Create the verification page to display summary
+		VerifyBatonWizardPage vwp = new VerifyBatonWizardPage(this);
+		addPage(vwp);
+		
+		// Finally, add the page that does all the hard work
+		SubmitBatonJobWizardPage sjwp = new SubmitBatonJobWizardPage(this);
+		addPage(sjwp);
 		
 	}
-
+	
+	
+	/**
+	 * Helper method to create the job entry to be added to the workspace.
+	 * 
+	 * This method is a helper method that is used to create the actual
+	 * job entry in the workspace. This method is invoked from the 
+	 * createWorkspaceEntries() method. This method obtains information
+	 * from various wizard pages and uses them to create the job entry.
+	 * 
+	 * <p><b>Note</b>: This method performs the job creation operation
+	 * the first time it is called. After that the same job object
+	 * is returned when this method is called.</p>
+	 * 
+	 * @return The workspace object that represents the new job created
+	 * by this method.
+	 */
+	protected BatonJob createJobEntry() {
+		if (job != null) {
+			return job;
+		}
+		ServerPanel sp = mwp.getServerInfoPanel();
+		// Determine ID of the selected server.
+		Server server   = sp.getSelectedServer();
+		// Get the nodes and cpus/node..
+		int platformInfo[] = sp.getPlatformConfiguration();
+		// Get an unique ID for this job.
+		JobList   jobList   = Workspace.get().getJobList();
+		// Compute the total memory to be used for the job by:
+		// #Nodes * #CPUs/Node * #Memory/CPU
+		final int totalMemory = platformInfo[0] * platformInfo[1] * platformInfo[2];
+		// Get the frame-word analyzer information
+		//FWAnalyzer analyzer = awp.getAnalyzer();
+		// Setup a empty list of parameters
+		ArrayList<Param> parameters = new ArrayList<Param>();
+		// Now we have all the info to create the new job entry. The
+		// only thing critical thing that is not yet finalized is
+		// the path where the job files are stored on the remote 
+		// server. That will happen once the job is actually submitted.
+		job = new BatonJob(jobList.reserveJobID(),
+				jiwp.getDescription(),
+				server.getID(),
+				jiwp.getDataSet().getPath(), // path to the data set 
+				platformInfo[0],     // number of nodes, 
+				platformInfo[1],     // CPUs per node, 
+				totalMemory,         // memory, 
+				platformInfo[3],     // runTime
+				parameters);
+		
+		// Ensure parameters are populated 
+		//job.setupParameters(jiwp.getDataSet(), createGFL(), jiwp.isMaksBasesSet());
+		// Return the newly created job entry.
+		return job;
+	}
+	
+	/**
+	 * This is a helper method that is invoked from the last wizard
+	 * page (SubmitJobWizardPage) to obtain summary data. This method
+	 * creates a job summary string and returns it back to the caller.
+	 * This information is used to provide the user with a brief
+	 * summary on the job that will be run by the wizard.
+	 */
+	protected String getSummary() {
+		StringBuilder sb = new StringBuilder();
+		// Obtain the necessary information into a simple string.
+		sb.append("SUMMARY OF JOB\n");
+		// Append information about the server and nodes.
+		sb.append(mwp.getSummary("\t"));
+		// Append information about the heuristics being used.
+		sb.append("\n\nHEURISTICS INFORMATION:\n");
+		sb.append(bhwp.getSummary("\t"));
+		// Append information about the MST and cluster data files
+		// by creating temporary dummy entries.
+		FileEntry fe = mwp.getMSTFileEntry("TBD1", jiwp.getDescription());
+		sb.append("\nMST File Summary:\n");
+		sb.append(fe.getSummary("\t"));
+		
+		
+		sb.append(fe.getSummary("\t"));
+		// Return the summary as a string.
+		return sb.toString();
+	}
 	/**
 	 * Helper method invoked when user clicks cancel button.
 	 * 
@@ -102,7 +206,7 @@ public class BatonJobWizard extends WizardDialog {
 	 */
 	@Override
 	protected boolean cancel() {
-		// Check if user really want's to quit.
+		// Check if user really wants to quit.
 		int result = JOptionPane.showConfirmDialog(this,
 				"Are you sure you want to exit from this wizard?",
 				"Confirm", JOptionPane.YES_NO_OPTION);
@@ -129,6 +233,29 @@ public class BatonJobWizard extends WizardDialog {
 		addPage(overview);
 	}
 	
+
+	/**
+	 * Access method to obtain the list of files to be generated by
+	 * this method. This method is typically used by the
+	 * SubmitClusteringJobWizard class.
+	 * 
+	 * <p><b>Note:</b> It is important to create a new GFL each
+	 * time this method is called (to ensure job summary is 
+	 * updated consistently).
+	 * 
+	 * @return The list of files generated by the job created by
+	 * this wizard.
+	 */
+	
+	protected GeneratedFileList createGFL() {
+		// Build a job summary.
+		JobSummary summary = new JobSummary(job);
+		Workspace workspace = Workspace.get();
+		GeneratedFileList gfl = new GeneratedFileList(summary);
+		// Baton generates a CLS file
+		gfl.add(mwp.getMSTFileEntry(workspace.reserveID(), job.getDescription()));
+		return gfl;
+	}
 	/**
 	 * This method overrides the final notification method in this
 	 * wizard. Currently this method has no specific task to 
@@ -158,10 +285,22 @@ public class BatonJobWizard extends WizardDialog {
 	}
 	
 	/**
+	 * The job entry that is finally created by this job wizard
+	 * when the final wizard page is displayed. This entry is
+	 * used by the final wizard page to perform its operations. 
+	 */
+	private BatonJob job;
+	/**
 	 * The job information wizard page that contains the description
 	 * of the job.
 	 */
 	private final JobInfoWizardPage jiwp;
+	
+	/**
+	 * The wizard page that collects information about the MST file
+	 * and the server on which the job is to be run.
+	 */
+	private MSTBatonWizardPage mwp;
 	
 	/**
 	 * Obtain the instance of the main frame class that owns this wizard.
@@ -183,7 +322,12 @@ public class BatonJobWizard extends WizardDialog {
 	 */
 	private final MainFrame mainFrame;
 	
-		
+	/**
+	 * The wizard page that collects information about the
+	 * k-num parameter for a job, specified by the user.
+	 */
+	private BatonHeadWizardPage bhwp;
+	
 	/**
 	 * A static overview message that is displayed in the first
 	 * overview page displayed by this wizard to the user.
@@ -196,5 +340,5 @@ public class BatonJobWizard extends WizardDialog {
 	/**
 	 * The generated serialization UID (need to keep the compiler happy) 
 	 */
-	private static final long serialVersionUID = -6700963924724398996L;
+	private static final long serialVersionUID = -3356910213300770559L;
 }
