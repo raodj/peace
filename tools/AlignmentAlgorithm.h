@@ -250,6 +250,11 @@ public:
                           int& alignScore, int& aScore, std::string& alignedSeq1,
                           std::string& alignedSeq2) const;
 
+   int getSWAlignment(const std::string& seq1, const std::string& seq2,
+ 					  const int bandwidth,
+                        int& alignScore, int& aScore, std::string& alignedSeq1,
+                        std::string& alignedSeq2) const;
+
 protected:
     /** Get the encoding for a given nucleotide character.
 

@@ -560,5 +560,141 @@ AlignmentAlgorithm::getSWAlignment(const std::string& seq1,
     return alignScore;
 }
 
+int
+AlignmentAlgorithm::getSWAlignment(const std::string& seq1,
+                                   const std::string& seq2,
+                                   const int bandwidth,
+                                   int& alignScore, int& aScore,
+                                   std::string& alignedSeq1,
+                                   std::string& alignedSeq2) const {
+	//calculate the alignment score and record the traceback path
+		const int numOfRows = seq1.length();
+	    // We operate on the full length of seq2 and build the full NW
+	    // matrix.
+		const int numOfCols = bandwidth;
+	    // Setup the alignment and trace matrices
+	    const std::vector<int> dummyCol(numOfCols + 1);
+	    std::vector< std::vector<int> > alignMatrix(numOfRows + 1, dummyCol);
+	    // Setup direction matrices
+	    const std::vector<DIR> dummyDirEntries(numOfCols + 1);
+	    std::vector< std::vector<DIR> > trace(numOfRows + 1, dummyDirEntries);
+		trace[0][0]       = BAD_DIR;
+	    alignMatrix[0][0] = 0;
+		//initialize the first row and column of the score and trace
+		//matrices as per smith-waterman algorithm
+		for (int col = 1; col <= numOfCols; col++) {
+			alignMatrix[0][col] = 0;
+			trace[0][col]       = WEST;
+		}
+		for (int row = 1; row <= numOfRows; row++) {
+			alignMatrix[row][0] = 0;
+			trace[row][0]       = NORTH;
+		}
+
+		// Build the smith-waterman dynamic programming matrix row-by-row
+	    std::pair<int,int> maxScorePos;	//Location of Max Score in Matrix
+	    maxScorePos.first=0;
+	    maxScorePos.second=0;
+	    int colEnd=0;
+
+		for (int row = 1; row <= numOfRows; row++) {
+	        const int base1 = encodeBase(seq1[row - 1]); // Synonym
+	        // Compute the entries for current row and number of columns equal to the bandwidth size
+			for (int col = 1; (col <= numOfCols); col++) {
+				// Initialize max to the first of the three terms (NORTH_WEST).
+				const int base2 = encodeBase(seq2[col +colEnd-1]); // Synonym
+
+				int maxScore    = scoreMatrix[base1][base2] +
+	                alignMatrix[row - 1][col];
+				DIR dirFlag  = NORTH_WEST;
+				// See if the second term is larger (WEST).
+				const int westScore = alignMatrix[row][col - 1] + gapPenalty;
+				if (maxScore <= westScore) {
+					maxScore = westScore;
+					dirFlag  = WEST;
+				}
+				// See if the third term is the largest (NORTH)
+				int northScore = alignMatrix[row - 1][col+1] + gapPenalty;
+				if (maxScore <= northScore) {
+					maxScore = northScore;
+					dirFlag  = NORTH;
+				}
+				if(maxScore<0){
+					maxScore=0;
+				}
+				if(maxScore>alignMatrix[maxScorePos.first][maxScorePos.second]){
+					maxScorePos.first=row;
+					maxScorePos.second=col;
+				}
+	            // Save the best score and direction of move in matrix for
+	            // use to reconstruct the aligned sequences below.
+				alignMatrix[row][col] = maxScore;
+				trace[row][col]       = dirFlag;
+			}
+			colEnd++;
+		}
+	    std::for_each(alignMatrix.begin(), alignMatrix.end(), writeVector<int>);
+
+	    std::for_each(trace.begin(), trace.end(), writeVector<DIR>);
+	    // Now store the final alignment score in the parameter
+		alignScore       = alignMatrix[maxScorePos.first][maxScorePos.second];
+		// Trace back and get the alignment strings. Note that the
+		// nucleotide sequence in tStr1 and tStr2 are reverse as we build
+		// the alignments below.
+	     std::string tStr1;
+	     std::string tStr2;
+	    // Reserve sufficient memory in tStr1 and tStr2 to improve efficiency.
+	    const size_t maxLen = std::max(seq1.size(), seq2.size());
+	    tStr1.reserve(maxLen);
+	    tStr2.reserve(maxLen);
+
+		int row = maxScorePos.first;
+		int col = maxScorePos.second;
+	    // Compute a-score as we go along constructing the aligned
+	    // sequences assuming seq1 is the reference sequence.
+	    aScore = 2 * seq1.size();
+		while (((row > 0) || (col > 0) )&& alignMatrix[row][col]!=0) {
+			switch (trace[row][col]) {
+			case NORTH: //row-1, col+1, north
+	            row--;
+	            col++;// Must be done first as it affects code below
+				tStr1.append(1, seq1[row]);
+				tStr2.append(1, '-');
+	            aScore += aScoreDelPen; // Deletion detected
+				break;
+			case WEST: //row, col-1, west
+	            col--; // Must be done first as it affects code below
+				tStr1.append(1, '-');
+				tStr2.append(1, seq2[col+row-1]);
+	            aScore += aScoreInsPen; // Insertion detected
+				break;
+			case NORTH_WEST: // row-1, col, northwest
+	            row--; // These two decrements msut be done first as they
+				tStr1.append(1, seq1[row]);
+				tStr2.append(1, seq2[col+row-1]);
+	            // The nucleotides could be the same or different.
+	            aScore += (seq1[row] != seq2[col+row-1] ? aScoreSubPen : 0);
+				break;
+
+	        case BAD_DIR:
+	            ASSERT("Bad direction encountered in getNWAlignment()" == NULL);
+
+	        default:
+	            // Do nothing
+	            break;
+			}
+		}
+
+		// Recollect that tStr1 and tStr2 are reverse of the final
+		// sequence we expect. So reverse the string and copy the result
+		// into the final outgoing parameters.
+	    alignedSeq1.resize(tStr1.size(), '-');
+	    std::reverse_copy(tStr1.begin(), tStr1.end(), alignedSeq1.begin());
+	    // Reverse copy the second sequence into the outgoing parameter
+	    alignedSeq2.resize(tStr2.size(), '-');
+	    std::reverse_copy(tStr2.begin(), tStr2.end(), alignedSeq2.begin());
+	    // return the score
+	    return alignScore;
+}
 
 #endif
