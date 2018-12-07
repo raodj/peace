@@ -38,6 +38,7 @@
 #include "UVSampleHeuristic.h"
 #include "TVHeuristic.h"
 #include "OldTVHeuristic.h"
+#include "MultiWordHeuristic.h"
 #include "ArgParser.h"
 
 void
@@ -45,6 +46,8 @@ HeuristicFactory::addCommandLineInfo(ArgParser& argParser) {
     // Create dummy command-line args to make display prettier and
     // easier.
     const ArgParser::ArgRecord DummyArgs[] = {
+        {"", "mw : The Multi Word heuristic",
+         NULL, ArgParser::INFO_MESSAGE},
         {"", "uv : The u/v sample heuristic",
          NULL, ArgParser::INFO_MESSAGE},
         {"", "tv : The t/v heuristic (u/v is automatically included)",
@@ -67,6 +70,8 @@ HeuristicFactory::create(const std::string& name,  HeuristicChain *chain) {
         return new TVHeuristic(chain);
     } else if (name == "oldTV") {
         return new OldTVHeuristic(chain);
+    } else if (name == "mw") {
+	return new MultiWordHeuristic(chain);
     }
     
     // invalid heuristic name!

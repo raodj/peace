@@ -213,6 +213,9 @@ ClusteringSubSystem::run() {
                   << "Use --estFiles option to load data from file(s).\n";
         return 5;
     }
+    // Let the heuristics run (and do any global operations on list of
+    // reads) as needed.
+    heuristicChain.run();
     // Now let the cluster maker run and do clustering
     if (clusterMaker->makeClusters() != 0) {
         // Error during clustering.

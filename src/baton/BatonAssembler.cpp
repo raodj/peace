@@ -244,12 +244,13 @@ BatonAssembler::createAddContig(const ContigMaker& contigMaker,
         // to minimize memory footprint.
         const AlignmentInfoList& aiList = contig.getAlignments();
         for(size_t i = 0; (i < aiList.size()); i++) {
-            EST *est = estList->get(aiList[i].getESTIndex());
-            ASSERT ( est != NULL );
-            est->unpopulate();
+	    // Get the EST index for convenience.
+	    const int estIdx = aiList[i].getESTIndex();
             // Unpouplate baton lists for this EST from our cache as
             // we no longer need it.
-            blCache.unpopulate(est);
+            blCache.unpopulate(estList->get(estIdx));
+	    // Unpopulate EST as we no longer need the full sequence.
+            estList->unpopulate(estIdx);
         }
         contigList.pop_back();
     }

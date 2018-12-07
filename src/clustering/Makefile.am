@@ -104,6 +104,8 @@ libclustering_la_SOURCES = \
 	ClusteringSubSystem.h \
 	ClusteringSubSystem.cpp \
 	NNMSTClusterMaker.h \
-	NNMSTClusterMaker.cpp
+	NNMSTClusterMaker.cpp \
+	MultiWordHeuristic.h \
+	MultiWordHeuristic.cpp
 
 # end of Makefile.am

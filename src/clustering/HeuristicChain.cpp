@@ -92,6 +92,8 @@ HeuristicChain::initialize() {
     
     // Now inititalize each heuristic in the chain.
     for (size_t i = 0; (i < chain.size()); i++) {
+	// Setup sub-system for each heuristic (in case it needs it)
+	chain[i]->setSubSystem(subSystem);
         if (!chain[i]->initialize()) {
             // Error occured during initialization. Bail out.
             std::cerr << "Error initializing heuristic "
@@ -177,6 +179,19 @@ HeuristicChain::setupChain(const std::string& heuristicStr) {
 void
 HeuristicChain::setESTList(ESTList* estList) {
     this->estList = estList;
+}
+
+int
+HeuristicChain::run() {
+    int retVal = 0;
+    for (size_t i = 0; (i < chain.size()); i++) {
+	if ((retVal = chain[i]->run()) != 0) {
+	    // Immediately stop when a heuristic fails to run successfully
+	    break;
+	}
+    }
+    // Return zero if all heuristics ran successfully.
+    return retVal;
 }
 
 #endif

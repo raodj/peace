@@ -77,12 +77,13 @@ typedef std::vector<unsigned char> QualityVector;
 
     </ul>
 
-	\note Not all of the information is always stored in this
-	object. Some of the information is loaded on-demand to reduce
-	memory footprint.
+    \note Not all of the information is always stored in this
+    object. Some of the information is loaded on-demand to reduce
+    memory footprint.
 */
 class EST {
     friend class InputFile;
+    friend class OnDemandESTList;
 public:
     /** EST Constructor (without quality information).
 
@@ -102,14 +103,14 @@ public:
         normalization must be performed pior to invoking this
         method. See EST::normalizeBases() method for details.
 
-		\param[in] maskBases If this flag is \c true, then all the
-		lower-case characters in the input sequence are first
-		converted to \c 'N' base characters.  If this flag is \c
-		false, then all lower-case nucleotides are converted to
-		upper-case equivalents.
+	\param[in] maskBases If this flag is \c true, then all the
+	lower-case characters in the input sequence are first
+	converted to \c 'N' base characters.  If this flag is \c
+	false, then all lower-case nucleotides are converted to
+	upper-case equivalents.
 
-		\param[in] randomizeNbases If this flag is \c true, then all
-		entries with 'N' are randomly changed to one of \c ATCG.		
+	\param[in] randomizeNbases If this flag is \c true, then all
+	entries with 'N' are randomly changed to one of \c ATCG.		
     */
     EST(const int id, const std::string& info,
         const std::string& sequence = "");
@@ -136,14 +137,14 @@ public:
         entry.  The number of entries in this vector must match the
         length of the nucleotide sequence parameter.
 
-		\param[in] maskBases If this flag is \c true, then all the
-		lower-case characters in the input sequence are first
-		converted to \c 'N' base characters.  If this flag is \c
-		false, then all lower-case nucleotides are converted to
-		upper-case equivalents.
+	\param[in] maskBases If this flag is \c true, then all the
+	lower-case characters in the input sequence are first
+	converted to \c 'N' base characters.  If this flag is \c
+	false, then all lower-case nucleotides are converted to
+	upper-case equivalents.
 
-		\param[in] randomizeNbases If this flag is \c true, then all
-		entries with 'N' are randomly changed to one of \c ATCG.		
+	\param[in] randomizeNbases If this flag is \c true, then all
+	entries with 'N' are randomly changed to one of \c ATCG.		
     */    
     EST(const int id, const std::string& info,
         const std::string& sequence, const QualityVector& quality);
@@ -202,8 +203,8 @@ public:
     */
     inline const char* getSequence() const { return sequence.c_str(); }
 
-	/** Obtain the reverse-complementary sequence for the base pairs
-		for this EST.
+    /** Obtain the reverse-complementary sequence for the base pairs
+	for this EST.
 
         This is a convenience method that can be used to build the
         reverse complementary representation of a given nucleotide
@@ -216,40 +217,40 @@ public:
         \return The reverse complementary nucleotide sequence for this
         EST.  The length of the returned sequence will be exactly the
         same as the original nucleotide sequence.
-	*/
-	std::string getRCSequence() const;
+    */
+    std::string getRCSequence() const;
 	
-	/** Convenience method to detect if this cDNA fragment has quality
-		values associated with each nucleotide.
+    /** Convenience method to detect if this cDNA fragment has quality
+	values associated with each nucleotide.
 
-		This method can be used to detect if this cDNA fragment has
-		quality values associated with each nucleotide. 
+	This method can be used to detect if this cDNA fragment has
+	quality values associated with each nucleotide. 
 
-		\return This method returns \c true if the quality values are
-		present for this cDNA fragment. If quality values are not
-		available, then this method returns \c false.
-	*/
-	inline bool hasQuality() const { return !quality.empty(); }
+	\return This method returns \c true if the quality values are
+	present for this cDNA fragment. If quality values are not
+	available, then this method returns \c false.
+    */
+    inline bool hasQuality() const { return !quality.empty(); }
 	
-	/** Obtain the quality vector associated with this EST entry.
+    /** Obtain the quality vector associated with this EST entry.
 
-		This method can be used to obtain the quality values
-		associated with each nucleotide in the cDNA fragment. If
-		quality values are available, each entry in the vector
-		provides the quality value for the corresponding nucleotide
-		entry. That is, <code>getQuality[i]</code> (0 &le; i &lt
-		<code>getSequenceLength()</code>) provides the quality value
-		for the nucleotide at <code>getSequence[i]</code>.  The
-		quality values for each nucleotide is the phred-scaled base
-		error probability value which is calculated as
-		-10*log<sub>10</sub> Pr{base is wrong}.
+	This method can be used to obtain the quality values
+	associated with each nucleotide in the cDNA fragment. If
+	quality values are available, each entry in the vector
+	provides the quality value for the corresponding nucleotide
+	entry. That is, <code>getQuality[i]</code> (0 &le; i &lt
+	<code>getSequenceLength()</code>) provides the quality value
+	for the nucleotide at <code>getSequence[i]</code>.  The
+	quality values for each nucleotide is the phred-scaled base
+	error probability value which is calculated as
+	-10*log<sub>10</sub> Pr{base is wrong}.
 
-		\return A vector containing the phred-scaled base error
-		probability for each nucleotide in this cDNA fragment. If
-		quality values are not available (or are not currently
-		populated) then this method returns an empty vector.
-	*/
-	inline const QualityVector& getQuality() const { return quality; }
+	\return A vector containing the phred-scaled base error
+	probability for each nucleotide in this cDNA fragment. If
+	quality values are not available (or are not currently
+	populated) then this method returns an empty vector.
+    */
+    inline const QualityVector& getQuality() const { return quality; }
 	
     /** Obtain the similarity metric for this EST.
 
@@ -275,15 +276,6 @@ public:
     */
     inline void setSimilarity(const float sim) { similarity = sim; }
     
-    /** Method to clear general information and sequence data.
-
-        This method can be used to unpopulate the FASTA header and
-        actual sequence (base pairs) information from this EST.  This
-        frees up memory allocated to hold this data thereby minimizing
-        the memory footprint for this EST.  This enables holding a
-        large number of skeleton EST's in memory.
-    */
-    void unpopulate();
 
     /** Change the custom data associated with this EST.
 
@@ -371,7 +363,7 @@ public:
         \return This method returns \c true if this EST has been
         flagged as having been processed. Otherwise this method
         returns \c false.
-     */
+    */
     inline bool hasBeenProcessed() const { return processed; }
 
     /** Set if this EST has already been processed.
@@ -417,46 +409,46 @@ public:
         on options.
 
         This method is used to normalize fragments typically read from
-		a InputFile file. This method normalizes the sequences such
-		that the resulting sequence is over the set {'A', 'T', 'C',
-		'G', 'N'} in the following manner:
+	a InputFile file. This method normalizes the sequences such
+	that the resulting sequence is over the set {'A', 'T', 'C',
+	'G', 'N'} in the following manner:
 		
-		<ul>
+	<ul>
 		
-		<li>If the maskBases flag is true, then all lowercase
-		nucleotides are converted to 'N'. Otherwise they are converted
-		to uppercase equivalents.</li>
+	<li>If the maskBases flag is true, then all lowercase
+	nucleotides are converted to 'N'. Otherwise they are converted
+	to uppercase equivalents.</li>
 		
-		<li>All nucleotides that are not in \c "ATCG" are converted to
-		'N'.</li>
+	<li>All nucleotides that are not in \c "ATCG" are converted to
+	'N'.</li>
 		
-		</ul>
+	</ul>
 		
-		\param[in] srcSequence The source sequence of nucleotides to
-		be normalized by this method.
+	\param[in] srcSequence The source sequence of nucleotides to
+	be normalized by this method.
 
-		\param[in] maskBases If this flag is \c true, then all the
-		lower-case characters in the input sequence are first
-		converted to \c 'N' base characters.  If this flag is \c
-		false, then all lower-case nucleotides are converted to
-		upper-case equivalents.
+	\param[in] maskBases If this flag is \c true, then all the
+	lower-case characters in the input sequence are first
+	converted to \c 'N' base characters.  If this flag is \c
+	false, then all lower-case nucleotides are converted to
+	upper-case equivalents.
 
-		\param[in] randomizeNbases If this flag is \c true, then all
-		entries with 'N' are randomly changed to one of \c ATCG.
+	\param[in] randomizeNbases If this flag is \c true, then all
+	entries with 'N' are randomly changed to one of \c ATCG.
 		
         \param[in] randSeed The seed to be used for randomizing
-		bases. Setting the same seed for a given sequence ensures that
-		the characters are consistently pseudo-random.  Having a
-		consistent pseudo-random characters enables consistent
-		processing of cDNA fragments.
+	bases. Setting the same seed for a given sequence ensures that
+	the characters are consistently pseudo-random.  Having a
+	consistent pseudo-random characters enables consistent
+	processing of cDNA fragments.
 
-		\return This method returns a normalized version of the given
-		source sequence.
+	\return This method returns a normalized version of the given
+	source sequence.
     */
     static std::string normalizeBases(const std::string& srcSequence,
-									  const bool maskBases,
-									  const bool randomizeNbases,
-									  const int randSeed = 0);
+				      const bool maskBases,
+				      const bool randomizeNbases,
+				      const int randSeed = 0);
 	
 protected:
     /** The unique ID for this EST.
@@ -568,7 +560,20 @@ protected:
     */
     void repopulate(const std::string& info, const std::string& sequence,
                     const QualityVector& quality);
-                    
+
+    /** Method to clear general information and sequence data.
+
+        This method can be used to unpopulate the FASTA header and
+        actual sequence (base pairs) information from this EST.  This
+        frees up memory allocated to hold this data thereby minimizing
+        the memory footprint for this EST.  This enables holding a
+        large number of skeleton EST's in memory.
+
+	\note Currently this method is only invoked from
+	OnDemandESTList::unpopulate(int) method.
+    */
+    void unpopulate();
+    
 private:    
     /** The default constructor.
 

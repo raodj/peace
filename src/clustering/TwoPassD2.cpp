@@ -160,6 +160,9 @@ TwoPassD2::getMetric(const EST* otherEST) {
             }
         });
 
+    // Ensure other EST is fully pouplated.
+    estList->repopulate(otherEST);
+    
     int s1Index = 0;
     int s2Index = 0;
     

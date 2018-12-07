@@ -36,6 +36,8 @@
 
 #include "Heuristic.h"
 #include "Utilities.h"
+#include "RuntimeContext.h"
+#include "ESTList.h"
 
 Heuristic::Heuristic(const std::string& name, HeuristicChain* chain)
     : Component(name), refEST(NULL), heuristicName(name),
@@ -68,6 +70,15 @@ Heuristic::printStats(std::ostream& os) const {
     os << "Statistics from " << getName()   << " heuristic:\n"
        << "\tNumber of calls        : " << runCount     << "\n"
        << "\tNumber of successes    : " << successCount << std::endl;
+}
+
+void
+Heuristic::ensurePopulated(const EST* est) const {
+    if (!est->isPopulated()) {
+	ESTList* const estList = getContext()->getESTList();
+	ASSERT( estList != NULL );
+	estList->repopulate(est);
+    }
 }
 
 #endif

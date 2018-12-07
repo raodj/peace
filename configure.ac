@@ -185,9 +185,9 @@ AC_DEFUN([AC_PROG_ICC],
 AC_DEFUN([AC_CHECK_ARGS],
 [
 	AC_MSG_CHECKING([whether _AC_LANG compiler accepts $1])
-	AC_LANG_CONFTEST(
+	AC_LANG_CONFTEST([
 			AC_LANG_PROGRAM([[#include <iostream>]],
-							[[std::cout << "ac_check_args"]]))
+					[[std::cout << "ac_check_args"]])])
     src=`ls conftest.c*`
 	output=`$CXX $1 $CXXFLAGS $LIBS $ICC_NO_WARN_FOR_CONFIGURE $src 2>&1`
 	if test -z "$output"; then

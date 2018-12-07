@@ -279,10 +279,10 @@ ContigMaker::sendContigData(const int procID, const int alignedESTsCount) {
     // additional information to ease receiving ntDistributions and
     // overhang nucleotide sequences.
     const int counterValues[9] = {leftMostNtPos, rightMostNtPos,
-                                  rootESTNtPos, leftOverhang.size(),
-                                  overhangs.size(), alignedESTsCount,
-                                  ntDistributions.size(), leftOverhangESTidx,
-                                  rightOverhangESTidx};
+                                  rootESTNtPos, (int) leftOverhang.size(),
+                                  (int) overhangs.size(), alignedESTsCount,
+                                  (int) ntDistributions.size(),
+				  leftOverhangESTidx, rightOverhangESTidx};
     MPI_SEND(counterValues, 9, MPI_INT, procID, CONTIG_COUNTER_VALUES_TAG);
     // Next send the overhang nucleotide sequences
     MPI_SEND(&overhangs[0], overhangs.size(), MPI_CHAR, procID, OVERHANGS_TAG);

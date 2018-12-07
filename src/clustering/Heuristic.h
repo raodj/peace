@@ -60,9 +60,9 @@ public:
         \note This method must be called only after the initialize()
         method is called.
 
-		\param[in] refEST The reference EST against which a large
-		number of other EST entries are going to be compared via
-		subsequent calls to the shoudAnalyze(const EST*) method.
+	\param[in] refEST The reference EST against which a large
+	number of other EST entries are going to be compared via
+	subsequent calls to the shoudAnalyze(const EST*) method.
 		
         \return If the processing of the reference EST was sucessful,
         then this method returns 0.  Otherwise this method returns an
@@ -71,7 +71,7 @@ public:
     virtual int setReferenceEST(const EST* refEST) = 0;
     
     /** Determine whether the analyzer should analyze, according to
-		this heuristic.
+	this heuristic.
         
         This method can be used to compare a given EST with the
         reference EST (set earlier via the call to the
@@ -81,7 +81,7 @@ public:
         which the reference EST is to be compared by this method.
         
         \return This method returns true if the heuristic says the EST
-		pair should be analyzed further, and false if it should not.
+	pair should be analyzed further, and false if it should not.
     */
     bool shouldAnalyze(const EST* otherEST);
 
@@ -140,8 +140,8 @@ public:
     }
 
     /** Method to obtain the count of times this heuristic was
-		successful (i.e. result indicated that heavy weight analysis
-		should be undertaken).
+	successful (i.e. result indicated that heavy weight analysis
+	should be undertaken).
 
         \return The number of times calls to this heuristic succeeded
         -- that is, the number of times the heuristic reported that
@@ -219,6 +219,22 @@ protected:
         deleted by this class (or its children).
     */
     HeuristicChain* const heuristicChain;
+
+    /** Ensure the given EST is fully populated.
+
+	This is a convenience method that can be used by various
+	heuristics to ensure that a given read is fully populated with
+	data.  Reads may be unpopulated to reduce memory footprint.
+	Consequently, this method should be used to ensure the data is
+	actually present in the reads prior to using them.
+
+	\note Calling this method is safe as it does not perform any
+	additional operations on a read that is already populated.
+
+	\param[in,out] est The read to be checked and repopulated as
+	needed.
+    */
+    void ensurePopulated(const EST* est) const;
     
 private:
     /** Variable to track the number of times this heuristic was run.

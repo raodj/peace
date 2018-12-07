@@ -106,10 +106,11 @@ FilterChain::run() {
     getOwnedESTidx(estList.size(), startIndex, endIndex);
     for(int estIdx = startIndex; (estIdx < endIndex); estIdx++) {
         // Use helper method to apply the filters.
-        EST *est = estList[estIdx];
+        EST *est = estList.get(estIdx, true);
         if (!est->hasBeenProcessed()) {
             // Filters track ESTs they have filtered out.
             applyFilters(est);
+	    estList.unpopulate(estIdx);
         }
     }
     // Now participate in global iterative broadcast chain. Possibly

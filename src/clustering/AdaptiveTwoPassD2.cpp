@@ -202,6 +202,7 @@ AdaptiveTwoPassD2::getMetric(const EST* otherEST) {
         });
 
     // Access information on the comparison sequence
+    estList->repopulate(otherEST);
     const char* s2   = otherEST->getSequence();
     sq2Len           = otherEST->getSequenceLength(); 
 

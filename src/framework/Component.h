@@ -87,13 +87,13 @@ public:
     /** Determine if initialization has been completed.
 
         This method must be used to detect if initialization of this
-         object has been completed.  If initialization has been
-         completed then further initialization is not necessary and
-         can be avoided.  However, appropriate behavior and semantics
-         of initialization is divested to the derived classes.
+	object has been completed.  If initialization has been
+	completed then further initialization is not necessary and
+	can be avoided.  However, appropriate behavior and semantics
+	of initialization is divested to the derived classes.
 		 
-		 \return This method returns \c true if initialization has been
-		 completed.  Otherwise this method returns \c false.
+	\return This method returns \c true if initialization has been
+	completed.  Otherwise this method returns \c false.
     */
     inline bool isInitialized() const { return initializedFlag; }
 	
@@ -167,107 +167,107 @@ public:
         \return The RuntimeContext that contains references to the
         shared information in the current run of PEACE.
     */
-	RuntimeContext* getContext() const;
+    RuntimeContext* getContext() const;
 
-	/** Set/change value for a string argument.
+    /** Set/change value for a string argument.
 
-		This method can be used to set/change the value of a string
-		argument (in the list of valid arguments) recognized by this
-		argument parser.
+	This method can be used to set/change the value of a string
+	argument (in the list of valid arguments) recognized by this
+	argument parser.
 
-		\param[in] arg The argument whose value is to be changed.  The
-		argument string must exactly match one of the recognized
-		values and the data type of the argument must be
-		ArgParser::STRING.
+	\param[in] arg The argument whose value is to be changed.  The
+	argument string must exactly match one of the recognized
+	values and the data type of the argument must be
+	ArgParser::STRING.
 
-		\param[in] value The new value to set for the specified
-		argument (assuming it is valid).
+	\param[in] value The new value to set for the specified
+	argument (assuming it is valid).
 
-		\return This method returns \c true if the specified argument
-		(arg) was valid and its value was successfully updated.
-		Otherwise this method returns \c false.
-	*/
-	bool setArgument(const std::string& arg, const std::string& value);
+	\return This method returns \c true if the specified argument
+	(arg) was valid and its value was successfully updated.
+	Otherwise this method returns \c false.
+    */
+    bool setArgument(const std::string& arg, const std::string& value);
 
-	/** Set/change value for a boolean argument.
+    /** Set/change value for a boolean argument.
 
-		This method can be used to set/change the value of a boolean
-		argument (in the list of valid arguments) recognized by this
-		argument parser.
+	This method can be used to set/change the value of a boolean
+	argument (in the list of valid arguments) recognized by this
+	argument parser.
 
-		\param[in] arg The argument whose value is to be changed.  The
-		argument string must exactly match one of the recognized
-		values and the data type of the argument must be a
-		ArgParser::BOOLEAN.
+	\param[in] arg The argument whose value is to be changed.  The
+	argument string must exactly match one of the recognized
+	values and the data type of the argument must be a
+	ArgParser::BOOLEAN.
 
-		\param[in] value The new value to set for the specified
-		argument (assuming it is valid).
+	\param[in] value The new value to set for the specified
+	argument (assuming it is valid).
 
-		\return This method returns \c true if the specified argument
-		(arg) was valid and its value was successfully updated.
-		Otherwise this method returns \c false.
-	*/
-	bool setArgument(const std::string& arg, const bool value);
+	\return This method returns \c true if the specified argument
+	(arg) was valid and its value was successfully updated.
+	Otherwise this method returns \c false.
+    */
+    bool setArgument(const std::string& arg, const bool value);
 
-	/** Set/change value for an integer valued argument.
+    /** Set/change value for an integer valued argument.
 
-		This method can be used to set/change the value of an integer
-		argument (in the list of valid arguments) recognized by this
-		argument parser.
+	This method can be used to set/change the value of an integer
+	argument (in the list of valid arguments) recognized by this
+	argument parser.
 
-		\param[in] arg The argument whose value is to be changed.  The
-		argument string must exactly match one of the recognized
-		values and the data type of the argument must be a
-		ArgParser::INTEGER.
+	\param[in] arg The argument whose value is to be changed.  The
+	argument string must exactly match one of the recognized
+	values and the data type of the argument must be a
+	ArgParser::INTEGER.
 
-		\param[in] value The new value to set for the specified
-		argument (assuming it is valid).
+	\param[in] value The new value to set for the specified
+	argument (assuming it is valid).
 
-		\return This method returns \c true if the specified argument
-		(arg) was valid and its value was successfully updated.
-		Otherwise this method returns \c false.
-	*/
-	bool setArgument(const std::string& arg, const int value);
+	\return This method returns \c true if the specified argument
+	(arg) was valid and its value was successfully updated.
+	Otherwise this method returns \c false.
+    */
+    bool setArgument(const std::string& arg, const int value);
 
-	/** Set/change value for a floating valued argument.
+    /** Set/change value for a floating valued argument.
 
-		This method can be used to set/change the value of an integer
-		argument (in the list of valid arguments) recognized by this
-		argument parser.
+	This method can be used to set/change the value of an integer
+	argument (in the list of valid arguments) recognized by this
+	argument parser.
 
-		\param[in] arg The argument whose value is to be changed.  The
-		argument string must exactly match one of the recognized
-		values and the data type of the argument must be a
-		ArgParser::FLOAT.
+	\param[in] arg The argument whose value is to be changed.  The
+	argument string must exactly match one of the recognized
+	values and the data type of the argument must be a
+	ArgParser::FLOAT.
 
-		\param[in] value The new value to set for the specified
-		argument (assuming it is valid).
+	\param[in] value The new value to set for the specified
+	argument (assuming it is valid).
 
-		\return This method returns \c true if the specified argument
-		(arg) was valid and its value was successfully updated.
-		Otherwise this method returns \c false.
-	*/
-	bool setArgument(const std::string& arg, const float value);
+	\return This method returns \c true if the specified argument
+	(arg) was valid and its value was successfully updated.
+	Otherwise this method returns \c false.
+    */
+    bool setArgument(const std::string& arg, const float value);
 
-	/** Set/change value for a double valued argument.
+    /** Set/change value for a double valued argument.
 
-		This method can be used to set/change the value of an double
-		argument (in the list of valid arguments) recognized by this
-		argument parser.
+	This method can be used to set/change the value of an double
+	argument (in the list of valid arguments) recognized by this
+	argument parser.
 
-		\param[in] arg The argument whose value is to be changed.  The
-		argument string must exactly match one of the recognized
-		values and the data type of the argument must be a
-		ArgParser::DOUBLE.
+	\param[in] arg The argument whose value is to be changed.  The
+	argument string must exactly match one of the recognized
+	values and the data type of the argument must be a
+	ArgParser::DOUBLE.
 
-		\param[in] value The new value to set for the specified
-		argument (assuming it is valid).
+	\param[in] value The new value to set for the specified
+	argument (assuming it is valid).
 
-		\return This method returns \c true if the specified argument
-		(arg) was valid and its value was successfully updated.
-		Otherwise this method returns \c false.
-	*/
-	bool setArgument(const std::string& arg, const double value);
+	\return This method returns \c true if the specified argument
+	(arg) was valid and its value was successfully updated.
+	Otherwise this method returns \c false.
+    */
+    bool setArgument(const std::string& arg, const double value);
 
     /** Display the valid arguments along with brief description.
 
@@ -291,27 +291,27 @@ protected:
         have any special tasks to perform and merely initializes
         instance variables to their default initial value.
 
-		\param[in] name A generic name to be associated with this
-		component.  This is just a debugging convenience than anything
-		else.
+	\param[in] name A generic name to be associated with this
+	component.  This is just a debugging convenience than anything
+	else.
     */
     Component(const std::string& name);
 
-	/** Helper method to locate and change an argument defined by a
-		derived class.
+    /** Helper method to locate and change an argument defined by a
+	derived class.
 
-		This is a helper method that is used by the various forms of
-		setArgument() method to update a argument.  This method first
-		gathers the data in a temporary argument parser and then uses
-		the corresponding method in the ArgParser to update the
-		parameter values.
+	This is a helper method that is used by the various forms of
+	setArgument() method to update a argument.  This method first
+	gathers the data in a temporary argument parser and then uses
+	the corresponding method in the ArgParser to update the
+	parameter values.
 
         \note This method is templatized so that it can handle the
-		various value parameters elegantly.
+	various value parameters elegantly.
 
         \param[in] arg The argument whose value is to be changed.  The
-		argument string must exactly match one of the command-line
-		arguments supported by the derived class.
+	argument string must exactly match one of the command-line
+	arguments supported by the derived class.
 
         \param[in] argType The expected data type of the argument.
 
@@ -319,10 +319,10 @@ protected:
         argument.
 
         \return This method returns \c true if the specified argument
-		(arg) was valid and its value was successfully updated.
-		Otherwise this method returns \c false.
-	*/
-	template <typename ValueType>
+	(arg) was valid and its value was successfully updated.
+	Otherwise this method returns \c false.
+    */
+    template <typename ValueType>
     bool setArgument(const std::string& arg, const ArgParser::ArgType argType,
                      const ValueType& value);
 
@@ -379,7 +379,7 @@ private:
     */
     bool initializedFlag;
 
-	/** A dummy operator=
+    /** A dummy operator=
 
         The operator=() is supressed for this class as it has constant
         members whose value is set when the object is created.  These

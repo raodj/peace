@@ -143,6 +143,7 @@ NewUVHeuristic::setReferenceEST(const EST* estS1) {
     memset(s1WordMap,   0, sizeof(char) * MapSize);
     memset(s1RCWordMap, 0, sizeof(char) * MapSize);
     // Obtain EST sequence for quick access.
+    ensurePopulated(estS1);
     const char* s1 = estS1->getSequence();
     refESTLen = estS1->getSequenceLength();
     
@@ -178,7 +179,9 @@ NewUVHeuristic::computeHash(const EST* estS2) {
     // Pre-compute hash values that will be used for comparisons
     // to reduce duplicate computations.
     ASSERT ( estS2  != NULL );
+    ensurePopulated(estS2);
     const char *sq2  = estS2->getSequence();
+    ASSERT ( (int) strlen(sq2) == estS2->getSequenceLength() );
     ASSERT ( sq2 != NULL );
     const int End    = estS2->getSequenceLength() - v;
     

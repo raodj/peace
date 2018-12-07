@@ -111,30 +111,30 @@ public:
     /** Interface method to add entries ESTList from a given input
         file.
 
-		This method is typically used by the InputFileFactory to load
-		data files specified by the user.  This method assumes that
-		the input file has been suitably configured to handle masking
-		of bases and handling of \c 'N' nucleotide entries.
+	This method is typically used by the InputFileFactory to load
+	data files specified by the user.  This method assumes that
+	the input file has been suitably configured to handle masking
+	of bases and handling of \c 'N' nucleotide entries.
 		
         \param[in] inputFile Reference to a valid InputFile object
         from where the cDNA fragments are to be loaded into this list.
 
         \param[in] startIndex The starting index position of the EST
-		from where the full data is to be retained. For other entries,
-		the header information and nucleotide sequences are loaded
-		on-demand.  This is done to reduce peak memory footprint
-		(thereby enabling the processing of large data files). This
-		value must be less than endIndex.  This value with reference
-		to this list of ESTs (not just relative to this file).
+	from where the full data is to be retained. For other entries,
+	the header information and nucleotide sequences are loaded
+	on-demand.  This is done to reduce peak memory footprint
+	(thereby enabling the processing of large data files). This
+	value must be less than endIndex.  This value with reference
+	to this list of ESTs (not just relative to this file).
         
         \param[in] endIndex The ending index position of the EST upto
-		(and <b>not</b> including) which the full data is to be
-		retained. For other entries, the header information and
-		nucleotide sequences are loaded on-demand.  This value must be
-		greater than startIndex. This value is with-reference-to this
-		list of cDNA fragments.  By default the startIndex and
-		endIndex are set such that all cDNA fragments are loaded
-		on-demand.
+	(and <b>not</b> including) which the full data is to be
+	retained. For other entries, the header information and
+	nucleotide sequences are loaded on-demand.  This value must be
+	greater than startIndex. This value is with-reference-to this
+	list of cDNA fragments.  By default the startIndex and
+	endIndex are set such that all cDNA fragments are loaded
+	on-demand.
 
         \note This class maintains an open handle to the file (until
         reset() method is called).  
@@ -171,7 +171,19 @@ public:
     */
     EST* repopulate(int index) const;
 
-	/** Obtain the information associated with a given EST (load it if
+    /** Repopulate a given EST entry in this list.
+
+        This method can be used to repopulate information (that was
+        earlier unpopulated to save memory footprint) for a given EST.
+        The EST data is reloaded from the appropriate InputFile.
+
+        \param[in] est The entry for which a pointer is to be returned
+        by this method.  If this entry is already populated, then this
+        method performs no operations.
+    */
+    virtual void repopulate(const EST* est) const;
+    
+    /** Obtain the information associated with a given EST (load it if
         not available).
         
         This method returns the name and other information associated
@@ -186,8 +198,24 @@ public:
         \return Any information available for this EST. Return the
         information
     */
-	virtual std::string getESTInfo(const int index) const;
-        
+    virtual std::string getESTInfo(const int index) const;
+
+    /** Method to clear general information and sequence data.
+
+        This method can be used to unpopulate the FASTA header and
+        actual sequence (base pairs) information a given entry.  This
+        frees up memory allocated to hold this data thereby minimizing
+        the memory footprint for this EST.  This enables holding a
+        large number of skeleton EST's in memory.
+
+        \param index The index of the entry for which a pointer is to
+        be returned by this method.  This index value must be in the
+        range 0 &le; ESTList::size().
+    */
+    virtual void unpopulate(int index) const {
+	estVector[index]->unpopulate();
+    }
+    
 protected:
     /** The input source from where some (or all) of the EST data has
         been read.

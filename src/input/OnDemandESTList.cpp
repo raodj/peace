@@ -100,6 +100,13 @@ OnDemandESTList::repopulate(int estID) const {
 }
 
 void
+OnDemandESTList::repopulate(const EST *est) const {
+    ASSERT( estVector[est->getID()] == est );
+    // Use helper method to do the necessary operations.
+    repopulate(est->getID());
+}
+
+void
 OnDemandESTList::reset() {
     // Close any input files we have and clear those entries
     for(size_t index = 0; (index < inputFileList.size()); index++) {
