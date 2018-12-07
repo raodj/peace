@@ -190,6 +190,9 @@ D2Zim::getMetric(const EST* otherEST) {
     if (otherEST->getID() == refEST->getID()) {
         return 0; // distance to self will be 0
     }
+    // Ensure other EST is fully populated
+    estList->repopulate(otherEST);
+    
     // Perform operations for D2
     int sed = 0;
     int minSed = frameSize * 4; // won't be exceeded

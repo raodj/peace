@@ -52,11 +52,11 @@ class InputFile;
 
     <ul>
 
-	<li>It provides a shared data structure for sharing cDNA fragments
-	between multiple sub-systems constituting PEACE.</li>
+    <li>It provides a shared data structure for sharing cDNA fragments
+    between multiple sub-systems constituting PEACE.</li>
 
-	<li>It provides a simple list that can contain fragments from
-	multiple files.</li>
+    <li>It provides a simple list that can contain fragments from
+    multiple files.</li>
 	
     <li>The class serves as a base class for OnDemandESTList (in the
     InputSubSystem) that can automatically load entries from a given
@@ -126,11 +126,11 @@ public:
         be returned by this method.  This index value must be in the
         range 0 &le; ESTList::size().
 
-		\param repopulate If this flag is \c true and the requested
-		EST is not fully populated (see EST::isPopulated()) then the
-		EST entry is populated with all the information (such as
-		nucleotide sequence, quality vector, and header GI
-		information) before it is returned by this method.
+	\param repopulate If this flag is \c true and the requested
+	EST is not fully populated (see EST::isPopulated()) then the
+	EST entry is populated with all the information (such as
+	nucleotide sequence, quality vector, and header GI
+	information) before it is returned by this method.
 		
         \note The method in this class does not repopulate entries
         because this class does not unpoplate EST entries to begin
@@ -151,7 +151,7 @@ public:
     }
     
     /** Obtain an immutable (constant object) pointer to an EST entry
-		in this list.
+	in this list.
 
         This is a convenience overload of operator[] that can be used
         to obtain a valid pointer to a given entry in this list.  This
@@ -182,7 +182,7 @@ public:
     { return get(index); }
 
     /** Obtain a mutable (non-constant object) pointer to an EST
-		entry in this list.
+	entry in this list.
 
         This is a convenience overload of operator[] that can be used
         to obtain a valid pointer to a given entry in this list.  This
@@ -306,21 +306,21 @@ public:
         from where the cDNA fragments are to be loaded into this list.
 
         \param[in] startIndex The starting index position of the EST
-		from where the full data is to be retained. For other entries,
-		the header information and nucleotide sequences are loaded
-		on-demand.  This is done to reduce peak memory footprint
-		(thereby enabling the processing of large data files). This
-		value must be less than endIndex.  This value with reference
-		to this list of ESTs (not just relative to this file).
+	from where the full data is to be retained. For other entries,
+	the header information and nucleotide sequences are loaded
+	on-demand.  This is done to reduce peak memory footprint
+	(thereby enabling the processing of large data files). This
+	value must be less than endIndex.  This value with reference
+	to this list of ESTs (not just relative to this file).
         
         \param[in] endIndex The ending index position of the EST upto
-		(and <b>not</b> including) which the full data is to be
-		retained. For other entries, the header information and
-		nucleotide sequences are loaded on-demand.  This value must be
-		greater than startIndex. This value is with-reference-to this
-		list of cDNA fragments.  By default the startIndex and
-		endIndex are set such that all cDNA fragments are loaded
-		on-demand.
+	(and <b>not</b> including) which the full data is to be
+	retained. For other entries, the header information and
+	nucleotide sequences are loaded on-demand.  This value must be
+	greater than startIndex. This value is with-reference-to this
+	list of cDNA fragments.  By default the startIndex and
+	endIndex are set such that all cDNA fragments are loaded
+	on-demand.
 
         \note This class maintains an open handle to the file (until
         reset() method is called).  
@@ -333,8 +333,8 @@ public:
         true. The reference to the global list can be obtained via a
         call to the overloaded get() method(s).
     */
-	virtual bool add(InputFile* inputFile, const long startIndex = 0x7ffffffL,
-					 const long endIndex = 0x7ffffffL);
+    virtual bool add(InputFile* inputFile, const long startIndex = 0x7ffffffL,
+		     const long endIndex = 0x7ffffffL);
 	
     /** Obtain count of ESTs that have been flagged as being processed.
         
@@ -376,7 +376,7 @@ public:
     */
     void dumpESTList(std::ostream& os) const;
 
-	/** Dump currently loaded and (un)processed ESTs in FASTA format.
+    /** Dump currently loaded and (un)processed ESTs in FASTA format.
 
         This method can be used to dump the currently loaded EST's in
         FASTA file format to a given output stream.
@@ -414,6 +414,22 @@ public:
     */
     virtual void reset();
 
+    /** Method to clear general information and sequence data.
+
+        This method can be used to unpopulate the FASTA header and
+        actual sequence (base pairs) information a given entry.  This
+        frees up memory allocated to hold this data thereby minimizing
+        the memory footprint for this EST.  This enables holding a
+        large number of skeleton EST's in memory.
+
+        \param index The index of the entry for which a pointer is to
+        be returned by this method.  This index value must be in the
+        range 0 &le; ESTList::size().
+    */
+    virtual void unpopulate(int UNUSED(index)) const {
+	// Intentionally blank -- overridden in derived class(es).
+    }
+    
     /** Repopulate a given EST entry in this list.
 
         This method is overridden in derived class(es) to repopulate
@@ -435,7 +451,24 @@ public:
     */
     virtual const EST* repopulate(int index) const;
 
-	/** Obtain the information associated with a given EST (load it if
+    /** Repopulate a given EST entry in this list.
+
+        This method is overridden in derived class(es) to repopulate
+        information (that was earlier unpopulated to save memory
+        footprint) for a given EST.  Typically, the EST data is
+        reloaded from the appropriate InputFile.
+
+        \note The base class implementation does not perform any
+        special task as it assumes that all the necessary information
+        is available in memory.
+
+        \param[in] est The entry to be repopulated.  This entry must
+        be a valid (non-NULL) entry obtained from this list via
+        suitable API method(s).
+    */
+    virtual void repopulate(const EST* UNUSED(est)) const {}
+    
+    /** Obtain the information associated with a given EST (load it if
         not available).
         
         This method returns the name and other information associated
@@ -455,7 +488,7 @@ public:
         \return Any information available for this EST. Return the
         information
     */
-	virtual std::string getESTInfo(const int index) const {
+    virtual std::string getESTInfo(const int index) const {
         return get(index)->getInfo();
     }
     

@@ -142,6 +142,7 @@ UVSampleHeuristic::setReferenceEST(const EST* est) {
     memset(s1WordMap,   0, sizeof(char) * MapSize);
     memset(s1RCWordMap, 0, sizeof(char) * MapSize);
     // Obtain EST sequence for quick access.
+    ensurePopulated(est);
     const char* s1 = est->getSequence();
     
     // First compute the hash for a single word using a suitable
@@ -177,8 +178,10 @@ UVSampleHeuristic::computeHash(const EST* est) {
     // Pre-compute values that will be used in the for-loop below to
     // reduce duplicate computations.
     ASSERT ( est  != NULL );
+    ensurePopulated(est);
     const char *sq2  = est->getSequence();
     ASSERT ( sq2 != NULL );
+    ASSERT ( (int) strlen(sq2) == est->getSequenceLength() );
     const int End    = std::max(est->getSequenceLength(),
                                 (int) est->getSequenceLength() - v);
     ASSERT ( End > 0 );
@@ -216,7 +219,7 @@ UVSampleHeuristic::runHeuristic(const EST* otherEST) {
             return true; // will end up with distance 0, or max similarity
         }
     });
-
+    
     // Get otherEST's hash values from the uvCache. If an entry for
     // otherEST is not present in uvCache then build one.
     UVHashTable::iterator cacheEntry = uvCache.find(otherEST->getID());

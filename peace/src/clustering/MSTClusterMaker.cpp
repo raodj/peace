@@ -476,7 +476,7 @@ MSTClusterMaker::computeSMList(const int estIdx, SMList& smList) {
     // Setup the reference estIdx in the analyzer which given the
     // analyzer a chance to optimize initialization.
     ASSERT( estList != NULL );
-    analyzer->setReferenceEST(estList->get(estIdx));
+    analyzer->setReferenceEST(estList->get(estIdx, true));
     // Now compute similarity metric and store information in a SMList
     // data structure.
     const float InvalidMetric = analyzer->getInvalidMetric();

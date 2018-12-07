@@ -76,7 +76,7 @@ public:
         <p>Earlier (in PEACE 0.9) hints were conveyed using a
         hash_map.  However, with billions of calls the hash_map was
         adding considerable CPU cyles to the run.  Consequently, the
-        hints were moved to a simple array (size based on \c LAST_HINT
+	x        hints were moved to a simple array (size based on \c LAST_HINT
         enumeration) to keep them as light weight as possible.</p>
     */
     enum HintKey {UNKNOWN_HINT, D2_DO_RC, MST_RC,
@@ -87,8 +87,8 @@ public:
 
     /** The constructor.
 		
-		The heuristic chain that contain a set of heuristics and
-		applies various operations on each heuristic in the chain.
+	The heuristic chain that contain a set of heuristics and
+	applies various operations on each heuristic in the chain.
     */
     HeuristicChain();
     	
@@ -297,7 +297,7 @@ public:
         
         \param[in] estList The ESTList to be used by this analyzer.
         This pointer is used until the finalize() method is invoked.
-     */
+    */
     void setESTList(ESTList* estList);
 
     /** Obtian a pointer to the list of cDNA fragments associated with
@@ -311,6 +311,26 @@ public:
         yet been set.
     */
     inline ESTList* getESTList() const { return estList; }
+
+
+    /** The run method that essentially calls the run method in all
+	the heuristics in this chain.
+
+	This method is a convinence method that has been introduced
+	here to facilitate the process of dispatching run calls to all
+	the filters in this chain.  This method is invoked from the
+	ClusteringSubsystem::run() method which is called after
+	initializations have successfully completed.
+
+        \note This method assumes that the runtime context has been
+        setup for the ClusteringSubSystem (as per the normal runtime
+        operations).  The context is used by heuristics to obtain
+        cross references to sub-components as needed.
+	
+	\return This method returns 0 (zero) on success. On errors it
+	returns a non-zero error code.
+    */
+    virtual int run();
     
     /** The destructor.
         

@@ -59,13 +59,13 @@ class ClusterMaker;
     fragment is filtered out it is optionally added to a dummy cluster
     that is created by the filter.</p>
 
-	<p>Note that filter processing proceeds in a given order. The
-	first filter in the chain is invoked. If that filter returns \c
-	true (indicating the fragment is to be filtered out) then rest of
-	the filters are not invoked. On the other hand, if a filter
-	returns \c false, then the next filter in the chain is
-	invoked. The process continues until all the filters have been
-	exhausted.</p>
+    <p>Note that filter processing proceeds in a given order. The
+    first filter in the chain is invoked. If that filter returns \c
+    true (indicating the fragment is to be filtered out) then rest of
+    the filters are not invoked. On the other hand, if a filter
+    returns \c false, then the next filter in the chain is
+    invoked. The process continues until all the filters have been
+    exhausted.</p>
 */
 class FilterChain : public Component {
     friend class FilteringSubSystem;
@@ -90,32 +90,32 @@ public:
     */
     virtual bool initialize();
 
-	/** Main helper method that applies all filters in a distributed
-		manner.
+    /** Main helper method that applies all filters in a distributed
+	manner.
 
-		This method is a convinence method that has been introduced
-		here to facilitate the process of applying all filters in a
-		distributed manner. This method operates as follows:
+	This method is a convinence method that has been introduced
+	here to facilitate the process of applying all filters in a
+	distributed manner. This method operates as follows:
 
-		<ol>
+	<ol>
 
-		<li>It assumes that the FilterChain::initialize() has been
-		called.</li>
+	<li>It assumes that the FilterChain::initialize() has been
+	called.</li>
 		
-		<li>Next it computes the sub-set of ESTs that this filter is
-		expected to operate on and applies the filters to all the ESTs
-		within the range it owns.</li>
+	<li>Next it computes the sub-set of ESTs that this filter is
+	expected to operate on and applies the filters to all the ESTs
+	within the range it owns.</li>
 
-		<li>It participates in interative broadcast in which it
-		receives filter data from other processes (if any) and
-		broadcasts its own data to others. This process ensures that
-		all processes have a consistent view of the entries that have
-		been filtered out on other processes.</li>
+	<li>It participates in interative broadcast in which it
+	receives filter data from other processes (if any) and
+	broadcasts its own data to others. This process ensures that
+	all processes have a consistent view of the entries that have
+	been filtered out on other processes.</li>
 
-		<li>If all the operations were successfully completed, then
-		this method returns 0 (zero).</li>
+	<li>If all the operations were successfully completed, then
+	this method returns 0 (zero).</li>
 		
-		</ol>
+	</ol>
 
         \note This method assumes that the runtime context has been
         setup for the FilteringSubSystem (as per the normal runtime
@@ -123,9 +123,9 @@ public:
         pointers to the ESTAnalyzer and ClusterMaker objects for their
         use.
         
-		\return This method returns 0 (zero) on success. On errors it
-		returns a non-zero error code.
-	*/
+	\return This method returns 0 (zero) on success. On errors it
+	returns a non-zero error code.
+    */
     virtual int run();
 	
     /** Finalizes all the filters in the chain.
@@ -272,25 +272,25 @@ private:
     */
     FilterChain();
     
-	/** Helper method to perform all-to-all broadcast operation.
+    /** Helper method to perform all-to-all broadcast operation.
 
-		This method is invoked from the applyFilters() to broadcast
-		the results from filtering out data to all other processes.
-		In addition, this method also receives broadcasts from other
-		processes and applies their filtered results to the local
-		copy. This process ensures that all the processes in the
-		system have a consistent snapshot of the filtered out ESTs.
+	This method is invoked from the applyFilters() to broadcast
+	the results from filtering out data to all other processes.
+	In addition, this method also receives broadcasts from other
+	processes and applies their filtered results to the local
+	copy. This process ensures that all the processes in the
+	system have a consistent snapshot of the filtered out ESTs.
 
-		\note Possibly this method (which has a loop) can be replaced
-		by a single MPI all-to-all broadcast call but at expense of
-		increased memory footprint.
+	\note Possibly this method (which has a loop) can be replaced
+	by a single MPI all-to-all broadcast call but at expense of
+	increased memory footprint.
 
-		\param[in] clusterMaker The cluster maker to be used for
-		merging the filter data received from other processes.  This
-		pointer can be NULL (in which case cDNA fragments that were
-		filtered-out are not added to dummy cluster entries).
-	*/
-	void allToAllBroadcast(ClusterMaker *clusterMaker);
+	\param[in] clusterMaker The cluster maker to be used for
+	merging the filter data received from other processes.  This
+	pointer can be NULL (in which case cDNA fragments that were
+	filtered-out are not added to dummy cluster entries).
+    */
+    void allToAllBroadcast(ClusterMaker *clusterMaker);
 };
 
 #endif
