@@ -59,7 +59,7 @@
     as we need to know the index where a specific entry is being added
     to the list of reads prior to creating the entries.</p>
 */
-typedef HashMap< std::string, std::pair<int, int>, StringHasher > BSLookupMap;
+typedef HashMap< std::string, std::pair<int, int> > BSLookupMap;
 
 // Some forward declarations to keep compiler happy
 class Contig;

@@ -71,34 +71,34 @@ int    PMSTClusterMaker::maxUse        = 0;
 char*  PMSTClusterMaker::cacheType     = PDefCacheType;
 
 // The common set of arguments for all FW EST analyzers
-arg_parser::arg_record PMSTClusterMaker::argsList[] = {
+ArgParser::ArgRecord PMSTClusterMaker::argsList[] = {
     {"--cache", "#similarity metrics to cache per EST",
-     &PMSTClusterMaker::cacheSize, arg_parser::INTEGER},
+     &PMSTClusterMaker::cacheSize, ArgParser::INTEGER},
     {"--no-cache-repop", "Suppress EST cache repopulation",
-     &PMSTClusterMaker::noCacheRepop, arg_parser::BOOLEAN},    
+     &PMSTClusterMaker::noCacheRepop, ArgParser::BOOLEAN},    
     {"--percentile", "Percentile deviation to use to compute threshold value",
-     &PMSTClusterMaker::percentile, arg_parser::DOUBLE},
+     &PMSTClusterMaker::percentile, ArgParser::DOUBLE},
     {"--no-order", "Disable strict order of processing messages",
-     &PMSTClusterMaker::strictOrder, arg_parser::BOOLEAN},
+     &PMSTClusterMaker::strictOrder, ArgParser::BOOLEAN},
     {"--input-mst-file", "Read MST data from file (skip parallel MST building)",
-     &PMSTClusterMaker::inputMSTFile, arg_parser::STRING},
+     &PMSTClusterMaker::inputMSTFile, ArgParser::STRING},
     {"--output-mst-file", "Output MST data to file",
-     &PMSTClusterMaker::outputMSTFile, arg_parser::STRING},
+     &PMSTClusterMaker::outputMSTFile, ArgParser::STRING},
     {"--dont-cluster", "Just generate MST data. Don't do clustering",
-     &PMSTClusterMaker::dontCluster, arg_parser::BOOLEAN},
+     &PMSTClusterMaker::dontCluster, ArgParser::BOOLEAN},
     {"--pretty-print", "Print a pretty cluster tree.",
-     &PMSTClusterMaker::prettyPrint, arg_parser::BOOLEAN},
+     &PMSTClusterMaker::prettyPrint, ArgParser::BOOLEAN},
     {"--maxUse", "Set a threshold to aggressively use metrics (default=0)",
-     &PMSTClusterMaker::maxUse, arg_parser::INTEGER},
+     &PMSTClusterMaker::maxUse, ArgParser::INTEGER},
     {"--cacheType", "Set type of cache (heap or mlist) to use (default=heap)",
-     &PMSTClusterMaker::cacheType, arg_parser::STRING},   
-    {NULL, NULL, NULL, arg_parser::BOOLEAN}
+     &PMSTClusterMaker::cacheType, ArgParser::STRING},   
+    {NULL, NULL, NULL, ArgParser::BOOLEAN}
 };
 
 PMSTClusterMaker::PMSTClusterMaker(ESTAnalyzer *analyzer,
                                  const int refESTidx,
                                  const std::string& outputFile)
-    : ClusterMaker("pmst", analyzer, refESTidx, outputFile), mst(NULL) {
+    : ClusterMaker("pmst", analyzer), mst(NULL) {
     // Nothing else to be done for now.
 }
 
@@ -112,15 +112,15 @@ void
 PMSTClusterMaker::showArguments(std::ostream& os) {
     ClusterMaker::showArguments(os);
     // Use a arg parser object to conveniently display common options.
-    os << "Options for " << name << " are:\n";
-    arg_parser ap(PMSTClusterMaker::argsList);
+    os << "Options for " << getName() << " are:\n";
+    ArgParser ap(PMSTClusterMaker::argsList);
     os << ap;
 }
 
 bool
 PMSTClusterMaker::parseArguments(int& argc, char **argv) {
-    arg_parser ap(PMSTClusterMaker::argsList);
-    ap.check_args(argc, argv, false);
+    ArgParser ap(PMSTClusterMaker::argsList);
+    ap.checkRemainingArguments(argc, argv, false);
     // Ensure the cache size is at least 1.
     if (cacheSize < 1) {
         std::cerr << "Invalid cache size (must be greater than zero)\n";
@@ -128,8 +128,6 @@ PMSTClusterMaker::parseArguments(int& argc, char **argv) {
     }
     // Ensure interpretation of stringOrder flag is consistent.
     strictOrder = !strictOrder;
-    // Now let the base class do processing and return the result.
-    return ClusterMaker::parseArguments(argc, argv);
 }
 
 // This method is invoked only on the manager process
@@ -153,10 +151,10 @@ PMSTClusterMaker::estAdded(const int estIdx, std::vector<int>& repopulateList) {
         MPI_PROBE(sourceRank, REPOPULATE_REQUEST, msgInfo);
         // OK, we have a valid repopulation request pending from some
         // worker. So read and process it.
-        const int dataSize = msgInfo.Get_count(MPI_TYPE_INT);
+        const int dataSize = MPI_GET_COUNT(msgInfo, MPI_TYPE_INT);
         int *requestData = new int[dataSize];
         MPI_RECV(requestData, dataSize, MPI_TYPE_INT,
-                 msgInfo.Get_source(), REPOPULATE_REQUEST);
+                 msgInfo.MPI_SOURCE, REPOPULATE_REQUEST);
         // Add the population request to our repopulate vector.
         if (requestData[0] > 0) {
             std::copy(requestData + 1, requestData + dataSize - 1,
@@ -338,7 +336,7 @@ PMSTClusterMaker::worker() {
         // Wait for manager to send us a work request.  Since we are
         // waiting it should be tracked under idle time.
         MPI_PROBE(LocalManagerRank, MPI_ANY_TAG, msgInfo);
-        if (msgInfo.Get_tag() == COMPUTE_SIMILARITY_REQUEST) {
+        if (msgInfo.MPI_GET_TAG == COMPUTE_SIMILARITY_REQUEST) {
             // Read the actual message first.  Dont' account it under
             // idle time as we are doing this Recv because the message
             // has already arrived.
@@ -347,7 +345,7 @@ PMSTClusterMaker::worker() {
                      COMPUTE_SIMILARITY_REQUEST);
             // Perform the necessary operations.
             populateCache(estIdx);
-        } else if (msgInfo.Get_tag() == COMPUTE_MAX_SIMILARITY_REQUEST) {
+        } else if (msgInfo.MPI_GET_TAG == COMPUTE_MAX_SIMILARITY_REQUEST) {
             // Read the actual message first. Dont' account it under
             // idle time as we are doing this Recv because the message
             // has already arrived.
@@ -366,7 +364,7 @@ PMSTClusterMaker::worker() {
             bestEntry[2] = *temp;
             MPI_SEND(bestEntry, 4, MPI_TYPE_INT, LocalManagerRank,
                      MAX_SIMILARITY_RESPONSE);
-        } else if (msgInfo.Get_tag() == ADD_EST) {
+        } else if (msgInfo.MPI_GET_TAG == ADD_EST) {
             // The manager has broad casted the next est to be added.
             MPI_RECV(&estAdded, 1, MPI_TYPE_INT, LocalManagerRank, ADD_EST);
             if (estAdded == -1) {
@@ -564,7 +562,7 @@ PMSTClusterMaker::populateCache(const int estIdx, SMList* metricList) {
         MPI_PROBE(rank, SIMILARITY_LIST, msgInfo);
         // OK, we have a valid similarity list pending from some other
         // process. So read and process it.
-        const int dataSize = msgInfo.Get_count(MPI_TYPE_CHAR);
+        const int dataSize = MPI_GET_COUNT(msgInfo, MPI_TYPE_CHAR);
         SMList remoteList(dataSize / sizeof(CachedESTInfo));
         // The following call is a kludge with MPI/STL data types
         // based on several language assumptions.  This part could be
@@ -757,7 +755,7 @@ PMSTClusterMaker::mergeManager(MSTCluster& rootCluster, const int threshold) {
         MPI_PROBE(MPI_ANY_SOURCE, SIMILARITY_LIST, msgInfo);
         // OK, we have a valid similarity list pending from some other
         // process. So read and process it.
-        const int dataSize = msgInfo.Get_count(MPI_TYPE_CHAR);
+        const int dataSize = MPI_GET_COUNT(msgInfo, MPI_TYPE_CHAR);
         SMList remoteList(dataSize / sizeof(CachedESTInfo));
         // The following call is a kludge with MPI/STL data types
         // based on several language assumptions.  This part could be

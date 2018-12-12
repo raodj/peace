@@ -39,7 +39,6 @@
 
 #ifndef HAVE_LIBMPI
 
-
 #ifndef _WINDOWS
 // A simple implementation for MPI_WTIME on linux
 #include <sys/time.h>
@@ -65,6 +64,79 @@ double MPI_WTIME() {
 
 #endif
 
+#else
+
+// Convenience method to return the MPI rank when MPI library is
+// available
+int MPI_GET_RANK() {
+    int rank = -1;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+    return rank;
+}
+
+// Convenience method to return the number of processes when MPI
+// library is available
+int MPI_GET_SIZE() {
+    int size = -1;
+    MPI_Comm_size(MPI_COMM_WORLD, &size);
+    return size;
+}
+
+#endif
+
+int getOwnerProcess(const int estListSize, const int estIdx) {
+    const int eSTsPerProcess = estListSize / MPI_GET_SIZE();
+    const int extraESTs      = estListSize % MPI_GET_SIZE();
+    const int extraESTsCutOff= (extraESTs * eSTsPerProcess) + extraESTs;
+    
+    // If the estIdx is less that the ExtraESTsCutOff then account for
+    // the fact that each of these workers have one extra ESTs (as the
+    // number of ESTs may not be evenly divisible by number of
+    // processes).
+    if (estIdx < extraESTsCutOff) {
+        return estIdx / (eSTsPerProcess + 1);
+    }
+    // This est is in a process that does not have one extra...
+    return (estIdx - extraESTs) / eSTsPerProcess;
+}
+
+void getLocallyOwnedESTidx(const int count, int& startIndex, int& endIndex) {
+    const int eSTsPerProcess = count / MPI_GET_SIZE();
+    const int extraESTs      = count % MPI_GET_SIZE();
+    const int myRank         = MPI_GET_RANK();
+    
+    // First figure out the starting and ending EST this processs is
+    // responsible for further use.
+    startIndex = myRank * eSTsPerProcess;
+    // Check for extra proceses as needed.
+    if (myRank <= extraESTs) {
+        // The previous processes have one extra ESTs as number of
+        // ESTs are not evenly divisible by number of processes.  So
+        // account for this.
+        startIndex = ((eSTsPerProcess + 1) * myRank);
+    } else {
+        startIndex += extraESTs;
+    }
+    
+    // Compute the last est index this process owns.
+    endIndex = startIndex + eSTsPerProcess;
+    if (myRank < extraESTs) {
+        // This process owns one extra EST as ESTs are not evenly
+        // divisible by the number of processes.
+        endIndex++;
+    }
+}
+
+#ifdef HAVE_LIBMPI
+int MPI_GET_COUNT(MPI_STATUS& status, MPI_Datatype mpiType) {
+    int count = 0;
+    MPI_Get_count(&status, mpiType, &count);
+    return count;
+}
+#else
+int MPI_GET_COUNT(MPI_STATUS&, MPI_Datatype) {
+    return 0;
+}
 #endif
 
 #endif

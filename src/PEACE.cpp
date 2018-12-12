@@ -93,7 +93,7 @@ PEACE::initialize(int& argc, char *argv[], const bool initMPI) {
     static bool interactive = false; // Fake variable 
     // First initialize MPI if requested
     if (initMPI) {
-        MPI_INIT(argc, argv);
+        MPI_INIT(&argc, &argv);
     }
     if (argParser == NULL) {
         // Create the short-lived argument parser.
@@ -217,10 +217,12 @@ PEACE::finalize(bool finalizeMPI) {
 }
 
 bool
-PEACE::loadFile(const std::string& fileName, const std::string& format) {
+PEACE::loadFile(const std::string& fileName, const std::string& format,
+                const long startIndex, const long endIndex) {
     ArgParser::StringList tmpFileList;
     tmpFileList.push_back(fileName);
-    return iss->getInputFileFactory().loadFiles(tmpFileList, format);
+    return iss->getInputFileFactory().loadFiles(tmpFileList, format,
+                                                startIndex, endIndex);
 }
 
 #endif

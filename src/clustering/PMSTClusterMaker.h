@@ -39,6 +39,7 @@
 #include "MST.h"
 #include "MSTCluster.h"
 #include "PartitionData.h"
+#include "ArgParser.h"
 
 /** A Minimum Spanning Tree (MST) based parallel cluster maker.
 
@@ -657,7 +658,7 @@ protected:
         This instance variable contains a static list of arguments
         that are common all the MST cluster maker objects.
     */
-    static arg_parser::arg_record argsList[];
+    static ArgParser::ArgRecord argsList[];
 
     /** The cache that holds similarity metrics for MST construction.
 

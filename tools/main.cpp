@@ -24,6 +24,7 @@
 
 #include "ArgParser.h"
 #include "ShowAlignment.h"
+#include "PrimeFeatures.h"
 #include "DrawMatrix.h"
 #include "ShowMST.h"
 #include "Matcher.h"
@@ -36,6 +37,7 @@ const char* ToolInfo[] = {
     "ShowMST",      "Translate MST to a bracketed form for rendering",
     "Align",        "Simple alignment generation tool using MST alignment data",
     "Matcher",      "Score contigs against source DNA/Transcripts",
+    "primes",       "Print n-dimensional features based on prime numbers",
     // Add new tool names and description before this line.
     NULL, NULL
 };
@@ -114,6 +116,8 @@ main(int argc, char* argv[]) {
     case 6: retVal = Align::main(argc, argv);
         break;
     case 8: retVal = Matcher::main(argc, argv);
+        break;
+    case 10: retVal = PrimeFeatures::main(argc, argv);
         break;
     default:
         std::cout << "Invalid or unhandled tool name specified.\n";

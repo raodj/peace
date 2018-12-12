@@ -313,7 +313,7 @@ ACEWriter::writeAFEntries(const AlignmentInfoList& aiList,
         MPI_STATUS msgInfo;        
         MPI_PROBE(workerRank, ACE_AF_ENTRIES_TAG, msgInfo);
         // Reserve the necessary memory buffer
-        const int msgSize = msgInfo.Get_count(MPI_TYPE_CHAR);
+        const int msgSize = MPI_GET_COUNT(msgInfo, MPI_TYPE_CHAR);
         recvBuffer.resize(msgSize);
         // Now read the actual message
         MPI_RECV(&recvBuffer[0], msgSize, MPI_TYPE_CHAR, workerRank,
@@ -376,10 +376,10 @@ ACEWriter::writeRDEntries(const AlignmentInfoList& aiList,
         MPI_STATUS msgInfo;        
         MPI_PROBE(MPI_ANY_SOURCE, ACE_RD_ENTRY_TAG, msgInfo);
         // Reserve the necessary memory buffer
-        const int msgSize = msgInfo.Get_count(MPI_TYPE_CHAR);
+        const int msgSize = MPI_GET_COUNT(msgInfo, MPI_TYPE_CHAR);
         recvBuffer.resize(msgSize);
         // Now read the actual message
-        MPI_RECV(&recvBuffer[0], msgSize, MPI_TYPE_CHAR, msgInfo.Get_source(),
+        MPI_RECV(&recvBuffer[0], msgSize, MPI_TYPE_CHAR, msgInfo.MPI_SOURCE,
                  ACE_RD_ENTRY_TAG);
         aceFile << recvBuffer;
     }

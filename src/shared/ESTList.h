@@ -333,8 +333,8 @@ public:
         true. The reference to the global list can be obtained via a
         call to the overloaded get() method(s).
     */
-    virtual bool add(InputFile* inputFile, const long startIndex = 0x7ffffffL,
-		     const long endIndex = 0x7ffffffL);
+    virtual bool add(InputFile* inputFile, const long startIndex = MAX_READS,
+		     const long endIndex = MAX_READS);
 	
     /** Obtain count of ESTs that have been flagged as being processed.
         

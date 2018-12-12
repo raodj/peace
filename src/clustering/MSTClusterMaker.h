@@ -536,8 +536,12 @@ protected:
 
         \param[in] totalESTcount The total number of ESTs to be
         analyzed.
+
+        \param[in] estAdded Index of the EST that was just added (if
+        any).
     */
-    void updateProgress(const int estsAnalyzed, const int totalESTcount);
+    void updateProgress(const int estsAnalyzed, const int totalESTcount,
+                        const int estAdded = -1);
         
     /** Helper method in Manager process to update distributed caches.
 
@@ -841,16 +845,24 @@ protected:
         method if progressFileName is not NULL.
     */
     std::ofstream progressFile;
+    
+    /** The output file to which the clustering results are to be
+        written.
 
-	/** The output file to which the clustering results are to be
-		written.
+        This isntance variable tracks the output file to which the
+        data is to be written.  This option should be moved to the
+        output sub-system.
+    */
+    std::string outputFileName;
 
-		This isntance variable tracks the output file to which the
-		data is to be written.  This option should be moved to the
-		output sub-system.
-	*/
-	std::string outputFileName;
-	
+    /** Flag to indicate if progress information should also be
+        printed on console.
+
+        This flag is set via the \c --print-progress command-line
+        argument.
+    */
+    bool printProgress;
+
 private:    
     /** The Minimum Spanning Tree (MST) built by this class.
 
@@ -871,11 +883,11 @@ private:
     MSTCluster root;
 
     /** The hint key that is used to add hint for normal or
-		reverse-complement D2 computation.
-		
-		This hint key is used to obtain a hint for the \c MST_RC in
-		the \c hints hash map. This string is defined as a constant to
-		save compute time in the core \c runHeuristics method.
+        reverse-complement D2 computation.
+	
+        This hint key is used to obtain a hint for the \c MST_RC in
+        the \c hints hash map. This string is defined as a constant to
+        save compute time in the core \c runHeuristics method.
     */
     const std::string hintKey_MST_RC;
 };

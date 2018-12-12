@@ -106,6 +106,10 @@ libclustering_la_SOURCES = \
 	NNMSTClusterMaker.h \
 	NNMSTClusterMaker.cpp \
 	MultiWordHeuristic.h \
-	MultiWordHeuristic.cpp
+	MultiWordHeuristic.cpp \
+	PrimesHelper.h \
+	PrimesHelper.cpp \
+	PrimesHeuristic.h \
+	PrimesHeuristic.cpp
 
 # end of Makefile.am

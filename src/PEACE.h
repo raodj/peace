@@ -34,6 +34,7 @@
 //
 //---------------------------------------------------------------------
 
+#include "Utilities.h"
 #include "RuntimeContext.h"
 #include <vector>
 
@@ -295,13 +296,32 @@ public:
         \param[in] format The format of the data file to be loaded.
         Valid strings are \c "fasta" or \c "sff".  By default the file
         type is auto detected and loaded.
+
+        \param[in] startIndex The starting index position of the EST
+	from where the full data is to be retained. For other entries,
+	the header information and nucleotide sequences are loaded
+	on-demand.  This is done to reduce peak memory footprint
+	(thereby enabling the processing of large data files). This
+	value must be less than endIndex.  This value is with
+	reference to the full list of ESTs (not just relative to one
+	file).
+        
+        \param[in] endIndex The ending index position of the EST upto
+	(and <b>not</b> including) which the full data is to be
+	retained. For other entries, the header information and
+	nucleotide sequences are loaded on-demand.  This value must be
+	greater than startIndex. This value is with-reference-to the
+	full list of cDNA fragments.  By default the startIndex and
+	endIndex are set such that all cDNA fragments are loaded
+	on-demand.
         
         \return If all the files is successfully loaded, then this
         method returns \c true.  If an error occurs when processing
         one the files, this method returns with \c false.
     */    
-    bool loadFile(const std::string& fileName,
-                  const std::string& format = "");
+    bool loadFile(const std::string& fileName, const std::string& format = "",
+                  const long startIndex = MAX_READS,
+                  const long endIndex   = MAX_READS);
 
 protected:
     /** The output sub-system.

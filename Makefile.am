@@ -35,6 +35,8 @@
 
 include $(top_srcdir)/Makefile.common.am
 
+ACLOCAL_AMFLAGS = -I m4
+
 AM_CPPFLAGS=$(GLOBALCPPFLAGS) 
 AM_CXXFLAGS=$(GLOBALCXXFLAGS)
 

@@ -143,8 +143,8 @@ public:
         true. The reference to the global list can be obtained via a
         call to the get() method.
     */
-    bool add(InputFile* inputFile, const long startIndex = 0x7ffffffL,
-             const long endIndex = 0x7ffffffL);
+    bool add(InputFile* inputFile, const long startIndex = MAX_READS,
+             const long endIndex = MAX_READS);
     
     /** Clears out all EST entries, open input files, and resets
         internal values to default initial value.

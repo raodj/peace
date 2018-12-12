@@ -333,12 +333,18 @@ char* getTime(char *buffer, const time_t *codedTime = NULL);
 
 /** Convenience method to remove leading and trailing white-spaces.
 
-	This method may be used to trim whitespace (space, tab,
-	carriage returns, and line feeds) from the beginning and end
-	of a string.
+    This method may be used to trim whitespace (space, tab,
+    carriage returns, and line feeds) from the beginning and end
+    of a string.
 	
     \param[in,out] str The string to be trimmed.
 */
 void trim(std::string& str);
+
+/** A fixed constant representing a large number of reads.  This value
+    is used in different spots in the code to manage on-demand loading
+    of ESTs.
+*/
+const long MAX_READS = 0x7ffffffL;
 
 #endif

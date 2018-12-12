@@ -184,7 +184,7 @@ TransMSTClusterMaker::populateCache(const int estIdx,
         MPI_STATUS msgInfo;
         MPI_PROBE(ownerRank, TRANSITIVITY_LIST, msgInfo);
         // Now allocate the necessary space and obtain the SMList
-        const int dataSize = msgInfo.Get_count(MPI_TYPE_CHAR);
+        const int dataSize = MPI_GET_COUNT(msgInfo, MPI_TYPE_CHAR);
         SMList remoteList(dataSize / sizeof(CachedESTInfo));
         TRACK_IDLE_TIME(MPI_RECV(&remoteList[0], dataSize, MPI_CHAR,
                                  ownerRank, TRANSITIVITY_LIST));
