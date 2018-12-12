@@ -66,6 +66,7 @@ AssemblySubSystem::addCommandLineArguments(ArgParser& argParser) {
     argParser.addValidArguments(LocalArgs);
     // Have the factory add informational entries regarding the list
     // of valid assemblers
+    AssemblerFactory::addCommandLineInfo(argParser);
 }
 
 int

@@ -46,6 +46,7 @@ ClusterWriter::ClusterWriter() : Component("ClusterWriter") {
     // Initialize command-line arguments to default value
     prettyPrint = false;
     guiPrint    = false;
+    flatPrint   = false;
 }
 
 
@@ -60,6 +61,8 @@ ClusterWriter::addCommandLineArguments(ArgParser& argParser) {
          &prettyPrint, ArgParser::BOOLEAN},
         {"--gui-print", "Print the cluster tree for GUI processing.",
          &guiPrint, ArgParser::BOOLEAN},
+        {"--flat-print", "Print the cluster tree in verbose flat format.",
+         &flatPrint, ArgParser::BOOLEAN},        
         {"--output-cls-file", "File to which clustering output must be written",
          &clusterFileName, ArgParser::STRING},
         {"", "", NULL, ArgParser::INVALID}
@@ -101,7 +104,10 @@ ClusterWriter::write(RuntimeContext* context) {
         dest << "# Data format: <E,estIdx,clstrId> | "
              << "<C,clstrID,ParntClstrID>\n";
         root->guiPrintClusterTree(dest);
-    }  else {
+    } else if (flatPrint) {
+        // Flat print the cluster information.
+        root->printFlatClusterTree(*estList, dest);
+    } else {
         // No pretty printing. Just dump the info out.
         dest << *root << std::endl;
     }

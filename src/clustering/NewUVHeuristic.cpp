@@ -255,14 +255,15 @@ NewUVHeuristic::runHeuristic(const EST* otherEST) {
             register int numMatchesReq = factor*(pass+1);
             if ((numMatches < numMatchesReq) && (numRCmatches < numMatchesReq)) {
                 // Not enough matches, so break out immediately
+                // printHists(refEST, otherEST, bestMatchIsRC, false);
                 return false;
             }
         }
     }
 
     // Print some information for analysis purposes.
-    // printf("uv(%d, %d) = %d, %d\n", refESTidx, otherEST, numMatches,
-    //       numRCmatches);
+    // printf("uv(%d, %d) = %d, %d\n", refEST->getID(), 
+    //       otherEST->getID(), numMatches, numRCmatches);
     
     // Check if we had sufficient matches to warrant further
     // operations
@@ -275,11 +276,128 @@ NewUVHeuristic::runHeuristic(const EST* otherEST) {
         heuristicChain->setHint(HeuristicChain::D2_DO_RC, bestMatchIsRC);
         // Setup a hint for the MST Cluster Maker (-1 = RC, 1 = no RC)
         heuristicChain->setHint(HeuristicChain::MST_RC, bestMatchIsRC ? -1 : 1);
+        // printHists(refEST, otherEST, bestMatchIsRC, true);        
         // return success indication
         return true;
     }
     // When control drops here that means number of matches were not met
+    // printHists(refEST, otherEST, bestMatchIsRC, false);    
     return false;
+}
+
+    
+#include <sstream>
+#include <fstream>
+
+int shift  = 0, mask = 0;
+
+void
+NewUVHeuristic::genHist(const EST* est1, const int nMers,
+                        std::vector<int>& hist,
+                        std::vector<int>& rcHist) {
+    const int buckets = (1 << (nMers * 2));
+    hist.resize(buckets);
+    rcHist.resize(buckets);
+    for(int i = 0; (i < buckets); i++) {
+        hist[i]   = 0;
+        rcHist[i] = 0;
+    }
+    // First compute the hash for a single word using a suitable
+    // generator.
+    shift = 2 * (nMers - 1);
+    mask  = (1 << (nMers * 2)) - 1;
+    ESTCodec::NormalEncoder<shift, mask> encoder;
+    ESTCodec& codec = ESTCodec::getCodec();
+    // Initialize the first window
+    int hash  = 0, ignoreMask = 0;
+    const char* s1 = est1->getSequence();
+    for(int i = 0; (i < nMers - 1); i++) {
+        hash = encoder(hash, s1[i], ignoreMask);
+    }
+    // Fill in the word map. But first setup the table to quickly
+    // generate reverse complement values.
+    codec.setRevCompTable(nMers);
+    const int End = est1->getSequenceLength();
+    for (int i = nMers - 1; (i <= End); i++) {
+        hash = encoder(hash, s1[i], ignoreMask);
+        // Track the number of entries
+        hist[hash]++;
+        // Setup the word map entry for the reverse-complement word.
+        rcHist[codec.encode2rc(hash)]++;
+    }
+}
+
+void
+NewUVHeuristic::printHist(const EST* est1,
+                          const EST* est2,
+                          const bool revCompMatch,
+                          const bool result, int nMers) {
+    std::ostringstream fileName;
+    fileName << "est" << est1->getID() << "_est" << est2->getID() << "_"
+             << (revCompMatch ? "RC" : "NN")
+             << (result ? "_Pass_" : "_Fail_")
+             << "Nmer" << nMers << ".dat";
+    std::ofstream dataFile(fileName.str().c_str());
+    
+    std::vector<int> est1Hist, est1RcHist, est2Hist, est2RcHist;
+    genHist(est1, nMers, est1Hist, est1RcHist);
+    genHist(est2, nMers, est2Hist, est2RcHist);
+    for(size_t i = 0; (i < est1Hist.size()); i++) {
+        dataFile << i
+                 << "\t" << est1Hist[i] << "\t" << est1RcHist[i]
+                 << "\t" << est2Hist[i] << "\t" << est2RcHist[i] << std::endl;
+    }
+    dataFile.close();
+    std::cout << "Histogram written to " << fileName.str() << std::endl;
+    std::cout << "Press ENTER to continue..." << std::flush;
+    std::string dummy;
+    std::getline(std::cin, dummy);
+    std::getline(std::cin, dummy);
+}
+
+void
+NewUVHeuristic::checkHist(const EST* est1,
+                          const EST* est2,
+                          const bool revCompMatch,
+                          const bool result, int nMers) {
+    
+    std::vector<int> est1Hist, est1RcHist, est2Hist, est2RcHist;
+    genHist(est1, nMers, est1Hist, est1RcHist);
+    genHist(est2, nMers, est2Hist, est2RcHist);
+    // Search in histogram for matching entries with just 3 entries.
+    int matches = 0;
+    for(size_t i = 0; (i < est1Hist.size()); i++) {
+        if (((est1Hist[i] > 4) || (est1RcHist[i] > 4)) &&
+            (est2Hist[i] > 4)) {
+            // This pair is matched!
+            matches++;
+        }
+    }
+    if (result != (matches > 0)) {
+        std::cout << "** Disagreement EST#" << est1->getID()
+                  << " <-> EST#" << est2->getID()
+                  << " matches = " << matches
+                  << " and result = "
+                  << (result ? "true" : "false")
+                  << ", revCompMatch = "
+                  << (revCompMatch ? "true" : "false") << std::endl;
+        if (result) {
+            std::cout << "View histogram (y/n)? " << std::flush;
+            std::string ans;
+            std::cin  >> ans;
+            if (ans == "y") {
+                printHist(est1, est2, revCompMatch, result, nMers);
+            }
+        }
+    }
+}
+
+void
+NewUVHeuristic::printHists(const EST* est1,
+                           const EST* est2,
+                           const bool revCompMatch,
+                           const bool result) {
+    checkHist(est1, est2, revCompMatch, result, 6);
 }
 
 #endif

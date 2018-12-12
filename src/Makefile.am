@@ -54,12 +54,12 @@ libpeace_la_SOURCES = \
 libpeace_la_LIBADD = \
 	framework/libframework.la \
 	shared/libshared.la \
-	input/libinput.la \
 	output/liboutput.la \
 	filtering/libfiltering.la \
 	clustering/libclustering.la \
 	assembly/libassembly.la \
-	baton/libbaton.la
+	baton/libbaton.la \
+	input/libinput.la
 
 peace_LDFLAGS = -L.
 peace_LDADD = $(STDCPP) libpeace.la

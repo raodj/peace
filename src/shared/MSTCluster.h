@@ -137,6 +137,15 @@ public:
     */
     void guiPrintClusterTree(std::ostream& os = std::cout) const;
 
+    /** Print the cluster tree in a flat CSV format to ease procesing
+		by other tools.
+
+        This method prints a flat CSV format of the clusters.
+    */
+    void printFlatClusterTree(const ESTList& estList,
+							  std::ostream& os = std::cout,
+							  const std::string& prefix = "") const;
+	
     /** makeMergedClusters
 
         Currently not used in the code.

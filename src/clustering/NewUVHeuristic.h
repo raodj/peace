@@ -317,6 +317,25 @@ private:
         method.</p>
     */
     UVHashTable uvCache;
+
+    void genHist(const EST* est1, const int nMers,
+		 std::vector<int>& hist,
+		 std::vector<int>& rcHist);
+    
+    void printHist(const EST* est1,
+		   const EST* est2,
+		   const bool revCompMatch,
+		   const bool result, int nMers);
+
+    void checkHist(const EST* est1,
+		   const EST* est2,
+		   const bool revCompMatch,
+		   const bool result, int nMers);
+    
+    void printHists(const EST* est1,
+		    const EST* est2,
+		    const bool revCompMatch,
+		    const bool result);
 };
  
 #endif

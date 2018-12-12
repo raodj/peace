@@ -50,14 +50,14 @@
 	This define provides a convenient way to track and log the version
 	information of the software for tracking version changes.
 */
-#define PEACE_VERSION "Version 0.96-Alpha"
+#define PEACE_VERSION "Version 0.97"
 
 /** \def RELEASE_DATE The date when this version of PEACE was released.
 
 	This define provides a convenient way to track and log the date
 	when this version of software was released for public use.
 */
-#define RELEASE_DATE "December 12 2010"
+#define RELEASE_DATE "October 1 2012"
 
        
 /** \def COPYRIGHT A simple copyright message.
