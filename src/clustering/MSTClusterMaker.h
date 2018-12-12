@@ -539,9 +539,16 @@ protected:
 
         \param[in] estAdded Index of the EST that was just added (if
         any).
+
+        \param[in] metric The metric associated with the entry just
+        added.
+
+        \param[in] direction The direction flag (1: FC, -1: RC) for
+        the entry just added.
     */
-    void updateProgress(const int estsAnalyzed, const int totalESTcount,
-                        const int estAdded = -1);
+    void updateProgress(const int estsAnalyzed,   const int totalESTcount,
+                        const int estAdded  = -1, const float metric = -1,
+                        const int direction = 0);
         
     /** Helper method in Manager process to update distributed caches.
 
@@ -798,10 +805,15 @@ protected:
         \param[in,out] pendingESTs The number of pending ESTs that
         have not yet been added to the MST.  This value is used and
         udpated by this method each time it adds a EST.
+
+        \param[in] TotalESTcount The total number of ESTs being
+        processed.  This value is used to update progress/status
+        information.
     */
     void addMoreChildESTs(const int parentESTidx, int& estToAdd,
                           float &metric, int& alignmentData,
-                          int& directionData, int& pendingESTs);
+                          int& directionData, int& pendingESTs,
+                          const int TotalESTcount);
     
     /** The constructor.
         
