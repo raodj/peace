@@ -40,6 +40,7 @@ AC_CONFIG_AUX_DIR([.])
 AM_INIT_AUTOMAKE([1.9.0])
 AC_CONFIG_SRCDIR([src/config.h.in])
 AC_CONFIG_HEADER([src/config.h])
+AC_CONFIG_MACRO_DIR([m4])
 AC_REQUIRE_CPP
 
 # The macros above automatically fill in some CXXFLAGS so we'll undo it.
@@ -55,19 +56,17 @@ CPPFLAGS=""
 AC_DEFUN([AC_CHECK_MPICC],
 [
 	if test -n "$have_mpi" && test $have_mpi = 1; then
-	
 	   AC_MSG_CHECKING([whether $CXX is operational])
-	   
 	   AC_LANG([C++])
      
 	   AC_LINK_IFELSE(
-       [AC_LANG_PROGRAM([[#include "mpi.h"],[#include <cstdlib>]],[[int argc=0; char **argv = 0; MPI::Init(argc, argv); MPI::Finalize()]])],
+       [AC_LANG_PROGRAM([[#include "mpi.h"]],[[int argc=0; char **argv = 0; MPI_Init(&argc, &argv); MPI_Finalize()]])],
 	   [AC_MSG_RESULT([yes])],
        [AC_MSG_RESULT([no])
   	    AC_MSG_ERROR([
 	  There is a serious configuration issue on this 
 	  machine.  It claims MPI is installed and mpicc is your 
-	  path. However, mpicc is not operational and can't even 
+	  path. However, mpicc is not operational and cannot even 
 	  compile a simple MPI program. This is not a problem with 
 	  PEACE. Most likely no MPI program will compile on this machine.
 	  Ensure you are loading the correct version of MPI (possibly
@@ -185,9 +184,8 @@ AC_DEFUN([AC_PROG_ICC],
 AC_DEFUN([AC_CHECK_ARGS],
 [
 	AC_MSG_CHECKING([whether _AC_LANG compiler accepts $1])
-	AC_LANG_CONFTEST([
-			AC_LANG_PROGRAM([[#include <iostream>]],
-					[[std::cout << "ac_check_args"]])])
+	AC_LANG_CONFTEST([AC_LANG_PROGRAM([[#include <iostream>]],
+							[[std::cout << "ac_check_args"]])])
     src=`ls conftest.c*`
 	output=`$CXX $1 $CXXFLAGS $LIBS $ICC_NO_WARN_FOR_CONFIGURE $src 2>&1`
 	if test -z "$output"; then
@@ -350,8 +348,8 @@ AC_SUBST(FAST)
 #AC_CHECK_LIB([pthread], [pthread_create])
 AC_CHECK_LIB([m],[asin],,,[-lstdc++])
 AC_CHECK_FUNCS([MPI_Init])
-AC_SEARCH_LIBS([initscr],[curses],,,[-lstdc++])
-AC_CHECK_LIB([readline],[readline],,,[-lstdc++])
+# AC_SEARCH_LIBS([initscr],[curses],,,[-lstdc++])
+# AC_CHECK_LIB([readline],[readline],,,[-lstdc++])
 
 #AC_SEARCH_LIBS([gethostname], [c,nsl])
 #AC_CHECK_LIB([nsl],[gethostname])

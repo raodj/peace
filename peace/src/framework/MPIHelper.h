@@ -56,16 +56,16 @@
 // system is good to go. Supress unused parameter warnings under GCC
 // just for this header.
 
-#ifdef __GNUC__
+#if defined (__GNUG__) && !defined(ICC)
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #endif
 
 #include <mpi.h>
 
-#ifdef __GNUC__
-
-#endif
+#if defined (__GNUG__) && !defined(ICC)
 #pragma GCC diagnostic warning "-Wunused-parameter"
+#endif
+
 #endif
 
 /** \def MPI_GET_RANK

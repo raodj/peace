@@ -4,7 +4,7 @@ DEBUG = -g
 OPTS = ${DEBUG} -Wall -Wextra -O3
 
 OS = $(shell uname -s)
-ifeq ($(OS),Darwin)
+ifeq ($(OS),Linux)
 	OPTS += -DOSX
 endif
 

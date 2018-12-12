@@ -92,7 +92,7 @@ Assembler::initialize() {
         progressFile.open(progFileName.c_str());
         if (!progressFile.good()) {
             std::cerr << "Unable to open progress file "
-                      << progressFile << ". Aborting." << std::endl;
+                      << progFileName << ". Aborting." << std::endl;
             return false;
         }
     }    

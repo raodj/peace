@@ -283,7 +283,7 @@ private:
 #define MPI_PROBE(rank, tag, statusInfo)  {                \
         const double startTime = MPI_Wtime();              \
         MPI_Probe(rank, tag, MPI_COMM_WORLD, &statusInfo); \
-        if ((statusInfo.MPI_ERROR != MPI::SUCCESS) ||      \
+        if ((statusInfo.MPI_ERROR != MPI_SUCCESS) ||       \
             (statusInfo._cancelled)) {                     \
             char msg[MPI_MAX_ERROR_STRING];                \
             int len = 0;                                   \

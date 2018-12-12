@@ -160,7 +160,7 @@ InputFileFactory::loadFiles(ArgParser::StringList fileNames,
     OnDemandESTList* estList =
         dynamic_cast<OnDemandESTList*>(context->getESTList());
     if (estList == NULL) {
-        std::cerr << "InputFileFactory::loadFiles() was expected to a "
+        std::cerr << "InputFileFactory::loadFiles() was expected to find a "
                   << "OnDemandESTList object in the context but did not "
                   << "find one. Exiting prematurely!" << std::endl;
         return false;

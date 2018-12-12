@@ -134,7 +134,18 @@ private:
 		the value can be changed by the user through command line
 		argument \c --gui-print.
     */
-    bool guiPrint;    
+    bool guiPrint;
+
+    /** Command line option to print flat cluster information to ease
+		processing into different formats.
+
+        If this member variable is \c true, then this class prints the
+		ClusterTree in a format that has more information in a CSV
+		format.  By default this variable is initialized to \c false.
+		However, the value can be changed by the user through command
+		line argument \c --flat-print.
+    */
+    bool flatPrint;
 };
 
 #endif

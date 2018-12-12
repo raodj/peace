@@ -212,6 +212,22 @@ MSTCluster::makeMergedClusters(const int size, int* parent, bool* root) {
 }
 
 void
+MSTCluster::printFlatClusterTree(const ESTList& estList,
+                                 std::ostream& os,
+                                 const std::string& prefix) const {
+    // Print information about each entry in this cluster.
+    for(size_t i = 0; (i < members.size()); i++) {
+        os << prefix << "cluster=" << clusterID
+           << ", " << members[i] << ", "
+           << getESTInfo(members[i].estIdx, estList) << std::endl;
+    }
+    // Get sub-clusters to print their own information.
+    for(size_t i = 0; (i < clusterList.size()); i++) {
+        clusterList[i]->printFlatClusterTree(estList, os, prefix);
+    }
+}
+
+void
 MSTCluster::printClusterTree(const ESTList& estList,
                              std::ostream& os,
                              const std::string& prefix) const {
@@ -275,7 +291,7 @@ operator<<(std::ostream& os, const MSTCluster& cluster) {
     os << "Cluster #" << cluster.clusterID << " ["
        << cluster.name << "]\n";
     for(size_t i = 0; (i < cluster.members.size()); i++) {
-        os << cluster.members[i] << "\n";
+        os << cluster.members[i] << std::endl;
     }
     // Get sub-clusters to print their own information.
     for(size_t i = 0; (i < cluster.clusterList.size()); i++) {
@@ -291,9 +307,9 @@ MSTCluster::getESTInfo(const int estIdx, const ESTList& estList) const {
     if ((est != NULL) && (est->getInfo() != NULL)) {
         info = est->getInfo();
     } else {
-	std::ostringstream estInfo;
-	estInfo << "ESTidx #" << estIdx;
-	info = estInfo.str();
+        std::ostringstream estInfo;
+        estInfo << "ESTidx #" << estIdx;
+        info = estInfo.str();
     }
     return info;
 }
