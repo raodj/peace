@@ -44,7 +44,7 @@ Tool::~Tool() {
 bool
 Tool::loadFastaFile(const std::string& fileName) {
     // Try and open the FASTA file using helper method in PEACE.
-    return peace.loadFile(fileName);
+    return peace.loadFile(fileName, "", 0);
 }
 
 bool

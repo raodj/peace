@@ -60,7 +60,7 @@
 int
 main(int argc, char* argv[]) {
     // Perform any mpi initialization as needed
-    MPI_INIT(argc, argv);
+    MPI_INIT(&argc, &argv);
     
     // Values of the following variables are processed by the argument
     // parser further below.

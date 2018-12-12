@@ -34,9 +34,10 @@
 //
 //---------------------------------------------------------------------
 
+#include <iostream>
 #include "Component.h"
 #include "ArgParser.h"
-#include <iostream>
+#include "Utilities.h"
 
 // For declaration to keep compiler happy & fast
 class InputFile;
@@ -136,21 +137,41 @@ public:
         context (RuntimeContext::estList). If any one file fails to
         load successfully this method immediately returns with \c
         false without processing the remainder of the list.
-
-		\note The cDNA fragments that are not logically owned by this
-		process (if running on a multi-process MPI job) are
-		unpouplated by default to minimize memory footprint.
-		
+        
+        \note The cDNA fragments that are not logically owned by this
+        process (if running on a multi-process MPI job) are
+        unpouplated by default to minimize memory footprint.
+	
         \param[in] fileNames The list of strings containing the names
         of the files to be loaded by this method.
 
+        \param[in] startIndex The starting index position of the EST
+	from where the full data is to be retained. For other entries,
+	the header information and nucleotide sequences are loaded
+	on-demand.  This is done to reduce peak memory footprint
+	(thereby enabling the processing of large data files). This
+	value must be less than endIndex.  This value is with
+	reference to the full list of ESTs (not just relative to one
+	file).
+        
+        \param[in] endIndex The ending index position of the EST upto
+	(and <b>not</b> including) which the full data is to be
+	retained. For other entries, the header information and
+	nucleotide sequences are loaded on-demand.  This value must be
+	greater than startIndex. This value is with-reference-to the
+	full list of cDNA fragments.  By default the startIndex and
+	endIndex are set such that all cDNA fragments are loaded
+	on-demand.
+        
         \return If all the files in the list are successfully loaded,
         then this method returns \c true.  If an error occurs when
         processing one of the files, this method immediately returns
         with \c false.
     */
     bool loadFiles(ArgParser::StringList fileNames,
-                   const std::string& format = "");
+                   const std::string& format = "",
+                   const long startIndex = MAX_READS,
+                   const long endIndex   = MAX_READS);
 	
     /** Wind-up the operations of this component.
         
@@ -245,6 +266,21 @@ private:
         converted to regular bases.
     */
     bool randomizeNbases;
+
+    /** Flag to indicate if ESTs should be loaded and retained in
+        memory instead of loading on-demand.
+        
+        By default, EST information is not retained in memory but
+        loaded on-demand.  This is done to minimize peak memory
+        footprint when processing large files, but at the cost of
+        increase in I/O.  However, with RAM becoming abundant, it may
+        make sense to hold gigabytes of reads in RAM.  This flag is
+        used to override the default on-demand operation and just
+        retain all reads in RAM to improve overall performance (at the
+        expense of memory usage).  This flag is overridden via the
+        command-line argument --no-ondemand
+    */
+    bool noOnDemand;    
 };
 
 

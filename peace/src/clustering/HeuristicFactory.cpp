@@ -39,6 +39,7 @@
 #include "TVHeuristic.h"
 #include "OldTVHeuristic.h"
 #include "MultiWordHeuristic.h"
+#include "PrimesHeuristic.h"
 #include "ArgParser.h"
 
 void
@@ -53,6 +54,8 @@ HeuristicFactory::addCommandLineInfo(ArgParser& argParser) {
         {"", "tv : The t/v heuristic (u/v is automatically included)",
          NULL, ArgParser::INFO_MESSAGE},
         {"", "oldTV: A deprecated version of t/v heuristic",
+         NULL, ArgParser::INFO_MESSAGE},
+        {"", "primes: A prime number based heuristic",
          NULL, ArgParser::INFO_MESSAGE},
         {"", "", NULL, ArgParser::INVALID}
     };
@@ -72,6 +75,8 @@ HeuristicFactory::create(const std::string& name,  HeuristicChain *chain) {
         return new OldTVHeuristic(chain);
     } else if (name == "mw") {
 	return new MultiWordHeuristic(chain);
+    } else if (name == "primes") {
+        return new PrimesHeuristic(chain);
     }
     
     // invalid heuristic name!

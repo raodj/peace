@@ -45,6 +45,7 @@ InputFileFactory::InputFileFactory() : Component("InputFileFactory") {
     // Initialize command line parameters
     noMaskBases     = false;
     randomizeNbases = false;
+    noOnDemand      = false;
 }
 
 InputFileFactory::~InputFileFactory() {
@@ -118,8 +119,10 @@ InputFileFactory::addCommandLineArguments(ArgParser& argParser) {
          &sffFileNames, ArgParser::STRING_LIST},
         {"--estFile", "Deprecated. Now it is an alias for --estFiles",
          &estFileNames, ArgParser::STRING_LIST},
-        {"--estFiles", "Space separated data files (formatauto-detected) to be processed",
-         &estFileNames, ArgParser::STRING_LIST},        
+        {"--estFiles", "Space separated data files (format auto-detected) to be processed",
+         &estFileNames, ArgParser::STRING_LIST},
+        {"--no-ondemand", "Hold all reads in memory (faster; uses more RAM)",
+         &noOnDemand, ArgParser::BOOLEAN},
         {"", "", NULL, ArgParser::INVALID}
     };
     argParser.addValidArguments(Arguments);
@@ -148,7 +151,8 @@ InputFileFactory::initialize() {
 
 bool
 InputFileFactory::loadFiles(ArgParser::StringList fileNames,
-                            const std::string& format) {
+                            const std::string& format,
+                            const long startIdx, const long endIndex) {
     ASSERT ( subSystem != NULL ); 
     RuntimeContext *context = subSystem->getContext();   
     ASSERT ( context != NULL );
@@ -161,7 +165,11 @@ InputFileFactory::loadFiles(ArgParser::StringList fileNames,
                   << "find one. Exiting prematurely!" << std::endl;
         return false;
     }
-    
+
+    // Override for start index if noOnDemand flag is set and if the
+    // startIndex is the default MAX_READS value.
+    const int startIndex = (noOnDemand && (startIdx == MAX_READS) ? 0 :
+                            startIdx);
     for(size_t i = 0; (i < fileNames.size()); i++) {
         // Open the data file specified by the user using the user
         // supplied format or through auto-detection.
@@ -172,7 +180,7 @@ InputFileFactory::loadFiles(ArgParser::StringList fileNames,
             return false;
         }
         // Try loading fragments from this file into the est list
-        if (!estList->add(inputFile)) {
+        if (!estList->add(inputFile, startIndex, endIndex)) {
             // Error loading fragments in to the EST list.
             return false;
         }

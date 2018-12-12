@@ -47,7 +47,7 @@
 EST::EST(const int idValue, const std::string& information,
          const std::string& seq) :
     id(idValue), info(information), sequence(seq),
-    sequenceLen((int) seq.size()),  customData(NULL) {
+    sequenceLen((int) seq.size()) {
     similarity = 0;
     processed  = false;
     populated  = true;
@@ -56,7 +56,7 @@ EST::EST(const int idValue, const std::string& information,
 EST::EST(const int idValue, const std::string& information,
          const std::string& seq, const QualityVector& quals) :
     id(idValue), info(information), sequence(seq), 
-    sequenceLen((int) seq.size()), quality(quals), customData(NULL) {
+    sequenceLen((int) seq.size()), quality(quals) {
     similarity = 0;
     processed  = false;
     populated  = true;

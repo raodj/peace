@@ -62,6 +62,8 @@ Matcher.h\
 Matcher.cpp\
 AlignmentAlgorithm.h\
 AlignmentAlgorithm.cpp\
+PrimeFeatures.h\
+PrimeFeatures.cpp\
 main.cpp
 
 # end of Makefile.am

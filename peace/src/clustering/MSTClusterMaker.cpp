@@ -63,6 +63,7 @@ MSTClusterMaker::MSTClusterMaker(const std::string& name,
     cacheType     = "heap";
     // This value is different in adaptive and non-adaptive cluster makers.
     clsThreshold  = 1.0;
+    printProgress = false;
 }
 
 MSTClusterMaker::~MSTClusterMaker() {
@@ -94,7 +95,9 @@ MSTClusterMaker::addCommandLineArguments(ArgParser& argParser) {
         {"--cacheType", "Set type of cache (heap or mlist) to use",
          &cacheType, ArgParser::STRING},
         {"--progress", "Log MST construction progress in a file (used by GUI)",
-         &progFileName, ArgParser::STRING},        
+         &progFileName, ArgParser::STRING},
+        {"--print-progress", "Log process also to console",
+         &printProgress, ArgParser::BOOLEAN},
         {"", "", NULL, ArgParser::INVALID}
     };
     // Add our command line arguments to the parser.
@@ -104,6 +107,8 @@ MSTClusterMaker::addCommandLineArguments(ArgParser& argParser) {
 // This method is invoked only on the manager process
 void
 MSTClusterMaker::estAdded(const int estIdx, std::vector<int>& repopulateList) {
+    // Flag EST as processed
+    estList->get(estIdx)->setProcessed(true);
     // Distribute the newly added mst node to all the workers.
     sendToWorkers(estIdx, ADD_EST);
     // A new est node has been added.  First prune our caches and
@@ -122,10 +127,10 @@ MSTClusterMaker::estAdded(const int estIdx, std::vector<int>& repopulateList) {
             });
         // OK, we have a valid repopulation request pending from some
         // worker. So read and process it.
-        const int dataSize = msgInfo.Get_count(MPI_TYPE_INT);
+        const int dataSize = MPI_GET_COUNT(msgInfo, MPI_TYPE_INT);
         int *requestData = new int[dataSize];
         MPI_RECV(requestData, dataSize, MPI_TYPE_INT,
-                 msgInfo.Get_source(), REPOPULATE_REQUEST);
+                 msgInfo.MPI_SOURCE, REPOPULATE_REQUEST);
         // Add the poulation request to our repopulate vector.
         if (requestData[0] > 0) {
             std::copy(requestData + 1, requestData + dataSize - 1,
@@ -256,9 +261,16 @@ MSTClusterMaker::addMoreChildESTs(const int parentESTidx, int& estToAdd,
 
 void
 MSTClusterMaker::updateProgress(const int estsAnalyzed,
-                                const int totalESTcount) {
+                                const int totalESTcount,
+                                const int estAdded) {
     // Dump the cache for testing purposes
     cache->print(std::cout);
+    // Print progress to console if requested.
+    if (printProgress) {
+        char buffer[128];
+        std::cout << "@" << getTime(buffer) << ": " << estsAnalyzed
+                  << "," << totalESTcount   << ", " << estAdded << std::endl;
+    }
     if (progFileName.empty()) {
         // No need to report progress
         return;
@@ -313,10 +325,11 @@ MSTClusterMaker::manager() {
     
     while (pendingESTs > 0) {
         // Update progress information as needed
-        updateProgress(TotalESTcount - pendingESTs, TotalESTcount);
+        updateProgress(TotalESTcount - pendingESTs, TotalESTcount, estToAdd);
         // Add the EST to the MST vector, if needed.
         if ((maxUse == -1) || (parentESTidx == -1)) {
             ASSERT ( estToAdd != -1 );
+            // Direction info (from UVHeuristic): -1 = RC, 1 = no RC
             mst->addNode(parentESTidx, estToAdd, metric, alignmentInfo,
                          directionInfo);
             if (--pendingESTs == 0) {
@@ -365,7 +378,7 @@ MSTClusterMaker::worker() {
         // Wait for manager to send us a work request.  Since we are
         // waiting it should be tracked under idle time.
         MPI_PROBE(MANAGER_RANK, MPI_ANY_TAG, msgInfo);
-        if (msgInfo.Get_tag() == COMPUTE_SIMILARITY_REQUEST) {
+        if (msgInfo.MPI_TAG == COMPUTE_SIMILARITY_REQUEST) {
             // Read the actual message first.  Dont' account it under
             // idle time as we are doing this Recv because the message
             // has already arrived.
@@ -374,7 +387,7 @@ MSTClusterMaker::worker() {
                      COMPUTE_SIMILARITY_REQUEST);
             // Perform the necessary operations.
             populateCache(estIdx);
-        } else if (msgInfo.Get_tag() == COMPUTE_MAX_SIMILARITY_REQUEST) {
+        } else if (msgInfo.MPI_TAG == COMPUTE_MAX_SIMILARITY_REQUEST) {
             // Read the actual message first. Dont' account it under
             // idle time as we are doing this Recv because the message
             // has already arrived.
@@ -395,7 +408,7 @@ MSTClusterMaker::worker() {
             bestEntry[2] = *temp;
             MPI_SEND(bestEntry, 5, MPI_TYPE_INT, MANAGER_RANK,
                      MAX_SIMILARITY_RESPONSE);
-        } else if (msgInfo.Get_tag() == ADD_EST) {
+        } else if (msgInfo.MPI_TAG == ADD_EST) {
             // The manager has broad casted the next est to be added.
             MPI_RECV(&estAdded, 1, MPI_TYPE_INT, MANAGER_RANK, ADD_EST);
             if (estAdded == -1) {
@@ -573,13 +586,13 @@ MSTClusterMaker::populateCache(const int estIdx, SMList* metricList) {
             });
         // OK, we have a valid similarity list pending from some other
         // process. So read and process it.
-        const int dataSize = msgInfo.Get_count(MPI_TYPE_CHAR);
+        const int dataSize = MPI_GET_COUNT(msgInfo, MPI_TYPE_CHAR);
         SMList remoteList(dataSize / sizeof(CachedESTInfo));
         // The following call is a kludge with MPI/STL data types
         // based on several language assumptions.  This part could be
         // cleaned up to be more portable later on.
         MPI_RECV(&remoteList[0], dataSize, MPI_TYPE_CHAR,
-                 msgInfo.Get_source(), SIMILARITY_LIST);
+                 msgInfo.MPI_SOURCE, SIMILARITY_LIST);
         // Merge the list we got from the remote process with our
         // local cache information if the list has a valid entry.
         if (hasValidSMEntry(remoteList)) {

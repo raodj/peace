@@ -202,7 +202,20 @@ public:
         available. Otherwise this method returns an empty string.
     */
     inline const char* getSequence() const { return sequence.c_str(); }
+ 
+    /** Obtain the C++ string sequence for the base pairs for this
+	EST.
 
+        Note that sequence information for an EST can be empty if it
+        is only partially loaded from a file.  Entries are parially
+        loaded to reduce memory foot print when processing large data
+        sets.
+        
+        \return The actual sequence of base paris for this EST if
+        available. Otherwise this method returns an empty string.        
+    */
+    inline const std::string& getSequenceString() const { return sequence; }
+   
     /** Obtain the reverse-complementary sequence for the base pairs
 	for this EST.
 
@@ -287,20 +300,22 @@ public:
         \param[in,out] src The new custom data to be set for this EST.
         After this call, this EST owns the data referred by src.
     */
-    void setCustomData(std::auto_ptr<ESTCustomData>& src) { customData = src; }
+    void setCustomData(std::unique_ptr<ESTCustomData>& src) {
+        customData = std::move(src);
+    }
 
     /** Change the custom data associated with this EST.
 
         This method can be used to change (or set) the custom data
         associated with this EST.  Note that any earlier custom data
         associated with this EST is lost (and deleted if necessary by
-        auto_ptr) before the new value is set.
+        unique_ptr) before the new value is set.
 
         \param[in,out] src The new custom data to be set for this EST.
         After this call, this EST owns the data referred by src.
     */    
     void setCustomData(ESTCustomData* src)
-    { customData = std::auto_ptr<ESTCustomData>(src); }
+    { customData = std::unique_ptr<ESTCustomData>(src); }
 
 
     /** Obtain a mutable reference to custom data associated with this EST.
@@ -316,7 +331,9 @@ public:
 
         \return The custom data (if any) associated with this EST.
     */
-    inline std::auto_ptr<ESTCustomData>& getCustomData() { return customData; }
+    inline std::unique_ptr<ESTCustomData>& getCustomData() {
+        return customData;
+    }
 
     /** Obtain an immutable reference to custom data associated with
         this EST.
@@ -332,7 +349,7 @@ public:
 
         \return The custom data (if any) associated with this EST.
     */    
-    inline const std::auto_ptr<ESTCustomData>& getCustomData() const
+    inline const std::unique_ptr<ESTCustomData>& getCustomData() const
     { return customData; }
     
     /** The destructor.
@@ -526,7 +543,7 @@ protected:
         auto_ptr that automatically deletes the data when the auto_ptr
         loses ownership of the data object.
     */
-    std::auto_ptr<ESTCustomData> customData;
+    std::unique_ptr<ESTCustomData> customData;
 
     /** Flag to indicate if the data for this EST has been unpopulated.
 

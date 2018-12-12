@@ -237,9 +237,9 @@ private:
 */
 #ifdef HAVE_LIBMPI
 #define TRACK_IDLE_TIME(MPIMethodCall) {                        \
-        const double startTime = MPI::Wtime();                  \
+        const double startTime = MPI_Wtime();                   \
         MPIMethodCall;                                          \
-        MPIStats::idleTime += (MPI::Wtime() - startTime);       \
+        MPIStats::idleTime += (MPI_Wtime() - startTime);        \
     }
 #else
 // If we don't have MPI this TRACK_IDLE_TIME reduces to nothing.
@@ -281,13 +281,17 @@ private:
 */
 #ifdef HAVE_LIBMPI
 #define MPI_PROBE(rank, tag, statusInfo)  {                \
-        const double startTime = MPI::Wtime();             \
-        MPI::COMM_WORLD.Probe(rank, tag, statusInfo);      \
-        if ((statusInfo.Get_error() != MPI::SUCCESS) ||    \
-            (statusInfo.Is_cancelled())) {                 \
-            throw MPI::Exception(statusInfo.Get_error());  \
+        const double startTime = MPI_Wtime();              \
+        MPI_Probe(rank, tag, MPI_COMM_WORLD, &statusInfo); \
+        if ((statusInfo.MPI_ERROR != MPI::SUCCESS) ||      \
+            (statusInfo._cancelled)) {                     \
+            char msg[MPI_MAX_ERROR_STRING];                \
+            int len = 0;                                   \
+            MPI_Error_string(statusInfo.MPI_ERROR, msg,    \
+                             &len);                        \
+            throw std::runtime_error(msg);                 \
         }                                                  \
-        MPIStats::idleTime += (MPI::Wtime() - startTime);  \
+        MPIStats::idleTime += (MPI_Wtime() - startTime);   \
         MPIStats::probeCount++;                            \
     }
 #else
@@ -321,9 +325,9 @@ private:
     reduces to nothing and the actual send call is never made.
 */
 #ifdef HAVE_LIBMPI
-#define MPI_SEND(data, count, dataType, rank, tag)  {           \
-        MPI::COMM_WORLD.Send(data, count, dataType, rank, tag); \
-        MPIStats::sendCount++;                                  \
+#define MPI_SEND(data, count, dataType, rank, tag)  {                   \
+        MPI_Send(data, count, dataType, rank, tag, MPI_COMM_WORLD);     \
+        MPIStats::sendCount++;                                          \
     }
 #else
 // If we don't have MPI then MPI_SEND reduces to nothing.
@@ -332,8 +336,8 @@ private:
 
 /** \def MPI_RECV
 
-    \brief Convenience macro to track number of calls to
-    MPI::COMM_WORLD.Recv() method.
+    \brief Convenience macro to track number of calls to MPI_Recv()
+    method.
 
     This macro provides a convenient wrapper around MPI's Recv method
     call to update MPIStats::recvCount variable.  This macro can be
@@ -351,14 +355,14 @@ private:
 
     \endcode
 
-    \note This macro calls MPI::COMM_WORD.Send only if MPI is
-    enabled. If MPI is not enabled (or is unavailable) then this macro
-    reduces to nothing and the actual receive call is never made.
+    \note This macro calls MPI_Recv only if MPI is enabled. If MPI is
+    not enabled (or is unavailable) then this macro reduces to nothing
+    and the actual receive call is never made.
 */
 #ifdef HAVE_LIBMPI
-#define MPI_RECV(data, count, dataType, rank, tag)  {           \
-        MPI::COMM_WORLD.Recv(data, count, dataType, rank, tag); \
-        MPIStats::recvCount++;                                  \
+#define MPI_RECV(data, count, dataType, rank, tag)  {                   \
+        MPI_Recv(data, count, dataType, rank, tag, MPI_COMM_WORLD, NULL); \
+        MPIStats::recvCount++;                                          \
     }
 #else
 #define MPI_RECV(data, count, dataType, rank, tag)
@@ -367,7 +371,7 @@ private:
 /** \def MPI_BCAST
 
     \brief A simple, convenience macro to track number of calls to
-    MPI::COMM_WORLD.Bcast() method.
+    MPI_Bcast() method.
 
     This macro provides a convenient wrapper around MPI's Bcast method
     call to update MPIStats::bcastCount variable.  This macro can be
@@ -391,7 +395,7 @@ private:
 */
 #ifdef HAVE_LIBMPI
 #define MPI_BCAST(data, count, dataType, senderRank)  {                 \
-        MPI::COMM_WORLD.Bcast(data, count, dataType, senderRank);       \
+        MPI_Bcast(data, count, dataType, senderRank, MPI_COMM_WORLD);   \
         MPIStats::bcastCount++;                                         \
     }
 #else
@@ -415,7 +419,7 @@ private:
     void someMethod() {
         // ... some code goes here ..
         int localSuccess = 10, totalSuccess = 0;
-        MPI_REDUCE(&localSuccess, &totalSuccess, 1, MPI::INT, MPI::SUM, 0);
+        MPI_REDUCE(&localSuccess, &totalSuccess, 1, MPI_INT, MPI_OP_SUM, 0);
         // ... more code goes here ..
     }
 
@@ -427,8 +431,8 @@ private:
 */
 #ifdef HAVE_LIBMPI
 #define MPI_REDUCE(srcBufr, destBufr, count, dataType, op, destRank)  { \
-   	    MPI::COMM_WORLD.Reduce(srcBufr, destBufr, count, dataType,		\
-							   op, destRank);							\
+        MPI_Reduce(srcBufr, destBufr, count, dataType,                  \
+                   op, destRank, MPI_COMM_WORLD);                       \
         MPIStats::reduceCount++;                                        \
     }
 #else
@@ -452,7 +456,7 @@ private:
     void someMethod() {
         // ... some code goes here ..
         int localSuccess = 10, totalSuccess = 0;
-        MPI_ALL_REDUCE(&localSuccess, &totalSuccess, 1, MPI::INT, MPI::SUM, 0);
+        MPI_ALL_REDUCE(&localSuccess, &totalSuccess, 1, MPI_INT, MPI_OP_SUM, 0);
         // ... more code goes here ..
     }
 
@@ -464,8 +468,8 @@ private:
 */
 #ifdef HAVE_LIBMPI
 #define MPI_ALL_REDUCE(srcBufr, destBufr, count, dataType, op)  {       \
-        MPI::COMM_WORLD.Allreduce(srcBufr, destBufr, count, dataType,   \
-                                  op);                                  \
+        MPI_Allreduce(srcBufr, destBufr, count, dataType,              \
+                      op, MPI_COMM_WORLD);                              \
         MPIStats::reduceCount++;                                        \
     }
 #else

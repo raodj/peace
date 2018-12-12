@@ -96,7 +96,7 @@
 */
 #ifdef HAVE_LIBMPI
 // We have MPI enabled
-#define MPI_GET_RANK() MPI::COMM_WORLD.Get_rank()
+int  MPI_GET_RANK();
 #else
 // We don't have MPI
 #define MPI_GET_RANK() 0
@@ -130,7 +130,7 @@
 */
 #ifdef HAVE_LIBMPI
 // We have MPI enabled
-#define MPI_GET_SIZE() MPI::COMM_WORLD.Get_size()
+int MPI_GET_SIZE();
 #else
 // We don't have MPI
 #define MPI_GET_SIZE() 1
@@ -173,15 +173,35 @@
     \endcode
 */
 #ifdef HAVE_LIBMPI
-#define MPI_STATUS MPI::Status
+#define MPI_STATUS MPI_Status
 #else
 // We don't have MPI. So provide a suitable definition for MPI_Status
 class MPI_STATUS {
 public:
-    inline int Get_source() const { return 0; }
-    inline int Get_count(const int UNREFERENCED_PARAMETER(type) = 0) const { return 0; }
-    inline int Get_tag() const { return 0; }
+    int MPI_SOURCE = 0;
+    int MPI_TAG    = 0;
 };
+#endif
+
+/** Convenience method to extract the number of "top level" items.
+
+    This is a convenience method that must be used to obtain the count
+    of the number of items of a specific data type as indicated by the
+    MPI_STATUS structure.
+
+    \param[in] status The status structure from where the count is to
+    be obtained.
+
+    \param[in] mpiType The data type of the top-level item to be
+    retrieved.
+
+    \return The count of number of elements.  If MPI is not available
+    then this method just returns 0 as convenience.
+ */
+#ifdef HAVE_LIBMPI
+int MPI_GET_COUNT(MPI_STATUS& status, MPI_Datatype mpiType);
+#else
+int MPI_GET_COUNT(MPI_STATUS& status, int mpiType);
 #endif
 
 /** \def MPI_TYPE_INT
@@ -210,7 +230,7 @@ public:
     \endcode
 */
 #ifdef HAVE_LIBMPI
-#define MPI_TYPE_INT MPI::INT
+#define MPI_TYPE_INT MPI_INT
 #else
 // MPI is not available
 #define MPI_TYPE_INT 0
@@ -242,7 +262,7 @@ public:
     \endcode
 */
 #ifdef HAVE_LIBMPI
-#define MPI_TYPE_CHAR MPI::CHAR
+#define MPI_TYPE_CHAR MPI_CHAR
 #else
 // MPI is not available
 #define MPI_TYPE_CHAR 0
@@ -250,12 +270,12 @@ public:
 
 /** \def MPI_TYPE_2INT
 
-    \brief Macro to map MPI_TYPE_2INT to MPI::TWOINT (if MPI is
-    enabled) or 0 if MPI is unavailable.
+    \brief Macro to map MPI_TYPE_2INT to MPI_2INT (if MPI is enabled)
+    or 0 if MPI is unavailable.
 
     <p>This macro provides a convenient, conditionally defined macro
-    to refer to MPI::TWOINT enumerated constant. If MPI is available,
-    then MPI_TYPE_2INT defaults to MPI::TWOINT.  On the other hand, if
+    to refer to MPI_2INT enumerated constant. If MPI is available,
+    then MPI_TYPE_2INT defaults to MPI_2TWO.  On the other hand, if
     MPI is disabled then this macro simply reduces to 0.</p>
 
     This macro can be used as shown below:
@@ -274,10 +294,42 @@ public:
     \endcode
 */
 #ifdef HAVE_LIBMPI
-#define MPI_TYPE_2INT MPI::TWOINT
+#define MPI_TYPE_2INT MPI_2INT
 #else
 // MPI is not available
 #define MPI_TYPE_2INT 0
+#endif
+
+/** \def MPI_TYPE_FLOAT
+
+    \brief Macro to map MPI_TYPE_FLOAT to MPI::FLOAT (if MPI is
+    enabled) or 0 if MPI is unavailable.
+
+    <p>This macro provides a convenient, conditionally defined macro
+    to refer to MPI::FLOAT enumerated constant. If MPI is available,
+    then MPI_TYPE_FLOAT defaults to MPI::FLOAT.  On the other hand, if
+    MPI is disabled then this macro simply reduces to 0.</p>
+
+    This macro can be used as shown below:
+
+    \code
+
+    #include "MPIHelper.h"
+
+    void someMethod() {
+        // ... some code goes here ..
+	MPI_STATUS msgInfo;
+        MPI_PROBE(sourceRank, REPOPULATE_REQUEST, msgInfo);
+        const int dataSize = msgInfo.Get_count(MPI_TYPE_FLOAT);
+        // ... more code goes here ..
+    }
+    \endcode
+*/
+#ifdef HAVE_LIBMPI
+#define MPI_TYPE_FLOAT MPI_FLOAT
+#else
+// MPI is not available
+#define MPI_TYPE_FLOAT 0
 #endif
 
 /** \def MPI_OP_SUM
@@ -306,7 +358,7 @@ public:
     \endcode
 */
 #ifdef HAVE_LIBMPI
-#define MPI_OP_SUM MPI::SUM
+#define MPI_OP_SUM MPI_SUM
 #else
 // MPI is not available
 #define MPI_OP_SUM 0
@@ -338,7 +390,7 @@ public:
     \endcode
 */
 #ifdef HAVE_LIBMPI
-#define MPI_OP_MAXLOC MPI::MAXLOC
+#define MPI_OP_MAXLOC MPI_MAXLOC
 #else
 // MPI is not available
 #define MPI_OP_MAXLOC 0
@@ -368,7 +420,7 @@ public:
     \endcode
 */
 #ifdef HAVE_LIBMPI
-#define MPI_INIT(argc, argv) MPI::Init(argc, argv)
+#define MPI_INIT(argc, argv) MPI_Init(argc, argv)
 #else
 // MPI is not available
 #define MPI_INIT(argc, argv)
@@ -376,7 +428,7 @@ public:
 
 /** \def MPI_FINALIZE
 
-    \brief Macro to map MPI_FINALIZE to MPI::Finalize (if MPI is
+    \brief Macro to map MPI_FINALIZE to MPI_Finalize (if MPI is
     enabled) or an empty method call if MPI is unavailable.
 
     <p>This macro provides a convenient, conditionally defined macro
@@ -398,7 +450,7 @@ public:
     \endcode
 */
 #ifdef HAVE_LIBMPI
-#define MPI_FINALIZE() MPI::Finalize()
+#define MPI_FINALIZE() MPI_Finalize()
 #else
 // MPI is not available
 #define MPI_FINALIZE()
@@ -430,7 +482,7 @@ public:
     \endcode
 */
 #ifdef HAVE_LIBMPI
-#define MPI_WTIME MPI::Wtime
+#define MPI_WTIME MPI_Wtime
 #else
 // MPI is not available
 extern double MPI_WTIME();
@@ -495,7 +547,49 @@ extern double MPI_WTIME();
     }
     \endcode
 */
-#define MANAGER_RANK 0
+const int MANAGER_RANK = 0;
 
+/** Determine the owner process Rank for a given estIdx.
+    
+    This method is a convenience method to determine the Rank of
+    the process that logically owns a given EST.  The owning
+    process is responsible for maintaining the cache for a given
+    EST.  The owners are assigned in a simple fashion and ESTs are
+    evenly divided up amongst all the processes.
+
+    \param[in] estListSize The number of entries currently being
+    processed.
+    
+    \param[in] estIdx The index of the EST whose owner process's rank
+    is requested.  It is assumed that the estIdx is valid -- i.e., 0
+    <= estIdx < estListSize.  If invalid EST index values are supplied
+    then the operation of this method is undefined.
+    
+    \return The rank of the owner process for the given estIdx.
+*/
+int getOwnerProcess(const int estListSize, const int estIdx);
+
+/** Helper method to compute the start and ending indexes of the
+    EST that this process owns.
+    
+    This method was introduced to keep the math and logic clutter
+    involved in computing the list of owned ESTs out of the
+    methods that use the information.  This method returns the
+    range, such that: \c startIndex <= \em ownedESTidx < \c
+    endIndex.
+
+    \param[in] estListSize The number of entries to be evely
+    subdivided to determine the start and end index.
+    
+    \param[out] startIndex The starting (zero-based) index value
+    of the contiguous range of ESTs that this process owns.
+    
+    \param[out] endIndex The ending (zero-based) index value of
+    the contiguous range ESTs that this process owns.  The value
+    returned in this parameter is \b not included in the range of
+    values.
+*/
+void getLocallyOwnedESTidx(const int estListSize,
+                           int& startIndex, int& endIndex);
 
 #endif

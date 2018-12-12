@@ -283,29 +283,17 @@ AC_DEFUN([AC_CHECK_HASHMAP],
      [AC_LANG_PROGRAM([[#include "src/HashMap.h"]],[[const StringIntMap map; map.find("1")]])],
 	 [AC_MSG_RESULT([yes])],
      [
-	    # Previous attempt failed. Try to run hash map with custom hasher
-		AC_LINK_IFELSE(
-		[AC_LANG_PROGRAM([[#define NEED_STRING_HASHER]
-						  [#include "src/HashMap.h"]],
-						 [[const StringIntMap map; map.find("1")]])
-		],
-		[
-		  AC_MSG_RESULT([yes (with custom std::string hasher)])
-		  AC_DEFINE([NEED_STRING_HASHER], [1], [needs custom std::string hasher])
-		], # End if
-		[
-		  AC_MSG_RESULT([no])
+              AC_MSG_RESULT([no])
   	      AC_MSG_ERROR([
 		     Despite best efforts and checks this machine does not
-		     have an operational version of hash_map or
-		     unordered_map. This indicates your C++ compiler is not
-		     sufficiently recent to be upto date with standards.
+		     have an operational version of unordered_map
+		     This indicates your C++ compiler is not
+		     sufficiently recent to be upto date with c++11 standards.
 		     Possibly you are using a very old C++ compiler and you
 		     need to upgrade it. If you are on a cluster environment
 		     contact your administrator to see if you can load a more
 		     recent C++ compiler module by default.
 		  ])
-		] )
 	])
 ])
 
@@ -335,6 +323,14 @@ AC_LINK_STDCPP
 AC_PROG_ICC
 AC_PROG_GCC
 AC_CHECK_MPICC
+
+# Check to ensure the compiler supports c++11 standard
+AC_CHECK_ARGS([-std=c++11], [CPP11=1], [CPP11=0])
+AS_IF([test "x$CPP11" = "x1"], [ ],
+      [AC_MSG_ERROR([PEACE requires your compiler to support c++11 standard])])
+AC_SUBST(CPP11)
+CPPFLAGS+=" -std=c++11"
+
 # AC_PROG_RANLIB
 
 # Check and set some default compiler flags for the build
@@ -348,6 +344,7 @@ AC_CHECK_ARGS([-pipe], [PIPE="-pipe"], [PIPE=""])
 AC_SUBST(PIPE)
 AC_CHECK_ARGS([-fast], [FAST="-fast"], [FAST=""])
 AC_SUBST(FAST)
+
 
 # Checks for libraries.
 #AC_CHECK_LIB([pthread], [pthread_create])
@@ -372,12 +369,13 @@ AC_HEADER_TIME
 AC_C_VOLATILE
 
 # checks for the version of hash map is available in c++ lan
-AC_CHECK_TR1_HASHMAP
+# AC_CHECK_TR1_HASHMAP
 
-AC_LANG_PUSH([C])
-AC_LANG([C++])
-AC_CHECK_HEADERS([ext/hash_map hash_map])
-AC_LANG_POP([C++])
+# AC_LANG_PUSH([C])
+# AC_LANG([C++])
+# AC_CHECK_HEADERS([ext/hash_map hash_map])
+# AC_LANG_POP([C++])
+
 # Check to ensure hash map is operational
 AC_CHECK_HASHMAP
 
@@ -392,7 +390,9 @@ AC_CHECK_FUNCS([bzero floor gettimeofday memset mkdir modf pow rint sqrt strcase
 # check earlier on in the set of rules seems to break autotools in 1.9
 # versions. Version 1.11+ of auto tools does not seem to have this
 # issue
-AC_PROG_LIBTOOL
+AC_CONFIG_MACRO_DIRS([m4])
+LT_INIT
+
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile

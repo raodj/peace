@@ -249,7 +249,7 @@ SAMWriter::contigFormed(const Assembler& UNUSED(assembler),
             MPI_STATUS msgInfo;
             MPI_PROBE(procID, SAM_CDNA_INFO_TAG, msgInfo);
             // Reserve the necessary memory buffer
-            const int msgSize = msgInfo.Get_count(MPI_TYPE_CHAR);
+            const int msgSize = MPI_GET_COUNT(msgInfo, MPI_TYPE_CHAR);
             recvBuffer.resize(msgSize);
             // Now read the actual message
             MPI_RECV(&recvBuffer[0], msgSize, MPI_TYPE_CHAR, procID,
