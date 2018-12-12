@@ -218,7 +218,8 @@ MSTClusterMaker::computeNextESTidx(int& parentESTidx, int& estToAdd,
 void
 MSTClusterMaker::addMoreChildESTs(const int parentESTidx, int& estToAdd,
                                   float &metric, int& alignmentData,
-                                  int& directionData, int& pendingESTs) {
+                                  int& directionData, int& pendingESTs,
+                                  const int TotalESTcount) {
     // variable to track parent of next EST to be added.
     int newParent = -1;
     
@@ -227,6 +228,9 @@ MSTClusterMaker::addMoreChildESTs(const int parentESTidx, int& estToAdd,
         ASSERT ( estToAdd != -1 );
         mst->addNode(parentESTidx, estToAdd, metric, alignmentData,
                      directionData);
+        // Update progress information as needed
+        updateProgress(TotalESTcount - pendingESTs, TotalESTcount,
+                       estToAdd, metric, directionData);        
         if (--pendingESTs == 0) {
             // All EST's have been added to the MST.  Nothing more to
             // do.  So break out of the while loop.
@@ -260,16 +264,17 @@ MSTClusterMaker::addMoreChildESTs(const int parentESTidx, int& estToAdd,
 }
 
 void
-MSTClusterMaker::updateProgress(const int estsAnalyzed,
-                                const int totalESTcount,
-                                const int estAdded) {
+MSTClusterMaker::updateProgress(const int estsAnalyzed, const int totalESTcount,
+                                const int estAdded, const float metric,
+                                const int direction) {
     // Dump the cache for testing purposes
     cache->print(std::cout);
     // Print progress to console if requested.
     if (printProgress) {
         char buffer[128];
         std::cout << "@" << getTime(buffer) << ": " << estsAnalyzed
-                  << "," << totalESTcount   << ", " << estAdded << std::endl;
+                  << "," << totalESTcount   << ", " << estAdded
+                  << "," << metric          << ", " << direction << std::endl;
     }
     if (progFileName.empty()) {
         // No need to report progress
@@ -325,7 +330,8 @@ MSTClusterMaker::manager() {
     
     while (pendingESTs > 0) {
         // Update progress information as needed
-        updateProgress(TotalESTcount - pendingESTs, TotalESTcount, estToAdd);
+        updateProgress(TotalESTcount - pendingESTs, TotalESTcount,
+                       estToAdd, metric, directionInfo);
         // Add the EST to the MST vector, if needed.
         if ((maxUse == -1) || (parentESTidx == -1)) {
             ASSERT ( estToAdd != -1 );
@@ -352,7 +358,8 @@ MSTClusterMaker::manager() {
             // Try to add as many ESTs as possible rooted at the given
             // parentESTidx using a helper method.
             addMoreChildESTs(parentESTidx, estToAdd, metric,
-                             alignmentInfo, directionInfo, pendingESTs);
+                             alignmentInfo, directionInfo,
+                             pendingESTs, TotalESTcount);
         }
     }
 
