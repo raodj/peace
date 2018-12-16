@@ -60,6 +60,12 @@ class MSTCluster {
     friend std::ostream& operator<<(std::ostream&, const MSTCluster&);  
 public:
     MSTCluster(MSTCluster* owner = NULL, const std::string& name = "");
+
+    /** The destructor.
+
+        Recursively deletes all the sub-clusters and the associated
+        cluster information.
+    */
     ~MSTCluster();
 
     /** Method to make clusters.
@@ -70,13 +76,21 @@ public:
 
         \param nodeList  The list of nodes in the MST.
         \param analyzer  The ESTAnalyzer used for score computation.
+        
         \param threshold The threshold value for separating clusters.
+        If this value is negative then a threshold is computed as
+        average-MST-branch-distance + standard_deviation.  This value
+        is returned.
+        
+        \return The threshold value that was used to cut
+        clusters. This return value would be different if the
+        threshold parameter was a negative value.
     */
-    void makeClusters(const NodeList& nodeList, const ESTAnalyzer* analyzer,
-                      const float threshold);
+    float makeClusters(const NodeList& nodeList, const ESTAnalyzer* analyzer,
+                       float threshold);
 
     /** Method to automatically calculate a threshold.
-
+        
         Currently this method is called only when the threshold supplied
         to MSTCluster::makeClusters() is equal to -1.  This threshold
         corresponds to the CLU analyzer and tells the calculateThreshold
@@ -102,14 +116,14 @@ public:
         set in the child to refer to this MSTCluster.
 
         \note This cluster node takes ownership of the child node.
-
+        
         \param[in] child The child node to be added to the this
         cluster.
     */
     void add(MSTCluster *child);
     
     /** Method to directly add a given EST to a dummy clusterID.
-
+        
         This method is typically used to add a EST that has been
         filtered out by a filter to a specific cluster.  The cluster
         maker typically creates a dummy MSTNode with the necessary
@@ -138,14 +152,14 @@ public:
     void guiPrintClusterTree(std::ostream& os = std::cout) const;
 
     /** Print the cluster tree in a flat CSV format to ease procesing
-		by other tools.
-
+        by other tools.
+        
         This method prints a flat CSV format of the clusters.
     */
     void printFlatClusterTree(const ESTList& estList,
-							  std::ostream& os = std::cout,
-							  const std::string& prefix = "") const;
-	
+                              std::ostream& os = std::cout,
+                              const std::string& prefix = "") const;
+    
     /** makeMergedClusters
 
         Currently not used in the code.
@@ -157,21 +171,72 @@ public:
         \return the cluster ID, an integer
     */
     inline int getClusterID() const { return clusterID; }
+    
+    /** Determine if this MSTCluster node has some members.
+        
+        This method can be used to determine if this cluster node has
+        any sub-members in it. It considers both sub-clusters and cDNA
+        fragments contained by it.
+        
+        \return This method returns \c false if the node has some
+        members.  Otherwise this method returns \c true indicating it
+        is empty.
+    */
+    inline bool isEmpty() const {
+        return members.empty() && clusterList.empty();
+    }
 
-	/** Determine if this MSTCluster node has some members.
+    /** Merge a given cluster into this cluster (and delete the
+        specified cluster).
 
-		This method can be used to determine if this cluster node has
-		any sub-members in it. It considers both sub-clusters and cDNA
-		fragments contained by it.
+        This method is a helper method that is used to move all the
+        sequences from a the given cluster, with id clusterID, into
+        this cluster.  Once the reads have been moved, the given
+        clusterID is deleted.
 
-		\return This method returns \c false if the node has some
-		members.  Otherwise this method returns \c true indicating it
-		is empty.
-	*/
-	inline bool isEmpty() const {
-	  return members.empty() && clusterList.empty();
-	}
-		
+        \param[in] clusterID The ID of the cluster to be merged into
+        this cluster.
+    */
+    void mergeCluster(const int clusterID);
+
+    /** Method to remove a given cluster from the set of clusters
+
+        \param[in] clusterID The ID of the cluster to be removed.
+
+        \return This method returns true if the cluster was found and
+        it was removed.
+    */
+    static bool removeCluster(const int clusterID);
+
+    /** Obtain the list of all clusters
+
+        This is a convenience method that can be used to obtain the
+        global list of all clusters.  
+
+        \return The global list of all clusters.  If some clusters
+        have been removed, then this list has NULL entries in it.
+    */
+    static ClusterList& getGlobalClusterList() { return globalClusterList; }
+
+    /** Convenience method to return the MSTCluster for the given cluster ID.
+
+        \param[in] clusterID The ID of the cluster for which the
+        cluster object is to be returned.
+
+        \return The pointer to the cluster, if clusterID is valid.
+        Otherwise this method returns NULL.
+    */
+    static MSTCluster* getCluster(const int clusterID);
+    
+    /** Obtain the list of ESTs that are part of this cluster.
+
+        This method can be used to obtain the list of ESTs that are
+        part of this cluster.
+
+        \return The list of ESTs that are part of this cluster.
+    */
+    inline const NodeList& getMembers() const { return members; }
+    
 protected:
     /** A helper method for the guiPrintClusterTree method.
 
@@ -179,25 +244,25 @@ protected:
         and then calling guiPrintTree on the sub-clusters (if any).
     */
     void guiPrintTree(std::ostream& os) const;
-
+    
 	
     /** Returns the FASTA header corresponding to a given EST.
         
-		This method is a helper method that is used to format the
-		information associated with a given EST for display purposes.
-		The necessary information about the EST is determined via the
-		EST::getInfo() method.
-
+        This method is a helper method that is used to format the
+        information associated with a given EST for display purposes.
+        The necessary information about the EST is determined via the
+        EST::getInfo() method.
+        
         \param[in] estIdx The index of the EST in the estList whose
         information is to be formatted and returned by this method.
-
+        
         \param[in] estList The list of ESTs from where the information
         is to be extracted.
         
-		\return The FASTA header associated with the given EST.  If no
-		information is available this method returns an empty string.
+        \return The FASTA header associated with the given EST.  If no
+        information is available this method returns an empty string.
     */
-	std::string getESTInfo(const int estIdx, const ESTList& estList) const;
+    std::string getESTInfo(const int estIdx, const ESTList& estList) const;
     
 private:
     /** List of sub-clusters for this cluster.
@@ -208,9 +273,14 @@ private:
         MSTCluster::makeClusters() method.
     */
     ClusterList clusterList;
-    
-    const MSTCluster* parent;
+
+    /** The parent cluster that logically contains this cluster. */
+    MSTCluster* parent;
+
+    /** The list of ESTs that are members of this cluster. */
     NodeList members;
+
+    /** A unique cluster number associated with this cluster */
     const int clusterID;
 
     /** A name set to identify filtered clusters.

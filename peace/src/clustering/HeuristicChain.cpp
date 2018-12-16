@@ -61,6 +61,22 @@ HeuristicChain::addHeuristic(Heuristic* h) {
 }
 
 bool
+HeuristicChain::removeHeuristic(const std::string& name) {
+    // Find the heuristic in the chain -- use iterators to make
+    // erasing easier.
+    for (std::vector<Heuristic*>::iterator entry = chain.begin();
+         (entry != chain.end()); entry++) {
+        if ((*entry)->getName() == name) {
+            // Found the heuristic to be removed
+            chain.erase(entry);
+            return true;
+        }
+    }
+    // Did not find heuristic to be removed
+    return false;
+}
+
+bool
 HeuristicChain::initialize() {
     // Avoid redundant/duplicate initialization
     if (isInitialized()) {

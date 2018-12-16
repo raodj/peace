@@ -110,6 +110,8 @@ libclustering_la_SOURCES = \
 	PrimesHelper.h \
 	PrimesHelper.cpp \
 	PrimesHeuristic.h \
-	PrimesHeuristic.cpp
+	PrimesHeuristic.cpp \
+	MergingClusterMaker.h \
+	MergingClusterMaker.cpp
 
 # end of Makefile.am

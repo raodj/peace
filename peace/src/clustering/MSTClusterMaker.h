@@ -41,6 +41,9 @@
 
 #include <fstream>
 
+/** A constant to remove magic 0 (zero) success checks. */
+const int NO_ERROR = 0;
+
 /** Base class for all Minimum Spanning Tree (MST) based parallel
     cluster makers.
 
@@ -68,7 +71,8 @@ public:
     enum MessageTags{REPOPULATE_REQUEST, COMPUTE_SIMILARITY_REQUEST,
                      SIMILARITY_LIST, SIMILARITY_COMPUTATION_DONE,
                      COMPUTE_MAX_SIMILARITY_REQUEST, MAX_SIMILARITY_RESPONSE,
-                     ADD_EST, TRANSITIVITY_LIST, COMPUTE_TOTAL_ANALYSIS_COUNT};
+                     ADD_EST, TRANSITIVITY_LIST, COMPUTE_TOTAL_ANALYSIS_COUNT,
+                     CLUSTER_INFO_LIST};
     
     /** The destructor.
         
@@ -172,29 +176,41 @@ public:
     */
     virtual void addEST(const int clusterID, const int estIdx);
 
-	/** Obtain a pointer to the root cluster.
+    /** Obtain a pointer to the root cluster.
 
-		This method can be used to obtain a reference to the set of
-		clusters that has been built by this class.  This method
-		returns a valid set of clusters only after the makeClusters()
-		method has successfully completed.
+        This method can be used to obtain a reference to the set of
+        clusters that has been built by this class.  This method
+        returns a valid set of clusters only after the makeClusters()
+        method has successfully completed.
 
-		\return A pointer to the root of the clusters built by this
-		cluster maker.
-	*/
-	const MSTCluster* getClusters() const { return &root; }
+        \return A pointer to the root of the clusters built by this
+        cluster maker.
+    */
+    const MSTCluster* getClusters() const { return &root; }
 
-	/** Obtain a pointer to the Minimum Spanning Tree (MST) built by
-		this class.
+    /** Obtain a mutable-reference to the root cluster.
 
-		This method implements the virtual method in the base class.
-		It can be used to obtain an MST object built by this class
-		(with help from one of the derived child classes).
+        This method can be used to obtain a reference to the set of
+        clusters that has been built by this class.  This method
+        returns a valid set of clusters only after the makeClusters()
+        method has successfully completed.
 
-		\return The MST object built by this class.  The returned
-		pointer can be NULL if an MST has not been built.
-	*/
-	const MST* getMST() const { return mst; }
+        \return A reference to the root of the clusters built by this
+        cluster maker.
+    */
+    MSTCluster& getClusters() { return root; }
+    
+    /** Obtain a pointer to the Minimum Spanning Tree (MST) built by
+        this class.
+
+        This method implements the virtual method in the base class.
+        It can be used to obtain an MST object built by this class
+        (with help from one of the derived child classes).
+
+        \return The MST object built by this class.  The returned
+        pointer can be NULL if an MST has not been built.
+    */
+    const MST* getMST() const { return mst; }
 	
 protected:
     /** Variable to indicate per-EST similarity cache size.

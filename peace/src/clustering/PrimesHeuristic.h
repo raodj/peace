@@ -143,7 +143,7 @@ protected:
         used for reporting various types of messages.        
     */
     PrimesHeuristic(HeuristicChain *chain,
-                    const std::string& name = "PrimesHeuristic");
+                    const std::string& name = "primes");
     
     /** Determine whether the analyzer should analyze, according to
         this heuristic.

@@ -40,21 +40,24 @@
 #include "NonAdaptiveMSTClusterMaker.h"
 #include "NNMSTClusterMaker.h"
 #include "TransMSTClusterMaker.h"
+#include "MergingClusterMaker.h"
 
 void
 ClusterMakerFactory::addCommandLineInfo(ArgParser& argParser) {
     // Create dummy command-line args to make display prettier and
     // easier.
     const ArgParser::ArgRecord DummyArgs[] = {
-        {"", "mst   : Adaptive MST-based Cluster Maker (best option)",
+        {"", "mst    : Adaptive MST-based Cluster Maker (best option)",
          NULL, ArgParser::INFO_MESSAGE},
-        {"", "amst  : Adaptive MST-based Cluster Maker (aka mst)",
+        {"", "amst   : Adaptive MST-based Cluster Maker (aka mst)",
          NULL, ArgParser::INFO_MESSAGE},
-        {"", "na-mst: Non-adaptive MST-based Cluster Maker for Sanger data",
+        {"", "na-mst : Non-adaptive MST-based Cluster Maker for Sanger data",
          NULL, ArgParser::INFO_MESSAGE},
-        {"", "tmst  : MST-based Cluster Maker with Transitivity",
+        {"", "tmst   : MST-based Cluster Maker with Transitivity",
          NULL, ArgParser::INFO_MESSAGE},
-        {"", "nn-mst  : Nearest-Neighbor, Adaptive MST-based Cluster Maker",
+        {"", "nn-mst : Nearest-Neighbor, Adaptive MST-based Cluster Maker",
+         NULL, ArgParser::INFO_MESSAGE},
+        {"", "merging: Merging MST-based Cluster Maker",
          NULL, ArgParser::INFO_MESSAGE},        
         {"", "", NULL, ArgParser::INVALID}
     };
@@ -77,6 +80,8 @@ ClusterMakerFactory::create(const std::string& name, ESTAnalyzer *analyzer) {
         return new NonAdaptiveMSTClusterMaker(analyzer);
     } else if (name == "nn-mst") {
         return new NNMSTClusterMaker(analyzer);
+    } else if (name == "merging") {
+        return new MergingClusterMaker(analyzer);
     }
     
     // invalid analyzer name!
