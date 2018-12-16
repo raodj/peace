@@ -161,6 +161,21 @@ public:
     */
     virtual bool addHeuristic(Heuristic* heuristic);
 
+    /** Remove a given heuristic from this chain.
+
+        This method permits a heuristic to be removed from this chain.
+        The removed heuristic is deleted once it has been removed from
+        the chain.
+
+        \param[in] name The exact name of the heuristic to be removed
+        from this chain.
+
+        \return This method returns \c true if the heuristic was found
+        and was successfully removed from the list.  Otherwise it
+        returns \c false.
+    */
+    virtual bool removeHeuristic(const std::string& name);
+    
     /** Determine whether the analyzer should perform core
         (computationally intensive) analysis, according to this
         heuristic chain.

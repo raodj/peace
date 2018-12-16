@@ -40,6 +40,7 @@
 #include "ESTList.h"
 #include <cmath>
 #include <sstream>
+#include <algorithm>
 
 // The static variable to generate unique cluster ID values.
 int MSTCluster::clusterIDSequence = 0;
@@ -92,7 +93,7 @@ MSTCluster::add(MSTCluster *child) {
     clusterList.push_back(child);
 }
 
-void
+float
 MSTCluster::makeClusters(const NodeList& nodeList, const ESTAnalyzer* analyzer,
                          float threshold) {
     // Check if the threshold is less than 0 (treat all negatives as -1)
@@ -145,7 +146,7 @@ MSTCluster::makeClusters(const NodeList& nodeList, const ESTAnalyzer* analyzer,
     if (parent != NULL) {
         // This not the root node. Make the code a bit more
         // streamlined by returning right away.
-        return;
+        return threshold;
     }
 
     // This is code path only for the root cluster.
@@ -161,6 +162,9 @@ MSTCluster::makeClusters(const NodeList& nodeList, const ESTAnalyzer* analyzer,
             clusterList.push_back(subCluster);
         }
     }
+
+    // Return the threshold value that was used
+    return threshold;
 }
 
 float
@@ -312,6 +316,59 @@ MSTCluster::getESTInfo(const int estIdx, const ESTList& estList) const {
         info = estInfo.str();
     }
     return info;
+}
+
+void
+MSTCluster::mergeCluster(const int clusterID) {
+    // Ensure that this clusterID is valid and we have a parent node
+    // for this cluster.
+    MSTCluster* const merge = MSTCluster::getCluster(clusterID);
+    if (merge == NULL) {
+        return;  // invalid clusterID
+    }
+    // Get the cluster to be merged.  First copy its nodes over to
+    // this cluster.
+    members.insert(members.end(), merge->members.begin(), merge->members.end());
+    // Next, copy over the sub-clusters
+    clusterList.insert(clusterList.end(), merge->clusterList.begin(),
+                       merge->clusterList.end());
+    merge->clusterList.clear();  // So sub-clusters don't get deleted
+    // Finally remove the merged cluster
+    MSTCluster::removeCluster(clusterID);
+}
+
+bool
+MSTCluster::removeCluster(const int clusterID) {
+    // Ensure that this clusterID is valid and we have a parent node
+    // for this cluster.
+    MSTCluster* const toRemove = MSTCluster::getCluster(clusterID);
+    if (toRemove == NULL) {
+        return false;  // invalid clusterID
+    }
+
+    // Now, remove this cluster from its parent's clusterList
+    ASSERT( toRemove->parent != NULL );
+    MSTCluster *parent = toRemove->parent;
+    ClusterList::iterator clsEntry =
+        std::find(parent->clusterList.begin(), parent->clusterList.end(),
+                  toRemove);
+    ASSERT(clsEntry != parent->clusterList.end());
+    parent->clusterList.erase(clsEntry);
+
+    // Delete this cluster (and consequently its sub-clusters as well).
+    delete toRemove;
+    return true;  // cluster entry deleted
+}
+
+MSTCluster*
+MSTCluster::getCluster(const int clusterID) {
+    // Ensure that this clusterID is valid and we have a parent node
+    // for this cluster.
+    if ((clusterID < 1) || (clusterID >= (int) globalClusterList.size())) {
+        return NULL;
+    }
+    // return cluster pointer
+    return globalClusterList[clusterID];
 }
 
 #endif

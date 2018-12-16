@@ -46,9 +46,6 @@
 #include <fstream>
 #include <sstream>
 
-// Another define to remove magic 0 (zero) success checks.
-#define NO_ERROR 0
-
 MSTClusterMaker::MSTClusterMaker(const std::string& name,
                                  ESTAnalyzer *analyzer)
     : ClusterMaker(name, analyzer), mst(NULL),
@@ -727,7 +724,7 @@ MSTClusterMaker::addEST(const int clusterID, const int estIdx) {
 int
 MSTClusterMaker::buildClusters() {
     // Let the root cluster build sub-clusters
-    root.makeClusters(mst->getNodes(), analyzer, clsThreshold);
+    clsThreshold = root.makeClusters(mst->getNodes(), analyzer, clsThreshold);
     // Can't have errors (yet in this method).
     return NO_ERROR;
 }

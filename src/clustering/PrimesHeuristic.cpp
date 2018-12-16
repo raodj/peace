@@ -64,7 +64,7 @@ PrimesHeuristic::addCommandLineArguments(ArgParser& argParser) {
         {"--pri-heur-cg", "Prime value for C/G in primes heuristic",
          &cgPrime, ArgParser::INTEGER},
         {"--pri-heur-thresh", "Distance threshold override for similarity",
-         &distThresh, ArgParser::INTEGER},
+         &distThresh, ArgParser::LONG},
         {"--pri-heur-topN", "Restrict to top-n reads",
          &topN, ArgParser::INTEGER},        
         {"", "", NULL, ArgParser::INVALID}
