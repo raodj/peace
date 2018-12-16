@@ -307,7 +307,7 @@ MergingClusterMaker::findMatchingClusters(const int estId,
     }
     // If the list is empty then we add a dummy entry to send to the
     // manager.
-    if (clsList.empty()) {
+    if (clsList.empty() && (MPI_GET_RANK() != MANAGER_RANK)) {
         // Add an invalid entry.
         clsList.push_back(ClsInfo());
     }
