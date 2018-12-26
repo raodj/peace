@@ -47,6 +47,7 @@ PrimesHeuristic::PrimesHeuristic(HeuristicChain* chain, const std::string& name)
     cgPrime     = 113;
     distThresh  = -1;
     topN        = -1;
+    topNper     = -1;
 }
 
 PrimesHeuristic::~PrimesHeuristic() {
@@ -65,8 +66,10 @@ PrimesHeuristic::addCommandLineArguments(ArgParser& argParser) {
          &cgPrime, ArgParser::INTEGER},
         {"--pri-heur-thresh", "Distance threshold override for similarity",
          &distThresh, ArgParser::LONG},
-        {"--pri-heur-topN", "Restrict to top-n reads",
-         &topN, ArgParser::INTEGER},        
+        {"--pri-heur-topN", "Restrict to top-n reads below threshold",
+         &topN, ArgParser::INTEGER},
+        {"--pri-heur-topN-per", "Restrict to top-n% of reads below threshold",
+         &topNper, ArgParser::FLOAT},
         {"", "", NULL, ArgParser::INVALID}
     };    
     // Use a arg parser object to conveniently display common options.
@@ -122,8 +125,10 @@ PrimesHeuristic::setReferenceEST(const EST* estS1) {
         computeMetrics(estList, estS1->getID(), numFeatures);
     // Restrict to the top-N reads (if set) or dists.size() whichever
     // is smaller.
+    const int nLimit   = std::max<int>(topN, (topNper != -1 ? topNper *
+                                              dists.size() : -1));
     const int maxReads = std::min<int>(dists.size(),
-                                       (topN != -1) ? topN : dists.size());
+                                       (nLimit != -1) ? nLimit : dists.size());
     ASSERT(maxReads <= (int) dists.size());
     // Conver the top-n entries into a hash-map for quick look-up in
     // the runHeuristics method.

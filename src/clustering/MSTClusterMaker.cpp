@@ -86,7 +86,7 @@ MSTClusterMaker::addCommandLineArguments(ArgParser& argParser) {
         {"--dont-cluster", "Just generate MST data. Don't do clustering",
          &dontCluster, ArgParser::BOOLEAN},
         {"--maxUse", "Set a threshold to aggressively use metrics",
-         &maxUse, ArgParser::INTEGER},
+         &maxUse, ArgParser::FLOAT},
         {"--clsThreshold", "Set a threshold for clustering",
          &clsThreshold, ArgParser::FLOAT},
         {"--cacheType", "Set type of cache (heap or mlist) to use",

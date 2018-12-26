@@ -210,6 +210,14 @@ private:
         set this parameter.
     */
     int topN;
+
+    /** Limit heuristic to use only the top top-N-percentage reads for
+        further processing.  This parameter is analogous to topN,
+        except that 'N' is specified as a percentage of the reads
+        below the given distThresh.  Use the \c --pri-heur-topN-per
+        command-line argument to set this parameter.
+    */    
+    float topNper;
     
     /** The prime-numbers based features computed for the reference
         EST setup for this heuristic.  This value is computed in the
