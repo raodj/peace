@@ -310,7 +310,7 @@ protected:
         be changed via the command-line argument \c --maxUse \e
         threshold.
     */
-    int maxUse;
+    float maxUse;
     
     /** Command line option to set the clustering threshold to be
         used in deriving clusters from the MST.
