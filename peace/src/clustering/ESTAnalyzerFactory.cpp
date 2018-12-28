@@ -46,6 +46,7 @@
 #include "OldTwoPassD2.h"
 #include "MatrixFileAnalyzer.h"
 //#include "BatonAnalyzer.h"
+#include "PrimesESTAnalyzer.h"
 
 void
 ESTAnalyzerFactory::addCommandLineInfo(ArgParser& argParser) {
@@ -68,6 +69,8 @@ ESTAnalyzerFactory::addCommandLineInfo(ArgParser& argParser) {
          NULL, ArgParser::INFO_MESSAGE},
         {"", "baton: Baton-based similarity metric generation algorithm",
          NULL, ArgParser::INFO_MESSAGE},
+        {"", "primes: Primes=based similarity metric",
+         NULL, ArgParser::INFO_MESSAGE},        
         {"", "", NULL, ArgParser::INVALID}
     };
     argParser.addValidArguments(DummyArgs);
@@ -93,6 +96,8 @@ ESTAnalyzerFactory::create(const std::string& name) {
         return new AdaptiveTwoPassD2();
     } else if (name == "baton") {
         // return new BatonAnalyzer();
+    } else if (name == "primes") {
+        return new PrimesESTAnalyzer();
     }
     
     // invalid analyzer name!
