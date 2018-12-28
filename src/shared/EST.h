@@ -169,8 +169,12 @@ public:
 
         \param[in] os The output stream to which the EST's information
         must be written in FASTA format.
+
+        \param[in] LineSize The maximum number of nucleotides to print
+        in a line.  Reads longer than this size are written out on
+        multiple consecutive lines consistent with FASTA file format.
     */
-    void dumpEST(std::ostream& os);
+    void dumpEST(std::ostream& os, const int LineSize = 100);
 
     /** Obtain the ID of this EST.
         

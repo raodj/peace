@@ -89,8 +89,7 @@ EST::unpopulate() {
 }
 
 void
-EST::dumpEST(std::ostream& os) {
-    const int LineSize = 100;
+EST::dumpEST(std::ostream& os, const int LineSize) {
     os << ">";
     os << getInfo() << std::endl;
     // Dump out the sequence to that no sequence display is longer
