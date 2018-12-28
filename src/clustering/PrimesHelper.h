@@ -173,7 +173,6 @@ public:
         each entry containing the feature value along that dimension.
     */
     LongVec extractFeatures(const EST& est, const int numFeatures) const;
-
     
     /** Pre-compute and cache the n-dimensional features for
         locally-owned ESTs.
@@ -295,9 +294,14 @@ protected:
 
         \param[in] numFeatures The number of features or dimensions of
         features to be used for computing distances between ESTs.
+
+        \param[in] distThresh Do not include reads whose distance is
+        higher than this value.  The default value is set to LONG_MAX
+        and hence all reads would be included.
     */
     std::vector<PrimesHelper::ESTMetric>
-    computeMetrics(ESTList& estList, int refIdx, int numFeatures) const;
+    computeMetrics(ESTList& estList, int refIdx, int numFeatures,
+                   const long distThresh = 0x7FFFFFFFL) const;
                                                     
 private:
     /** Vector with prime values set for each valid nucleotide/codon.

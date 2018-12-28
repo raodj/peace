@@ -123,6 +123,22 @@ public:
     */
     virtual ~PrimesHeuristic();
 
+    /** Method to display statistics regarding operation of this
+        heuristic.
+
+        This method overrides the default implementation in the base
+        class to report additional statistics recorded by this class.
+
+        \note Derived heuristic classes may override this method to
+        display additional statistics. However, the additional
+        information must be displayed after the base class method has
+        completed its task.
+        
+        \param[out] os The output stream to which the statistics
+        regarding the heuristic is to be dumped.
+    */
+    virtual void printStats(std::ostream& os) const override;
+
 protected:
     /** The default constructor.
         
@@ -230,6 +246,12 @@ private:
         setReferenceEST and then used in the runHeuristic method.
     */
     NearbyMap nearest;
+
+    /** The number of times the setReferenceEST method was called. */
+    int numSetRef;
+
+    /** The total time taken to complete calls to the setReferenceEST */
+    double totSetRefTime;
 };
 
 #endif
