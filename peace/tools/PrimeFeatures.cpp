@@ -46,6 +46,7 @@ PrimeFeatures::main(int argc, char *argv[]) {
     int numFeatures = 3;     // features/dimensions
     int atPrime     = 71;    // prime value for 'a', 't'
     int cgPrime     = 113;   // prime value for 'c', 'g'
+    int refEST      = -1;    // Reference EST for distance computation
     bool showOptions= false; // Flag to indicat if help is to be displayed
 
     // Create the list of valid arguments to be used by the arg_parser.
@@ -57,12 +58,14 @@ PrimeFeatures::main(int argc, char *argv[]) {
         {"--pri-heur-at", "Prime value for A/T in primes heuristic",
          &atPrime, ArgParser::INTEGER},
         {"--pri-heur-cg", "Prime value for C/G in primes heuristic",
-         &cgPrime, ArgParser::INTEGER},        
+         &cgPrime, ArgParser::INTEGER},
+        {"--pri-dist", "Distance value from a given read",
+         &refEST, ArgParser::INTEGER},        
         {"--options", "Lists options for this tool",
          &showOptions, ArgParser::BOOLEAN},
         {"", "", NULL, ArgParser::INVALID}
     };
-        // Get the argument parser to parse and consume the global
+    // Get the argument parser to parse and consume the global
     // options.  Based on the options supplied, various variables will
     // be set to appropriate values.
     ArgParser ap;
@@ -89,7 +92,7 @@ PrimeFeatures::main(int argc, char *argv[]) {
         return 2;
     }
     // OK, generate the features for each read in the FASTA file
-    pf.generateFeatures(numFeatures);
+    pf.generateFeatures(numFeatures, refEST);
     // Everything went well.
     return 0;
 }
@@ -101,9 +104,18 @@ PrimeFeatures::PrimeFeatures(const int atPrime, const int cgPrime) {
 }
 
 void
-PrimeFeatures::generateFeatures(int numFeatures, std::ostream &os) {
+PrimeFeatures::generateFeatures(int numFeatures, int refEST, std::ostream &os) {
     // Get the list of reads to process.
     ESTList& estList = getESTList();
+    // If a reference EST is specified get its features so that we can
+    // compute distances.
+    LongVec refFeatures;
+    if (refEST != -1) {
+        const EST *est = estList.get(refEST, true);
+        ASSERT( est != NULL );
+        // Get n-dimensional features
+        refFeatures = extractFeatures(est->getSequenceString(), numFeatures);
+    }
     // Process each read and print n-dimensional features.    
     for (int i = 0; (i < estList.size()); i++) {
         // Get the read.
@@ -114,9 +126,14 @@ PrimeFeatures::generateFeatures(int numFeatures, std::ostream &os) {
                                                  numFeatures);
         ASSERT( numFeatures == (int) features.size() );
         // Print the information.
-        os << i << ", " << est->getInfo();
+        os << i; //  << ", " << est->getInfo();
         for (int f = 0; (f < numFeatures); f++) {
             os << ", " << features[f];
+        }
+        // Print distance information from reference read, if specified
+        if (refEST != -1) {
+            const double dist = getDistance(refFeatures, features);
+            os << ", " << dist;
         }
         os << std::endl;
     }
