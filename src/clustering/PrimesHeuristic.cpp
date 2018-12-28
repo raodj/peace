@@ -92,6 +92,10 @@ PrimesHeuristic::initialize() {
     // Generate and cache metrics for local reads
     ESTList& estList = *getContext()->getESTList();
     cacheFeatures(estList, numFeatures);
+    // Setup topN if topNper is specified.
+    if ((topN == -1) && (topNper > 0)) {
+        topN = estList.size() * topNper;
+    }
     // Everying went well
     return true;
 }
@@ -125,23 +129,26 @@ PrimesHeuristic::setReferenceEST(const EST* estS1) {
     // Setup the reference sequence features
     refFeatures = extractFeatures(*estS1, numFeatures);
     ASSERT( (int) refFeatures.size() == numFeatures );
-    // Compute the list of top-n closest ESTs on this node and use
-    // that information for further analysis.
-    const std::vector<PrimesHelper::ESTMetric> dists =
-        computeMetrics(estList, estS1->getID(), numFeatures, distThresh);
-    // Restrict to the top-N reads (if set) or dists.size() whichever
-    // is smaller.
-    const int nLimit   = std::max<int>(topN, (topNper != -1 ? topNper *
-                                              dists.size() : -1));
-    const int maxReads = std::min<int>(dists.size(),
-                                       (nLimit != -1) ? nLimit : dists.size());
-    ASSERT(maxReads <= (int) dists.size());
-    // Conver the top-n entries into a hash-map for quick look-up in
-    // the runHeuristics method.
-    nearest.clear();
-    for (int i = 0; (i < maxReads); i++) {
-        // Add entry to nearest hash map
-        nearest[dists[i].estIdx] = dists[i];
+
+    // Check to see if we need to compute the topN reads if user has
+    // specified limits.
+    if (topN != -1) {
+        // Compute the list of top-n closest ESTs on this node and use
+        // that information for further analysis.
+        const std::vector<PrimesHelper::ESTMetric> dists =
+            computeMetrics(estList, estS1->getID(), numFeatures, distThresh);
+        // Restrict to the top-N reads (if set) or dists.size() whichever
+        // is smaller.
+        const int maxReads = std::min<int>(dists.size(),
+                                           (topN != -1) ? topN : dists.size());
+        ASSERT(maxReads <= (int) dists.size());
+        // Convert the top-n entries into a hash-map for quick look-up
+        // in the runHeuristics method.
+        nearest.clear();
+        for (int i = 0; (i < maxReads); i++) {
+            // Add entry to nearest hash map
+            nearest[dists[i].estIdx] = dists[i];
+        }
     }
     // Track time taken for this call to complete.
     totSetRefTime += (MPI_Wtime() - startTime);
@@ -152,10 +159,22 @@ PrimesHeuristic::setReferenceEST(const EST* estS1) {
 bool
 PrimesHeuristic::runHeuristic(const EST* otherEST) {
     ASSERT( otherEST != NULL );
-    const int estIdx = otherEST->getID();
-    // If entry is in the nearest hash map return true. Otherwise
-    // return false.
-    return (nearest.find(estIdx) != nearest.end());
+    // If we have topN set then we can use the nearest hash
+    // map. Otherwise we compute the distance and compare against
+    // threshold.
+    if (topN != -1) {
+        // If entry is in the nearest hash map return true. Otherwise
+        // return false.
+        const int estIdx = otherEST->getID();
+        return (nearest.find(estIdx) != nearest.end());
+    }
+    // In this case we are not using topN but just distance-based cut
+    // off
+    ASSERT(nearest.empty());
+    const LongVec othFeatures = extractFeatures(*otherEST, numFeatures);
+    const double  distance    = getDistance(refFeatures, othFeatures);
+    // Return true if distance is below threshold
+    return (distance <= distThresh);
 }
 
 void

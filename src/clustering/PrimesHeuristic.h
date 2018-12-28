@@ -175,7 +175,7 @@ protected:
         EST pair should be analyzed, and false otherwise.
     */
     virtual bool runHeuristic(const EST* otherEST);
-
+    
 private:
     /** The number of dimensions (aka features) in the primes-based
         heuristic to be generated.
