@@ -38,15 +38,18 @@
 #include "EST.h"
 #include "PrimesHeuristic.h"
 #include "RuntimeContext.h"
+#include "MPIStats.h"
 
 PrimesHeuristic::PrimesHeuristic(HeuristicChain* chain, const std::string& name)
     : Heuristic(name, chain) {
     // Initialize command-line args 
-    numFeatures = 4;
-    atPrime     = 71;
-    cgPrime     = 113;
-    distThresh  = -1;
-    topN        = -1;
+    numFeatures   = 4;
+    atPrime       = 71;
+    cgPrime       = 113;
+    distThresh    = -1;
+    topN          = -1;
+    numSetRef     = 0;
+    totSetRefTime = 0;
     topNper     = -1;
 }
 
@@ -96,6 +99,9 @@ PrimesHeuristic::initialize() {
 int
 PrimesHeuristic::setReferenceEST(const EST* estS1) {
     ASSERT ( estS1 != NULL );
+    const double startTime = MPI_Wtime();  // Record the start time
+    numSetRef++;  // Track number of times this method is called.
+    // Get the EST list to be processed
     ESTList& estList = *getContext()->getESTList();        
     // If the user has not specified a threshold, compute the average
     // and standard deviation to determine threshold.
@@ -122,7 +128,7 @@ PrimesHeuristic::setReferenceEST(const EST* estS1) {
     // Compute the list of top-n closest ESTs on this node and use
     // that information for further analysis.
     const std::vector<PrimesHelper::ESTMetric> dists =
-        computeMetrics(estList, estS1->getID(), numFeatures);
+        computeMetrics(estList, estS1->getID(), numFeatures, distThresh);
     // Restrict to the top-N reads (if set) or dists.size() whichever
     // is smaller.
     const int nLimit   = std::max<int>(topN, (topNper != -1 ? topNper *
@@ -134,11 +140,11 @@ PrimesHeuristic::setReferenceEST(const EST* estS1) {
     // the runHeuristics method.
     nearest.clear();
     for (int i = 0; (i < maxReads); i++) {
-        if (dists[i].distance <= distThresh) {
-            // Add entry to nearest hash map
-            nearest[dists[i].estIdx] = dists[i];
-        }
+        // Add entry to nearest hash map
+        nearest[dists[i].estIdx] = dists[i];
     }
+    // Track time taken for this call to complete.
+    totSetRefTime += (MPI_Wtime() - startTime);
     // All done for now.
     return 0;
 }
@@ -150,6 +156,15 @@ PrimesHeuristic::runHeuristic(const EST* otherEST) {
     // If entry is in the nearest hash map return true. Otherwise
     // return false.
     return (nearest.find(estIdx) != nearest.end());
+}
+
+void
+PrimesHeuristic::printStats(std::ostream& os) const {
+    // First let the base class print common stats
+    Heuristic::printStats(os);
+    // Print stats from this class
+    os << "\tNum. of setRefEST calls: " << numSetRef << "\n"
+       << "\tTot time for setRefES  : " << totSetRefTime << " seconds\n";
 }
 
 #endif

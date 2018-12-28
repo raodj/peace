@@ -109,8 +109,10 @@ FilterChain::run() {
         EST *est = estList.get(estIdx, true);
         if (!est->hasBeenProcessed()) {
             // Filters track ESTs they have filtered out.
-            applyFilters(est);
-	    estList.unpopulate(estIdx);
+            if (applyFilters(est)) {
+                // This EST will not be used. So unpopulate it.
+                estList.unpopulate(estIdx);
+            }
         }
     }
     // Now participate in global iterative broadcast chain. Possibly

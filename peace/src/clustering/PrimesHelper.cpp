@@ -180,19 +180,18 @@ PrimesHelper::getDistance(const LongVec& refFeatures,
 
 LongVec
 PrimesHelper::extractFeatures(const EST& est, const int numFeatures) const {
-    // Check if entry is in cache.
-    LongVec features = getCachedFeature(est.getID());
-    // If not compute it.
-    if (features.empty()) {
-        // Compute the features
-        features = extractFeatures(est.getSequenceString(), numFeatures);
+    // Get the iterator corresponding to the estIdx
+    FeaturesMap::const_iterator entry = featuresCache.find(est.getID());
+    if (entry != featuresCache.end()) {
+        return entry->second;  // return pre-computed features
     }
-    return features;
+    // If not compute and return it.
+    return extractFeatures(est.getSequenceString(), numFeatures);
 }
 
 std::vector<PrimesHelper::ESTMetric>
 PrimesHelper::computeMetrics(ESTList& estList, int refIdx,
-                             int numFeatures) const {
+                             int numFeatures, const long distThresh) const {
     // Compute reference EST listances
     const LongVec refFeatures = extractFeatures(*estList.get(refIdx, true),
                                                 numFeatures);
@@ -213,8 +212,10 @@ PrimesHelper::computeMetrics(ESTList& estList, int refIdx,
         const LongVec idxFeature = extractFeatures(*est, numFeatures);
         // Compute distnace between reference feature(s)
         const float dist = getDistance(refFeatures, idxFeature);
-        // Store into the local dists vector
-        dists.push_back(ESTMetric(idx, dist));
+        if (dist < distThresh) {
+            // Store into the local dists vector
+            dists.push_back(ESTMetric(idx, dist));
+        }
     }
     // Sort the distances and return the distances
     std::sort(dists.begin(), dists.end());
