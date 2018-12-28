@@ -64,6 +64,8 @@ AlignmentAlgorithm.h\
 AlignmentAlgorithm.cpp\
 PrimeFeatures.h\
 PrimeFeatures.cpp\
+RandomizeReads.h\
+RandomizeReads.cpp\
 main.cpp
 
 # end of Makefile.am
