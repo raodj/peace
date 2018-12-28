@@ -103,9 +103,13 @@ public:
         \param[in] numFeatures The number of dimensions or features to
         be generated.
 
+        \param[in] refEST An optional reference read from where
+        distances are to be computed and printed.
+
         \param[out] out The output stream to which the annotated ESTs
     */
-    void generateFeatures(int numFeatures, std::ostream &os = std::cout);
+    void generateFeatures(int numFeatures, int refEST = -1,
+                          std::ostream &os = std::cout);
     
 protected:
     /** The default constructor for this class.
