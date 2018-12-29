@@ -36,6 +36,13 @@ Tool::Tool() {
     peace.initialize(argc, NULL);
 }
 
+Tool::Tool(int argc, char *argv[]) {
+    // Simply initialize instance variables
+    haveAlignmentData = false;
+    // Initialize peace with empty data.
+    peace.initialize(argc, argv);
+}
+
 Tool::~Tool() {
     // Free up memory for any ests that may have been loaded
     peace.finalize();
@@ -223,6 +230,11 @@ Tool::getESTList() {
 const ESTList&
 Tool::getESTList() const {
     return *(peace.getContext()->getESTList());
+}
+
+ESTAnalyzer&
+Tool::getAnalyzer() {
+    return *(peace.getContext()->getAnalyzer());
 }
 
 #endif

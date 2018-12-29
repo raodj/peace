@@ -66,6 +66,8 @@ PrimeFeatures.h\
 PrimeFeatures.cpp\
 RandomizeReads.h\
 RandomizeReads.cpp\
+ShowScores.h\
+ShowScores.cpp\
 main.cpp
 
 # end of Makefile.am
