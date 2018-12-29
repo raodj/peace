@@ -109,7 +109,7 @@ PrimeFeatures::generateFeatures(int numFeatures, int refEST, std::ostream &os) {
     ESTList& estList = getESTList();
     // If a reference EST is specified get its features so that we can
     // compute distances.
-    LongVec refFeatures;
+    FloatVec refFeatures;
     if (refEST != -1) {
         const EST *est = estList.get(refEST, true);
         ASSERT( est != NULL );
@@ -122,7 +122,7 @@ PrimeFeatures::generateFeatures(int numFeatures, int refEST, std::ostream &os) {
         const EST *est = estList.get(i, true);
         ASSERT( est != NULL );
         // Get n-dimensional features
-        const LongVec features = extractFeatures(est->getSequenceString(),
+        const FloatVec features = extractFeatures(est->getSequenceString(),
                                                  numFeatures);
         ASSERT( numFeatures == (int) features.size() );
         // Print the information.

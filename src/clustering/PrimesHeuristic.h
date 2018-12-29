@@ -214,7 +214,7 @@ private:
         argument.  The default value is arbitrarily set to 1000,
         making most pairs similar.
     */
-    long distThresh;
+    float distThresh;
 
     /** Limit heuristic to use only the top top-N reads for further
         processing.  If this parameter is set then, this heuristic
@@ -234,12 +234,20 @@ private:
         command-line argument to set this parameter.
     */    
     float topNper;
+
+    /** An optional word length based on which position-weighted
+        primes-based features are computed and used by this heuristic.
+        If this value is -1, then weighed features are not used.  Use
+        the \c --pri-heur-wordLen command-line argument to set this
+        parameter.
+    */
+    int wordLen;
     
     /** The prime-numbers based features computed for the reference
         EST setup for this heuristic.  This value is computed in the
         setReferenceEST method in this class.
     */
-    LongVec refFeatures;
+    FloatVec refFeatures;
 
     /** The cached list of nearby ESTs along with metrics to speed-up
         heuristic processing.  This list is computed in the
