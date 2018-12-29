@@ -50,7 +50,8 @@ PrimesHeuristic::PrimesHeuristic(HeuristicChain* chain, const std::string& name)
     topN          = -1;
     numSetRef     = 0;
     totSetRefTime = 0;
-    topNper     = -1;
+    topNper       = -1;
+    wordLen       = -1;
 }
 
 PrimesHeuristic::~PrimesHeuristic() {
@@ -73,6 +74,8 @@ PrimesHeuristic::addCommandLineArguments(ArgParser& argParser) {
          &topN, ArgParser::INTEGER},
         {"--pri-heur-topN-per", "Restrict to top-n% of reads below threshold",
          &topNper, ArgParser::FLOAT},
+        {"--pri-heur-wordLen", "Word length for position-weights",
+         &wordLen, ArgParser::INTEGER},        
         {"", "", NULL, ArgParser::INVALID}
     };    
     // Use a arg parser object to conveniently display common options.
@@ -91,7 +94,7 @@ PrimesHeuristic::initialize() {
     setPrimes(atPrime, cgPrime);
     // Generate and cache metrics for local reads
     ESTList& estList = *getContext()->getESTList();
-    cacheFeatures(estList, numFeatures);
+    cacheFeatures(estList, numFeatures, wordLen);
     // Setup topN if topNper is specified.
     if ((topN == -1) && (topNper > 0)) {
         topN = estList.size() * topNper;
@@ -115,7 +118,7 @@ PrimesHeuristic::setReferenceEST(const EST* estS1) {
         // method in the PrimesHelper base class (that is capable of
         // doing this computation in a distributed manner).
         float average = 0, deviation = 0;
-        computeAvgDistance(estList, estS1->getID(), numFeatures,
+        computeAvgDistance(estList, estS1->getID(), numFeatures, wordLen,
                            average, deviation);
         // Compute the distance threshold depending on average and
         // deviation
@@ -127,7 +130,7 @@ PrimesHeuristic::setReferenceEST(const EST* estS1) {
     }
     
     // Setup the reference sequence features
-    refFeatures = extractFeatures(*estS1, numFeatures);
+    refFeatures = extractFeatures(*estS1, numFeatures, wordLen);
     ASSERT( (int) refFeatures.size() == numFeatures );
 
     // Check to see if we need to compute the topN reads if user has
@@ -136,7 +139,8 @@ PrimesHeuristic::setReferenceEST(const EST* estS1) {
         // Compute the list of top-n closest ESTs on this node and use
         // that information for further analysis.
         const std::vector<PrimesHelper::ESTMetric> dists =
-            computeMetrics(estList, estS1->getID(), numFeatures, distThresh);
+            computeMetrics(estList, estS1->getID(), numFeatures, wordLen,
+                           distThresh);
         // Restrict to the top-N reads (if set) or dists.size() whichever
         // is smaller.
         const int maxReads = std::min<int>(dists.size(),
@@ -171,8 +175,9 @@ PrimesHeuristic::runHeuristic(const EST* otherEST) {
     // In this case we are not using topN but just distance-based cut
     // off
     ASSERT(nearest.empty());
-    const LongVec othFeatures = extractFeatures(*otherEST, numFeatures);
-    const double  distance    = getDistance(refFeatures, othFeatures);
+    const FloatVec othFeatures = extractFeatures(*otherEST, numFeatures,
+                                                 wordLen);
+    const double  distance     = getDistance(refFeatures, othFeatures);
     // Return true if distance is below threshold
     return (distance <= distThresh);
 }

@@ -39,9 +39,9 @@
 #include "HashMap.h"
 #include "ESTList.h"
 
-/** \typedef std::vector<long> LongVec;
+/** \typedef std::vector<float> FloatVec;
 
-    \brief A vector of long values to return n-dimensional features
+    \brief A vector of float values to return n-dimensional features
     for a given sequence.
 
     This typedef provides a convenient short cut to refer to a
@@ -50,9 +50,9 @@
     feature value along a given dimension.  Each dimensional pseudo
     metric is computed based on a sub-sequence of fixed length.
 */
-typedef std::vector<long> LongVec;
+typedef std::vector<float> FloatVec;
 
-/** \typedef HashMap<int, LongVec> FeaturesMap;
+/** \typedef HashMap<int, FloatVec> FeaturesMap;
 
     \brief A hash map to provide rapid access to the set of
     pre-computed, n-dimensional features.
@@ -63,7 +63,7 @@ typedef std::vector<long> LongVec;
     the key into this hash map.  Each entry in the hash map contains a
     vector of n-dimensional features computed based on prime numbers.
 */
-typedef HashMap<int, LongVec> FeaturesMap;
+typedef HashMap<int, FloatVec> FeaturesMap;
 
 
 /** A helper class used to generate features using prime numbers to
@@ -97,12 +97,12 @@ public:
         
         /** The index of the EST to which the metric is associated. */
         int estIdx;
-
+        
         /** The distance (or similarity) metric associated with this
             entry
-         */
+        */
         float distance;
-
+        
         /** Comparison operator used for sorting ESTMetric objects
             based on distance.
 
@@ -111,7 +111,7 @@ public:
             \return This method returns true if this object's distance
             is less than other object's distance.
         */
-        bool operator<(const ESTMetric& other) const {
+        inline bool operator<(const ESTMetric& other) const {
             return (distance < other.distance);
         }
     };
@@ -140,8 +140,8 @@ public:
 
     /** Extract n-dimensional features for a given sequence.
 
-        This method generates the n-dimensional feature vector for the
-        given sequence.
+        This method generates the n-dimensional feature vector
+        (optionally, weighted) for the given sequence.
 
         \note Ensure the setPrimes() method is calle prior to using
         this method.
@@ -152,14 +152,18 @@ public:
         \param[in] numFeatures The number of dimensions or features to
         be extracted.
 
+        \param[in] wordLen If this value is greater than zero, then
+        position-weighted features are computed and cached.
+        
         \return A vector containing exactly numFeatures entries, with
         each entry containing the feature value along that dimension.
     */
-    LongVec extractFeatures(const std::string& sequence,
-                            const int numFeatures) const;
-
+    FloatVec extractFeatures(const std::string& sequence,
+                            const int numFeatures,
+                            const int wordLen) const;
+    
     /** Convenience method to return cached features or compute
-        features for a given EST.
+        features (optionally, weighted) for a given EST.
 
         This is a convenience method that either returns features from
         the cache or computes the features and returns it.
@@ -169,13 +173,17 @@ public:
         \param[in] numFeatures The number of dimensions or features to
         be extracted.
 
+        \param[in] wordLen If this value is greater than zero, then
+        position-weighted features are computed.
+        
         \return A vector containing exactly numFeatures entries, with
         each entry containing the feature value along that dimension.
     */
-    LongVec extractFeatures(const EST& est, const int numFeatures) const;
+    FloatVec extractFeatures(const EST& est, const int numFeatures,
+                             const int wordLen) const;
     
-    /** Pre-compute and cache the n-dimensional features for
-        locally-owned ESTs.
+    /** Pre-compute and cache the n-dimensional (optionally, weighted)
+        features for locally-owned ESTs.
 
         This method can be used to pre-compute and cache n-dimensional
         features for locally-owned ESTs. The locally-owned ESTs are
@@ -192,8 +200,12 @@ public:
 
         \param[in] numFeatures The number of features or dimensions of
         features to beused for computing distances between ESTs.
+
+        \param[in] wordLen If this value is greater than zero, then
+        position-weighted features are computed and cached.
     */
-    void cacheFeatures(ESTList& estList, const int numFeatures);
+    void cacheFeatures(ESTList& estList, const int numFeatures,
+                       const int wordLen);
 
     /** Get the cached, n-dimensional features for a given EST.
 
@@ -203,7 +215,7 @@ public:
         \param[in] estIdx The index of the EST for which the
         n-dimensional features are to be returned.
     */
-    LongVec getCachedFeature(const int estIdx) const;
+    FloatVec getCachedFeature(const int estIdx) const;
 
     /** Computes the total average distance and standard deviation.
 
@@ -220,6 +232,9 @@ public:
 
         \param[in] numFeatures The number of features or dimensions of
         features to be used for computing distances between ESTs.
+
+        \param[in] wordLen If this parameter is greater than zero,
+        then position-weighted features are computed.
         
         \param[out] average The average distance computed by this
         method.
@@ -228,7 +243,7 @@ public:
         method.
     */
     void computeAvgDistance(ESTList& estList, const int refESTidx,
-                            const int numFeatures,
+                            const int numFeatures, const int wordLen,
                             float& average, float& devition) const;
     
 
@@ -245,8 +260,24 @@ public:
         \return The Euclidean distance between the two n-dimensional
         features.
     */
-    float getDistance(const LongVec& refFeatures,
-                      const LongVec& otherFeatures) const;
+    float getDistance(const FloatVec& refFeatures,
+                      const FloatVec& otherFeatures) const;
+
+    /** Returns the shortest distance between two n-dimensional
+        features.
+
+        This is a convenience method to obtain the shortest distance
+        between two given n-dimensional features.
+
+        \param[in] refFeatures The first vector of features.
+
+        \param[in] otherFeatures The second vector of features to use.
+
+        \return The shortest distance between two n-dimensional
+        features.
+    */
+    float getMinDistance(const FloatVec& refFeatures,
+                          const FloatVec& otherFeatures) const;
 
 protected:
     /** The default and only constructor for this class.
@@ -280,9 +311,37 @@ protected:
         \return The primes-based pseudo metric for the given
         subsequence.
     */
-    long scoreSequence(const std::string& sequence, const int start,
-                       const int end) const;
+    float scoreSequence(const std::string& sequence, const int start,
+                        const int end) const;
 
+    /** Helper method to compute the position-weighted
+        primes-based score for a given sub-sequence.
+
+        This method generates the feature for a given dimension.  This
+        method iterates over each character in the given sequence to
+        compute the primes-based pseudo metric.
+
+        \note Ensure that the setPrimes method is called prior to
+        using this method.
+        
+        \param[in] sequence The sub-sequence for which the
+        primes-based pseudo metric is to be computed.
+
+        \param[in] start The starting index position in the sequence
+        from where the score is to be computed.
+
+        \param[in] end The ending index position in the sequence up to
+        where the score is to be computed.
+
+        \param[in] wordLen The size of the word after which positions
+        wrap back to 1.
+        
+        \return The primes-based pseudo metric for the given
+        subsequence.
+    */
+    float weightedScoreSequence(const std::string& sequence, const int start,
+                                const int end, const int wordLen) const;
+    
     /** Helper method to generate a sorted list of metrics from a
         given list.
 
@@ -295,13 +354,17 @@ protected:
         \param[in] numFeatures The number of features or dimensions of
         features to be used for computing distances between ESTs.
 
+        \param[in] wordLen If this parameter is greater than zero,
+        then position-weighted metrics are used.
+        
         \param[in] distThresh Do not include reads whose distance is
         higher than this value.  The default value is set to LONG_MAX
         and hence all reads would be included.
     */
     std::vector<PrimesHelper::ESTMetric>
     computeMetrics(ESTList& estList, int refIdx, int numFeatures,
-                   const long distThresh = 0x7FFFFFFFL) const;
+                   const int wordLen,
+                   const float distThresh = 0x7FFFFFFFL) const;
                                                     
 private:
     /** Vector with prime values set for each valid nucleotide/codon.
@@ -317,6 +380,11 @@ private:
         locally-owned ESTs.
     */
     FeaturesMap featuresCache;
+
+    /** The maximum prime value (set in the constructor) to be used to
+        normalized position-weighted scores
+    */
+    int maxPrime;
 };
 
 #endif

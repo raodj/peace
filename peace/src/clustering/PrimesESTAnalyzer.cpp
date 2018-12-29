@@ -43,6 +43,7 @@ PrimesESTAnalyzer::PrimesESTAnalyzer() : FWAnalyzer("primes") {
     atPrime       = 71;
     cgPrime       = 113;
     distThresh    = -1;
+    wordLen       = -1;
 }
 
 void
@@ -58,7 +59,9 @@ PrimesESTAnalyzer::addCommandLineArguments(ArgParser& argParser) {
         {"--pri-anal-cg", "Prime value for C/G in primes heuristic",
          &cgPrime, ArgParser::INTEGER},
         {"--pri-anal-thresh", "Distance threshold override for similarity",
-         &distThresh, ArgParser::LONG},
+         &distThresh, ArgParser::FLOAT},
+        {"--pri-anal-wordLen", "Word length for position-weights",
+         &wordLen, ArgParser::INTEGER},
         {"", "", NULL, ArgParser::INVALID}
     };    
     // Use a arg parser object to conveniently display common options.
@@ -86,7 +89,7 @@ PrimesESTAnalyzer::initialize() {
     setPrimes(atPrime, cgPrime);
     // Generate and cache metrics for local reads
     ASSERT(estList != NULL);
-    cacheFeatures(*estList, numFeatures);
+    cacheFeatures(*estList, numFeatures, wordLen);
     // Everying went well
     return true;
 }
@@ -106,7 +109,7 @@ PrimesESTAnalyzer::setReferenceEST(const EST* estS1) {
         // method in the PrimesHelper base class (that is capable of
         // doing this computation in a distributed manner).
         float average = 0, deviation = 0;
-        computeAvgDistance(*estList, estS1->getID(), numFeatures,
+        computeAvgDistance(*estList, estS1->getID(), numFeatures, wordLen,
                            average, deviation);
         // Compute the distance threshold depending on average and
         // deviation
@@ -114,11 +117,11 @@ PrimesESTAnalyzer::setReferenceEST(const EST* estS1) {
                       average);
         std::cerr << "Distance threshold: " << distThresh << " (average: "
                   << average << ", deviation: " << deviation << ")\n";
-        ASSERT( distThresh > 0 );
+        ASSERT( distThresh >= 0 );
     }
     
     // Setup the reference sequence features
-    refFeatures = extractFeatures(*estS1, numFeatures);
+    refFeatures = extractFeatures(*estS1, numFeatures, wordLen);
     ASSERT( (int) refFeatures.size() == numFeatures );
     // All done for now.
     return 0;
@@ -127,8 +130,14 @@ PrimesESTAnalyzer::setReferenceEST(const EST* estS1) {
 float
 PrimesESTAnalyzer::getMetric(const EST* otherEST) {
     ASSERT( otherEST != NULL );
-    const LongVec othFeatures = extractFeatures(*otherEST, numFeatures);
-    const double  distance    = getDistance(refFeatures, othFeatures);
+    const FloatVec othFeatures = extractFeatures(*otherEST, numFeatures,
+                                                 wordLen);
+    if (wordLen > 0) {
+        // Return the shortest distance between the 2 reads
+        return getMinDistance(refFeatures, othFeatures);
+    }
+    // Non-position-based metric
+    const double  distance     = getDistance(refFeatures, othFeatures);
     // return the distance
     return distance;
 }

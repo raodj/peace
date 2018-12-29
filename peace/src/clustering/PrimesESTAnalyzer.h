@@ -212,13 +212,21 @@ private:
         argument.  The default value is set to -1 where in the
         distance threshold is computed.
     */
-    long distThresh;
-    
+    float distThresh;
+
+    /** An optional word length based on which position-weighted
+        primes-based features are computed and used by this heuristic.
+        If this value is -1, then weighed features are not used.  Use
+        the \c --pri-heur-wordLen command-line argument to set this
+        parameter.
+    */
+    int wordLen;
+
     /** The prime-numbers based features computed for the reference
         EST setup for this heuristic.  This value is computed in the
         setReferenceEST method in this class.
     */
-    LongVec refFeatures;
+    FloatVec refFeatures;
 };
 
 #endif

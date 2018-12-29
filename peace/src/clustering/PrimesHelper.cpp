@@ -58,20 +58,28 @@ PrimesHelper::setPrimes(const int atPrime, const int cgPrime,
     for (size_t i = 0; (i < Bases.length()); i++) {
         numericVector[i] = others;
     }
+    // Setup the maximum prime value for normalizing position-weighted
+    // scores.
+    maxPrime = std::max(atPrime, cgPrime);
 }
 
-LongVec
+FloatVec
 PrimesHelper::extractFeatures(const std::string& sequence,
-                              const int numFeatures) const {
-    LongVec features(numFeatures);  // The n-dimensional feature
+                              const int numFeatures, const int wordLen) const {
+    FloatVec features(numFeatures);  // The n-dimensional feature
     const int seqLen = sequence.length();  // convenience reference below.
     // Compute scores for each of the n-dimensions.
     for (int startIdx = 0, i = 0; (i < numFeatures); i++) {
         // Convert it to an index position
         const int endIdx = std::min<int>(seqLen, round(seqLen * (i + 1) /
                                                        numFeatures));
-        // Compute score.
-        features[i] = scoreSequence(sequence, startIdx, endIdx);
+        // Compute score or weighted-score based on wordLen
+        if (wordLen < 1) {
+            features[i] = scoreSequence(sequence, startIdx, endIdx);
+        } else {
+            features[i] = weightedScoreSequence(sequence, startIdx, endIdx,
+                                                wordLen);
+        }
         // Update start for next sub-sequence.
         startIdx    = endIdx;
     }
@@ -79,10 +87,10 @@ PrimesHelper::extractFeatures(const std::string& sequence,
     return features;
 }
 
-long
+float
 PrimesHelper::scoreSequence(const std::string& sequence, const int start,
                             const int end) const {
-    long score = 0;
+    float score = 0;
     for (int i = start; (i < end); i++) {
         // The numeric vector for the given character contains the
         // score associated with the given base pair.
@@ -91,8 +99,27 @@ PrimesHelper::scoreSequence(const std::string& sequence, const int start,
     return score;
 }
 
+
+// Compute position-weighted sequence
+float
+PrimesHelper::weightedScoreSequence(const std::string& sequence,
+                                    const int start, const int end,
+                                    const int wordLen) const {
+    float score = 0;
+    for (int i = start, pos = 0; (i < end); i++, pos++) {
+        if (pos > wordLen) {
+            pos = 1;  // recycle the position based on word len
+        }
+        // The numeric vector for the given character contains the
+        // score associated with the given base pair.
+        score += (numericVector[sequence[i]] * pos);
+    }
+    return score / (maxPrime * (end - start));
+}
+
 void
-PrimesHelper::cacheFeatures(ESTList& estList, const int features) {
+PrimesHelper::cacheFeatures(ESTList& estList, const int features,
+                            const int wordLen) {
     // First, determine the subset of ESTs to be processed by this
     // MPI-process
     int startIdx, endIdx;
@@ -101,12 +128,12 @@ PrimesHelper::cacheFeatures(ESTList& estList, const int features) {
     for (int idx = startIdx; (idx < endIdx); idx++) {
         const EST* est = estList.get(idx, true);
         featuresCache[idx] = extractFeatures(est->getSequenceString(),
-                                             features);
+                                             features, wordLen);
     }
 }
 
 // Return value from features cache
-LongVec
+FloatVec
 PrimesHelper::getCachedFeature(const int estIdx) const {
     // Get the iterator corresponding to the estIdx
     FeaturesMap::const_iterator entry = featuresCache.find(estIdx);
@@ -115,19 +142,19 @@ PrimesHelper::getCachedFeature(const int estIdx) const {
         return entry->second;  // return pre-computed features
     }
     // Entry not found. Return empty vector
-    return LongVec();
+    return FloatVec();
 }
 
 void
 PrimesHelper::computeAvgDistance(ESTList& estList, const int refESTidx,
-                                 const int features,
+                                 const int features, const int wordLen,
                                  float& average, float& deviation) const {
     // Get the total number of ESTs to be processed.
     const int numESTs = estList.size();
     // First compute the n-dimensional features for the reference EST
     const EST* refEST = estList.get(refESTidx, true);
-    const LongVec refFeatures = extractFeatures(refEST->getSequenceString(),
-                                                features);
+    const FloatVec refFeatures = extractFeatures(refEST->getSequenceString(),
+                                                 features, wordLen);
     // Compute the distances between the subset of ESTs owned by this
     // process.  Determine the subset of ESTs to be processed by this
     // MPI-process
@@ -138,8 +165,8 @@ PrimesHelper::computeAvgDistance(ESTList& estList, const int refESTidx,
     dists.reserve(endIdx - startIdx);
     for (int idx = startIdx; (idx < endIdx); idx++) {
         // See if we have a cached feature. If not compute features
-        const LongVec idxFeature = extractFeatures(*estList.get(idx, true),
-                                                   features);
+        const FloatVec idxFeature = extractFeatures(*estList.get(idx, true),
+                                                    features, wordLen);
         // Compute distnace between reference feature(s)
         const double dist = getDistance(refFeatures, idxFeature);
         // Store into the local dists vector
@@ -164,37 +191,53 @@ PrimesHelper::computeAvgDistance(ESTList& estList, const int refESTidx,
 }
 
 float
-PrimesHelper::getDistance(const LongVec& refFeatures,
-                          const LongVec& otherFeatures) const {
+PrimesHelper::getMinDistance(const FloatVec& refFeatures,
+                             const FloatVec& otherFeatures) const {
     // Generate Euclidean distance between the two features.
     ASSERT( otherFeatures.size() == refFeatures.size() );
     const int numFeatures = refFeatures.size();
-    long sqDist = 0;
+    float minDist = std::abs(refFeatures[0] - otherFeatures[0]);
+    for (int i = 1; (i < numFeatures); i++) {
+        minDist = std::min(minDist, std::abs(refFeatures[i] -
+                                             otherFeatures[i]));
+    }
+    // The distance is square-root of the sums
+    return minDist;
+}
+
+float
+PrimesHelper::getDistance(const FloatVec& refFeatures,
+                          const FloatVec& otherFeatures) const {
+    // Generate Euclidean distance between the two features.
+    ASSERT( otherFeatures.size() == refFeatures.size() );
+    const int numFeatures = refFeatures.size();
+    float sqDist = 0;
     for (int i = 0; (i < numFeatures); i++) {
-        const long diff = refFeatures[i] - otherFeatures[i];
+        const float diff = refFeatures[i] - otherFeatures[i];
         sqDist += (diff * diff);  // square of distance.
     }
     // The distance is square-root of the sums
     return sqrt(sqDist);
 }
 
-LongVec
-PrimesHelper::extractFeatures(const EST& est, const int numFeatures) const {
+FloatVec
+PrimesHelper::extractFeatures(const EST& est, const int numFeatures,
+                              const int wordLen) const {
     // Get the iterator corresponding to the estIdx
     FeaturesMap::const_iterator entry = featuresCache.find(est.getID());
     if (entry != featuresCache.end()) {
         return entry->second;  // return pre-computed features
     }
     // If not compute and return it.
-    return extractFeatures(est.getSequenceString(), numFeatures);
+    return extractFeatures(est.getSequenceString(), numFeatures, wordLen);
 }
 
 std::vector<PrimesHelper::ESTMetric>
-PrimesHelper::computeMetrics(ESTList& estList, int refIdx,
-                             int numFeatures, const long distThresh) const {
+PrimesHelper::computeMetrics(ESTList& estList, int refIdx, int numFeatures,
+                             int wordLen, const float distThresh) const {
     // Compute reference EST listances
-    const LongVec refFeatures = extractFeatures(*estList.get(refIdx, true),
-                                                numFeatures);
+    const FloatVec refFeatures = extractFeatures(*estList.get(refIdx, true),
+                                                 numFeatures, wordLen);
     // Compute the distances between the subset of ESTs owned by this
     // process.  Determine the subset of ESTs to be processed by this
     // MPI-process
@@ -209,7 +252,7 @@ PrimesHelper::computeMetrics(ESTList& estList, int refIdx,
             continue;  // This read can-and-should be ignored.
         }
         // See if we have a cached feature. If not compute features
-        const LongVec idxFeature = extractFeatures(*est, numFeatures);
+        const FloatVec idxFeature = extractFeatures(*est, numFeatures, wordLen);
         // Compute distnace between reference feature(s)
         const float dist = getDistance(refFeatures, idxFeature);
         if (dist < distThresh) {
