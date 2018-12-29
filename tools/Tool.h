@@ -289,7 +289,16 @@ public:
         processed by this class.
     */
     const ESTList& getESTList() const;
-	
+
+    /** Obtain a reference to the EST analyzer set in PEACE.
+
+        This method must be used to obtain a reference to the EST
+        analyzer setup in PEACE.
+
+        \return A reference to the EST analyzer setup in PEACE.
+    */
+    ESTAnalyzer& getAnalyzer();
+    
 protected:
     /** The constructor.
 
@@ -302,6 +311,23 @@ protected:
     */
     Tool();
 
+    /** Constructor to parameterize PEACE.
+
+        This constructor accepts command-line arguments that can be
+        used to parameterize the operation of the PEACE instance
+        variable in this class.  The constructor has been made
+        protected to ensure that this class is never directly
+        instantiated.  Instead one of the derived classes must be
+        instantiated (via its main() method) and used.
+
+        \param[in] argc The number of remaining command line arguments
+        to be passed to PEACE for initialization.
+        
+        \param[in,out] argv The actual command line arguments for use
+        by PEACE for initialization.
+    */
+    Tool(int argc, char *argv[]);
+    
     /** The helper class to generate XFig information.
 
         This object is used to generate a XFig information to display

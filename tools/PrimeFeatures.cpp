@@ -114,7 +114,8 @@ PrimeFeatures::generateFeatures(int numFeatures, int refEST, std::ostream &os) {
         const EST *est = estList.get(refEST, true);
         ASSERT( est != NULL );
         // Get n-dimensional features
-        refFeatures = extractFeatures(est->getSequenceString(), numFeatures);
+        refFeatures = extractFeatures(est->getSequenceString(),
+                                      numFeatures, -1);
     }
     // Process each read and print n-dimensional features.    
     for (int i = 0; (i < estList.size()); i++) {
@@ -123,7 +124,7 @@ PrimeFeatures::generateFeatures(int numFeatures, int refEST, std::ostream &os) {
         ASSERT( est != NULL );
         // Get n-dimensional features
         const FloatVec features = extractFeatures(est->getSequenceString(),
-                                                 numFeatures);
+                                                  numFeatures, -1);
         ASSERT( numFeatures == (int) features.size() );
         // Print the information.
         os << i; //  << ", " << est->getInfo();
