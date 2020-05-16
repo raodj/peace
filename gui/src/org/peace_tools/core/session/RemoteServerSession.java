@@ -113,38 +113,6 @@ public class RemoteServerSession extends ServerSession implements UserInfo, UIKe
 	 */
 	protected RemoteServerSession(Component parent, Server server) {
 		super(server, parent);
-		session = null;
-		osType = null;
-		purpose = null;
-	}
-
-	/**
-	 * A helper method to setup the known hosts file (and information).
-	 *
-	 * This is a refactored helper method that is used to setup the known hosts file
-	 * for use by JSch (SSH client library). The known hosts file caches SSH
-	 * key/signatures of servers with which the user has established connections in
-	 * previous runs. This file is automatically managed by JSch. Here, we just
-	 * provide the file name for use (if we have not already done so). This method
-	 * is invoked from the connect() method.
-	 *
-	 * @see connect
-	 */
-	private void setKnownHosts() {
-		// Setup the known hosts repository if one is not already set
-		synchronized (sshClientLibrary) {
-			if (sshClientLibrary.getHostKeyRepository().getKnownHostsRepositoryID() == null) {
-				try {
-					sshClientLibrary.setKnownHosts(KnownHostPath);
-				} catch (JSchException exp) {
-					// Let user know that known hosts saving is disabled!
-					ProgrammerLog.log(exp);
-					JPanel msg = Utilities.collapsedMessage(KNOWN_HOSTS_ERROR, Utilities.toString(exp));
-					JOptionPane.showMessageDialog(parent, msg, "Unable to use Known Hosts File",
-							JOptionPane.WARNING_MESSAGE);
-				}
-			}
-		}
 	}
 
 	/**
@@ -155,7 +123,6 @@ public class RemoteServerSession extends ServerSession implements UserInfo, UIKe
 	 * perform the following operations:
 	 * 
 	 * <ol>
-	 * 
 	 * <li>If a connection has already been established then this method returns
 	 * immediately.</li>
 	 * 
@@ -171,7 +138,6 @@ public class RemoteServerSession extends ServerSession implements UserInfo, UIKe
 	 * instantiated. If a valid password is not available, then this method prompts
 	 * the user to obtain the password. It is important to set the purpose for this
 	 * session to inform the user about the need to connect.</li>
-	 * 
 	 * </ol>
 	 * 
 	 * <p>
@@ -189,73 +155,103 @@ public class RemoteServerSession extends ServerSession implements UserInfo, UIKe
 	public void connect() throws IOException {
 		// If connection is already set, then do nothing.
 		if (session != null) {
-			// Connection already exists.
 			return;
 		}
+
 		// Setup the known hosts file as needed
 		setKnownHosts();
-		// Check and ensure that the host name is valid. The following
-		// call will generate an exception if host is invalid.
+
+		// Check and ensure that the host name is valid. The following call will
+		// generate an exception if host is invalid.
 		InetAddress.getByName(server.getName());
-		// Create connection to the remote host. Use a temporary
-		// variable so that if exceptions are thrown our instance
-		// variable continues to remain valid.
+
+		// Create connection to the remote host. Use a temporary variable so that if
+		// exceptions are thrown our instance variable continues to remain valid.
 		Session connection = null;
 
 		int retryCount = 3;
 		do {
 			try {
-				// Try and establish a connection. If an exception occurs then
-				// we can't do anything further in this step.
+				// Try and establish a connection. If an exception occurs then we can't do
+				// anything further in this step.
 				connection = sshClientLibrary.getSession(server.getUserID(), server.getName(), server.getPort());
 				connection.setUserInfo(this);
-			} catch (JSchException exp) {
+			} catch (JSchException e) {
 				// This type of exception is not recoverable!
-				throw new IOException(exp);
+				throw new IOException(e);
 			}
 			try {
 				// Request server to enable level-9 compression for this session.
 				connection.setConfig("compression.s2c", "zlib@openssh.com,zlib,none");
 				connection.setConfig("compression.c2s", "zlib@openssh.com,zlib,none");
 				connection.setConfig("compression_level", "9");
-				// Establish the connection. The following call will prompt for
-				// adding entries to ".KnownHosts" file and for the user's password
-				// (if the server does not have a password already set).
+
+				// Establish the connection. The following call will prompt for adding entries
+				// to ".KnownHosts" file and for the user's password (if the server does not
+				// have a password already set).
 				connection.connect();
-				// When control drops here and the connection is not connected, that
-				// indicates a routine flow in which the user decided to cancel the connection
+
+				// When control drops here and the connection is not connected, that indicates a
+				// routine flow in which the user decided to cancel the connection
 				if (!connection.isConnected()) {
 					throw new IOException("User interrupted loggin to server");
 				}
-			} catch (JSchException exp) {
+			} catch (JSchException e) {
 				// UserLog.log(LogLevel.NOTICE, "RemoteServerSession", exp.getMessage());
-				ProgrammerLog.log(exp);
-				// An exception occurred. If we are not out of retries, then
-				// we will prompt the user for the password again.
-				server.setPassword(null); // reset password
+				ProgrammerLog.log(e);
+
+				// An exception occurred. If we are not out of retries, then we will prompt the
+				// user for the password again. Reset password.
+				server.setPassword(null);
 				connection.disconnect();
-			} catch (RuntimeException rtExp) {
-				if (USER_INTERRUPTED_EXP_MSG.equals(rtExp.getMessage())) {
+			} catch (RuntimeException e) {
+				if (USER_INTERRUPTED_EXP_MSG.equals(e.getMessage())) {
 					// This is an exception that we expect to get
-					throw new IOException(rtExp);
+					throw new IOException(e);
 				}
 				// This is not an exception we expect to get. Rethrow it.
-				throw rtExp;
+				throw e;
 			} finally {
-				// Always decrement retry count to ensure we never get into an
-				// infinite loop.
+				// Always decrement retry count to ensure we never get into an infinite loop.
 				retryCount--;
 			}
-		} while ((retryCount > 0) && (!connection.isConnected()));
+		} while (retryCount > 0 && !connection.isConnected());
 
-		if ((retryCount > 0) && (connection.isConnected())) {
-			// OK, the connection was established successfully. Set our
-			// instance variable to the local value.
+		if (retryCount > 0 && connection.isConnected()) {
+			// The connection was established successfully. Set our instance variable to
+			// the local value.
 			this.session = connection;
 		} else {
-			// We could not connect even after 3-retries. Throw an exception
-			// and bail out from here.
-			throw new IOException("Authentication failed.\n" + "The user name or password is incorrect.");
+			// We could not connect even after 3-retries. Throw an exception and bail out
+			// from here.
+			throw new IOException("Authentication failed.\nThe user name or password is incorrect.");
+		}
+	}
+
+	/**
+	 * A helper method to setup the known hosts file (and information).
+	 *
+	 * This is a refactored helper method that is used to setup the known hosts file
+	 * for use by JSch (SSH client library). The known hosts file caches SSH
+	 * key/signatures of servers with which the user has established connections in
+	 * previous runs. This file is automatically managed by JSch. Here, we just
+	 * provide the file name for use (if we have not already done so). This method
+	 * is invoked from the {@link #connect()} method.
+	 */
+	private void setKnownHosts() {
+		// Setup the known hosts repository if one is not already set
+		synchronized (sshClientLibrary) {
+			if (sshClientLibrary.getHostKeyRepository().getKnownHostsRepositoryID() == null) {
+				try {
+					sshClientLibrary.setKnownHosts(KNOWN_HOST_PATH);
+				} catch (JSchException exp) {
+					// Let user know that known hosts saving is disabled!
+					ProgrammerLog.log(exp);
+					JPanel msg = Utilities.collapsedMessage(KNOWN_HOSTS_ERROR, Utilities.toString(exp));
+					JOptionPane.showMessageDialog(parent, msg, "Unable to use Known Hosts File",
+							JOptionPane.WARNING_MESSAGE);
+				}
+			}
 		}
 	}
 
@@ -331,8 +327,8 @@ public class RemoteServerSession extends ServerSession implements UserInfo, UIKe
 			server.setPassword(pwdDialog.getPassword());
 			return true;
 		}
-		// When control drops here that indicates that the user
-		// did not click the "OK" button. So stop SSH operations
+		// When control drops here that indicates that the user did not click the "OK"
+		// button. So stop SSH operations
 		return false;
 	}
 
@@ -378,11 +374,11 @@ public class RemoteServerSession extends ServerSession implements UserInfo, UIKe
 	 */
 	@Override
 	public void showMessage(String message) {
-		// Create a text area to display the message and place it inside
-		// a scroll pane to permit display of large messages using a
-		// decent sized GUI window.
+		// Create a text area to display the message and place it inside a scroll pane
+		// to permit display of large messages using a decent sized GUI window.
 		JTextArea msgDisplay = new JTextArea(message, 60, 5);
 		JScrollPane jsp = new JScrollPane(msgDisplay);
+
 		// Show the message to the user.
 		JOptionPane.showMessageDialog(parent, jsp, "Secure Shell (SSH) Message", JOptionPane.INFORMATION_MESSAGE);
 	}
@@ -407,25 +403,25 @@ public class RemoteServerSession extends ServerSession implements UserInfo, UIKe
 		// The message object to be filled in further below.
 		JComponent msgDisplay = null;
 		int msgType = JOptionPane.INFORMATION_MESSAGE;
-		boolean expOnNo = false; // Throw an exception on "No" choice
-		// JSch messages are OK for folks who are familiar with SSH and such.
-		// However, for a common user, here try and create a more meaningful
-		// message in situations where the user is connecting to the server for
-		// the first time.
-		if (message.startsWith("The authenticity of host") && (message.indexOf("can't be established") > 0)) {
-			// This is a situation where the user is typically connecting for
-			// the first time. Display a custom message.
-			final String rsaTag = "RSA key fingerprint is ";
+		boolean expOnNo = false;
+
+		// JSch messages are OK for folks who are familiar with SSH and such. However,
+		// for a common user, here try and create a more meaningful message in
+		// situations where the user is connecting to the server for the first time.
+		if (message.startsWith("The authenticity of host") && message.contains("can't be established")) {
+			// This is a situation where the user is typically connecting for the first
+			// time. Display a custom message.
+			String rsaTag = "RSA key fingerprint is ";
 			int rsaKeyPos = message.indexOf(rsaTag) + rsaTag.length() + 1;
 			String rsaKey = message.substring(rsaKeyPos, message.indexOf('.', rsaKeyPos));
+
 			// Format and display the message to the user.
-			final String custMsg = String.format(FIRST_SSH_CONNECTION_MSG, server.getName(), rsaKey);
+			String custMsg = String.format(FIRST_SSH_CONNECTION_MSG, server.getName(), rsaKey);
 			msgDisplay = Utilities.collapsedMessage(custMsg, message, false);
 			expOnNo = true;
 		} else if (message.startsWith("WARNING: ")) {
-			// This is a situation when the RSA key for the server has changed.
-			// Here we create a custom and more informative message than the one
-			// displayed by JSch.
+			// This is a situation when the RSA key for the server has changed. Here we
+			// create a custom and more informative message than the one displayed by JSch.
 			msgDisplay = Utilities.collapsedMessage(SSH_HOST_CHANGE_MSG, message, false);
 			msgType = JOptionPane.WARNING_MESSAGE;
 			expOnNo = true;
@@ -437,12 +433,14 @@ public class RemoteServerSession extends ServerSession implements UserInfo, UIKe
 		// Display message to user and get user's Yes/No choice
 		int choice = JOptionPane.showConfirmDialog(parent, msgDisplay, "Secure Shell (SSH) Protocol Interaction",
 				JOptionPane.YES_NO_OPTION, msgType);
-		// If the user clicked "No" for a "Warning" message, we throw an exception here.
+
+		// If the user clicked "No" for a "Warning" message, we throw an exception here
 		// to communicate a serious issue.
-		if ((choice == JOptionPane.NO_OPTION) && (expOnNo)) {
+		if (choice == JOptionPane.NO_OPTION && expOnNo) {
 			// A serious issue from which we should not retry connections etc.
 			throw new RuntimeException(USER_INTERRUPTED_EXP_MSG);
 		}
+
 		// Return true if the user clicked on the "Yes" button.
 		return (choice == JOptionPane.YES_OPTION);
 	}
@@ -508,7 +506,7 @@ public class RemoteServerSession extends ServerSession implements UserInfo, UIKe
 	 * @param outputs The buffered results from the standard output and standard
 	 *                error streams of the remote process. Specifically, outputs[0]
 	 *                will contain the standard output data while outputs[1] will
-	 *                contain teh standard error stream.
+	 *                contain the standard error stream.
 	 * 
 	 * @return The exit code from the remote command that was run.
 	 * 
@@ -520,29 +518,36 @@ public class RemoteServerSession extends ServerSession implements UserInfo, UIKe
 		if (session == null) {
 			throw new IOException("Not connected to remote server.");
 		}
+
 		// Create a channel via the session
 		ChannelExec channel = (ChannelExec) session.openChannel("exec");
+
 		// Setup the command for execution on remote machine.
 		channel.setCommand(command);
-		// Process the output streams. A suitable stream is used to
-		// buffer the data from standard out while we read standard
-		// error explicitly.
+
+		// Process the output streams. A suitable stream is used to buffer the data from
+		// standard out while we read standard error explicitly.
 		ByteArrayOutputStream stdout = new ByteArrayOutputStream(8192);
-		// Setup the standard output stream to which data is to be written
-		// when the the command runs.
+		// Setup the standard output stream to which data is to be written when the the
+		// command runs.
 		channel.setOutputStream(stdout);
-		channel.setErrStream(null); // No buffers for error stream.
+		// No buffers for error stream.
+		channel.setErrStream(null);
+
 		// Now run the command on the remote server
 		channel.connect();
 
-		// Read all the data into a single string from standard error
-		// stream into a single string.
+		// Read all the data into a single string from standard error stream into a
+		// single string.
 		outputs[1] = Utilities.readFullStream(channel.getErrStream());
 		// Convert the standard output to a string as well.
 		outputs[0] = stdout.toString();
+
 		// Save exit status.
 		int exitCode = channel.getExitStatus();
+
 		channel.disconnect();
+
 		// Return the exit code from the remote process
 		return exitCode;
 	}
@@ -576,32 +581,43 @@ public class RemoteServerSession extends ServerSession implements UserInfo, UIKe
 	 */
 	@Override
 	public int exec(final String command, DefaultStyledDocument output) throws Exception {
-		// Ensure we have a valid connection first.
 		if (session == null) {
 			throw new IOException("Not connected to remote server.");
 		}
+
 		// Create a session via the connection
 		ChannelExec channel = (ChannelExec) session.openChannel("exec");
+
 		// Setup the command for execution on remote machine.
 		channel.setCommand(command);
-		// Process the output streams. The following output stream
-		// buffers the data from standard error (on a different thread)
-		// while we read standard output in this thread.
+
+		// Process the output streams. The following output stream buffers the data from
+		// standard error (on a different thread) while we read standard output in this
+		// thread.
 		ByteArrayOutputStream stderr = new ByteArrayOutputStream(8192);
 		channel.setErrStream(stderr);
+
 		// Read stdout one line at a time and add it to the output
 		BufferedReader stdin = new BufferedReader(new InputStreamReader(channel.getInputStream()));
+
+		// Now run the command on the remote server
+		channel.connect();
+
 		String line = null;
 		while ((line = stdin.readLine()) != null) {
 			// Got another line of standard output. Display it.
 			output.insertString(output.getLength(), line + "\n", output.getStyle("stdout"));
 		}
+
 		// Flush out any pending data on the standard error stream
 		String stdErrData = stderr.toString();
 		output.insertString(output.getLength(), stdErrData, output.getStyle("stderr"));
+
 		// Save exit status.
 		int exitCode = channel.getExitStatus();
+
 		channel.disconnect();
+
 		// Return the exit code from the remote process
 		return exitCode;
 	}
@@ -624,19 +640,17 @@ public class RemoteServerSession extends ServerSession implements UserInfo, UIKe
 	@Override
 	public Server.OSType getOSType() throws Exception {
 		if (osType != null) {
-			// We already know the OS type os just return it.
 			return osType;
 		}
 		if (session == null) {
 			throw new IOException("Remote session not connected.");
 		}
-
-		// Now that the session is connected try to run uname -a to
-		// determine type of the remote operating system.
-		String streamsData[] = { "", "" };
-		if ((exec("uname", streamsData) != 0) || (streamsData[0].length() == 0) || (streamsData[1].length() != 0)) {
-			throw new Exception("Unable to determine the remote " + "machine's OS type. Possibly it is not a Linux "
-					+ "or an Unix machine.");
+		// Now that the session is connected try to run uname -a to determine type of
+		// the remote operating system.
+		String[] streamsData = new String[2];
+		if (exec("uname", streamsData) != 0 || streamsData[0].length() == 0 || streamsData[1].length() != 0) {
+			throw new Exception("Unable to determine the remote machine's OS type.\n"
+					+ "Possibly it is not a Linux or an Unix machine.");
 		}
 		// Determine OS type based on the response string
 		osType = (streamsData[0].indexOf("Linux") != -1) ? Server.OSType.LINUX : Server.OSType.UNIX;
@@ -672,39 +686,44 @@ public class RemoteServerSession extends ServerSession implements UserInfo, UIKe
 		if (session == null) {
 			throw new IOException("Remote session not connected.");
 		}
+
 		// Compute the final path and target file name.
 		if (destDirectory == null) {
 			destDirectory = ".";
 		}
-		final String targetFile = destDirectory + "/" + destFileName;
+
+		String targetFile = destDirectory + "/" + destFileName;
+
 		// Create an SFTP client.
 		ChannelSftp sftp = null;
 		OutputStream destFile = null;
-		// A try..finally block to ensure sftp and ftp connections
-		// get closed
+
+		// A try..finally block to ensure sftp and ftp connections get closed
 		try {
 			// Create a sftp channel and connect the channel.
 			sftp = (ChannelSftp) session.openChannel("sftp");
 			sftp.connect();
+
 			// Create a file for writing (truncate any existing files)
 			destFile = sftp.put(targetFile, ChannelSftp.OVERWRITE);
+
 			// Read data from input stream and write data to the destFile
-			byte buffer[] = new byte[8096];
+			byte[] buffer = new byte[8096];
 			int bytesRead = 0;
 			while ((bytesRead = srcData.read(buffer, 0, buffer.length)) != -1) {
 				destFile.write(buffer, 0, bytesRead);
 			}
+			
 			// Done writing data. Close stream and change permissions
-			destFile.close();
-			destFile = null;
-			// Get current status information about the file.
+            destFile.close();
+            destFile = null;
+			
+            // Get current status information about the file.
 			SftpATTRS attribs = sftp.stat(targetFile);
 			attribs.setPERMISSIONS(mode);
 			sftp.setStat(targetFile, attribs);
-		} catch (JSchException sshExp) {
-			throw new IOException(sshExp);
-		} catch (SftpException ftpExp) {
-			throw new IOException(ftpExp);
+		} catch (JSchException | SftpException e) {
+			throw new IOException(e);
 		} finally {
 			if (destFile != null) {
 				destFile.close();
@@ -742,38 +761,46 @@ public class RemoteServerSession extends ServerSession implements UserInfo, UIKe
 		if (session == null) {
 			throw new IOException("Remote session not connected.");
 		}
+
 		// Compute the final path and target file name.
 		if (srcDirectory == null) {
 			srcDirectory = ".";
 		}
-		final String sourceFile = srcDirectory + "/" + srcFileName;
+
+		String sourceFile = srcDirectory + "/" + srcFileName;
+
 		// Create an SFTP client.
 		ChannelSftp sftp = null;
 		InputStream srcFile = null;
-		// A try..finally block to ensure sftp channels
-		// get closed
+
+		// A try..finally block to ensure sftp channels get closed
 		try {
 			// Make the progress bar indeterminate for now.
 			if (progBar != null) {
 				progBar.setIndeterminate(true);
 			}
+
 			// Open a sftp channel and connect to server to secure-FTP data
 			sftp = (ChannelSftp) session.openChannel("sftp");
 			sftp.connect();
+
 			// Obtain information about the source file to be copied
 			SftpATTRS attribs = sftp.stat(sourceFile);
 			if (attribs == null) {
 				throw new IOException("The source file " + sourceFile + " was not found.");
 			}
+
 			// Open source file for reading (or get exception)
 			srcFile = sftp.get(sourceFile);
+
 			// Now using the file size and set progress bar size
 			if (progBar != null) {
 				progBar.setMaximum((int) attribs.getSize());
 				progBar.setIndeterminate(false);
 			}
+
 			// Read data from input stream and write data to the destFile
-			byte buffer[] = new byte[4096];
+			byte[] buffer = new byte[4096];
 			int bytesRead = 0;
 			long srcOffset = 0;
 			while ((bytesRead = srcFile.read(buffer, 0, buffer.length)) != -1) {
@@ -783,10 +810,8 @@ public class RemoteServerSession extends ServerSession implements UserInfo, UIKe
 					progBar.setValue((int) srcOffset);
 				}
 			}
-		} catch (JSchException sshExp) {
-			throw new IOException(sshExp);
-		} catch (SftpException ftpExp) {
-			throw new IOException(ftpExp);
+		} catch (JSchException | SftpException e) {
+			throw new IOException(e);
 		} finally {
 			// Ensure that the file is closed correctly
 			if (srcFile != null) {
@@ -818,22 +843,26 @@ public class RemoteServerSession extends ServerSession implements UserInfo, UIKe
 		if (session == null) {
 			throw new IOException("Remote session not connected.");
 		}
+
 		FileInfo info = null;
+
 		try {
-			final RemoteFile rf = new RemoteFile(path, session);
-			final SftpATTRS attribs = rf.getAttributes();
+			RemoteFile rf = new RemoteFile(path, session);
+			SftpATTRS attribs = rf.getAttributes();
+
 			if (attribs != null) {
 				String logEntry = String.format("SFTP gave 0x%s as attributes for %s\n",
 						Integer.toHexString(attribs.getPermissions()), path);
 				ProgrammerLog.log(logEntry);
-				// Translate SFTP file attributes to FileInfo style
-				// attributes.
+
+				// Translate SFTP file attributes to FileInfo style attributes.
 				int attributes = 0;
 				attributes |= (rf.isDirectory() ? FileInfo.DIR_ATTRIB : 0);
 				attributes |= (rf.isFile() ? FileInfo.FILE_ATTRIB : 0);
 				attributes |= (rf.canRead() ? FileInfo.READ_ATTRIB : 0);
 				attributes |= (rf.canWrite() ? FileInfo.WRITE_ATTRIB : 0);
 				attributes |= (rf.canExecute() ? FileInfo.EXEC_ATTRIB : 0);
+
 				// Now create the file info object.
 				info = new FileInfo(path, attribs.getATime() * 1000L, attribs.getSize(), attributes);
 			} else {
@@ -841,14 +870,14 @@ public class RemoteServerSession extends ServerSession implements UserInfo, UIKe
 				ProgrammerLog.log("SFTP says " + path + " does not exit (but no exception).\n");
 				info = new FileInfo(path, -1, -1, 0);
 			}
-		} catch (Exception exp) {
-			if (exp.getMessage().indexOf("No such file") != -1) {
+		} catch (Exception e) {
+			if (e.getMessage().indexOf("No such file") != -1) {
 				// This is an expected exception if file does not exist
 				ProgrammerLog.log("SFTP says " + path + " does not exit.\n");
 				info = new FileInfo(path, -1, -1, 0);
 			} else {
 				// Unexpected exception
-				throw new IOException(exp);
+				throw new IOException(e);
 			}
 		}
 		// Log to track translation.
@@ -877,8 +906,8 @@ public class RemoteServerSession extends ServerSession implements UserInfo, UIKe
 		if (session == null) {
 			throw new IOException("Remote session not connected.");
 		}
-		// Now that the session is connected try to run mkdir to
-		// create the specified directory on the remote machine.
+		// Now that the session is connected try to run mkdir to create the specified
+		// directory on the remote machine.
 		ChannelSftp sftp = null;
 		try {
 			sftp = (ChannelSftp) session.openChannel("sftp");
@@ -912,8 +941,8 @@ public class RemoteServerSession extends ServerSession implements UserInfo, UIKe
 		if (session == null) {
 			throw new IOException("Remote session not connected.");
 		}
-		// Now that the session is connected try to run rmdir to
-		// delete the specified directory on the remote machine
+		// Now that the session is connected try to run rmdir to delete the specified
+		// directory on the remote machine
 		ChannelSftp sftp = null;
 		try {
 			sftp = (ChannelSftp) session.openChannel("sftp");
@@ -1023,16 +1052,16 @@ public class RemoteServerSession extends ServerSession implements UserInfo, UIKe
 	 * which we have connected before) is stored. This list is applicable only for
 	 * remote hosts.
 	 */
-	private static final String KnownHostPath = Utilities.getDefaultDirectory() + "/.KnownHosts";
+	private static final String KNOWN_HOST_PATH = Utilities.getDefaultDirectory() + "/.KnownHosts";
 
 	/**
 	 * A generic informational message that is displayed to the user when any error
 	 * occurs when trying to set the known hosts file to be used by JSch.
 	 */
 	private static final String KNOWN_HOSTS_ERROR = "<html>Error occured when attempting to use the known hosts<br>"
-			+ "file: '" + KnownHostPath + "'.<br>"
+			+ "file: '" + KNOWN_HOST_PATH + "'.<br>"
 			+ "Please rectify this issue appropriately. You can still continute<br>"
-			+ "to use PEACE.  But caching of known hosts for secure shell connection<br>" + "will be disabled.";
+			+ "to use PEACE. But caching of known hosts for secure shell connection<br>will be disabled.";
 
 	/**
 	 * A first-time connection message that is formatted and displayed to the user.
@@ -1041,16 +1070,14 @@ public class RemoteServerSession extends ServerSession implements UserInfo, UIKe
 	 * additional information) and displayed to the user. This message is used when
 	 * the user connects to an Server for the first time and the server entry is not
 	 * in the Known hosts file.
-	 * 
-	 * @see KnownHostPath
 	 */
 	private static final String FIRST_SSH_CONNECTION_MSG = "<html>The authenticity of host %s<br/>"
-			+ "cannot be verified as it is not a \"known host\".<br/>" + "The RSA fingerprint key is: %s<br/><br/>"
+			+ "cannot be verified as it is not a \"known host\".<br/>The RSA fingerprint key is: %s<br/><br/>"
 			+ "This is most likely because this is the first time you<br/>"
 			+ "connecting to this host via PEACE and this message is<br/>"
-			+ "normal when connecting via secure shell (SSH) protocol.<br/>" + "<br/>"
+			+ "normal when connecting via secure shell (SSH) protocol.<br/><br/>"
 			+ "<b>Would you like to add this server to the \"known hosts\"<br/>"
-			+ "and proceed with the connection?</b>" + "</html>";
+			+ "and proceed with the connection?</b></html>";
 
 	/**
 	 * Message that is formatted and displayed to the user to warn about change in
@@ -1060,19 +1087,17 @@ public class RemoteServerSession extends ServerSession implements UserInfo, UIKe
 	 * additional information) and displayed to the user. This message is used when
 	 * the user connects to an Server but the server's RSA finger print key has
 	 * changed.
-	 * 
-	 * @see KnownHostPath
 	 */
 	private static final String SSH_HOST_CHANGE_MSG = "<html><b>The server's identification has changed!</b><br/>"
 			+ "<b>It is possible that someone is doing something nasty</b><br/>"
 			+ "(someone could be eavesdropping via man-in-the-middle type attack).<br/>"
-			+ "It is aslo possible that the RSA host key for the server has changed.<br/>" + "<ul>"
+			+ "It is aslo possible that the RSA host key for the server has changed.<br/><ul>"
 			+ "<li>If this is a server maintained by your department or university<br/>"
 			+ "it is normally safe to proceed with using the server.</li>"
 			+ "<li>If not please contact your server administrators to verify that<br/>"
 			+ "the change in finger print is expected prior to using the server.</li></ul>"
 			+ "<b>Would you like to update the server's entry in \"known hosts\"<br/>"
-			+ "and proceed with the connection?</b>" + "</html>";
+			+ "and proceed with the connection?</b></html>";
 
 	/**
 	 * A static message that is included as a part of the RuntimeException generated
