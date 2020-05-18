@@ -146,7 +146,7 @@ public class ServerInfoWizardPage extends GenericWizardPage implements Runnable,
 	private JPanel createInfoPanel() {
 		// Let the user know the remote directory will be validated when they click the
 		// "Next" button.
-		fixedMsgs[0] = new JLabel("<html>Install path will be verified when the<br>Next button is clicked</html>",
+		fixedMsgs[0] = new JLabel("<html>Install path will be verified when the Next button is clicked</html>",
 				Utilities.getIcon("images/16x16/Information.png"), SwingConstants.LEFT);
 
 		// The fixedMsg to inform user to "wait" is a bit more involved.
@@ -344,8 +344,6 @@ public class ServerInfoWizardPage extends GenericWizardPage implements Runnable,
 		} catch (Exception e) {
 			// Save exception to be reported below.
 			exp = e;
-			// Close the connection (if any)
-			serverSession.disconnect();
 		}
 
 		// When control drops here we have either successfully verified install path (no
