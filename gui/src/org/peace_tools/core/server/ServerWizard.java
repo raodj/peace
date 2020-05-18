@@ -171,6 +171,9 @@ public class ServerWizard extends WizardDialog {
 	@Override
 	public void done(boolean success) {
 		if (!success) {
+			if (serverSession != null) {
+				serverSession.disconnect();
+			}
 			return;
 		}
 
