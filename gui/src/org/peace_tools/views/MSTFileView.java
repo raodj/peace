@@ -70,60 +70,59 @@ import org.peace_tools.generic.Utilities;
 /**
  * A simple tree-based view of a Minimum Spanning Tree (MST).
  * 
- *  This is a simple view of the MST data in the form of a standard
- *  JTree.
+ * This is a simple view of the MST data in the form of a standard JTree.
  */
 public class MSTFileView extends JPanel implements ListSelectionListener {
 	/**
-	 * The constructor creates the tree view using the data from the
-	 * current work space.
+	 * The constructor creates the tree view using the data from the current work
+	 * space.
 	 * 
 	 * @param frame
 	 */
 	public MSTFileView(MainFrame frame, MSTTreeModel mstModel) {
 		super(new BorderLayout(0, 0));
+		// Save reference to main frame.
+		mainFrame = frame;
+
 		// Create and set up the tree model to be used.
 		mstTree = new JTree((this.treeModel = mstModel));
-		// Set other GUI behavioral options
 		mstTree.setMinimumSize(new Dimension(50, 50));
 		mstTree.setEditable(false);
 		mstTree.setLargeModel(true);
 		mstTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
-		// Save reference to main frame.
-		mainFrame = frame;
-		assert(mainFrame != null);
-		assert(treeModel != null);
-        //Enable tool tips.
-        ToolTipManager.sharedInstance().registerComponent(mstTree);
-        // Setup cell renderer for better icons
-        mstTree.setCellRenderer(new DataSetRenderer());
-        // Add tree to the center.
-        JScrollPane jsp = new JScrollPane(mstTree);
-        jsp.setBorder(null);
-        
-        // Now create and handle the degree information tree.
-        JPanel degreeInfo = buildDegreePanel(mstModel);
-        JSplitPane mstPane = 
-    		PropertiesTreeMaker.createPropertiesLayout("Degree Information", degreeInfo, 
-    				jsp, null, -1, null, null, null);
-        
+
+		// Enable tool tips.
+		ToolTipManager.sharedInstance().registerComponent(mstTree);
+
+		// Setup cell renderer for better icons
+		mstTree.setCellRenderer(new DataSetRenderer());
+
+		// Add tree to the center.
+		JScrollPane jsp = new JScrollPane(mstTree);
+		jsp.setBorder(null);
+
+		// Now create and handle the degree information tree.
+		JPanel degreeInfo = buildDegreePanel(mstModel);
+		JSplitPane mstPane = PropertiesTreeMaker.createPropertiesLayout("Degree Information", degreeInfo, jsp, null, -1,
+				null, null, null);
+
 		// Create summary information.
 		JTree summaryInfo = PropertiesTreeMaker.makeMSTProperties(treeModel.getWsEntry(), mainFrame);
-		// Place the summary information and the tree-table into a split panel using
-		// helper method.
-		JSplitPane contentPane = 
-		PropertiesTreeMaker.createPropertiesLayout("MST Information", summaryInfo, mstPane, null, -1);
+		// Place the summary information and the tree-table into a split panel using helper method.
+		JSplitPane contentPane = PropertiesTreeMaker.createPropertiesLayout("MST Information", summaryInfo, mstPane,
+				null, -1);
 		// Set the content pane as the main component in this view
-        add(contentPane, BorderLayout.CENTER);
+		add(contentPane, BorderLayout.CENTER);
 	}
-	
+
 	/**
-	 * This method is called whenever the user selects a different row in the
-	 * degree table. This method uses the EST index from the currently selected
-	 * row to select the corresponding node in the adjacent tree view.
+	 * This method is called whenever the user selects a different row in the degree
+	 * table. This method uses the EST index from the currently selected row to
+	 * select the corresponding node in the adjacent tree view.
 	 * 
-	 * @param lse The list event associated with this call. Currently this method
-	 * is ignored and the currently selected row is directly obtained from the table.
+	 * @param lse The list event associated with this call. Currently this method is
+	 *            ignored and the currently selected row is directly obtained from
+	 *            the table.
 	 */
 	@Override
 	public void valueChanged(ListSelectionEvent lse) {
@@ -137,18 +136,18 @@ public class MSTFileView extends JPanel implements ListSelectionListener {
 		// Ask the tree to select the appropriate node.
 		mstTree.setSelectionPath(path);
 	}
-	
+
 	/**
-	 * Helper method to create the table that lists the degrees of all non-leaf
-	 * MST nodes. This method is called only once from the constructor. This 
-	 * method was introduced to streamline the constructor and keep the code 
-	 * clutter to a minimum. This method utilizes the recursive helper method
+	 * Helper method to create the table that lists the degrees of all non-leaf MST
+	 * nodes. This method is called only once from the constructor. This method was
+	 * introduced to streamline the constructor and keep the code clutter to a
+	 * minimum. This method utilizes the recursive helper method
 	 * {@link #populateDegreeInfo(TreeMap, MSTNode)} to obtain the degree
 	 * information. It then creates a suitable JTable and populates the degree
 	 * information.
 	 * 
-	 * @return This method returns a panel containing the degree information to
-	 * be displayed. 
+	 * @return This method returns a panel containing the degree information to be
+	 *         displayed.
 	 */
 	private JPanel buildDegreePanel(MSTTreeModel mstModel) {
 		// First get the helper method to recursively build the degree information
@@ -158,13 +157,13 @@ public class MSTFileView extends JPanel implements ListSelectionListener {
 		// Convert the Tree map to an 2-D array of objects to ease creation of table.
 		Object[][] tableData = new Object[degreeInfo.size()][2];
 		int currEntry = 0;
-		for(Map.Entry<Integer, Integer> entry: degreeInfo.entrySet()) {
+		for (Map.Entry<Integer, Integer> entry : degreeInfo.entrySet()) {
 			tableData[currEntry][0] = entry.getKey();
 			tableData[currEntry][1] = entry.getValue();
 			currEntry++;
 		}
 		// Now create the JTable that will contain the EST index and degree info.
-		final String ColTitles[] = {"EST Index", "Degree"};
+		final String ColTitles[] = { "EST Index", "Degree" };
 		degreeTable = new JTable(tableData, ColTitles);
 		// Set some of the basic properties for this degree table.
 		degreeTable.setShowHorizontalLines(true);
@@ -185,12 +184,11 @@ public class MSTFileView extends JPanel implements ListSelectionListener {
 			}
 		};
 		// Create sorter with custom comparator
-		TableRowSorter<TableModel> sorter = 
-			new TableRowSorter<TableModel>(degreeTable.getModel());
+		TableRowSorter<TableModel> sorter = new TableRowSorter<TableModel>(degreeTable.getModel());
 		sorter.setComparator(0, comparator);
 		sorter.setComparator(1, comparator);
 		degreeTable.setRowSorter(sorter);
-		
+
 		// Setup column sizes
 		final TableColumnModel tcm = degreeTable.getColumnModel();
 		tcm.getColumn(0).setPreferredWidth(50);
@@ -199,7 +197,7 @@ public class MSTFileView extends JPanel implements ListSelectionListener {
 		// Place the table in a scroll pane so that it can scroll
 		JScrollPane scroller = new JScrollPane(degreeTable);
 		scroller.getViewport().setBackground(degreeTable.getBackground());
-		
+
 		// Package the tree along with a brief formatted message into a
 		// suitable panel.
 		JLabel msg = new JLabel(DEGREE_TREE_INFO);
@@ -211,19 +209,19 @@ public class MSTFileView extends JPanel implements ListSelectionListener {
 		// Let the constructor have the complete panel for display
 		return wrapper;
 	}
-	
+
 	/**
-	 * This is a helper method that is used to recursively determine the degree 
+	 * This is a helper method that is used to recursively determine the degree
 	 * (number of children) for each non-leaf node in the MST.
 	 * 
-	 *  This is a helper method that is invoked from {@link #buildDegreePanel()} 
-	 *  method to obtain the information about the degree of each non-leaf
-	 *  node in the MST to be displayed in the degree table.  This method is a
-	 *  recursive method that recursively descends the MST (in a depth-first)
-	 *  manner and adds information about each non-leaf node to degreeInfo.
-	 *   
+	 * This is a helper method that is invoked from {@link #buildDegreePanel()}
+	 * method to obtain the information about the degree of each non-leaf node in
+	 * the MST to be displayed in the degree table. This method is a recursive
+	 * method that recursively descends the MST (in a depth-first) manner and adds
+	 * information about each non-leaf node to degreeInfo.
+	 * 
 	 * @param degreeInfo The map to be populated with the EST index &rarr; degree
-	 * information. The EST index is the key into the map.
+	 *                   information. The EST index is the key into the map.
 	 */
 	private void populateDegreeInfo(TreeMap<Integer, Integer> degreeInfo, MSTNode node) {
 		if (node.isLeaf()) {
@@ -234,87 +232,78 @@ public class MSTFileView extends JPanel implements ListSelectionListener {
 		// Add its degree information to the map.
 		degreeInfo.put(node.getESTIndex(), children.size());
 		// Now, let each of its child nodes add information about themselves
-		for(MSTNode childNode: children) {
+		for (MSTNode childNode : children) {
 			populateDegreeInfo(degreeInfo, childNode);
 		}
 	}
-	
+
 	/**
-	 * The static set of icons that are repeatedly used by
-	 * the custom cell renderer used by this tree view class.
+	 * The static set of icons that are repeatedly used by the custom cell renderer
+	 * used by this tree view class.
 	 */
-    private static final Icon LeafIcons[] = {
-    	Utilities.getIcon("images/16x16/ESTSmall.png"),
-    };
-    
+	private static final Icon LeafIcons[] = { Utilities.getIcon("images/16x16/ESTSmall.png"), };
+
 	/**
-	 * A tree cell renderer that essentially provides a better 
-	 * representative set of Icons to make the overall display 
-	 * look a bit prettier.
+	 * A tree cell renderer that essentially provides a better representative set of
+	 * Icons to make the overall display look a bit prettier.
 	 */
-    private class DataSetRenderer extends DefaultTreeCellRenderer {
-    	private static final long serialVersionUID = -5720888296480938746L;
+	private class DataSetRenderer extends DefaultTreeCellRenderer {
+		private static final long serialVersionUID = -5720888296480938746L;
+
 		@Override
-        public Component getTreeCellRendererComponent(JTree tree,
-        		Object value, boolean sel, boolean expanded,
-                boolean leaf, int row, boolean hasFocus) {
+		public Component getTreeCellRendererComponent(JTree tree, Object value, boolean sel, boolean expanded,
+				boolean leaf, int row, boolean hasFocus) {
 			// Format the object value with additional information.
 			MSTNode node = (MSTNode) value;
-			EST est      = treeModel.getESTList().getESTs().get(node.getESTIndex());
-			String fullInfo = 
-				String.format("EST #%d [Metric: %d, Info: %s]", node.getESTIndex(),
+			EST est = treeModel.getESTList().getESTs().get(node.getESTIndex());
+			String fullInfo = String.format("EST #%d [Metric: %d, Info: %s]", node.getESTIndex(),
 					(int) node.getMetric(), est.getInfo());
-        	// Let the base class do the standard processing.
-            super.getTreeCellRendererComponent(tree, fullInfo, sel,
-                            expanded, leaf, row, hasFocus);
-            if (leaf && (value instanceof MSTNode)) {
-            	setIcon(LeafIcons[0]);
-            }
-            return this;
-        }
-    }
-    
+			// Let the base class do the standard processing.
+			super.getTreeCellRendererComponent(tree, fullInfo, sel, expanded, leaf, row, hasFocus);
+			if (leaf && (value instanceof MSTNode)) {
+				setIcon(LeafIcons[0]);
+			}
+			return this;
+		}
+	}
+
 	/**
-	 * Convenient reference to the main frame class that logically owns
-	 * this menu in its JMenuBar. This value is set in the constructor
-	 * and is never changed.
+	 * Convenient reference to the main frame class that logically owns this menu in
+	 * its JMenuBar. This value is set in the constructor and is never changed.
 	 */
 	private final MainFrame mainFrame;
-	
+
 	/**
-	 * The data model that provides the various branches and leaves
-	 * of a MST to be displayed in the tree.  The tree model obtains
-	 * the necessary data from the currently active work space.
+	 * The data model that provides the various branches and leaves of a MST to be
+	 * displayed in the tree. The tree model obtains the necessary data from the
+	 * currently active work space.
 	 */
 	private final MSTTreeModel treeModel;
-    
-    /**
-     * The actual JTree that provides a hierarchical view of the
-     * data files currently configured on this work space.
-     */
-    private JTree mstTree;
 
-    /**
-     * This table is used to display the degree (number of children) information
-     * for each non-leaf node in the MST. This table is created and 
-     * populated by the {@link #buildDegreePanel(MSTTreeModel)} method when
-     * this class is instantiated.
-     */
-    private JTable degreeTable;
-    
-    /**
-     * This instance variable contains a fixed static message that is displayed
-     * to briefly explain the content and use of the degree information table
-     * that is displayed in this view.
-     */
-    private static final String DEGREE_TREE_INFO = "<html>" +
-    	"<font size=\"-1\"><i>" +
-    	"The following table lists the degree of each non-leaf " +
-    	"node in the MST. The entries in this table and the " +
-    	"nodes in adjacent tree view are linked."    +
-    	"</i></font>" +
-    	"</html>";
-    
+	/**
+	 * The actual JTree that provides a hierarchical view of the data files
+	 * currently configured on this work space.
+	 */
+	private JTree mstTree;
+
+	/**
+	 * This table is used to display the degree (number of children) information for
+	 * each non-leaf node in the MST. This table is created and populated by the
+	 * {@link #buildDegreePanel(MSTTreeModel)} method when this class is
+	 * instantiated.
+	 */
+	private JTable degreeTable;
+
+	/**
+	 * This instance variable contains a fixed static message that is displayed to
+	 * briefly explain the content and use of the degree information table that is
+	 * displayed in this view.
+	 */
+	private static final String DEGREE_TREE_INFO = "<html>" + "<font size=\"-1\"><i>"
+			+ "The following table lists the degree of each non-leaf "
+			+ "node in the MST. The entries in this table and the " + "nodes in adjacent tree view are linked."
+			+ "</i></font>" + "</html>";
+
 	/**
 	 * A generated serial version ID.
 	 */
