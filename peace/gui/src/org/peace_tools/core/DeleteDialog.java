@@ -337,9 +337,6 @@ implements ActionListener, Runnable {
 					if (deleteFiles.isSelected()) {
 						deleteLocalFile(fe.getPath());
 					}
-					// Remove the file entry from the gfl
-					gfl.remove(fe);
-
 				} catch (Exception e) {
 					// Error occurred. See if user want's to continue.
 					String msg = String.format(DATASET_ERROR, fe.toString());
@@ -352,8 +349,6 @@ implements ActionListener, Runnable {
 					}
 				}
 			}
-			// Now that we have removed all the entries remote the GFL node
-			dataSet.remove(gfl);
 		}
 		// Now finally remove the data set entry itself.
 		Workspace.get().removeDataSet(dataSet);
