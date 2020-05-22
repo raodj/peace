@@ -229,7 +229,7 @@ public class RemoteFile extends File {
 			try {
 				ChannelSftp localSftp = (ChannelSftp) session
 						.openChannel("sftp");
-				localSftp.connect();
+				localSftp.connect(60000);
 				return localSftp;
 			} catch (JSchException exp) {
 				throw new SftpException(-1, exp.getMessage(), exp.getCause());

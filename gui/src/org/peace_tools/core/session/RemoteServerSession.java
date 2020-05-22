@@ -376,7 +376,7 @@ public class RemoteServerSession extends ServerSession implements UserInfo, UIKe
 	public void showMessage(String message) {
 		// Create a text area to display the message and place it inside a scroll pane
 		// to permit display of large messages using a decent sized GUI window.
-		JTextArea msgDisplay = new JTextArea(message, 60, 5);
+		JTextArea msgDisplay = new JTextArea(message);
 		JScrollPane jsp = new JScrollPane(msgDisplay);
 
 		// Show the message to the user.
@@ -427,7 +427,7 @@ public class RemoteServerSession extends ServerSession implements UserInfo, UIKe
 			expOnNo = true;
 		} else {
 			// Create a text area to display the message from JSch in other cases
-			JTextArea jta = new JTextArea(message, 60, 5);
+			JTextArea jta = new JTextArea(message);
 			msgDisplay = new JScrollPane(jta);
 		}
 		// Display message to user and get user's Yes/No choice
@@ -535,7 +535,7 @@ public class RemoteServerSession extends ServerSession implements UserInfo, UIKe
 		channel.setErrStream(null);
 
 		// Now run the command on the remote server
-		channel.connect();
+		channel.connect(60000);
 
 		// Read all the data into a single string from standard error stream into a
 		// single string.
@@ -601,7 +601,7 @@ public class RemoteServerSession extends ServerSession implements UserInfo, UIKe
 		BufferedReader stdin = new BufferedReader(new InputStreamReader(channel.getInputStream()));
 
 		// Now run the command on the remote server
-		channel.connect();
+		channel.connect(60000);
 
 		String line = null;
 		while ((line = stdin.readLine()) != null) {
@@ -702,7 +702,7 @@ public class RemoteServerSession extends ServerSession implements UserInfo, UIKe
 		try {
 			// Create a sftp channel and connect the channel.
 			sftp = (ChannelSftp) session.openChannel("sftp");
-			sftp.connect();
+			sftp.connect(60000);
 
 			// Create a file for writing (truncate any existing files)
 			destFile = sftp.put(targetFile, ChannelSftp.OVERWRITE);
@@ -713,12 +713,12 @@ public class RemoteServerSession extends ServerSession implements UserInfo, UIKe
 			while ((bytesRead = srcData.read(buffer, 0, buffer.length)) != -1) {
 				destFile.write(buffer, 0, bytesRead);
 			}
-			
+
 			// Done writing data. Close stream and change permissions
-            destFile.close();
-            destFile = null;
-			
-            // Get current status information about the file.
+			destFile.close();
+			destFile = null;
+
+			// Get current status information about the file.
 			SftpATTRS attribs = sftp.stat(targetFile);
 			attribs.setPERMISSIONS(mode);
 			sftp.setStat(targetFile, attribs);
@@ -782,7 +782,7 @@ public class RemoteServerSession extends ServerSession implements UserInfo, UIKe
 
 			// Open a sftp channel and connect to server to secure-FTP data
 			sftp = (ChannelSftp) session.openChannel("sftp");
-			sftp.connect();
+			sftp.connect(60000);
 
 			// Obtain information about the source file to be copied
 			SftpATTRS attribs = sftp.stat(sourceFile);
@@ -911,7 +911,7 @@ public class RemoteServerSession extends ServerSession implements UserInfo, UIKe
 		ChannelSftp sftp = null;
 		try {
 			sftp = (ChannelSftp) session.openChannel("sftp");
-			sftp.connect();
+			sftp.connect(60000);
 			sftp.mkdir(directory);
 		} finally {
 			if (sftp != null) {
@@ -946,7 +946,7 @@ public class RemoteServerSession extends ServerSession implements UserInfo, UIKe
 		ChannelSftp sftp = null;
 		try {
 			sftp = (ChannelSftp) session.openChannel("sftp");
-			sftp.connect();
+			sftp.connect(60000);
 			sftp.rmdir(directory);
 		} finally {
 			if (sftp != null) {
@@ -1074,7 +1074,7 @@ public class RemoteServerSession extends ServerSession implements UserInfo, UIKe
 	private static final String FIRST_SSH_CONNECTION_MSG = "<html>The authenticity of host %s<br/>"
 			+ "cannot be verified as it is not a \"known host\".<br/>The RSA fingerprint key is: %s<br/><br/>"
 			+ "This is most likely because this is the first time you<br/>"
-			+ "connecting to this host via PEACE and this message is<br/>"
+			+ "connect to this host via PEACE and this message is<br/>"
 			+ "normal when connecting via secure shell (SSH) protocol.<br/><br/>"
 			+ "<b>Would you like to add this server to the \"known hosts\"<br/>"
 			+ "and proceed with the connection?</b></html>";
