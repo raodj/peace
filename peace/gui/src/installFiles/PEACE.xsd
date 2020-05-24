@@ -236,6 +236,7 @@
 		<xsd:restriction base="xsd:string">
 			<xsd:enumeration value="uv" />
 			<xsd:enumeration value="tv" />
+			<xsd:enumeration value="primes" />
 		</xsd:restriction>
 	</xsd:simpleType>
 	
