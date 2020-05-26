@@ -37,6 +37,7 @@
 #include "NewUVHeuristic.h"
 #include "ESTList.h"
 #include <utility>
+#include <vector>
 
 /** Heuristic based upon the T/V heuristic, a type of common word
     heuristic.
@@ -225,8 +226,9 @@ protected:
 		const int   otherESTLen= otherEST->getSequenceLength();
         register int hash      = 0;
         int ignoreMask         = 0;
-        // Set first window length entries to zero.
-        memset(matchTable, 0, sizeof(char) * (windowLen + NewUVHeuristic::v));
+        // First, reset the array that tracks matching counts as the
+        // window slides across the otherEST.
+        memset(&matchTable[0], 0, sizeof(char) * matchTable.size());
         // Compute hash for initial word while skipping over bases
         // makred 'n'. This may require processing of more then v-1
         // bases
@@ -234,7 +236,7 @@ protected:
             hash = encoder(hash, otherSeq[i], ignoreMask);
         }
         // Skip first windowLen entries to simplify logic in loop below.
-        char *matchTicker = matchTable + windowLen;
+        char *matchTicker = &matchTable[0] + windowLen;
         // Now see how many common words exist in the two ESTs
         int numMatch     = 0, maxMatch = 0;
 		int oldWindowPos = -windowLen;
@@ -293,9 +295,13 @@ private:
     /** A large table to track matches.
 
         This instance variable contains a large table that tracks
-        matches encountered as this heuristic tracks matching words.
+        number matches encountered for each word-hash, as this
+        heuristic tracks matching words.  Earlier this was an array of
+        characters which made it a bit cumbersome to
+        track/troubleshoot issues.  Hence, it has been convered to a
+        vector<char>.
     */
-    char *matchTable;
+    std::vector<char> matchTable;
 
     /** Instance variable to track the number of times UV sample
         heuristic passed.
