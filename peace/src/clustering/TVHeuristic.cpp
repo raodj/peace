@@ -43,7 +43,6 @@
 #include "ParameterSetManager.h"
 
 TVHeuristic::TVHeuristic(HeuristicChain *chain) : NewUVHeuristic(chain, "tv") {
-    matchTable     = NULL;
     uvSuccessCount = 0;
     t              = 65;
     windowLen      = 100;
@@ -52,9 +51,8 @@ TVHeuristic::TVHeuristic(HeuristicChain *chain) : NewUVHeuristic(chain, "tv") {
 }
 
 TVHeuristic::~TVHeuristic() {
-    if (matchTable != NULL) {
-        delete [] matchTable;
-    }
+    // matchTable is now a vector and no longer needs to be cleaned-up
+    // here.
 }
 
 void
@@ -100,7 +98,7 @@ TVHeuristic::initialize() {
     size_t maxESTlen = estList->getMaxESTLen();
     int maxFrameSize = heuristicChain->getParamSetMgr()->getMaxFrameSize();
     // Add extra windowLen characters to ease processing.
-    matchTable = new char[maxESTlen + maxFrameSize + v];
+    matchTable.resize(maxESTlen + maxFrameSize + v, 0);
     // Everything went well
     return true;
 }
