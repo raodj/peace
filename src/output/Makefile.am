@@ -40,9 +40,9 @@ AM_CXXFLAGS=$(GLOBALCXXFLAGS)
 
 AM_CPPFLAGS += -I../framework -I../shared
 
-noinst_LTLIBRARIES = liboutput.la
+noinst_LIBRARIES = liboutput.a
 
-liboutput_la_SOURCES = \
+liboutput_a_SOURCES = \
 	LogLevel.cpp \
 	LogLevel.h \
 	StandardOutput.h  \

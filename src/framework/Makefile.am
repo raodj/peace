@@ -38,9 +38,9 @@ include $(top_builddir)/Makefile.common.am
 AM_CPPFLAGS=$(GLOBALCPPFLAGS)
 AM_CXXFLAGS=$(GLOBALCXXFLAGS)
 
-noinst_LTLIBRARIES = libframework.la
+noinst_LIBRARIES = libframework.a
 
-libframework_la_SOURCES = \
+libframework_a_SOURCES = \
 	ArgParser.h \
 	ArgParser.cpp \
 	SubSystem.h \

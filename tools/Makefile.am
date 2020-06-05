@@ -41,7 +41,8 @@ AM_CXXFLAGS=$(GLOBALCXXFLAGS)
 AM_CPPFLAGS += -I../src/shared -I../src/framework -I../src/input -I../src/clustering
 
 bin_PROGRAMS = pTools
-pTools_LDADD = $(STDCPP) ../src/libpeace.la
+pTools_LDADD = $(STDCPP) ../src/libpeace.a
+pTools_LDFLAGS = $(CUDA_LDPATH)
 
 pTools_SOURCES = \
 Common.h\
