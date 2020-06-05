@@ -36,6 +36,7 @@
 
 #include "ESTAnalyzerFactory.h"
 #include "ArgParser.h"
+#include "config.h"
 
 #include "FMWSCA.h"
 #include "CLU.h"
@@ -47,6 +48,10 @@
 #include "MatrixFileAnalyzer.h"
 //#include "BatonAnalyzer.h"
 #include "PrimesESTAnalyzer.h"
+
+#ifdef HAVE_CUDA
+#include "D2Cuda.h"
+#endif
 
 void
 ESTAnalyzerFactory::addCommandLineInfo(ArgParser& argParser) {
@@ -69,8 +74,12 @@ ESTAnalyzerFactory::addCommandLineInfo(ArgParser& argParser) {
          NULL, ArgParser::INFO_MESSAGE},
         {"", "baton: Baton-based similarity metric generation algorithm",
          NULL, ArgParser::INFO_MESSAGE},
-        {"", "primes: Primes=based similarity metric",
-         NULL, ArgParser::INFO_MESSAGE},        
+        {"", "primes: Primes-based similarity metric",
+         NULL, ArgParser::INFO_MESSAGE},
+#ifdef HAVE_CUDA
+        {"", "d2cuda: CUDA-based D2 distance metric generation algorithm",
+         NULL, ArgParser::INFO_MESSAGE},
+#endif
         {"", "", NULL, ArgParser::INVALID}
     };
     argParser.addValidArguments(DummyArgs);
@@ -99,7 +108,13 @@ ESTAnalyzerFactory::create(const std::string& name) {
     } else if (name == "primes") {
         return new PrimesESTAnalyzer();
     }
-    
+
+#ifdef HAVE_CUDA
+    if (name == "d2cuda") {
+        return new D2Cuda();
+    }
+#endif
+
     // invalid analyzer name!
     std::cerr << "Invalid analyzer name." << std::endl;
     return NULL;
