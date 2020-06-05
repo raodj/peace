@@ -311,6 +311,153 @@ AC_DEFUN([AC_CHECK_TR1_HASHMAP],
 	 ])
 ])
 
+
+# A custom helper macro check if CUDA development libraries are
+# available and operational.  PEACE's heterogeneous compute
+# capabilities relies on CUDA libraries for its's GPU-compute
+# capabilities.
+AC_DEFUN([AC_LIB_CUDA],
+[
+    AC_ARG_WITH(cuda, AC_HELP_STRING(--with-cuda=PATH,path to CUDA installation (e.g., /usr/local/cuda)),
+        [ if test "$withval" != "no"; then
+              if test "$withval" != "yes"; then
+                  AC_MSG_NOTICE([Checking for CUDA in $withval])
+                  CUDA_PATH="$withval"
+                  have_cuda="maybe"
+              else
+                  # Assume CUDA is in default path. Use the nvcc's
+                  # directory to determine path. If CUDA_HOME is
+                  # sepcified by default use that.
+                  if test -z "$CUDA_HOME" ; then
+                      AC_MSG_NOTICE([Detecting CUDA install path])
+                      nvccPath=`which nvcc`
+                      if test -z "$nvccPath" ; then
+                          AC_MSG_FAILURE([Unable to find path for nvcc])
+                      fi
+                      # Nvcc is typically in /usr/local/cuda/10.2.89/bin
+                      binDir=`dirname $nvccPath`
+                      # From bin path get cuda dir /usr/local/cuda/10.2.89/bin
+                      CUDA_PATH=`dirname $binDir`
+                  else
+                      CUDA_PATH="$CUDA_HOME"
+                  fi
+                  have_cuda="maybe"
+                  AC_MSG_NOTICE([Checking for CUDA in $CUDA_PATH])
+              fi
+          else
+              # ignore and don't use CUDA
+              have_cuda="ignore"
+          fi
+        ], [
+            # User has not specified any options. Ignore CUDA by default
+            have_cuda="ignore"
+        ]
+     )
+
+     # Save current flags to restore after test below.
+     OLD_CFLAGS="$CFLAGS"
+     OLD_CPPFLAGS="$CPPFLAGS"
+     LDFLAGS="$OLD_LDFLAGS"
+     OLD_CXX="$CXX"
+     AC_LANG_PUSH([C++])
+     CPPFLAGS="$CPPFLAGS -x cu"
+
+     # Check if we are able to compile simple cuda program.
+     if test "$have_cuda" = "maybe"; then
+         # Temporarily use nvcc as the C++ compiler.
+         CXX="$CUDA_PATH/bin/nvcc"
+
+         AC_MSG_CHECKING([if CUDA/nvcc is operational])
+
+         AC_COMPILE_IFELSE(
+             [AC_LANG_PROGRAM([[#include <iostream>
+                              ]],
+                              [[cudaDeviceReset()]])],
+             [AC_MSG_RESULT([yes])],
+             [AC_MSG_RESULT([no])
+              have_cuda="no"
+             ])
+         # Restore the previous C++ compiler settings
+         CXX="$OLD_CXX"
+         CPPFLAGS="$OLD_CPPFLAGS"
+     fi
+
+     # If we need to use CUDA we need to check to ensure we have the
+     # necessary libraries
+     if test "$have_cuda" = "maybe"; then
+         have_libs="yes"
+         AC_MSG_NOTICE([if core libraries (pthread, rt, and dl) are present])
+         AC_CHECK_LIB([pthread],[pthread_create],,[have_libs="no"])
+         AC_CHECK_LIB([rt],[shm_open],,[have_libs="no"])     
+         AC_CHECK_LIB([dl],[dlopen],,[have_libs="no"])
+         AC_CHECK_LIB([dl],[dlopen],,[have_libs="no"])
+         if test "$have_libs" = "no" ; then
+             AC_MSG_WARN([Core libraries were not found. Can't use CUDA])
+             have_cuda="no"
+         else
+             AC_MSG_NOTICE([Core libraries were found])
+         fi
+     fi
+
+     # Now that the header seems fine next check path to find library
+     # and link against it.
+     CUDA_LDPATH=""
+     CUDA_EXTRA_LIBS="-lcudart"
+     if test "$have_cuda" = "maybe"; then
+         for subdir in "lib64" "lib/x86_64"; do
+             ldpath="$CUDA_PATH/$subdir"
+             AC_MSG_CHECKING([for CUDA libraries in $ldpath])
+             
+             found="no"
+             LDFLAGS="$OLD_LDFLAGS -L$ldpath $CUDA_EXTRA_LIBS"
+
+             AC_LINK_IFELSE(
+                 [AC_LANG_PROGRAM([[extern "C" int cudaDeviceReset();
+                                  ]],  [[cudaDeviceReset()]])],
+                  [found="yes"],  [found="no"])
+             AC_MSG_RESULT([$found])
+
+             # If the library worked, we have found a path
+             if test "$found" = "yes"; then
+                 have_cuda="yes"
+                 CUDA_LDPATH="$ldpath"
+                 break
+             fi
+         done
+
+         if test "$have_cuda" = "maybe"; then
+             AC_MSG_WARN([Unable to find CUDA libraries in usual paths])
+             have_cuda="no"
+         fi
+     fi
+
+     # Restore the search flags.
+     AC_LANG_POP([C++])
+     CFLAGS="$OLD_CFLAGS"
+     CPPFLAGS="$OLD_CPPFLAGS"
+     LDFLAGS="$OLD_LDFLAGS" 
+
+     # Finally test and setup the overall results.
+     if test "$have_cuda" = "no"; then
+        AC_MSG_ERROR([CUDA compiler/libraries were not found on your system.
+                    Specify --with-cuda=PATH option when running configure.
+                    To compile without CUDA use --without-cuda option.])
+     elif test "$have_cuda" = "ignore"; then
+          AC_MSG_WARN([You have chosen to compile PEACE without CUDA.
+                    This is OK and PEACE will not include GPU
+                    computing capabilities])
+     else
+        CUDA_LDPATH="-L$CUDA_LDPATH $CUDA_EXTRA_LIBS"
+        AC_SUBST(CUDA_PATH)
+        AC_SUBST(CUDA_LDPATH)
+        AC_DEFINE([HAVE_CUDA], [1], [Using CUDA in PEACE])
+        AC_MSG_NOTICE([Using CUDA setup in $CUDA_PATH])
+     fi
+     # Setup conditional variable used in kernel/Makefile.am to
+     # conditionally compile CUDA components.
+     AM_CONDITIONAL([COND_USE_CUDA], [test "x$have_cuda" == "xyes"])
+])
+
 # Checks for programs.
 #AC_CONFIG_MACRO_DIR([m4])
 AC_PROG_MPI
@@ -388,9 +535,12 @@ AC_CHECK_FUNCS([bzero floor gettimeofday memset mkdir modf pow rint sqrt strcase
 # check earlier on in the set of rules seems to break autotools in 1.9
 # versions. Version 1.11+ of auto tools does not seem to have this
 # issue
-AC_CONFIG_MACRO_DIRS([m4])
-LT_INIT
+# AC_CONFIG_MACRO_DIRS([m4])
+# LT_INIT
 
+# Check for CUDA libraries
+AC_PROG_RANLIB
+AC_LIB_CUDA
 
 AC_CONFIG_FILES([Makefile
                  src/Makefile

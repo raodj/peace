@@ -40,9 +40,9 @@ AM_CXXFLAGS=$(GLOBALCXXFLAGS)
 
 AM_CPPFLAGS += -I../framework -I../shared -I../baton
 
-noinst_LTLIBRARIES = libassembly.la
+noinst_LIBRARIES = libassembly.a
 
-libassembly_la_SOURCES = \
+libassembly_a_SOURCES = \
 	AssemblySubSystem.h \
 	AssemblySubSystem.cpp \
 	AssemblerFactory.h \

@@ -40,9 +40,9 @@ AM_CXXFLAGS=$(GLOBALCXXFLAGS)
 
 AM_CPPFLAGS += -I../framework -I../shared
 
-noinst_LTLIBRARIES = libbaton.la
+noinst_LIBRARIES = libbaton.a
 
-libbaton_la_SOURCES = \
+libbaton_a_SOURCES = \
 Baton.h \
 Baton.cpp \
 BatonList.h \

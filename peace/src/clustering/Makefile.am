@@ -38,11 +38,12 @@ include $(top_builddir)/Makefile.common.am
 AM_CPPFLAGS=$(GLOBALCPPFLAGS)
 AM_CXXFLAGS=$(GLOBALCXXFLAGS)
 
-AM_CPPFLAGS += -I../framework -I../shared -I../output
+AM_CPPFLAGS += -I../framework -I../shared -I../output -I../
 
-noinst_LTLIBRARIES = libclustering.la
+noinst_LIBRARIES = libclustering.a
 
-libclustering_la_SOURCES = \
+libclustering_a_SOURCES = \
+	$(CUDA_SOURCES) \
 	FWAnalyzer.h \
 	FWAnalyzer.cpp \
 	MatrixFileAnalyzer.h \
@@ -115,5 +116,24 @@ libclustering_la_SOURCES = \
 	MergingClusterMaker.cpp \
 	PrimesESTAnalyzer.h \
 	PrimesESTAnalyzer.cpp
+
+
+# Setup conditional compilation of CUDA components, only if CUDA
+# libraries are availabe for use.
+if COND_USE_CUDA
+    # Setup valid suffixes
+    SUFFIXES = .cu
+
+    # Setup the cuda sources
+    libclustering_a_SOURCES += \
+	D2Cuda.h \
+	D2Cuda.cu
+
+# Setup rules for compiling the sources
+.cu.o:
+	$(CUDA_PATH)/bin/nvcc --compiler-options "$(AM_CPPFLAGS) $(AM_CXXFLAGS) -Wall -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo" -c -o $@ $<
+	$(AM_V_at)$(am__mv) $(DEPDIR)/$*.Tpo $(DEPDIR)/$*.Po
+
+endif
 
 # end of Makefile.am

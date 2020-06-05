@@ -40,9 +40,9 @@ AM_CXXFLAGS=$(GLOBALCXXFLAGS)
 
 AM_CPPFLAGS += -I../framework -I../shared
 
-noinst_LTLIBRARIES = libinput.la
+noinst_LIBRARIES = libinput.a
 
-libinput_la_SOURCES = \
+libinput_a_SOURCES = \
 	InputFile.h \
 	InputFile.cpp \
 	InputFileFactory.h \

@@ -40,9 +40,9 @@ AM_CXXFLAGS=$(GLOBALCXXFLAGS)
 
 AM_CPPFLAGS += -I../framework -I../clustering
 
-noinst_LTLIBRARIES = libshared.la
+noinst_LIBRARIES = libshared.a
 
-libshared_la_SOURCES = \
+libshared_a_SOURCES = \
 	EST.h \
 	EST.cpp \
 	ESTCustomData.h \

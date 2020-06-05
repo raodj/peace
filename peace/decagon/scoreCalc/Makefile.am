@@ -41,7 +41,7 @@ AM_CXXFLAGS=$(GLOBALCXXFLAGS)
 AM_CPPFLAGS += -I../../src/framework -I../../src/input -I../../src/shared
 
 bin_PROGRAMS = scoreCalc
-scoreCalc_LDADD = $(STDCPP) ../../src/libpeace.la
+scoreCalc_LDADD = $(STDCPP) ../../src/libpeace.a
 
 scoreCalc_SOURCES = \
 	DecagonException.h\

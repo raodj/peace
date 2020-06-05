@@ -40,9 +40,9 @@ AM_CXXFLAGS=$(GLOBALCXXFLAGS)
 
 AM_CPPFLAGS += -I../framework -I../shared
 
-noinst_LTLIBRARIES = libfiltering.la
+noinst_LIBRARIES = libfiltering.a
 
-libfiltering_la_SOURCES = \
+libfiltering_a_SOURCES = \
 	Filter.h \
 	Filter.cpp \
 	LengthFilter.h \

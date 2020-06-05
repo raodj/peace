@@ -42,20 +42,20 @@ AM_CPPFLAGS += -I../src/framework -I../src/shared -I../src/clustering
 
 bin_PROGRAMS = UsingPeace generate_d2 standalone_d2
 
-UsingPeace_LDFLAGS = -L../src
+UsingPeace_LDFLAGS = -L../src $(CUDA_LDPATH)
 UsingPeace_LDADD = $(STDCPP) -lpeace
 
 UsingPeace_SOURCES = \
 UsingPeace.cpp
 
-generate_d2_LDFLAGS = -L../src -L../src/baton
+generate_d2_LDFLAGS = -L../src -L../src/baton $(CUDA_LDPATH)
 generate_d2_LDADD = $(STDCPP) -lpeace -lbaton
 
 generate_d2_SOURCES = \
 generate_d2.h \
 generate_d2.cpp
 
-standalone_d2_LDFLAGS = -L../src -L../src/baton
+standalone_d2_LDFLAGS = -L../src -L../src/baton $(CUDA_LDPATH)
 standalone_d2_LDADD = $(STDCPP) -lpeace -lbaton
 
 standalone_d2_SOURCES = \
