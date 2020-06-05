@@ -359,6 +359,7 @@ AC_DEFUN([AC_LIB_CUDA],
      OLD_CPPFLAGS="$CPPFLAGS"
      LDFLAGS="$OLD_LDFLAGS"
      OLD_CXX="$CXX"
+     OLD_LIBS="$LIBS"
      AC_LANG_PUSH([C++])
      CPPFLAGS="$CPPFLAGS -x cu"
 
@@ -409,8 +410,8 @@ AC_DEFUN([AC_LIB_CUDA],
              AC_MSG_CHECKING([for CUDA libraries in $ldpath])
              
              found="no"
-             LDFLAGS="$OLD_LDFLAGS -L$ldpath $CUDA_EXTRA_LIBS"
-
+             LDFLAGS="$OLD_LDFLAGS -L$ldpath"
+             LIBS="$OLD_LIBS $CUDA_EXTRA_LIBS"
              AC_LINK_IFELSE(
                  [AC_LANG_PROGRAM([[extern "C" int cudaDeviceReset();
                                   ]],  [[cudaDeviceReset()]])],
@@ -435,7 +436,8 @@ AC_DEFUN([AC_LIB_CUDA],
      AC_LANG_POP([C++])
      CFLAGS="$OLD_CFLAGS"
      CPPFLAGS="$OLD_CPPFLAGS"
-     LDFLAGS="$OLD_LDFLAGS" 
+     LDFLAGS="$OLD_LDFLAGS"
+     LIBS="$OLD_LIBS"
 
      # Finally test and setup the overall results.
      if test "$have_cuda" = "no"; then
@@ -447,7 +449,8 @@ AC_DEFUN([AC_LIB_CUDA],
                     This is OK and PEACE will not include GPU
                     computing capabilities])
      else
-        CUDA_LDPATH="-L$CUDA_LDPATH $CUDA_EXTRA_LIBS"
+        CUDA_LDPATH="-L$CUDA_LDPATH"
+        LIBS="$LIBS $CUDA_EXTRA_LIBS"
         AC_SUBST(CUDA_PATH)
         AC_SUBST(CUDA_LDPATH)
         AC_DEFINE([HAVE_CUDA], [1], [Using CUDA in PEACE])
