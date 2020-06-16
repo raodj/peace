@@ -209,7 +209,7 @@ protected:
     
     /** Determine if this EST analyzer provides distance metrics or
         similarity metrics.
-        
+
         This method can be used to determine if this EST analyzer
         provides distance metrics or similarity metrics.  If this
         method returns \c true, then this EST analyzer returns
@@ -222,50 +222,6 @@ protected:
     */
     bool isDistanceMetric() const { return true; }
 
-    /** Helper method to create a word table.
-        
-        Creates a "word table" mapping integer indices to integer
-        hashes of words, in effect translating the sequence from a
-        sequence of characters to a sequence of n-words (where n =
-        wordSize).
-
-        \param encoder The encoder class to be used for building the
-        word table.
-		
-        \param[out] wordTable The word table to be populated with with
-        hash values.
-
-        \param[in] estSeq The sequence of base pairs associated with
-        this EST that must be converted to hash values.
-    */
-    template <typename Encoder>
-    void buildWordTable(std::vector<int>& wordTable, const char* estSeq,
-                        Encoder encoder) {
-        ASSERT( ESTAnalyzer::estList != NULL );
-        // First clear out old data in word table.
-        wordTable.clear();
-        const size_t wordTableSize = estList->getMaxESTLen() + frameSize;
-        // Reserve space to avoid repeated reallocations as entries
-        // are added to the wordTable vector.
-        wordTable.reserve(wordTableSize);
-        // Compute the has for the first word using the encoder. The
-        // encoder may do normal or reverse-complement encoding for us.
-        int hash       = 0;
-        int ignoreHash = 0;
-        for(register int i = 0; ((*estSeq != 0) && (i < wordSize - 1));
-            i++, estSeq++) {
-            hash = encoder(hash, *estSeq, ignoreHash);
-        }
-        // Now compute the hash for each word
-        for(int entry = 0; (*estSeq != 0); entry++, estSeq++) {
-            hash = encoder(hash, *estSeq, ignoreHash);
-            if (!ignoreHash) {
-                // This hash does not have a 'n' in it. So use it.
-                wordTable.push_back(hash);
-            }
-        }
-    }
-
     /** Instance variable that maps an index in the reference sequence
         (sequence s1) to the hash of a word.  This hash can then be
         used as an index in the delta array to get the frequency
@@ -277,7 +233,7 @@ protected:
         meaning it does not need to be rebuilt every time we analyze
         a new comparison sequence.
     */
-    std::vector<int> s1WordTable;
+    int* s1WordTable;
 
     /** Instance variable that maps an index in the comparison sequence
         (sequence s2) to the hash of a word.
@@ -290,16 +246,8 @@ protected:
         EST, buildWordTable() must be called in the analyze() method because
         a new comparison sequence is given every time analyze() is called.
     */
-    std::vector<int> s2WordTable;
+    int* s2WordTable;
 
-    /** Array to track the delta values in the core D2 algorithm.
-
-        This array is initialized to point to an array of size
-        4<sup>wordSize</sup>.  This array is used to track the delta
-        values generated in the core D2 algorithm.
-    */
-    int *delta;
-    
     /** Parameter to define number of characters to shift the frame
         on the reference sequence, when computing D2.
 		
@@ -314,24 +262,6 @@ protected:
         \note Currently this value is not used.
     */
     int frameShift;
-    
-    /** Instance variable to store the number of bits to be shifted to
-        create hash values.
-
-        <p>This instance variable is set to the value of 2 * (\em
-        wordSize - 1) (in the \c initialize method) to reflect the
-        number of bits that need to be shifted in order to build the
-        hash values for common words (including the values stored in
-        \c s1WordMap and \c s1RCWordMap).</p>
-
-        <p>This instance variable is actually passed on to the
-        ESTCodec::NormalEncoder or ESTCodec::RevCompEncoder when
-        computing hash values.  Since this is value is passed in a
-        template parameter, it is defined to be static (to ensure that
-        it has external linkage as per the ISO/ANSI standards
-        requirement).</p>
-    */    
-    static int bitShift;
 
     /** The threshold score below which two ESTs are considered
         sufficiently similar to be clustered.
@@ -344,7 +274,14 @@ protected:
         the \c --threshold command line argument.
     */
     int threshold;
-    
+
+    /** The number of threads per block in CUDA.
+
+        The value is default to 1024 since it is the most commonly
+        used number.
+    */
+    int numThreads = 1024;
+
 private:
     /* The default constructor for this class.
        
@@ -379,7 +316,7 @@ private:
         that it has external linkage as per the ISO/ANSI standards
         requirement).
     */
-    static int BitMask;
+    int bitMask;
 
     /** Instance variable to track the number of words (of \c
         wordSize) that can fit into a window (of \c frameSize).
@@ -391,93 +328,24 @@ private:
     */
     int numWordsInWindow;
 
-    /** Helper method to update the scores based on a sliding window.
+    /** Instance variable to track the number of windows in sequence 1.
 
-        This method is invoked from several different spots from the
-        runD2() method to update the d2 scores as the window slides
-        across the two sequences being analyzed. The hash values of
-        the words moving into and out of the window are used to update
-        the scores.
-
-        \param[in] wordIn The hash value of the word moving into the
-        window.
-
-        \param[in] wordOut The hash value of the word moving out of
-        the window.
-
-        \param[in,out] score The current running score for this
-        window. This value is updated using the delta array.
-
-        \param[in,out] minScore The current minimum score. This value
-        is updated after the score is updated to reflect the minimum
-        of score and minScore.
+        This instance variable is set in the setReferenceEST() method and
+        its value is used by various methods in runD2(). Rather
+        than computing this value repeatedly, it is computed once and
+        used throughout.
     */
-    inline void updateWindow(const int wordIn, const int wordOut,
-                             int& score, int& minScore) {
-        // Update score and delta for word moving in
-        score -= (delta[wordIn] << 1) - 1;
-        delta[wordIn]--;
-        // Update score and delta for word moving out
-        score += (delta[wordOut] << 1) + 1;
-        delta[wordOut]++;
-        // Track the minimum score.
-        minScore = std::min(score, minScore);
-    }
+    int numWindowsInS1;
 
-    /** Helper method to update the scores based on a sliding window
-        and track the index positions of the minimum scores.
+    /** Instance variable to track the number of windows in sequence 2.
 
-        This method is invoked from several different spots from the
-        runD2() method to update the d2 scores as the window slides
-        across the two sequences being analyzed. The hash values of
-        the words moving into and out of the window are used to update
-        the scores.
-
-        \param[in] wordIn The hash value of the word moving into the
-        window.
-
-        \param[in] wordOut The hash value of the word moving out of
-        the window.
-
-        \param[in,out] score The current running score for this
-        window. This value is updated using the delta array.
-
-        \param[in,out] minScore The current minimum score. This value
-        is updated after the score is updated to reflect the minimum
-        of score and minScore.
-
-        \param[in] s1Pos The current index position in the 1st strain.
-
-        \param[in] s2Pos The current index position in the 2nd strain.
-        
-        \param[out] s1MinPos The index position (in 1st strain) of the
-        minimum score thus far.  This value is updated only when a new
-        minimum score is encountered.
-
-        \param[out] s1MinPos The index position (in 2nd strain) of the
-        minimum score thus far.  This value is updated only when a new
-        minimum score is encountered.
+        This instance variable is set in the getMetric() method and
+        its value is used by various methods in runD2(). Rather
+        than computing this value repeatedly, it is computed once and
+        used throughout.
     */
-    inline void updateWindow(const int wordIn, const int wordOut,
-                             int& score, int& minScore, int s1Pos, int s2Pos,
-                             int& s1MinPos,
-                             int& s2MinPos) {
-        // Update score and delta for word moving in
-        score -= (delta[wordIn] << 1) - 1;
-        delta[wordIn]--;
-        // Update score and delta for word moving out
-        score += (delta[wordOut] << 1) + 1;
-        delta[wordOut]++;
-        // Track the minimum score.
-        if (score < minScore) {
-            minScore = score;
-            s1MinPos = s1Pos;
-            s2MinPos = s2Pos;
-            std::cout << "D2(" << s1MinPos << ", " << s2MinPos
-                      << ") = " << minScore << std::endl;
-        }
-    }
-    
+    int numWindowsInS2;
+
     /** The core method that run's the D2 algorithm.
 
         This method performs the core D2 analysis. This method is
