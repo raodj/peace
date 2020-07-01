@@ -1,5 +1,5 @@
-#ifndef RANDOMIZE_READS_CPP
-#define RANDOMIZE_READS_CPP
+#ifndef EXTRACT_READS_CPP
+#define EXTRACT_READS_CPP
 
 //--------------------------------------------------------------------
 //
@@ -34,39 +34,37 @@
 //
 //---------------------------------------------------------------------
 
-#include "RandomizeReads.h"
-#include "ArgParser.h"
+#include <numeric>
+#include <random>
+#include "ExtractReads.h"
 #include "EST.h"
 #include "ESTList.h"
 #include "Common.h"
 
 int
-RandomizeReads::parseArgs(int argc, char *argv[], std::string& inputPath,
-                          std::string& outputPath, bool& filterNs,
-                          int& subSeqStart, int& subSeqEnd) {
+ExtractReads::parseArgs(int argc, char *argv[], std::string& inputPath,
+                        std::string& outputPath,
+                        ArgParser::StringList& idxList, int& rndNum) {
     bool showOptions = false;
-    subSeqStart = subSeqEnd = -1;  // Initialize to default value.
     // Create the list of valid arguments to be used by the arg_parser.
     ArgParser::ArgRecord arg_list[] = {
         {"--input", "The input FASTA file to be randomly shuffled",
          &inputPath, ArgParser::STRING},
         {"--output", "Output FASTA file to write randomly shuffled reads",
          &outputPath, ArgParser::STRING},
+        {"--indexs", "List index values (zero-based) for reads to be extracted",
+         &idxList, ArgParser::STRING_LIST},        
         {"--options", "Lists options for this tool",
          &showOptions, ArgParser::BOOLEAN},
-        {"--filter-n", "Filter out reads that have N bases in them",
-         &filterNs, ArgParser::BOOLEAN},
-        {"--sub-seq-beg", "Beginning index position for subsequence",
-         &subSeqStart, ArgParser::INTEGER},
-        {"--sub-seq-end", "Ending index position for subsequence",
-         &subSeqEnd, ArgParser::INTEGER},        
+        {"--random", "Randomly select specified number of reads to extract",
+         &rndNum, ArgParser::INTEGER},
         {"", "", NULL, ArgParser::INVALID}
     };
     // Get the argument parser to parse and consume the global
     // options.  Based on the options supplied, various variables will
     // be set to appropriate values.
     ArgParser ap;
-    Tool::addCmdLineArgs("ShowAlignment", ap);
+    Tool::addCmdLineArgs("ExtractReads", ap);
     ap.addValidArguments(arg_list);
     ap.parseArguments(argc, argv, false);
     if (showOptions) {
@@ -76,65 +74,68 @@ RandomizeReads::parseArgs(int argc, char *argv[], std::string& inputPath,
     }
 
     // Ensure we have all the necessary parameters.
-    std::string tool = "RandomizeReads";
+    std::string tool = "ExtractReads";
     CHECK_ARGS(tool, inputPath.empty(), "Input file not specified.\n" \
                "Use --input option\n");
     CHECK_ARGS(tool, outputPath.empty(), "Output file not specified.\n" \
                "Use --output option\n");
+    CHECK_ARGS(tool, idxList.empty() && rndNum == -1,
+               "Missing List of reads to extract.\n"    \
+               "Use --indexs option\n");    
     // Everything looks good
     return 0;
 }
 
 int
-RandomizeReads::main(int argc, char *argv[]) {
+ExtractReads::main(int argc, char *argv[]) {
     std::string inputFile, outputFile;  // The input & output files
-    bool filterNs = false;  // Filter out reads with 'N's
-    int subSeqSt = -1, subSeqEnd = -1;  // Subsequence option.
+    ArgParser::StringList idxList;      // Indexs of reads to be extracted
+    int rndNums = -1;                   // Optional random subset of reads
     // Get helper method to process command-line args
-    if (parseArgs(argc, argv, inputFile, outputFile, filterNs,
-                  subSeqSt, subSeqEnd) != 0) {
+    if (parseArgs(argc, argv, inputFile, outputFile, idxList, rndNums) != 0) {
         return 1;  // something is missing.
     }
     // Load reads from the supplied input file.
-    RandomizeReads rnd;
-    if (!rnd.loadFastaFile(inputFile)) {
+    ExtractReads extractor;
+    if (!extractor.loadFastaFile(inputFile)) {
         return 1;  // error loading reads.
     }
-    // Extract the reads into a vector for us to randomly shuffle    
-    ESTList& estList   = rnd.getESTList();
-    std::vector<EST*> estVector;
-    estVector.reserve(estList.size());  // Reduce 
-    for (int i = 0; (i < estList.size()); i++) {
-        if (filterNs && estList[i]->getSequenceString().find('N')
-            != std::string::npos) {
-            // std::cout << estList[i]->getInfo() << ": Found N at: "
-            //           << estList[i]->getSequenceString().find('N') << '\n';
-            continue;  // This read has 'N'. Ignore it.
-        }
-        estVector.push_back(estList[i]);
-    }
-    // Randomly shuffle the reads
-    std::random_shuffle(estVector.begin(), estVector.end());
-    // Write the shuffled reads out.
+
+    // Write the extracted reads out.
     std::ofstream out(outputFile);
     if (!out.good()) {
         std::cerr << "Error writing to file: " << outputFile << std::endl;
         return 2;
     }
-    // Write the shuffled reads out.
-    for (EST* est : estVector) {
-        if ((subSeqSt != -1) && (subSeqSt < subSeqEnd) &&
-            (est->getSequenceLength() > subSeqEnd)) {
-            // Only dump a subsequence of the original strain.
-            const char* seq = est->getSequence();
-            const std::string subseq(seq + subSeqSt, seq + subSeqEnd);
-            EST subseqEST(est->getID(), est->getInfo(), subseq);
-            subseqEST.dumpEST(out, 70);
-        } else {
-            // By default we print the full sequence.
-            est->dumpEST(out, 70);
+
+    // Obtain reference to the input reads.
+    ESTList& inputList = extractor.getESTList();
+
+    // Check and setup the list of reads if a random subset of reads
+    // was desired.
+    if (idxList.empty() && rndNums > 0) {
+        // Generate a random set of indexs
+        std::vector<int> indexs(inputList.size());   // create 'n' zeros
+        std::iota(indexs.begin(), indexs.end(), 0);  // fill-in 0,1,...n
+        std::random_device rd;
+        std::shuffle(indexs.begin(), indexs.end(),
+                     std::default_random_engine(rd()));
+        
+        // Write subset of indexs to output.
+        for (int i = 0; (i < rndNums); i++) {
+            inputList.get(indexs[i])->dumpEST(out, 70);
+            out << std::endl;
         }
-        out << std::endl;
+        
+    } else {
+        // Write the given list of indexs to output.
+        for (size_t i = 0; (i < idxList.size()); i++) {
+            // Get the desired entry from the full-list.
+            const int idx  = std::stoi(idxList[i]);
+            // Write the entry out.
+            inputList.get(idx)->dumpEST(out, 70);
+            out << std::endl;
+        }
     }
     // Done.
     return 0;
