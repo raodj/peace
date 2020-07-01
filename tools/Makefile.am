@@ -69,6 +69,8 @@ RandomizeReads.h\
 RandomizeReads.cpp\
 ShowScores.h\
 ShowScores.cpp\
+ExtractReads.h\
+ExtractReads.cpp\
 main.cpp
 
 # end of Makefile.am

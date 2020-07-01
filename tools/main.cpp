@@ -26,6 +26,7 @@
 #include "ShowAlignment.h"
 #include "PrimeFeatures.h"
 #include "RandomizeReads.h"
+#include "ExtractReads.h"
 #include "DrawMatrix.h"
 #include "ShowMST.h"
 #include "ShowScores.h"
@@ -42,6 +43,7 @@ const char* ToolInfo[] = {
     "primes",       "Print n-dimensional features based on prime numbers",
     "randomize",    "Randomize reads in a given FASTA file",
     "scores",       "Shows scores w.r.t a given read",
+    "extract",      "Extract reads from a given FASTA file",
     // Add new tool names and description before this line.
     NULL, NULL
 };
@@ -126,6 +128,8 @@ main(int argc, char* argv[]) {
     case 12: retVal = RandomizeReads::main(argc, argv);
         break;
     case 14: retVal = ShowScores::main(argc, argv);
+        break;
+    case 16: retVal = ExtractReads::main(argc, argv);
         break;
     default:
         std::cout << "Invalid or unhandled tool name specified.\n";

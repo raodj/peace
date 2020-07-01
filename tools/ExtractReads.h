@@ -1,5 +1,5 @@
-#ifndef RANDOMIZE_READS_H
-#define RANDOMIZE_READS_H
+#ifndef EXTRACT_READS_H
+#define EXTRACT_READS_H
 
 //--------------------------------------------------------------------
 //
@@ -35,20 +35,15 @@
 //---------------------------------------------------------------------
 
 #include "Tool.h"
+#include "ArgParser.h"
 
-/** \file RandomizeReads.h
+/** \file ExtractReads.h
 
     \brief This file contains the class definition for a tool to
-    randomly shuffle reads in a given file for roubust testing.
-
-    This file contains the class definition for the RandomizeReads
-    tool.  This tool randomly shuffles the entries in a given input
-    file.  Shuffling the data ranodmly ensures that testing with data
-    sets is not invalidated due to any inherent ordering already
-    present in the data set.
+    extract a given list of reads from a given fasta file.
 */
 
-/** A tool to randomize reads in a data set for robust testing.
+/** A tool to extract reads in a data set into another data file.
 
     The overall operation of this tool is rather straightforward,
     and as follows:
@@ -59,28 +54,24 @@
     
     <li> It loads all the ESTs from a given FASTA file.</li>
 
-    <li>Randomly shuffles the reads.</li>
+    <li>Extract the specified reads.</li>
 
-    <li>Writes the shuffled read to a given output file.</li>
+    <li>Write the shuffled read to a given output file.</li>
 
     </ol>
-
-    The generated ESTs (with alignment annotation) can be graphically
-    viewed using the \c ShowAlignment tool.
 */
-class RandomizeReads : public Tool {
+class ExtractReads : public Tool {
 public:
     /** The main method to perform tasks for this tool.
         
         <p>This method is invoked from the ::main() method associated
         with PEACE-tools once it has detected that the tool to be used
-        is this RandomizeReads tool.  Any pending (unprocessed)
-        command line parameters are passed to this method for its
-        use.</p>
+        is this ExtractReads tool.  Any pending (unprocessed) command
+        line parameters are passed to this method for its use.</p>
 
         This method uses an arg_parser object to process the pending
         command line arguments. If all the necessary arugments were
-        supplied then it load reads, randomly shuffles them, and
+        supplied then it load reads, extracts specified reads, and
         writes them to a given output file.
         
         \param[in] argc The number of remaining command line arguments
@@ -105,19 +96,15 @@ protected:
 
         \param[out] outPath The output file name specified by the user.
 
-        \param[out] filterNs Filter out reads that have a 'N' in them.
+        \param[out] idxList The index positions of the ESTs to be
+        extracted.
 
-        \param[out] subSeqSt The starting index position of
-        subsequence (if any). By default this value is -1 and is
-        ignored.
-
-        \param[out] subSeqEnd The ending index position of
-        subsequence (if any). By default this value is -1 and is
-        ignored.        
+        \param[out] rndNum An optional random subset of reads to be
+        extracted.
     */
     static int parseArgs(int argc, char *argv[], std::string& inputPath,
-                         std::string& outputPath, bool& filterNs,
-                         int& subSeqStart, int& subSeqEnd);
+                         std::string& outputPath,
+                         ArgParser::StringList& idxList, int& rndNum);
     
 private:
     /** The default constructor for this class.
@@ -128,14 +115,14 @@ private:
         users to use the main() method instead.  The constructor
         currently does not have a specific task to perform.
     */
-    RandomizeReads() {}
+    ExtractReads() {}
 
     /** The destructor.
 
         The destructor currently does not have a specific task to
         perform and is merely present to adhere to coding conventions.
     */
-    ~RandomizeReads() {}
+    ~ExtractReads() {}
 };
 
 #endif
