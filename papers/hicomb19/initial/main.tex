@@ -1,0 +1,67 @@
+\documentclass[conference]{IEEEtran}  % Comment this line out
+                                                          % if you need a4paper
+%\documentclass[a4paper, 10pt, conference]{ieeeconf}      % Use this line for a4
+                                                          % paper
+
+% \IEEEoverridecommandlockouts                              % This command is only
+                                                          % needed if you want to
+                                                          % use the \thanks command
+
+
+% The following packages can be found on http:\\www.ctan.org
+\usepackage{graphicx} % for pdf, bitmapped graphics files
+\usepackage{pifont} % for speical characters
+\usepackage[
+  colorlinks=true,
+  linkcolor=blue,anchorcolor=blue,
+  citecolor=blue,filecolor=blue,
+  menucolor=blue,
+  %pagecolor=blue,
+  urlcolor=blue,
+  bookmarks=false,
+  pdftex]{hyperref}
+
+\usepackage{soul}
+\usepackage{color}
+\usepackage{array,multirow}
+\usepackage{textcomp}
+\usepackage[algoruled,linesnumbered,longend]{algorithm2e}
+\usepackage{colortbl}
+\usepackage{flushend}
+
+\DeclareRobustCommand{\hlcyan}[1]{{\sethlcolor{cyan}\hl{#1}}}
+
+%\usepackage{epsfig} % for postscript graphics files
+%\usepackage{mathptmx} % assumes new font selection scheme installed
+%\usepackage{times} % assumes new font selection scheme installed
+%\usepackage{amsmath} % assumes amsmath package installed
+%\usepackage{amssymb}  % assumes amsmath package installed
+
+
+\begin{document}
+
+%% Change soul highlighting color
+% Set highlighting color
+\definecolor{vlblue}{RGB}{225,225,255}
+% \definecolor{vlgray}{blue}{.90}
+\sethlcolor{vlblue}
+
+\input{shortcuts.tex}
+\input{title.tex}
+\input{abstract.tex}
+\input{introduction.tex}
+\input{background.tex}
+\input{metrics.tex}
+\input{relatedwork.tex}
+\input{ast.tex}
+\input{primes.tex}
+\input{results.tex}
+\input{conclusions.tex}
+\input{acknowledgment.tex}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\bibliographystyle{abbrv}
+\bibliography{main}
+
+
+\end{document}

@@ -1,0 +1,28 @@
+\section{ASSESSMENT METRICS}\label{sec:metrics}
+
+This study primarily focuses on reducing runtime for clustering.
+However, the quality of clustering is important~\cite{hazelhurst-11}.
+In this study we have used two widely used metrics for assessing the
+quality of clustering, namely Normalized Mutual Information (NMI) and
+Purity.  NMI is a popular measure of clustering quality based on
+Information Theory~\cite{strehl-03}. Values of NMI range from 0 to
+1. High NMI values indicate good clustering.  In this work, NMI is the
+primary measure of clustering quality.
+
+In addition to NMI, purity has also been used as a measure to further
+validate clustering quality. Purity values range from 0 to 1.0.
+Higher purity values indicate that a cluster does not have reads from
+other clusters mixed into it.  The R packages aricode
+(\url{https://cran.r-project.org/web/packages/aricode/index.html}) and
+IntNMF~\cite{chalise-17} have been used to calculate NMI and purity,
+respectively.
+
+The NMI and purity values have been calculated using the clustering
+output from \peace\/ as the reference.  Using the output from \peace\/
+is motivated by two reasons.  First, \peace\/ has been tested by
+multiple authors and has shown to produce good quality
+clustering~\cite{rao-10,hazelhurst-11}.  Second, our objective is to
+improve the performance of \peace\/ without impacting clustering
+quality.  Consequently, we have used the output of \peace\/ as the
+reference to assess clustering quality.
+

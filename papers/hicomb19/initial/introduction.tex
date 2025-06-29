@@ -1,0 +1,140 @@
+\section{INTRODUCTION}
+
+Clustering nucleotide sequence data has many applications ranging from
+identification of gene expressions~\cite{hazelhurst-11}, reducing the
+runtime of sequencing reads to the
+genomes~\cite{rao-10,hazelhurst-08}, and inferring phylogenetic
+relationships of organisms~\cite{cybis-18,solovyov-09,wei-12}.
+Clustering approaches are being widely used to group or ``bin'' the
+reads belonging to a taxonomic group together in metagenomics
+analyses~\cite{sedlar-17}. Clustering approaches can be used to reduce
+sequencing errors by pre-clustering reads in the initial stages of
+data analysis~\cite{kozich-13}.  Clustering whole large sets of
+chromosome, genomes and other larger nucleotide sequences using
+alignment-free methods enable rapid identification of phylogenetic
+relationships between organisms. An example of such an application
+would be the clustering of large sets of viral and other microbial
+genomes~\cite{delgado-15,solovyov-09,wei-12}. Clustering such
+microbial data enables understanding the microbial phylogenetic
+distribution in large datasets and potentially identifying novel
+microbial taxa~\cite{wei-12}.
+
+\subsection{Current state-of-the-art}
+
+Classical sequence clustering approaches were based on sequence
+alignments using dynamic
+programming~\cite{morrison-15,sievers-14,thompson-03}. The major
+drawback of alignment-based methods is runtime and memory consumption
+-- \ie\/ they tend to be very slow and consume a lot of
+memory~\cite{zielezinski-17}. Hence they are not preferred when
+clustering large datasets. Moreover, even though alignment-based
+approaches are considered to be highly accurate, the quality of the
+results could be questionable due to several deficiencies as discussed
+by Zielezinski \etal\/ (they specifically discuss five
+cases)~\cite{zielezinski-17}.
+
+%%They discusses five cases where alignment-based sequence analysis can
+%%be deficient, including the inability to incorporate certain complex
+%%sequence features such as duplication,
+%%inversions~\cite{zielezinski-17} and secondary structural
+%%features~\cite{morrison-15}.
+
+Alignment-free approaches are more practical alternatives to dynamic
+programming-based methods.  Instead of dynamic programming,
+alignment-free approaches rely on partial comparisons and
+pseudo-metrics for clustering.  For example, our preliminary
+clustering software called \peace\/ used a well established
+alignment-free, pseudo-metric called \q{d2} to estimate similarity or
+``distance'' between pairs of reads.  \peace\/ uses the \q{d2} score
+(more details in Section~\ref{sec:background}) to build a Minimum
+Spanning Tree (MST) and then cuts the MST to form clusters.  \q{d2} is
+also used by \q{wcd}~\cite{hazelhurst-08}.  Recently, Hazelhurst
+\etal~\cite{hazelhurst-11} further enhanced \q{wcd} with a suffix
+array based approach called \q{kaboom}, to significantly improve the
+performance of \q{wcd}.  \q{wcd-kaboom} has shown to outperform (both
+in runtime and cluster-quality) several mainstream clustering
+software, including ESTate, xsact, PaCE, CAP3, and
+TGICL~\cite{hazelhurst-11}.  Consequently, we use \q{wcd-kaboom} as
+the reference for performance comparisons.
+
+\subsection{Motivation for this research}
+
+The primary advantage of alignment-free methods is that they run
+\emph{much faster} and often have a small memory footprint but at the
+cost of some degradation in clustering quality.  Consequently,
+alignment-free methods are widely used for clustering large
+datasets~\cite{zielezinski-17,vinga-14}.  However, the ongoing
+exponential growth in data volumes, continue to pose challenges in
+accomplishing fast and effective clustering.  Even with just ~1\%
+pairwise comparisons~\cite{hazelhurst-11}, \q{wcd-kaboom} takes
+\mytilde 149 minutes (on an Intel
+Xeon\textsuperscript{\textregistered}\/ Gold 6126 CPU @ 2.6 GHz) to
+cluster \mytilde65K Haemagglutinin (HA) reads.  Such a long runtime of
+\mytilde 3.5 hours for a relatively small data set, with a
+state-of-the-art tool, highlights the ongoing challenges, thereby
+motivating the need for high-performance clustering solutions.
+
+\subsection{Proposed solution: An overview}
+
+This research proposes a high-performance clustering solution to
+effectively cluster large datasets of both short and long genomic
+data.  The objective is to reduce runtime without significantly
+degrading clustering-quality.  We propose to improve performance using
+two approaches: \ding{182} first we focus on improving performance by
+changing the Minimum Spanning Tree (MST) clustering approach used in
+\peace\/ with an Approximate Spanning Tree (AST), and \ding{183}
+adding a Prime-Number based Heuristic (PNH) based on the previously
+proposed prime number based scoring system for inverted repeats
+detection~\cite{sreeskandarajan-14}.  We discuss the conceptual
+underpinnings and algorithmic details of these two approaches in
+Section~\ref{sec:ast} and Section~\ref{sec:pnh}.
+
+The paper presents results from experiments conducted using a broad
+spectrum of data sets in Section~\ref{sec:results}.  We also compare
+performance of the proposed method with \q{wcd-kaboom} to highlight
+the effectiveness of AST and PNH.  For example, with AST, the runtime
+for clustering the HA dataset is just 16 seconds, instead of 8,940
+seconds for {\ttfamily wcd-kaboom}, a 550\texttimes\/ performance
+improvement.  This is a very substantial performance improvement with
+clustering quality slightly better than {\ttfamily wcd-kaboom}.  This
+study establishes the potential of the AST approach in providing a
+high-performance clustering tool well suited for clustering datasets
+with large clusters.  The PNH is a promising approach for further
+increasing the speed of large sets of viral genomic data.
+
+% It is hypothesized that the prime number-based filter will be very
+% efficient in speeding up the clustering of viral genomic sequences in
+% comparison to the Khaboom filter of WCD due to nature of viral genomic
+% data: longer sequences, high similarity and few clusters.
+
+
+%% For example, a popular Next Generation Sequencing technology Illumina
+%% HiSeq2500 system is able to produce 100 nucleotides long reads, while
+%% Helicos’s Heliscope is able to produce very short reads of average
+%% length 30 nucleotides. The RSII platform of Pacific bioscience has the
+%% ability to produce large reads of length more than 10,000
+%% bases. Alignment-free clustering methods can aid the analysis of
+%% sequencing reads data.
+
+%% With the recent availability of large volumes of pathogenic viral
+%% genomic data clustering tools based on alignment-free methods can aid
+%% in the rapid analysis of pathogenic viral diversity and potentially
+%% aid in the identification of newly emerging viral pathogens. Influenza
+%% genome sequences are publically available via databases such as
+%% Influenza Research Database~\cite{zhang-17}, GISAID~\cite{bogner-06}
+%% and Influenza Virus Resource~\cite{bao-08}. Several other pathogenic
+%% viral genomic datasets such as genomic sequences of Ebola, Dengue, and
+%% Zika can be obtained from Virus Variation Resource~\cite{brister-14}
+%% and Virus Pathogen Database~\cite{pickett-12}. Alignment-free
+%% clustering approach enable effective clustering these large public
+%% datasets aiding in the understand of the evolution of viral pathogens.
+
+
+%% Based on testing performed of the modified version PEACE (PEACE 2) on
+%% short nucleotide reads and large viral genomic the modified version
+%% PEACE (PEACE 2) was found to be faster than WCDExpress and PEACE,
+%% without much compromise in the accuracy of the clustering. Overall,
+%% the AMAST modification was able to increase the speed of PEACE greatly
+%% for sequencing reads clustering and viral genome clustering, while the
+%% PNF was able effectively increase the speed effectively only for the
+%% viral genomic data when combined with the AMAST. 

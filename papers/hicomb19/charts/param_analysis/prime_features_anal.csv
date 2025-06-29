@@ -1,0 +1,10 @@
+# Data for HA_1500_rnd
+# Type of command used: ./peace --heuristics primes tv --pri-heur-features 1 --clusterMaker mst --maxUse 1 --output-cls-file ./HA_1500_rnd_peace_cls_mst_maxUse_1_clusters.txt --fastaFiles /shared/raodm/sutharzan/datasets/HA_1500_rnd.fa --no-ondemand
+# MaxUse, NumFeatures, Runtime, Memory, NumClusters, NMI, Purity
+1, 1, 12.9, 186748, 56, 0.9348333, 0.970262336903902
+1, 3,  13.16, 186716, 54, 0.9208849, 0.963945965052483
+1, 10, 13.6, 188732, 47, 0.7921227, 0.886612672701286
+1, 32, 13.83, 201988, 47, 0.9214897, 0.964975641242373
+1, 100,11.2, 234460, 68, 0.920908, 0.963884491847116
+1, 316, 11.5, 344260, 97, 0.9328037, 0.972598318707833
+1, 1000, 12.6, 691948, 159, 0.8824308, 0.976517235549955

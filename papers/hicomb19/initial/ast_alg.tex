@@ -1,0 +1,57 @@
+%% Bunch of shortcuts are defined below to streamline coding up the
+%% AST agorithm below.
+
+\definecolor{grey}{RGB}{175, 175, 175}
+\definecolor{myBlue}{RGB}{0, 100, 200}
+
+\SetNlSty{bfseries}{\color{grey}}{}
+%\newcommand{\state}{\ArgSty{state}}
+\SetKw{not}{!}
+\SetKw{true}{true}
+\newcommand{\ra} {\textrightarrow}
+%\SetKw{false}{false}
+
+%% The AST method
+\SetKwBlock{AST}{begin AST(\ArgSty{estList}, \ArgSty{root}, \ArgSty{ASTthresh})}{end AST}
+
+%% The getReads method
+\SetKwBlock{getReads}{begin getReads(\ArgSty{estList}, \ArgSty{root}, \ArgSty{ASTthresh})}{end getReads}
+
+% Style comments font and color
+\newcommand\mycommfont[1]{\footnotesize\ttfamily\textcolor{myBlue}{#1}}
+\SetCommentSty{mycommfont}
+
+\begin{algorithm}[h]
+  \AST{
+    ast.add(root, 0) \tcp{d2 distance is 0}
+    \While{\not estList.empty()}{
+      \tcp{Get reads with d2 score \textless\/ ASTthresh}
+      nearList = getReads(estList, root, ASTthresh)
+
+      \tcp{Add all similar reads to AST}
+      \ForEach{\textless est, d2score\textgreater\/ $\in$ nearList}{
+        ast.add(root, est, d2score)
+        
+        estList.remove(est)
+      }
+      root = nearList.last().est
+    }
+    \Return{ast}
+  }
+
+  \getReads{
+    nearList = \{\}
+    
+    \ForEach{est $\in$ estList}{
+      \If{heuristicChain.shouldAnalyze(root, est)}{
+        d2score = d2(root, est)
+      
+        \If{d2score \textless\/ ASTthresh}{
+          nearList.add(\textless est, d2score\textgreater)
+        }
+      }
+    }
+    \Return{nearList}
+  }
+  \caption{Approximate Spanning Tree (AST)}\label{alg:ast}
+\end{algorithm}

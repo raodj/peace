@@ -1,0 +1,20 @@
+\newcommand{\q}[1]{\texttt{#1}}
+\newcommand{\peace} {{\footnotesize PEACE}}
+\newcommand{\peaceNew} {{\footnotesize PEACE}$_{2.0}$}
+\newcommand{\ie} {\emph{i.e.,}}
+\newcommand{\eg} {\emph{e.g.,}}
+\newcommand{\etal} {\emph{et al}}
+\newcommand{\bo}[1]{\textbf{#1}}
+
+%% A simple macro to make 2-column entries in table
+\newcommand*{\twocol}[1]{\multicolumn{2}{|l|}{#1}}
+
+%% A macro to enable rotated text in a table
+\newcommand{\STAB}[1]{\begin{tabular}{@{}c@{}}#1\end{tabular}}
+\newcommand{\vertpeace}{\multirow{5}{*}{\STAB{\rotatebox[origin=c]{90}{\peace}}}}
+
+%% The following command requires textcomp package
+%% \newcommand{\mytilde}{\raisebox{0ex}{\texttildelow}}
+\newcommand{\mytilde}{\texttildelow}
+
+\newcommand{\gray}{\rowcolor[gray]{0.93}}

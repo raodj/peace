@@ -1,0 +1,48 @@
+\section{CONCLUSIONS}
+
+Clustering is a vital processing step for analysis of genomic data.
+Several software tools have been proposed to enable fast clustering.
+Nevertheless, continued advancement in clustering methods is necessary
+to keep pace with the ongoing exponential growth of genomic data.
+This study proposed two novel enhancements to an existing clustering
+software system called \peace.  The first enhancement was the use of
+Approximate Spanning Tree (AST) which enables \emph{much faster}
+clustering than the current Minimum Spanning Tree (MST) approach.  In
+addition, a novel Prime Numbers based Heuristic (PNH) is also
+proposed.  The paper discussed these two enhancements in detail and
+presented an empirical analysis of their effectiveness.  The empirical
+data was collected from experiments conducted using two different
+types of data sets.  Moreover, the paper also presented comparison
+against \q{wcd-kaboom}, a \emph{fast}, state-of-the-art clustering
+software.
+
+The outcomes of this study show that the AST approach effectively
+increase the performance of \peace\/ only for datasets with large
+clusters (viral genomic sequences).  In the case of Influenza data
+set, a dramatic 550\texttimes\/ performance improvement was observed.
+In general, the AST approach did not significantly compromise the
+quality of the clustering.  In most cases, the AST method generates
+additional clusters, but did not impact purity.  These additional
+clusters can be merged, if necessary.
+
+The outcomes also indicate that the Prime Number based Heuristic (PNH)
+is a promising approach for further increasing the speed, but only for
+clustering long genomic sequences.  A detailed investigation of the
+effects of hyperparameter choices for PNH is underway to increase its
+broader applicability.  Furthermore, we are planning enhancements to
+reduce memory footprint by using multi-tier heaps~\cite{higiro-17}.
+Importantly, we plan to explore parallel clustering capabilities of
+\peace\/ in conjunction with AST and the PNH.
+
+Rapid clustering of viral and bacterial genomes forming large clusters
+will provide insight into the genetic diversity. Viral genotypes such
+as Influenza A subtypes can be identified by clustering unidentified
+genomic sequences with known genotypes. This type of cluster-based
+identification approaches has the potential to detect novel viral
+strains by separating them into new clusters which does not consist
+any known types.  The improved performance of \peace\/ with AST, with
+its default parameter settings and without the need for additional
+external tools (such as \q{mkesa} for \q{wcd}), makes it an ideal tool
+for use by biologists for clustering large datasets.
+
+\newpage

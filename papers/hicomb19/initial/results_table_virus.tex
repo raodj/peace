@@ -1,0 +1,51 @@
+\begin{table}
+  \caption{Restuls for Virus datasets}
+  \begin{center}
+    \renewcommand{\arraystretch}{1.1}
+    \begin{tabular}{|l|l|r|r|r|r|r|}
+      
+      \hline
+      \twocol{\bf Tool info} & {\bf Time} & {\bf RAM} & {\bf \#Clu-} & {\bf NMI} & {\bf Pur-} \\
+      \twocol{}          & {\bf (mm:ss)} & \bf{(MB)}   & {\bf sters}  &     & \bf{ity}  \\
+      \hline
+
+      \gray
+      \multicolumn{7}{|l|}{Dataset: HA (\mytilde 65K seq)} \\ \hline
+      
+      \twocol{wcd-kbm} & 149:55 & 1820 & 28 & 0.566 & 1.0 \\ \hline
+      
+      \vertpeace
+
+      & MST  & 930:06 & 4198 & 8 & 1.0 & 1.0 \\ \cline{2-7}
+      
+      & AST=1 &  0:16 & 178 & 26 & 0.63 & 1.0  \\ \cline{2-7}
+
+      & AST=0.8 &  0:27 & 180 & 13 & 0.743 & 1.0 \\ \cline{2-7}
+      
+      & PNH,AST=1 & 0:13 & 185 & 53 & 0.583 & 1.0  \\ \cline{2-7}
+
+      & PNH,AST=0.8 & 0:17.5 & 185 & 45 & 0.591 & 1.0 \\ \hline \hline
+      
+      %%-----------------------------------------------------------------
+
+      \gray
+      \multicolumn{7}{|l|}{Dataset: Dengue (\mytilde 5.2K seq)} \\ \hline
+      
+      \twocol{wcd-kbm} & 31:45 & 945 & 1 & 1.0 & 1.0 \\ \hline
+      
+      \vertpeace
+
+      & MST  & 858:17 & 407 & 1 & 1.0 & 1.0  \\ \cline{2-7}
+      
+      & AST=1 & 0:21 & 78 & 2 & 0 & 1.0 \\ \cline{2-7}
+
+      & AST=0.8 &  0:27 & 180 & 13 & 0.743 & 1.0 \\ \cline{2-7}
+      
+      & PNH,AST=1 & 0:11 & 79 & 44 & 0 & 1.0 \\ \cline{2-7}
+
+      & PNH,AST=0.8 & 0:12 & 79 & 45 & 0 & 1.0 \\ \hline
+
+    \end{tabular}\label{tab:virus}
+    \renewcommand{\arraystretch}{1.0}
+  \end{center}
+\end{table}

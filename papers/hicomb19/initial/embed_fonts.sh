@@ -1,0 +1,1 @@
+gs -dCompatibilityLevel=1.4 -dPDFSETTINGS=/screen -dCompressFonts=true -dSubsetFonts=true -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=main_fonts_embedded.pdf -c ".setpdfwrite <</NeverEmbed [ ]>> setdistillerparams" -f main.pdf

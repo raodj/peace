@@ -1,0 +1,20 @@
+Motivation: Clustering genomic data, including those generated via
+high-throughput sequencing, is an important preliminary step for
+assembly and analysis. However, clustering a large number of sequences
+is time-consuming. Methods: In this paper, we discuss algorithmic
+performance improvements to our existing clustering system called
+PEACE via the following two new approaches: (1) using Approximate
+Spanning Tree (AST) that is computed much faster than the currently
+used Minimum Spanning Tree (MST) approach, and (2) a novel Prime
+Numbers based Heuristic (PNH) for generating features and comparing
+them to further reduce comparison overheads. Results: Experiments
+conducted using a variety of data sets show that the proposed method
+significantly improves performance for datasets with large clusters
+with only minimal degradation in clustering quality. We also compare
+our methods against wcd-kaboom, a state-of-the-art clustering
+software.  Our experiments show that with AST and PNH underperform
+wcd-kaboom for datasets that have many small clusters.  However, they
+significantly outperform wcd-kaboom for datasets with large clusters
+by a conspicuous ~550x with comparable clustering quality.  The
+results indicate that the proposed methods hold considerable promise
+for accelerating clustering of genomic data with large clusters.

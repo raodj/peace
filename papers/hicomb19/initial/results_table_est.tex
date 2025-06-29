@@ -1,0 +1,72 @@
+\begin{table}
+  \caption{Results for EST datasets}
+  \begin{center}
+    \renewcommand{\arraystretch}{1.1}
+    
+    \begin{tabular}{|l|l|r|r|r|r|r|}
+      
+      \hline
+      \twocol{\bf Tool info} & {\bf Time} & {\bf RAM} & {\bf \#Clu-} & {\bf NMI} & {\bf Pur-} \\
+      \twocol{}          & {\bf (mm:ss)} & \bf{(MB)}   & {\bf sters}  &     & \bf{ity}  \\
+      \hline
+
+      \gray
+      \multicolumn{7}{|l|}{Dataset: S8 (\mytilde 150K seq)} \\ \hline
+      
+      \twocol{wcd-kbm} & 1:01 & 787 & 2224 & 0.998 & 1 \\ \hline
+      
+      \vertpeace
+
+      & MST  & 33:05 & 143 & 2000 & 1 & 1 \\ \cline{2-7}
+      
+      & AST=1.0 & 0:46 & 163 & 2002 & 0.999 & 1.0 \\ \cline{2-7}
+
+      & AST=0.8 & 01:00 & 163 & 2002 & 0.999 & 1.0 \\ \cline{2-7}
+      
+      & PNH,AST=1.0 & 01:14 & 178 & 2002 & 0.999 & 1.0 \\ \cline{2-7}
+
+      & PNH,AST=0.8 & 01:08 & 179 & 2001 & 0.999 & 1.0 \\ \hline \hline
+      
+      %%-----------------------------------------------------------------
+
+      \gray
+      \multicolumn{7}{|l|}{Dataset: C08 (\mytilde 100K seq)} \\ \hline
+
+      \twocol{wcd-kbm} & 2:00 & 811 & 5746 & 0.847 & 0.999 \\ \hline
+      
+      \vertpeace
+
+      & MST  & 18:10 & 12587 & 4552 & 1.0 & 1.0 \\ \cline{2-7}
+      
+      & AST=1.0 & 2:31 & 2724 & 7350 & 0.837 & 0.999 \\ \cline{2-7}
+
+      & AST=0.8 & 3:31 & 5346 & 6952 & 0.886 & 0.999 \\ \cline{2-7}
+      
+      & PNH,AST=1.0 & 1:14 & 2723 & 39983 & 0.69 & 0.999 \\ \cline{2-7}
+
+
+      & PNH,AST=0.8 & 8:41 & 5356 & 39601 & 0.685 & 0.999 \\ \hline \hline
+
+      %%-----------------------------------------------------------------
+
+      \gray
+      \multicolumn{7}{|l|}{Dataset: A076941 (\mytilde 76.9K seq)} \\ \hline
+
+      \twocol{wcd-kbm} & 0:45 & 568 & 18817 & 0.965 & 0.998 \\ \hline
+      
+      \vertpeace
+
+      & MST  & 9:57 & 10576 & 17422 & 1.0 & 1.0 \\ \cline{2-7}
+      
+      & AST=1.0 & 1:54 & 2711 & 18903 & 0.949 & 0.999 \\ \cline{2-7}
+
+      & AST=0.8 & 3:08 & 2712 & 18759 & 0.953 & 0.999 \\ \cline{2-7}
+
+      & PNH,AST=1.0 & 05:16 & 2719 & 39222 & 0.854 & 1.0 \\ \cline{2-7}
+      
+      & PNH,AST=0.8 & 05:58 & 2718 & 39025 & 0.858 & 1.0  \\ \hline
+
+    \end{tabular}\label{tab:est}
+    \renewcommand{\arraystretch}{1.0}
+  \end{center}
+\end{table}
