@@ -53,6 +53,9 @@
 #include "D2Cuda.h"
 #endif
 
+#include "AlignmentAnalyzer.h"
+#include "TMAlignAnalyzer.h"
+
 void
 ESTAnalyzerFactory::addCommandLineInfo(ArgParser& argParser) {
     // Create dummy command-line args to make display prettier and
@@ -80,6 +83,8 @@ ESTAnalyzerFactory::addCommandLineInfo(ArgParser& argParser) {
         {"", "d2cuda: CUDA-based D2 distance metric generation algorithm",
          NULL, ArgParser::INFO_MESSAGE},
 #endif
+        {"", "align: Alignment-based distance metric generation",
+         NULL, ArgParser::INFO_MESSAGE},        
         {"", "", NULL, ArgParser::INVALID}
     };
     argParser.addValidArguments(DummyArgs);
@@ -107,6 +112,10 @@ ESTAnalyzerFactory::create(const std::string& name) {
         // return new BatonAnalyzer();
     } else if (name == "primes") {
         return new PrimesESTAnalyzer();
+    } else if (name == "align") {
+        return new AlignmentAnalyzer();
+    } else if (name == "tmalign") {
+        return new TMAlignAnalyzer();
     }
 
 #ifdef HAVE_CUDA

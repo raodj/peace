@@ -101,11 +101,70 @@ protected:
 
         \param[out] rndNum An optional random subset of reads to be
         extracted.
+
+        \param[out] substrList An optional list of sub-strings to be
+        used to extract entries.
+
+        \return This method returns zero on success.
     */
-    static int parseArgs(int argc, char *argv[], std::string& inputPath,
-                         std::string& outputPath,
-                         ArgParser::StringList& idxList, int& rndNum);
-    
+    int parseArgs(int argc, char *argv[], std::string& inputPath,
+                  std::string& outputPath,
+                  ArgParser::StringList& idxList, int& rndNum,
+                  ArgParser::StringList& substrList);
+
+    /**
+       Extracts a given list of random reads from the given input list.
+
+       \param[in] rndNums The number of random reads to be extracted.
+
+       \param[in] inputList The list of input EST reads.
+
+       \param[out] output The output to where the data is to be written.
+     */
+    void extractRandomReads(const int rndNums, ESTList& inputList,
+                            std::ostream& output) const;
+
+    /**
+       Extracts a given list of random reads from the given input list.
+
+       \param[in] idxList The list of indexes in the inputList whose
+       entries are to be extracted and written to output.
+
+       \param[in] inputList The list of input EST reads.
+
+       \param[out] output The output to where the data is to be written.
+    */
+    void extractIndex(const ArgParser::StringList& idxList,
+                      ESTList& inputList, std::ostream& output) const;
+
+    /**
+       Extracts reads that contains any of the given set of substrings
+       in their information.
+
+       \param[in] substrList The list of sub-strings that are searched
+       in each EST's info.  If any of the sub-strings are found in the
+       info, then those ESTs are written to the output.
+
+       \param[in] inputList The list of input EST reads.
+
+       \param[out] output The output to where the data is to be written.
+    */
+    void extractSubstr(const ArgParser::StringList& substrList,
+                       ESTList& inputList, std::ostream& output) const;
+
+    /** Helper method to write out EST entry while honoring
+        sub-fragment settings (if any).  This method uses the range in
+        subSeqStart and subSeqEnd instance variables (set via
+        command-ine arguments --sub-seq-beg and --sub-seq-end) to
+        extract and write sub-fragements.
+
+        \param[in] est The read to be written.
+
+        \param[out] out The output stream to where the read is to be
+        written.
+    */
+    void writeStrain(EST& est, std::ostream& out) const;
+
 private:
     /** The default constructor for this class.
 
@@ -123,6 +182,17 @@ private:
         perform and is merely present to adhere to coding conventions.
     */
     ~ExtractReads() {}
+
+
+    /** The starting index position of subsequence (if any). By
+        default this value is -1 and is ignored.
+    */
+    int subSeqStart = -1;
+
+    /** The ending index position of subsequence (if any). By default
+        this value is -1 and is ignored.
+    */
+    int subSeqEnd = -1;
 };
 
 #endif

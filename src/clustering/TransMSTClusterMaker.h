@@ -66,7 +66,7 @@ typedef std::vector<TransCacheEntry*> MetricCacheMap;
     <ol>
 
     <li>Given three ESTs, say e<sub>1</sub>, e<sub>2</sub>, and
-    e<sub>2</sub>, assume heavy weight metrics m<sub>12</sub> (between
+    e<sub>3</sub>, assume heavy weight metrics m<sub>12</sub> (between
     e<sub>1</sub> &amp; e<sub>2</sub> and m<sub>23</sub> (between
     e<sub>2</sub> &amp; e<sub>3</sub>) have been computed.</li>
 
@@ -205,7 +205,8 @@ protected:
         list of metrics computed.
     */
     virtual void populateCache(const int estIdx,
-							   SMList* UNREFERENCED_PARAMETER(metricList) = NULL);
+                               SMList* UNREFERENCED_PARAMETER(metricList)
+                               = NULL);
     
     /** The default constructor.
         
@@ -222,19 +223,19 @@ protected:
     TransMSTClusterMaker(ESTAnalyzer *analyzer);
 
     /** Helper method to remove invalid metrics from a given list of
-		values.
+        values.
 		
-		This is a helper method that is invoked from populateCache()
-		method to remove invalid/unwanted entries from a given list of
-		metrics. This method iterates over the entries in \c list and
-		removes all entires that have their metric set to a value that
-		is worse than badMetric value.
+        This is a helper method that is invoked from populateCache()
+        method to remove invalid/unwanted entries from a given list of
+        metrics. This method iterates over the entries in \c list and
+        removes all entires that have their metric set to a value that
+        is worse than badMetric value.
 		
-		\param[in] list The list of metrics that need to be
-		pruned.
+        \param[in] list The list of metrics that need to be
+        pruned.
 		
-		\param[out] entries The list of entries that are better than
-		badMetric.
+        \param[out] entries The list of entries that are better than
+        badMetric.
     */
     void pruneMetricEntries(const SMList& list, SMList& entries);
 

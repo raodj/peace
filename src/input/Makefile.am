@@ -54,6 +54,8 @@ libinput_a_SOURCES = \
 	OnDemandESTList.h \
 	OnDemandESTList.cpp \
 	InputSubSystem.h \
-	InputSubSystem.cpp
+	InputSubSystem.cpp \
+	PDBListFile.h \
+	PDBListFile.cpp
 
 # end of Makefile.am

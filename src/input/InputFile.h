@@ -163,8 +163,12 @@ public:
         'N' characters are \b preserved.  However, if the flag is set
         to \c true then the 'N' characters are randomly converted to a
         regular base character from the list \c ATCG.
+
+        \param[in] normalizeNTs If this value is \c false then the
+        reads are left untouched and the previous 2 flags have no
+        effect.
     */
-    void setOptions(bool maskBases, bool randomizeNbases);
+    void setOptions(bool maskBases, bool randomizeNbases, bool normalizeNTs);
 
     /** Destructor.
 
@@ -279,6 +283,13 @@ private:
         setOptions() method.
     */
     bool randomizeNbases;
+
+    /**
+       If this flag is true then the reads are normalized to be only
+       nucleotide sequences consisting of ATCG.  If this flag is
+       false, then the this normalization is not done.
+     */
+    bool normalizeNTs;
     
     /** A map to maintain the offsets of each EST entry in this
         InputFile.

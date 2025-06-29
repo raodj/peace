@@ -99,6 +99,8 @@ MSTCluster::makeClusters(const NodeList& nodeList, const ESTAnalyzer* analyzer,
     // Check if the threshold is less than 0 (treat all negatives as -1)
     if (threshold < 0) {
         threshold = calculateThreshold(nodeList);
+        std::cout << "Clustering threshold computed to be: "
+                  << threshold << std::endl;
     }
     // Create a hash map to track cluster for a given node
     ClusterMap clusterMap;
@@ -126,13 +128,17 @@ MSTCluster::makeClusters(const NodeList& nodeList, const ESTAnalyzer* analyzer,
             // need to traverse backwards in the node list from the
             // current point.
             NodeList::const_iterator parent = node;
-            while (parent != nodeList.begin()) {
+            while (true) {
                 if (parent->estIdx == node->parentIdx) {
                     subCluster->add(*parent);
                     break;
                 }
                 // Check previous node next.
-                parent--;
+                if (parent != nodeList.begin()) {
+                    parent--;
+                } else {
+                    break;  // print a warning about not finding parent?
+                }
             }
         }
         ASSERT ( subCluster != NULL );

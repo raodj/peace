@@ -115,8 +115,12 @@ libclustering_a_SOURCES = \
 	MergingClusterMaker.h \
 	MergingClusterMaker.cpp \
 	PrimesESTAnalyzer.h \
-	PrimesESTAnalyzer.cpp
-
+	PrimesESTAnalyzer.cpp \
+	AlignmentAnalyzer.h \
+	AlignmentAnalyzer.cpp \
+	TMalign.cpp \
+	TMAlignAnalyzer.h \
+	TMAlignAnalyzer.cpp
 
 # Setup conditional compilation of CUDA components, only if CUDA
 # libraries are availabe for use.

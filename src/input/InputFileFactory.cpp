@@ -37,6 +37,7 @@
 #include "InputFileFactory.h"
 #include "FASTAFile.h"
 #include "SFFReader.h"
+#include "PDBListFile.h"
 #include "SubSystem.h"
 #include "OnDemandESTList.h"
 #include "RuntimeContext.h"
@@ -46,6 +47,7 @@ InputFileFactory::InputFileFactory() : Component("InputFileFactory") {
     noMaskBases     = false;
     randomizeNbases = false;
     noOnDemand      = false;
+    noNormalizeNTs  = false;
 }
 
 InputFileFactory::~InputFileFactory() {
@@ -83,6 +85,8 @@ InputFileFactory::create(const std::string& fileName,
         inputFile = new FASTAFile(fileName);
     } else if (format == "sff") {
         inputFile = new SFFReader(fileName);
+    } else if (format == "pdblist") {
+        inputFile = new PDBListFile(fileName);
     }
 
     if ((inputFile == NULL) || (!inputFile->good())) {
@@ -96,7 +100,7 @@ InputFileFactory::create(const std::string& fileName,
         }
     } else {
         // File was opened successfully. Setup options
-        inputFile->setOptions(noMaskBases, randomizeNbases);
+        inputFile->setOptions(noMaskBases, randomizeNbases, !noNormalizeNTs);
     }
     // Return file pointer (if any) back to the caller
     return inputFile;
@@ -121,8 +125,12 @@ InputFileFactory::addCommandLineArguments(ArgParser& argParser) {
          &estFileNames, ArgParser::STRING_LIST},
         {"--estFiles", "Space separated data files (format auto-detected) to be processed",
          &estFileNames, ArgParser::STRING_LIST},
+        {"--pdbListFiles", "Set of PDB-list file path(s)",
+         &pdbListNames, ArgParser::STRING_LIST},        
         {"--no-ondemand", "Hold all reads in memory (faster; uses more RAM)",
          &noOnDemand, ArgParser::BOOLEAN},
+        {"--no-normalize", "Use sequences as it and don't normalize them to just nucleotide values (use for protiens or other inputs)",
+         &noNormalizeNTs, ArgParser::BOOLEAN},        
         {"", "", NULL, ArgParser::INVALID}
     };
     argParser.addValidArguments(Arguments);
@@ -137,6 +145,10 @@ InputFileFactory::initialize() {
     }
     // Load all SFF files
     if (!loadFiles(sffFileNames, "sff")) {
+        // Error occured during file loading.
+        return false;
+    }
+    if (!loadFiles(pdbListNames, "pdblist")) {
         // Error occured during file loading.
         return false;
     }

@@ -66,7 +66,7 @@ RandomizeReads::parseArgs(int argc, char *argv[], std::string& inputPath,
     // options.  Based on the options supplied, various variables will
     // be set to appropriate values.
     ArgParser ap;
-    Tool::addCmdLineArgs("ShowAlignment", ap);
+    Tool::addCmdLineArgs("randomize", ap);
     ap.addValidArguments(arg_list);
     ap.parseArguments(argc, argv, false);
     if (showOptions) {
@@ -107,8 +107,8 @@ RandomizeReads::main(int argc, char *argv[]) {
     for (int i = 0; (i < estList.size()); i++) {
         if (filterNs && estList[i]->getSequenceString().find('N')
             != std::string::npos) {
-            // std::cout << estList[i]->getInfo() << ": Found N at: "
-            //           << estList[i]->getSequenceString().find('N') << '\n';
+            std::cout << estList[i]->getInfo() << ": Found N at: "
+                      << estList[i]->getSequenceString().find('N') << '\n';
             continue;  // This read has 'N'. Ignore it.
         }
         estVector.push_back(estList[i]);

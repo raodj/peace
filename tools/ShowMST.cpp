@@ -56,7 +56,7 @@ ShowMST::main(int argc, char *argv[]) {
          &estFileName, ArgParser::STRING},
         {"--output", "File to which the bracketed MST must be written",
          &outFileName, ArgParser::STRING},
-        {"--clstrFile", "Optional clusters output from PEACE for color coding",
+        {"--clstrFile", "Optional flat clusters output from PEACE for color coding",
          &clstrFileName, ArgParser::STRING},        
         {"--xScale", "X-Scale for emphasizing line lengths",
          &xScale, ArgParser::DOUBLE},
@@ -73,7 +73,7 @@ ShowMST::main(int argc, char *argv[]) {
     // options.  Based on the options supplied, various variables will
     // be set to appropriate values.
     ArgParser ap;
-    Tool::addCmdLineArgs("ShowAlignment", ap);
+    Tool::addCmdLineArgs("ShowMST", ap);
     ap.addValidArguments(arg_list);
     ap.parseArguments(argc, argv, false);
     if (showOptions) {

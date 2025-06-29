@@ -30,7 +30,7 @@
 // intellectual property laws, and all other applicable laws of the
 // U.S., and the terms of GNU General Public License (version 3).
 //
-// Authors:   Dhananjai M. Rao          raodm@muohio.edu
+// Authors:   Dhananjai M. Rao          raodm@miamiOH.edu
 //
 //---------------------------------------------------------------------
 
@@ -46,10 +46,24 @@ NNMSTClusterMaker::NNMSTClusterMaker(ESTAnalyzer *analyzer)
     // Initialize other instance variables & command-line arguments to
     // custom default values.
     localESTStartIndex = -1;
+    // The number of times the nn-pool was effective
+    nnPoolHits   = 0;
+    // The number of times the nn-pool was exhausted and had to be refreshed
+    refreshCount = 0;
 }
 
 NNMSTClusterMaker::~NNMSTClusterMaker() {
     // Nothing to be done for now.
+}
+
+void
+NNMSTClusterMaker::displayStats(std::ostream& os) {
+    // First let the base class print statistics
+    MSTClusterMaker::displayStats(os);
+    // Print nn-stats that we have collected
+    os << "Statistics from nn-mst:\n"
+       << "\tPool hits count   : " << nnPoolHits   << "\n"     
+       << "\tPool refresh count: " << refreshCount << std::endl;
 }
 
 bool
@@ -68,7 +82,6 @@ NNMSTClusterMaker::initialize() {
     return true;
 }
 
-
 bool
 NNMSTClusterMaker::computeSMEntry(const int estIdx,
                                   const int otherEstIdx, SMList& smList,
@@ -86,9 +99,8 @@ NNMSTClusterMaker::computeSMEntry(const int estIdx,
     if (chain != NULL) {
         chain->getHint(HeuristicChain::MST_RC, directionData);
     }
-    // Add only the first invalid entry. One is enough to do build
-    // a valid MST. There is no need for multiple vestigial
-    // entries.
+    // Add only the first invalid entry. One is enough to do build a
+    // valid MST. There is no need for multiple invalid entries.
     const float InvalidMetric = analyzer->getInvalidMetric();
     const bool isMetricOK = analyzer->compareMetrics(metric, InvalidMetric);
     if ((isMetricOK) || (addInvalidMetric)) {
@@ -116,8 +128,8 @@ NNMSTClusterMaker::computeSMList(const int estIdx, SMList& smList) {
     // startESTidx for size because the number of ESTs can be in
     // millions and will cause memory issues.
     smList.reserve(128);
-
-    printNNPool(std::cout);
+    // Print NN pool for debugging
+    // printNNPool(std::cout);
     
     // Determine the list of ESTs that this process must deal
     // with using the helper method in base class.
@@ -134,7 +146,8 @@ NNMSTClusterMaker::computeSMList(const int estIdx, SMList& smList) {
 
     // First search in the nearest-neighbor pool for a match.
     for(int otherIdx = startESTidx; (otherIdx < endESTidx); otherIdx++) {
-        if (estList->get(otherIdx)->hasBeenProcessed() ||
+        if (cache->isESTinMST(otherIdx) || (otherIdx == estIdx) ||
+            estList->get(otherIdx)->hasBeenProcessed() ||
             !nnPool[otherIdx - startESTidx]) {
             // This EST entry can be ignored because:
             // 1. This metric is not needed (as node is in MST) OR
@@ -150,25 +163,27 @@ NNMSTClusterMaker::computeSMList(const int estIdx, SMList& smList) {
     // the other processes to determine if further operations are
     // needed.
     int localCount = smList.size();
-    int totalCount = 0;
+    int totalCount = 0;  // will be updated in MPI_ALL_REDUCE below
     MPI_ALL_REDUCE(&localCount, &totalCount, 1, MPI_TYPE_INT, MPI_OP_SUM);
     // If we found some matches from the nn-pool we don't need to do
     // the next phase.
     if (totalCount > 0) {
         // Found one-or-more entries from the nnPool. Good -- no
         // further searching is needed.
+        nnPoolHits++;
         return;
     }
 
     // When control drops here, we did not find any matches in the
     // nn-pool. So we need to exhaustively search all locally-owned
     // ESTs.
-    
+    refreshCount++;
     // Flag to ensure only one invalid metric gets added
     bool needInvalidMetric = true;
     for(int otherIdx = startESTidx; (otherIdx < endESTidx); otherIdx++) {
-        if ((estList->get(otherIdx)->hasBeenProcessed()) ||
-            (nnPool[otherIdx - startESTidx])) {
+        if (cache->isESTinMST(otherIdx) || (otherIdx == estIdx) ||
+            estList->get(otherIdx)->hasBeenProcessed() ||
+            nnPool[otherIdx - startESTidx]) {
             // This EST entry can be ignored as this metric is not
             // needed (or must not be used) or it has already been
             // checked in the previous phase
@@ -189,11 +204,15 @@ NNMSTClusterMaker::printNNPool(std::ostream& os) {
     getLocallyOwnedESTidx(startESTidx, endESTidx);
 
     // Print entries present in the nnPool
+    int count = 0;
     for(int otherIdx = startESTidx; (otherIdx < endESTidx); otherIdx++) {
-        if (nnPool[otherIdx - startESTidx]) {
-            os << otherIdx << " ";
+        if ((nnPool[otherIdx - startESTidx]) &&
+            !estList->get(otherIdx)->hasBeenProcessed()) {
+            // os << otherIdx << " ";
+            count++;
         }
     }
+    os << ": " << count << std::endl;
 }
 
 

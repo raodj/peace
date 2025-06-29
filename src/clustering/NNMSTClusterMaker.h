@@ -30,7 +30,7 @@
 // intellectual property laws, and all other applicable laws of the
 // U.S., and the terms of GNU General Public License (version 3).
 //
-// Authors:   Dhananjai M. Rao          raodm@muohio.edu
+// Authors:   Dhananjai M. Rao          raodm@miamiOH.edu
 //
 //---------------------------------------------------------------------
 
@@ -88,9 +88,20 @@ public:
     */
     virtual ~NNMSTClusterMaker();
 
+    /** Method to display performance statistics.
+
+        This method overrides (but calls) implementation in the base
+        class to display statistics on nn-pool usage.  However, first
+        it calls the base class's method to print its statistics prior
+        to printing nn-pool information.
+
+        \param[out] os The output stream to which the statistics must
+        be written.        
+    */
+    virtual void displayStats(std::ostream& os) override;
+
 protected:
-    /** A method to handle initialization tasks for the
-		MSTClusterMaker.
+    /** A method to handle initialization tasks for the NNMSTClusterMaker.
 		
         This method is called after the ESTs have been loaded and the
         clustering is just about to commence. This method calls the
@@ -98,8 +109,8 @@ protected:
         initialization proceeds successfully (call to base class
         inititalizes the ESTAnalyzer and sets up estList pointer).  It
         then sets up the nearest-neighbor pool.
-
-		\return This method returns \c true if initialization was
+        
+        \return This method returns \c true if initialization was
         successfully completed.  On errors it returns \c false.
     */
     virtual bool initialize();
@@ -165,7 +176,7 @@ protected:
        given output stream.  This is primarily used for
        troubleshooting this class.
 
-       param[out] os The output stream to which the data is to be
+       \param[out] os The output stream to which the data is to be
        written.  Typically, this is just std::cout.
     */
     void printNNPool(std::ostream& os);
@@ -185,40 +196,53 @@ private:
     */
     NNMSTClusterMaker(ESTAnalyzer *analyzer);
 
-	/** Helper method to perform a single analysis and appropriately
-		add an entry to the smList.
-	   
-	*/
-	bool computeSMEntry(const int estIdx,
+    /** Helper method to perform a single analysis and appropriately
+        add an entry to the smList.
+	
+    */
+    bool computeSMEntry(const int estIdx,
                         const int otherEstIdx, SMList& smList,
-						const float InvalidMetric,
-						const bool addInvalidMetric,
+                        const float InvalidMetric,
+                        const bool addInvalidMetric,
                         const bool addToNNPool);
 
-	/** Starting index of locally-owned ESTs that are managed by the
-		nearest-neighbor pool (nnPool) in this class.
-
-		This instance variable is a convenience instance variable that
-		is used to track the starting index (zero-based) of the
-		contiguous sub-set of ESTs that are operated on by this
-		cluster maker.  Note that the set of ESTs to be processed are
-		initially evenly divided between the parallel-processes used
-		for clustering.  This value is set by the initialize method
-		and is never changed during the life-time of this class. This
-		value is used by the various methods in this class.
-	*/
-	int localESTStartIndex;
-
+    /** Starting index of locally-owned ESTs that are managed by the
+        nearest-neighbor pool (nnPool) in this class.
+        
+        This instance variable is a convenience instance variable that
+        is used to track the starting index (zero-based) of the
+        contiguous sub-set of ESTs that are operated on by this
+        cluster maker.  Note that the set of ESTs to be processed are
+        initially evenly divided between the parallel-processes used
+        for clustering.  This value is set by the initialize method
+        and is never changed during the life-time of this class. This
+        value is used by the various methods in this class.
+    */
+    int localESTStartIndex;
+    
     /** A simple vector that indicates if a given EST index is present
         in the nearest-neighbor (nn) pool.
-
+        
         This vector is setup in the initialize() method to contain a
         boolean flag for all locally-owned ESTs indicating if a given
         EST is in the pool. This pool is maintained locally on each
         parallel process (it does not contain information about all
         ESTs).
     */
-	std::vector<bool> nnPool;
+    std::vector<bool> nnPool;
+
+    /** A counter to track the number of times the nn-pool was
+        effectively used to short circuit full list scans.
+    */
+    int nnPoolHits;
+    
+    /** A counter to track the number of times the nn-pool was
+        exhauseted and had to be refresh.  The refresh count is an
+        important metric for the performance of this cluster maker.
+        Ideally, we want to have the refresh counts to be small to
+        minimize full-list scans.
+    */
+    int refreshCount;
 };
 
 #endif

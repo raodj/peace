@@ -431,6 +431,60 @@ private:
         minScore = std::min(score, minScore);
     }
 
+    /** Helper method to update the scores based on a sliding window
+        and track the index positions of the minimum scores.
+
+        This method is invoked from several different spots from the
+        runD2() method to update the d2 scores as the window slides
+        across the two sequences being analyzed. The hash values of
+        the words moving into and out of the window are used to update
+        the scores.
+
+        \param[in] wordIn The hash value of the word moving into the
+        window.
+
+        \param[in] wordOut The hash value of the word moving out of
+        the window.
+
+        \param[in,out] score The current running score for this
+        window. This value is updated using the delta array.
+
+        \param[in,out] minScore The current minimum score. This value
+        is updated after the score is updated to reflect the minimum
+        of score and minScore.
+
+        \param[in] s1Pos The current index position in the 1st strain.
+
+        \param[in] s2Pos The current index position in the 2nd strain.
+        
+        \param[out] s1MinPos The index position (in 1st strain) of the
+        minimum score thus far.  This value is updated only when a new
+        minimum score is encountered.
+
+        \param[out] s1MinPos The index position (in 2nd strain) of the
+        minimum score thus far.  This value is updated only when a new
+        minimum score is encountered.
+    */
+    inline void updateWindow(const int wordIn, const int wordOut,
+                             int& score, int& minScore, int s1Pos, int s2Pos,
+                             int& s1MinPos,
+                             int& s2MinPos) {
+        // Update score and delta for word moving in
+        score -= (delta[wordIn] << 1) - 1;
+        delta[wordIn]--;
+        // Update score and delta for word moving out
+        score += (delta[wordOut] << 1) + 1;
+        delta[wordOut]++;
+        // Track the minimum score.
+        if (score < minScore) {
+            minScore = score;
+            s1MinPos = s1Pos;
+            s2MinPos = s2Pos;
+            std::cout << "D2(" << s1MinPos << ", " << s2MinPos
+                      << ") = " << minScore << std::endl;
+        }
+    }
+    
     /** The core method that run's the D2 algorithm.
 
         This method performs the core D2 analysis. This method is

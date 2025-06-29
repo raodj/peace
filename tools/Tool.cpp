@@ -54,6 +54,48 @@ Tool::loadFastaFile(const std::string& fileName) {
     return peace.loadFile(fileName, "", 0);
 }
 
+// A static helper method to split strings
+std::vector<std::string>
+Tool::splitString(const std::string& str, const std::string& delimiters,
+                  const bool trimTokens) {
+    const std::string s = (trimTokens ? trim(str) : str);
+    std::vector<std::string> tokens;
+    size_t start = 0;
+    size_t end = s.find_first_of(delimiters, start);
+    
+    while (end != std::string::npos) {
+        const std::string token = s.substr(start, end - start);
+        tokens.push_back(trimTokens ? trim(token) : token);
+        start = end + 1;
+        end = s.find_first_of(delimiters, start);
+    }
+    // Add the last token
+    const std::string token = s.substr(start);
+    tokens.push_back(trimTokens ? trim(token) : token);    
+    
+    return tokens;
+}
+
+std::string
+Tool::trim(const std::string& s, const char *whitespace) {
+    // Find the first non-whitespace character
+    size_t first_non_whitespace = s.find_first_not_of(whitespace);
+
+    // If the string contains only whitespace, return an empty string
+    if (first_non_whitespace == std::string::npos) {
+        return "";
+    }
+
+    // Find the last non-whitespace character
+    size_t last_non_whitespace = s.find_last_not_of(whitespace);
+
+    // Calculate the length of the trimmed substring
+    size_t length = last_non_whitespace - first_non_whitespace + 1;
+
+    // Return the trimmed substring
+    return s.substr(first_non_whitespace, length);
+}
+
 bool
 Tool::loadClusterInfo(const std::string& fileName) {
     // Try and open the cluster file
@@ -64,7 +106,6 @@ Tool::loadClusterInfo(const std::string& fileName) {
         return false;
     }
     // Now repeatedly read a line from the file and process it.
-    int clusterNum = -1; // The last seen cluster number
     while (!clstrFile.eof() && clstrFile.good()) {
         // Read a line from the cluster file.
         std::string line;
@@ -74,12 +115,19 @@ Tool::loadClusterInfo(const std::string& fileName) {
             // nothing to process on this line.
             continue;
         }
-        if (line.find("Cluster #") == 0) {
-            // This is a new cluster entry. Update cluster number.
-            sscanf(line.c_str(), "Cluster #%d", &clusterNum);
+        // This is a EST entry. Update color map, from flat format
+        // This is CSV line in the format:
+        // cluster=1, parentIdx=-1, estIdx=0, metric=0, ESTInfo
+        const std::vector<std::string> vals = splitString(line, ",=", true);
+        if ((vals.size() < 9) || (vals[0] != "cluster") ||
+            (vals[2] != "parentIdx") || (vals[4] != "estIdx") ||
+            (vals[6] != "metric")) {
+            std::cerr << "The following line of cluster information is "
+                      << "not in the expected --flat-print format: '"
+                      << line << "'\n";
         } else {
-            // This is a EST entry. Update color map.
-            colorMap[line] = clusterNum + USER_COLOR_START;
+            const int clusterNum = std::stoi(vals[1]);
+            colorMap[vals[8]] = clusterNum;
         }
     } 
     // Detect if all the data was read & processed

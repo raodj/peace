@@ -265,7 +265,7 @@ MSTClusterMaker::updateProgress(const int estsAnalyzed, const int totalESTcount,
                                 const int estAdded, const float metric,
                                 const int direction) {
     // Dump the cache for testing purposes
-    cache->print(std::cout);
+    // cache->print(std::cout);
     // Print progress to console if requested.
     if (printProgress) {
         char buffer[128];
@@ -461,10 +461,13 @@ MSTClusterMaker::initialize() {
         // Base class inititalization failed
         return false;
     }
-    if (!analyzer->initialize()) {
-        // Error occured during initialization. Bail out.
-        return false;
-    }
+    // The base class already initializes the analyzer. So we don't
+    // need to do it again here.
+    // if (!analyzer->initialize()) {
+    //     // Error occured during initialization. Bail out.
+    //     return false;
+    // }
+
     // Ensure the cache size is at least 1.
     if (cacheSize < 1) {
         std::cerr << "Invalid cache size (must be greater than zero)\n";

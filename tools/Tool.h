@@ -298,6 +298,39 @@ public:
         \return A reference to the EST analyzer setup in PEACE.
     */
     ESTAnalyzer& getAnalyzer();
+
+    /**
+       Helper method to split a string based on one-or-more delimiter
+       characters.
+
+       \param[in] str The string to be split.
+
+       \param[in] delimiters The list of delimiter characters to be
+       used. Note that each delimiter can only be a character.
+
+       \param[in] trimTokens If this flag is true, then each token is
+       trimmed by calling the trim method in this class.
+       
+       \return The list of tokens from the string separated by the
+       specified list of delimiters.
+    */
+    static std::vector<std::string>
+    splitString(const std::string& str, const std::string& delimiters,
+                const bool trimTokens = false);
+
+    /**
+       Convenience method to strip leading and trailing whitespaces
+       from a string.
+
+       \param[in] str The string to be trimmed.
+
+       \param[in] whitespace The list of characters to be deemed as
+       whitespace characters.
+
+       \return Returns the trimmed version of the string.
+     */
+    static std::string trim(const std::string& str,
+                            const char* whitespace = " \t\n\r\f\v");
     
 protected:
     /** The constructor.

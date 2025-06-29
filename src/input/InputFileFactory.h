@@ -219,6 +219,19 @@ private:
     */
     ArgParser::StringList sffFileNames;
 
+    /** The set of PDB-List files specified by the user at the command
+        line.
+
+        This instance variable is passed to the command line argument
+        parser and is used to hold the list of pdb-list file names
+        (with optional absolute or relative path) as specified by the
+        user.  The list is set in the addCommandLineArguments() method
+        and is filled-in when PEACE performs the initial round of
+        command line argument processing.  The list is processed in
+        the initialize() method.
+    */    
+    ArgParser::StringList pdbListNames;
+    
     /** The list of data files specified by the user at the command
         line.
 
@@ -267,6 +280,17 @@ private:
     */
     bool randomizeNbases;
 
+    /** Flag to indicate if all nucleotides should be normalized to be
+        ATCG or left untouched.
+
+        If this flag is set to false (default is true), then the reads
+        are left unaltered. Consequently, the randomizeNbases and
+        noMaskBases flags have no effect.  This feature is useful to
+        process protiens or other inputs other than nucleotide
+        sequences as inputs.
+    */    
+    bool noNormalizeNTs;
+    
     /** Flag to indicate if ESTs should be loaded and retained in
         memory instead of loading on-demand.
         

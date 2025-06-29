@@ -381,14 +381,12 @@ NewUVHeuristic::checkHist(const EST* est1,
                   << (result ? "true" : "false")
                   << ", revCompMatch = "
                   << (revCompMatch ? "true" : "false") << std::endl;
-        if (result) {
-            std::cout << "View histogram (y/n)? " << std::flush;
-            std::string ans;
-            std::cin  >> ans;
-            if (ans == "y") {
-                printHist(est1, est2, revCompMatch, result, nMers);
-            }
-        }
+    }
+    std::cout << "View histogram (y/n)? " << std::flush;
+    std::string ans;
+    std::cin  >> ans;
+    if (ans == "y") {
+        printHist(est1, est2, revCompMatch, result, nMers);
     }
 }
 
@@ -397,7 +395,7 @@ NewUVHeuristic::printHists(const EST* est1,
                            const EST* est2,
                            const bool revCompMatch,
                            const bool result) {
-    checkHist(est1, est2, revCompMatch, result, 6);
+    checkHist(est1, est2, revCompMatch, result, 3);
 }
 
 #endif

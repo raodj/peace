@@ -158,7 +158,10 @@ D2::runD2(const EST* estS2) {
     // reduced based on hints from the <i>t/v</i> heuristic.
     int sq1Start = 0, sq1End = s1WordTable.size() + wordSize - 1;
     int sq2Start = 0, sq2End = s2WordTable.size() + wordSize - 1;
-    
+
+    // Temorarily added code to track the window with minimum score.
+    int sq1MinPos = 0, sq2MinPos = 0;
+
     // Initialize the delta tables.
     memset(delta, 0, sizeof(int) * (1 << (wordSize * 2)));
     int score = 0;
@@ -197,7 +200,8 @@ D2::runD2(const EST* estS2) {
             // the word at s2Win is moving out as we move window
             // associated with EST #2 from left-to-right.
             updateWindow(s2WordTable[s2Win + numWordsInWindow],
-                         s2WordTable[s2Win], score, minScore);
+                         s2WordTable[s2Win], score, minScore,
+                         s1Win, s2Win, sq1MinPos, sq2MinPos);
         }
         // Break if the window on s1 cannot be shifted any further right
         if (s1Win >= LastWordInSq1) {
@@ -221,7 +225,8 @@ D2::runD2(const EST* estS2) {
             // the word at s2Win is moving out as we move window
             // associated with EST #2 from right-to-left.
             updateWindow(s2WordTable[s2Win - numWordsInWindow],
-                         s2WordTable[s2Win], score, minScore);
+                         s2WordTable[s2Win], score, minScore,
+                         s1Win, s2Win, sq1MinPos, sq2MinPos);
         }
         // Break if the window on s1 cannot be shifted any further right
         if ((s1Win+1) >= LastWordInSq1) {
@@ -233,7 +238,8 @@ D2::runD2(const EST* estS2) {
         // EST #1.
         updateWindow(s1WordTable[s1Win + 1],
                      s1WordTable[s1Win + 1 + numWordsInWindow],
-                     score, minScore);
+                     score, minScore, s1Win, FirstWordInSq2,
+                     sq1MinPos, sq2MinPos);
         // Break out of this loop if we have found a a potential match
         if (minScore <= threshold) {
             break;

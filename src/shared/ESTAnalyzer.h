@@ -41,6 +41,18 @@
 class HeuristicChain;
 class ESTList;
 class EST;
+class ESTAnalyzer;
+
+/**
+   This is a synonym for an ESTAnalyzer. Earlier, PEACE was primarily
+   used for EST analysis. However, over time this functionality/scope
+   has steadily increased to include other analysis such as
+   clustering, assembly, and clustering using completely different
+   metrics/measures. Accordingly, the source code is continuing to
+   evolve and change with transitions in meanings of the different
+   APIs (includes classes and methods).
+*/
+using Analyzer = ESTAnalyzer;
 
 /** The base class of all EST analyzers.
 

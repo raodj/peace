@@ -41,6 +41,7 @@ InputFile::InputFile(const std::string& srcFileName) :
     fileName(srcFileName) {
     randomizeNbases = false;
     maskBases       = false;
+    normalizeNTs    = true;
 }
 
 InputFile::~InputFile() {
@@ -66,8 +67,10 @@ InputFile::getNextEntry(const int estID) {
     }
     // Normalize the sequence by applying makign and ranodmization
     // options via a helper method.
-    sequence = EST::normalizeBases(sequence, maskBases,
-                                   randomizeNbases, (int) position);
+    if (normalizeNTs) {
+        sequence = EST::normalizeBases(sequence, maskBases,
+                                       randomizeNbases, (int) position);
+    }
     // OK, create and return the EST after updating our internal tables
     entryOffset[estID] = position;
     // Normalize the nucleotide sqeuence 
@@ -105,9 +108,10 @@ InputFile::repopulate(EST& est) {
 }
 
 void
-InputFile::setOptions(bool maskBases, bool randomizeNbases) {
+InputFile::setOptions(bool maskBases, bool randomizeNbases, bool normalizeNTs) {
     this->maskBases       = maskBases;
     this->randomizeNbases = randomizeNbases;
+    this->normalizeNTs    = normalizeNTs;
 }
 
 #endif
