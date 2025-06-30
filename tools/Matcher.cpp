@@ -273,7 +273,7 @@ Matcher::loadData(const std::string& dataFileName, ESTList& estList) {
         return false;
     }
     // File was opened successfully. Setup options
-    inputFile.setOptions(false, true);  // noMaskBases, randomizeNbases
+    inputFile.setOptions(false, true, true);  // noMaskBases, randomizeNbases
     // Try loading fragments from this file into the est list
     const int ESTStartID = estList.size();
     for(int index = 0; ((inputFile.good()) && inputFile.hasNextEntry());

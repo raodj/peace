@@ -116,9 +116,12 @@ protected:
         values are displayed. By default this flag is set to \c false
         to indicate that the FASTA header information must also be
         displayed.
+
+        \param[in] outFormat The otuput format in which the mst is to
+        be generated. Valid values are fig or dot.
     */
     ShowMST(const double xScale, const double yScale,
-            const bool showIndexOnly);
+            const bool showIndexOnly, const std::string& outFormat = "fig");
     
     /** The destructor.
         
@@ -192,6 +195,34 @@ protected:
         showIndexOnly flag is set to \c false.
     */
     std::string getESTId(const MSTguiNode& node, const int maxLen = -1);
+
+    /** Helper method to draw the MST in GraphViz's DOT format to the
+        given output file.
+
+        \param[in] outFileName The output file name to where the MST
+        is to be written in GraphViz's DOT format.
+
+        \return This method returns zero on success and non-zero on
+        errors.
+     */
+    int drawDotGraph(const std::string& outFileName);
+
+    /** Helper method to generate a suitable color for a given node.
+
+        This is a helper method that is used to generate suitable
+        pastel colors for a given cluster ID.
+
+        \param[in] clsId The ID of the cluster for which a color is to
+        be returned.
+
+        \param[in] numColors The total number of colors to be
+        generated.  Typically, this is the same as the number of
+        clusters.
+        
+        \return The color in "H[, ]+S[, ]+V" format
+    */
+    std::string getDotNodeColor(const int clsId,
+                                const int numColors = 35) const;
     
 private:
     /** The x-scale factor for line lengths.
@@ -221,6 +252,13 @@ private:
         FASTA header information must also be displayed.
     */
     const bool showIndexOnly;
+
+    /** The format (fig or dot) in which the mst is to be generated.
+
+        This flag is used to check and generate output in FIG or DOT
+        format.
+    */
+    const std::string outFormat;
 };
 
 #endif

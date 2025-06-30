@@ -49,9 +49,9 @@ Tool::~Tool() {
 }
 
 bool
-Tool::loadFastaFile(const std::string& fileName) {
+Tool::loadFastaFile(const std::string& fileName, const std::string& format) {
     // Try and open the FASTA file using helper method in PEACE.
-    return peace.loadFile(fileName, "", 0);
+    return peace.loadFile(fileName, format, 0);
 }
 
 // A static helper method to split strings
@@ -127,7 +127,13 @@ Tool::loadClusterInfo(const std::string& fileName) {
                       << line << "'\n";
         } else {
             const int clusterNum = std::stoi(vals[1]);
-            colorMap[vals[8]] = clusterNum;
+            // The ESTInfo may have commas in it. So we can't just split and
+            // read it. We have to do a bit more finess for it.
+            // By reading everything after the 4th comma.
+            int commaPos = 0;
+            for (int i = 0; i < 4; i++, commaPos = line.find(',', commaPos) + 1) {}
+            const std::string info = line.substr(commaPos + 1);
+            colorMap[info] = clusterNum;
         }
     } 
     // Detect if all the data was read & processed
@@ -167,10 +173,19 @@ Tool::getColor(const int estIdx, const int defaultColor) const {
     if (entry != colorMap.end()) {
         // Entry found. Update color.
         color = entry->second + USER_COLOR_START;
+    } else {
+        std::cout << est->getInfo() << " not found.\n";
     }
     
     // return either the default or the supplied color.
     return color;
+}
+
+int
+Tool::getCluster(const int estIdx, const int defaultCluster) const {
+    const int clsColor = getColor(estIdx, defaultCluster);
+    return (clsColor != defaultCluster ?
+            (clsColor - USER_COLOR_START) : clsColor);
 }
 
 bool

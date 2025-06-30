@@ -96,12 +96,16 @@ public:
 		
         \param[in] fileName The FASTA file name from which the FASTA
         sequences are to be loaded.
-       
+
+        \param[in] format An optional format for the data in the
+        file. Valid formats are "fasta" or "pdblist"
+        
         \return This method returns \c true if all the data from the
         fasta file was successfully read.  On errors this method
         generates suitable error messages and returns \c false.
     */
-    bool loadFastaFile(const std::string& fileName);
+    bool loadFastaFile(const std::string& fileName,
+                       const std::string& format = "fasta");
 
     /** Method to process clustering information to provide cluster
         color codes.
@@ -175,6 +179,22 @@ public:
     */
     int getColor(const int estIdx, const int defaultColor = 0) const;
 
+    /** Obtain the cluster number associated with a given est.
+
+        This method uses the cluster map and returns cluster ID only
+        if clustering data as been provided by the user.
+
+       \param[in] estIdx The index of the EST for which a color code
+        is desired.
+
+        \param[in] defaultClsId The default cluster ID to be returned
+        by this method if clustering data is not available.
+        
+        \return This method returns the cluster nummber associated
+        with a given id.
+     */
+    int getCluster(const int estIdx, const int defaultCluster = -1) const;
+    
     /** Method to load data for processing from PEACE MST file format.
         
         This method is used to load the MST data from the supplied
