@@ -202,10 +202,19 @@ protected:
         \param[in] outFileName The output file name to where the MST
         is to be written in GraphViz's DOT format.
 
+        \param[in] clsThreshold The threshold for distance after which
+        labels are to be generated.  If this value is -1, then edge
+        labels are not generated.
+        
+        \param[in] showClsId Optionally, s
+        how the ID of the clusters
+        on 1st encountered node for each cluster.
+        
         \return This method returns zero on success and non-zero on
         errors.
      */
-    int drawDotGraph(const std::string& outFileName);
+    int drawDotGraph(const std::string& outFileName, const double clsThreshold,
+                     const bool showClsId);
 
     /** Helper method to generate a suitable color for a given node.
 

@@ -22,13 +22,17 @@
 //
 //---------------------------------------------------------------------------
 
+#include <algorithm>
+#include <cmath>
+#include <sstream>
+#include <iomanip>
+
 #include "ShowMST.h"
 #include "Common.h"
 #include "EST.h"
 #include "ESTList.h"
 #include "ArgParser.h"
-#include <cmath>
-#include <algorithm>
+
 
 // The minimum spacing between nodes in the tree.
 #define MIN_SPC 100
@@ -44,11 +48,13 @@ ShowMST::main(int argc, char *argv[]) {
     std::string pdbListFile; // File with path to PDBF files.
     std::string outFileName; // Output file with bracketed-MST.
     std::string clstrFileName; // Cluster output data file from PEACE
-    std::string format = "fig";  // Outut format.
+    std::string format  = "fig";  // Outut format.
     bool showOptions    = false;
     bool showIndexOnly  = false;
+    bool showClsId      = true;
     double xScale       = 5.0;
     double yScale       = 1.5;
+    double clsThreshold = -1;
     
     // Create the list of valid arguments to be used by the arg_parser.
     ArgParser::ArgRecord arg_list[] = {
@@ -62,7 +68,7 @@ ShowMST::main(int argc, char *argv[]) {
          &outFileName, ArgParser::STRING},
         {"--clstrFile", "Optional flat clusters output from PEACE for color coding",
          &clstrFileName, ArgParser::STRING},        
-        {"--xScale", "X-Scale for emphasizing line lengths (Xfig only)",
+        {"--xScale", "X-Scale for emphasizing line lengths (Xfig & DOT)",
          &xScale, ArgParser::DOUBLE},
         {"--yScale", "Y-Scale for vert. spacing between entries (Xfig only)",
          &yScale, ArgParser::DOUBLE},
@@ -70,6 +76,10 @@ ShowMST::main(int argc, char *argv[]) {
          &showIndexOnly, ArgParser::BOOLEAN},
         {"--format", "Output in 'fig' or 'dot' format", &format,
          ArgParser::STRING},
+        {"--clsThreshold", "Clustering cuttoff threshold", &clsThreshold,
+         ArgParser::DOUBLE},
+        {"--showClsId", "Include cluster IDs (DOT only)", &showClsId,
+         ArgParser::BOOLEAN},
         {"--options", "Lists options for this tool",
          &showOptions, ArgParser::BOOLEAN},    
         {"", "", NULL, ArgParser::INVALID}
@@ -128,7 +138,7 @@ ShowMST::main(int argc, char *argv[]) {
         showMST.drawNode(showMST.getRoot(), 0, 0, endY);
     } else {
         // Have the helper method write the mst in DOT format
-        return showMST.drawDotGraph(outFileName);
+        return showMST.drawDotGraph(outFileName, clsThreshold, showClsId);
     }
     // Everything went well.
     return 0;
@@ -241,7 +251,8 @@ ShowMST::~ShowMST() {
 }
 
 int
-ShowMST::drawDotGraph(const std::string& outFileName) {
+ShowMST::drawDotGraph(const std::string& outFileName, const double clsThreshold,
+                      const bool showClsId) {
     std::ofstream dotFile(outFileName);
     if (!dotFile.good()) {
         std::cout << "Error opening file " << outFileName << std::endl;
@@ -249,29 +260,44 @@ ShowMST::drawDotGraph(const std::string& outFileName) {
     }
     // Write the pre-defined header to the file
     dotFile << "digraph mst {\n"
-            << "  node[label=\"\",width=0.2,shape=\"circle\"];\n\n";
+            << "  node[label=\"\", width=0.2, shape=\"circle\""
+            << ", fontname=\"bold\"];\n\n";
  
     // Generate edge information for each edge in the MST by walking
     // the list of nodes in the MST
     for (const MSTguiNode& node : mst) {
         if (node.parentIdx != -1) {
+            // Generate a label for the edge if its distance > threshold.
+            std::string label = "";
+            if ((clsThreshold != -1) && (node.metric > clsThreshold)) {
+                std::ostringstream labelInfo;
+                labelInfo << ", label=\"" << std::setprecision(2)
+                          << node.metric << "\", style=\"dotted\""
+                          << ", fontsize=\"10pt\"";
+                label = labelInfo.str();
+            }
+            // Note we print 0.001f for distance == 0, because graphviz
+            // will not accept zero-length edges
             dotFile << "  " << node.parentIdx << " -> " << node.estIdx
-                    << " [dir=\"none\", len=" << std::max(node.metric * 2, 0.001f)
+                    << " [dir=\"none\", len="
+                    << std::max(node.metric * xScale, 0.001)
+                    << label  // could be just an empty string.
                     << "]\n";
         }
     }
 
     // Generate node color based on clustering for each of the nodes
-    // in the MST
-    int prevClsId = -1;
+    // in the MST.  The following unordered_map tracks cluster IDs
+    // whose xlabel has already been printed.
+    std::unordered_map<int,bool> clsIdPrinted;
     for (const MSTguiNode& node : mst) {
         const int clusterId = getCluster(node.estIdx, 0);
         std::string xlabel;
         if (node.estIdx == 0) {
-            xlabel = "*";
-        } else if (prevClsId != clusterId) {
-            // xlabel = std::to_string(clusterId);
-            prevClsId = clusterId;
+            xlabel = "*\", color=\"black";
+        } else if (showClsId && !clsIdPrinted[clusterId]) {
+            xlabel = std::to_string(clusterId);
+            clsIdPrinted[clusterId] = true;
         }
         // std::cout << node.estIdx << ", " << clusterId << std::endl;
         dotFile << "  " << node.estIdx << "[style=\"filled\", color=\""
