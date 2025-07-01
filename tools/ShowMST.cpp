@@ -49,6 +49,7 @@ ShowMST::main(int argc, char *argv[]) {
     std::string outFileName; // Output file with bracketed-MST.
     std::string clstrFileName; // Cluster output data file from PEACE
     std::string format  = "fig";  // Outut format.
+    std::string title   = "";
     bool showOptions    = false;
     bool showIndexOnly  = false;
     bool showClsId      = true;
@@ -80,6 +81,7 @@ ShowMST::main(int argc, char *argv[]) {
          ArgParser::DOUBLE},
         {"--showClsId", "Include cluster IDs (DOT only)", &showClsId,
          ArgParser::BOOLEAN},
+	{"--title", "An optional title for DOT only", &title, ArgParser::STRING},
         {"--options", "Lists options for this tool",
          &showOptions, ArgParser::BOOLEAN},    
         {"", "", NULL, ArgParser::INVALID}
@@ -138,7 +140,7 @@ ShowMST::main(int argc, char *argv[]) {
         showMST.drawNode(showMST.getRoot(), 0, 0, endY);
     } else {
         // Have the helper method write the mst in DOT format
-        return showMST.drawDotGraph(outFileName, clsThreshold, showClsId);
+        return showMST.drawDotGraph(outFileName, clsThreshold, showClsId, title);
     }
     // Everything went well.
     return 0;
@@ -252,7 +254,7 @@ ShowMST::~ShowMST() {
 
 int
 ShowMST::drawDotGraph(const std::string& outFileName, const double clsThreshold,
-                      const bool showClsId) {
+                      const bool showClsId, const std::string& title) {
     std::ofstream dotFile(outFileName);
     if (!dotFile.good()) {
         std::cout << "Error opening file " << outFileName << std::endl;
@@ -262,6 +264,9 @@ ShowMST::drawDotGraph(const std::string& outFileName, const double clsThreshold,
     dotFile << "digraph mst {\n"
             << "  node[label=\"\", width=0.2, shape=\"circle\""
             << ", fontname=\"bold\"];\n\n";
+    if (!title.empty()) {
+        dotFile << "  graph[label=\"" << title << "\"];\n";
+    }
  
     // Generate edge information for each edge in the MST by walking
     // the list of nodes in the MST

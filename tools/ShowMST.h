@@ -214,7 +214,7 @@ protected:
         errors.
      */
     int drawDotGraph(const std::string& outFileName, const double clsThreshold,
-                     const bool showClsId);
+                     const bool showClsId, const std::string& title = "");
 
     /** Helper method to generate a suitable color for a given node.
 
